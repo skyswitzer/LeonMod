@@ -1,0 +1,21 @@
+
+# ignore all
+*
+# not sure why this is needed for next part, but it is
+
+# allow these exact files:
+!.gitignore
+!*/
+
+!/DLC/readme.md
+!/DLC/LEKMOD_V28.2/Override/CIV5Units.xml
+!/DLC/LEKMOD_V28.2/Override/CIV5Units_Mongol.xml
+!/DLC/LEKMOD_V28.2/UI/policy_buildings.lua
+!/DLC/LEKMOD_V28.2/UI/CityBannerManager.lua
+!/DLC/LEKMOD_V28.2/UI/InGame.lua
+!/DLC/LEKMOD_V28.2/Mods/No Quitters Mod (v 11)/ui/EnemyUnitPanel.lua
+!/DLC/LEKMOD_V28.2/Mods/No Quitters Mod (v 11)/social_policies/8_exploration/Exploration1_Colonialism.lua
+!/DLC/LEKMOD_V28.2/CvGameCore_Expansion2*
+!/DLC/LEKMOD_V28.2/Mods/No Quitters Mod (v 11)/social_policies/8_exploration/*.lua
+!/Maps/*.lua
+!/DLC/LEKMOD_V28.2/nqmod-vs2008-master/**
