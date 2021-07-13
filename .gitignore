@@ -6,9 +6,7 @@
 
 # allow these exact files:
 !.gitignore
-!/readme.md
-
-
+!/DLC/readme.md
 !/DLC/LEKMOD_V28.2/Override/CIV5Units.xml
 !/DLC/LEKMOD_V28.2/Override/CIV5Units_Mongol.xml
 !/DLC/LEKMOD_V28.2/UI/policy_buildings.lua
