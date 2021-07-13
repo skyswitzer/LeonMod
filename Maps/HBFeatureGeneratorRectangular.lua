@@ -369,64 +369,58 @@ function FeatureGenerator:AddAtolls()
 		for x = 0, iW - 1 do
 			local i = y * iW + x + 1; -- Lua tables/lists/arrays start at 1, not 0 like C++ or Python
 			local plot = Map.GetPlot(x, y)
-			local plotType = plot:GetPlotType()
-			if plotType == PlotTypes.PLOT_OCEAN then
-				local featureType = plot:GetFeatureType()
-				if featureType ~= FeatureTypes.FEATURE_ICE then
-					if not plot:IsLake() then
-						local terrainType = plot:GetTerrainType()
-						if terrainType == TerrainTypes.TERRAIN_COAST then
-							if plot:IsAdjacentToLand() then
-								-- Check all adjacent plots and identify adjacent landmasses.
-								local iNumLandAdjacent, biggest_adj_area = 0, 0;
-								local bPlotValid = true;
-								for loop, direction in ipairs(direction_types) do
-									local adjPlot = Map.PlotDirection(x, y, direction)
-									if adjPlot ~= nil then
-										local adjPlotType = adjPlot:GetPlotType()
-										if adjPlotType ~= PlotTypes.PLOT_OCEAN then -- Found land.
-											iNumLandAdjacent = iNumLandAdjacent + 1;
-											-- Avoid being adjacent to tundra, snow, or feature ice!
-											local adjTerrainType = adjPlot:GetTerrainType()
-											if adjTerrainType == TerrainTypes.TERRAIN_TUNDRA or adjTerrainType == TerrainTypes.TERRAIN_SNOW then
-												bPlotValid = false;
-											end
-											local adjFeatureType = adjPlot:GetFeatureType()
-											if adjFeatureType == FeatureTypes.FEATURE_ICE then
-												bPlotValid = false;
-											end
-											if adjPlotType == PlotTypes.PLOT_LAND or adjPlotType == PlotTypes.PLOT_HILLS then
-												local iArea = adjPlot:GetArea()
-												local adjArea = Map.GetArea(iArea)
-												local iNumAreaPlots = adjArea:GetNumTiles()
-												if iNumAreaPlots > biggest_adj_area then
-													biggest_adj_area = iNumAreaPlots;
-												end
-											end
-										end
-									end
-								end
-								-- Only plots with a single land plot adjacent can be eligible.
-								if iNumLandAdjacent == 1 and bPlotValid == true then
-									if biggest_adj_area >= 76 then
-										-- discard this site
-									elseif biggest_adj_area >= 41 then
-										table.insert(temp_epsilon_list, i);
-									elseif biggest_adj_area >= 17 then
-										table.insert(temp_delta_list, i);
-									elseif biggest_adj_area >= 8 then
-										table.insert(temp_gamma_list, i);
-									elseif biggest_adj_area >= 3 then
-										table.insert(temp_beta_list, i);
-									elseif biggest_adj_area >= 1 then
-										table.insert(temp_alpha_list, i);
-									--else -- Unexpected result
-										--print("** Area Plot Count =", biggest_adj_area);
-									end
-								end
+
+			-- skip most plots
+			if PlotTypes.PLOT_OCEAN ~= plot:GetPlotType() then do break end end			-- must be ocean
+			if FeatureTypes.FEATURE_ICE == plot:GetFeatureType() then do break end end 	-- cannot be ice
+			if plot:IsLake() then do break end end 										-- cannot be a lake
+			if TerrainTypes.TERRAIN_COAST ~= plot:GetTerrainType() then do break end end -- must be coast
+			if not plot:IsAdjacentToLand() then do break end end 						-- must be immediate coast
+					
+			-- Check all adjacent plots and identify adjacent landmasses.
+			local iNumLandAdjacent, biggest_adj_area = 0, 0;
+			local bPlotValid = true;
+			for loop, direction in ipairs(direction_types) do
+				local adjPlot = Map.PlotDirection(x, y, direction)
+				if adjPlot == nil then do break end end
+					local adjPlotType = adjPlot:GetPlotType()
+					if adjPlotType ~= PlotTypes.PLOT_OCEAN then -- Found land.
+						iNumLandAdjacent = iNumLandAdjacent + 1;
+						-- Avoid being adjacent to tundra, snow, or feature ice!
+						local adjTerrainType = adjPlot:GetTerrainType()
+						if adjTerrainType == TerrainTypes.TERRAIN_TUNDRA or adjTerrainType == TerrainTypes.TERRAIN_SNOW then
+							bPlotValid = false;
+						end
+						local adjFeatureType = adjPlot:GetFeatureType()
+						if adjFeatureType == FeatureTypes.FEATURE_ICE then
+							bPlotValid = false;
+						end
+						if adjPlotType == PlotTypes.PLOT_LAND or adjPlotType == PlotTypes.PLOT_HILLS then
+							local iArea = adjPlot:GetArea()
+							local adjArea = Map.GetArea(iArea)
+							local iNumAreaPlots = adjArea:GetNumTiles()
+							if iNumAreaPlots > biggest_adj_area then
+								biggest_adj_area = iNumAreaPlots;
 							end
 						end
 					end
+			end
+			-- Only plots with a single land plot adjacent can be eligible.
+			if iNumLandAdjacent == 1 and bPlotValid == true then
+				if biggest_adj_area >= 76 then
+					-- discard this site
+				elseif biggest_adj_area >= 41 then
+					table.insert(temp_epsilon_list, i);
+				elseif biggest_adj_area >= 17 then
+					table.insert(temp_delta_list, i);
+				elseif biggest_adj_area >= 8 then
+					table.insert(temp_gamma_list, i);
+				elseif biggest_adj_area >= 3 then
+					table.insert(temp_beta_list, i);
+				elseif biggest_adj_area >= 1 then
+					table.insert(temp_alpha_list, i);
+				--else -- Unexpected result
+					--print("** Area Plot Count =", biggest_adj_area);
 				end
 			end
 		end

@@ -726,6 +726,10 @@ function FractalWorld:GeneratePlotTypes(args)
 			if(val <= iWaterThreshold) then
 				self.plotTypes[i] = PlotTypes.PLOT_OCEAN;
 				
+				--if val < iWaterThreshold-8 then
+				--	self.plotTypes[i] = PlotTypes.PLOT_MOUNTAIN;
+				--end
+
 				if tectonic_islands then -- Build islands in oceans along tectonic ridge lines - Brian
 					if (mountainVal == iMountain100) then -- Isolated peak in the ocean
 						self.plotTypes[i] = PlotTypes.PLOT_MOUNTAIN;

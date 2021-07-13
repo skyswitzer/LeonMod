@@ -76,7 +76,6 @@ function TerrainGenerator.Create(args)
 	else -- Normal Temperature.
 	end
 	
-	--[[ Activate printout for debugging only
 	print("-"); print("- Desert Percentage:", iDesertPercent);
 	print("--- Latitude Readout ---");
 	print("- All Grass End Latitude:", fGrassLatitude);
@@ -85,6 +84,7 @@ function TerrainGenerator.Create(args)
 	print("- Tundra Start Latitude:", fTundraLatitude);
 	print("- Snow Start Latitude:", fSnowLatitude);
 	print("- - - - - - - - - - - - - -");
+	--[[ Activate printout for debugging only
 	]]--
 
 	local gridWidth, gridHeight = Map.GetGridSize();
