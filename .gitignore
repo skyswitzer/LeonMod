@@ -19,3 +19,9 @@
 !/DLC/LEKMOD_V28.2/Mods/No Quitters Mod (v 11)/social_policies/8_exploration/*.lua
 !/Maps/*.lua
 !/DLC/LEKMOD_V28.2/nqmod-vs2008-master/**
+**.obj
+**.asm
+**.ncb
+**.suo
+**.user
+**/BuildTemp
