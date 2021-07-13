@@ -378,6 +378,7 @@ void CvLuaPlayer::PushMethods(lua_State* L, int t)
 	Method(SetAlwaysSeeBarbCampsCount);
 	Method(ChangeAlwaysSeeBarbCampsCount);
 
+	Method(WillFinishReturnedBranchIfAdopted);
 	Method(IsPolicyBlocked);
 	Method(IsPolicyBranchBlocked);
 	Method(IsPolicyBranchUnlocked);
@@ -4855,6 +4856,18 @@ int CvLuaPlayer::lGetGarrisonedCityRangeStrikeModifier(lua_State* L)
 int CvLuaPlayer::lChangeGarrisonedCityRangeStrikeModifier(lua_State* L)
 {
 	return BasicLuaMethod(L, &CvPlayerAI::ChangeGarrisonedCityRangeStrikeModifier);
+}
+
+//------------------------------------------------------------------------------
+//bool IsPolicyBlocked();
+int CvLuaPlayer::lWillFinishReturnedBranchIfAdopted(lua_State* L)
+{
+	CvPlayerAI* pkPlayer = GetInstance(L);
+	const PolicyTypes ePolicy = (PolicyTypes)lua_tointeger(L, 2);
+
+	const int iResult = pkPlayer->GetPlayerPolicies()->WillFinishReturnedBranchIfAdopted(ePolicy);
+	lua_pushinteger(L, iResult);
+	return 1;
 }
 
 //------------------------------------------------------------------------------

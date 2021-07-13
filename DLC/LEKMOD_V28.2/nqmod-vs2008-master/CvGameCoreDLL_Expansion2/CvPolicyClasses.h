@@ -857,6 +857,7 @@ public:
 	void SetPolicyBranchFinished(PolicyBranchTypes eBranchType, bool bValue);
 	bool IsPolicyBranchFinished(PolicyBranchTypes eBranchType) const;
 	bool WillFinishBranchIfAdopted(PolicyTypes eType) const;
+	PolicyBranchTypes WillFinishReturnedBranchIfAdopted(PolicyTypes eType) const;
 
 	PolicyBranchTypes GetPolicyBranchChosen(int iID) const;
 	void SetPolicyBranchChosen(int iID, PolicyBranchTypes eBranchType);

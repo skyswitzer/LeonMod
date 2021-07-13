@@ -247,6 +247,7 @@ protected:
 	static int lIsSetUpForRangedAttack(lua_State* L);
 	static int lIsRangeAttackOnlyInDomain(lua_State* L);
 	static int lIsCityAttackOnly(lua_State* L);
+	static int lIsNoCityAttack(lua_State* L);
 
 	static int lImmuneToFirstStrikes(lua_State* L);
 	static int lNoDefensiveBonus(lua_State* L);
@@ -296,6 +297,7 @@ protected:
 	static int lDomainModifier(lua_State* L);
 	static int lGetStrategicResourceCombatPenalty(lua_State* L);
 	static int lGetUnhappinessCombatPenalty(lua_State* L);
+	static int lGetTourismCombatPenalty(lua_State* L);
 	static int lAirSweepCombatMod(lua_State* L);
 	static int lCapitalDefenseModifier(lua_State* L);
 	static int lCapitalDefenseFalloff(lua_State* L);

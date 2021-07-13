@@ -181,6 +181,7 @@ public:
 #endif
 	int GetGlobalDefenseModifier() const;
 	int GetExtraCityHitPoints() const;
+	int GetInternetDefense() const;
 	int GetMinorFriendshipChange() const;
 	int GetVictoryPoints() const;
 	int GetExtraMissionarySpreads() const;
@@ -414,6 +415,7 @@ private:
 #endif
 	int m_iGlobalDefenseModifier;
 	int m_iExtraCityHitPoints;
+	int m_iInternetDefense;
 	int m_iMissionType;
 	int m_iMinorFriendshipChange;
 	int m_iVictoryPoints;

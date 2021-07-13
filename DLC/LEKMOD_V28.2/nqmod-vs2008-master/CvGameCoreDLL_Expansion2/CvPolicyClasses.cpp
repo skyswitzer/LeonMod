@@ -4344,6 +4344,49 @@ bool CvPlayerPolicies::WillFinishBranchIfAdopted(PolicyTypes eType) const
 	return false;
 }
 
+/// Is this the last policy needed to finish this branch? Which branch?
+PolicyBranchTypes CvPlayerPolicies::WillFinishReturnedBranchIfAdopted(PolicyTypes eType) const
+{
+	PolicyBranchTypes eBranchType = (PolicyBranchTypes)m_pPolicies->GetPolicyEntry(eType)->GetPolicyBranchType();
+
+	if(eBranchType != NO_POLICY_BRANCH_TYPE)
+	{
+		// Is the branch this policy is in finished?
+#ifdef AUI_WARNING_FIXES
+		for (uint iPolicyLoop = 0; iPolicyLoop < GetPolicies()->GetNumPolicies(); iPolicyLoop++)
+#else
+		for(int iPolicyLoop = 0; iPolicyLoop < GetPolicies()->GetNumPolicies(); iPolicyLoop++)
+#endif
+		{
+			const PolicyTypes eLoopPolicy = static_cast<PolicyTypes>(iPolicyLoop);
+
+			CvPolicyEntry* pkLoopPolicyInfo = GC.getPolicyInfo(eLoopPolicy);
+			if(pkLoopPolicyInfo)
+			{
+				// This policy belongs to our branch
+				if(pkLoopPolicyInfo->GetPolicyBranchType() == eBranchType)
+				{
+					// We don't have this policy!
+					if(!HasPolicy(eLoopPolicy))
+					{
+						// Is it this policy passed in?
+						if(eLoopPolicy != eType)
+						{
+							// No, so this one won't finish branch
+							return NO_POLICY_BRANCH_TYPE;
+						}
+					}
+				}
+			}
+		}
+
+		// Didn't find any policy in this branch that we didn't have covered.  This will finish it
+		return eBranchType;
+	}
+
+	return NO_POLICY_BRANCH_TYPE;
+}
+
 /// What Policy Branches has the player chosen to adopt?
 PolicyBranchTypes CvPlayerPolicies::GetPolicyBranchChosen(int iID) const
 {

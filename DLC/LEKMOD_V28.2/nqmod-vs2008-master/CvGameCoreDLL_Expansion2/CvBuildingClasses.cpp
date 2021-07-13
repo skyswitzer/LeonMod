@@ -105,6 +105,7 @@ CvBuildingEntry::CvBuildingEntry(void):
 #endif
 	m_iGlobalDefenseModifier(0),
 	m_iExtraCityHitPoints(0),
+	m_iInternetDefense(0),
 	m_iMissionType(NO_MISSION),
 	m_iMinorFriendshipChange(0),
 	m_iVictoryPoints(0),
@@ -388,6 +389,7 @@ bool CvBuildingEntry::CacheResults(Database::Results& kResults, CvDatabaseUtilit
 #endif
 	m_iGlobalDefenseModifier = kResults.GetInt("GlobalDefenseMod");
 	m_iExtraCityHitPoints = kResults.GetInt("ExtraCityHitPoints");
+	m_iInternetDefense = kResults.GetInt("InternetDefense");
 	m_iMinorFriendshipChange = kResults.GetInt("MinorFriendshipChange");
 	m_iVictoryPoints = kResults.GetInt("VictoryPoints");
 	m_iExtraMissionarySpreads = kResults.GetInt("ExtraMissionarySpreads");
@@ -1322,6 +1324,12 @@ int CvBuildingEntry::GetGlobalDefenseModifier() const
 int CvBuildingEntry::GetExtraCityHitPoints() const
 {
 	return m_iExtraCityHitPoints;
+}
+
+/// Modifier to city's hit points
+int CvBuildingEntry::GetInternetDefense() const
+{
+	return m_iInternetDefense;
 }
 
 /// Instant Friendship mod change with City States

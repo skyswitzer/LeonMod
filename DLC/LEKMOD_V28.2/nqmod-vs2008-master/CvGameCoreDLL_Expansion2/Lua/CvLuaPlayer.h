@@ -359,6 +359,7 @@ protected:
 	static int lSetAlwaysSeeBarbCampsCount(lua_State* L);
 	static int lChangeAlwaysSeeBarbCampsCount(lua_State* L);
 
+	static int lWillFinishReturnedBranchIfAdopted(lua_State* L);
 	static int lIsPolicyBlocked(lua_State* L);
 	static int lIsPolicyBranchBlocked(lua_State* L);
 	static int lIsPolicyBranchUnlocked(lua_State* L);

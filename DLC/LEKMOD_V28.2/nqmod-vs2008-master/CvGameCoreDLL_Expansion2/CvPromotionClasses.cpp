@@ -143,6 +143,7 @@ CvPromotionEntry::CvPromotionEntry():
 	m_bHealIfDefeatExcludesBarbarians(false),
 	m_bEmbarkedAllWater(false),
 	m_bCityAttackOnly(false),
+	m_bNoCityAttack(false),
 	m_bCaptureDefeatedEnemy(false),
 	m_bIgnoreGreatGeneralBenefit(false),
 	m_bIgnoreZOC(false),
@@ -243,6 +244,7 @@ bool CvPromotionEntry::CacheResults(Database::Results& kResults, CvDatabaseUtili
 	m_bHealIfDefeatExcludesBarbarians = kResults.GetBool("HealIfDestroyExcludesBarbarians");
 	m_bEmbarkedAllWater = kResults.GetBool("EmbarkedAllWater");
 	m_bCityAttackOnly = kResults.GetBool("CityAttackOnly");
+	m_bNoCityAttack = kResults.GetBool("NoCityAttack");
 	m_bCaptureDefeatedEnemy = kResults.GetBool("CaptureDefeatedEnemy");
 	m_bIgnoreGreatGeneralBenefit = kResults.GetBool("IgnoreGreatGeneralBenefit");
 	m_bIgnoreZOC = kResults.GetBool("IgnoreZOC");
@@ -1437,6 +1439,12 @@ bool CvPromotionEntry::IsEmbarkedAllWater() const
 bool CvPromotionEntry::IsCityAttackOnly() const
 {
 	return m_bCityAttackOnly;
+}
+
+/// Accessor: Is this unit prevented from attacking cities?
+bool CvPromotionEntry::IsNoCityAttack() const
+{
+	return m_bNoCityAttack;
 }
 
 /// Accessor: Is a defeated enemy captured?

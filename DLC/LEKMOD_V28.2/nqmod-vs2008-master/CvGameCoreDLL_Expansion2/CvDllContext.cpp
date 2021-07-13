@@ -562,6 +562,11 @@ int CvDllGameContext::GetMAX_CITY_HIT_POINTS() const
 	return GC.getMAX_CITY_HIT_POINTS();
 }
 //------------------------------------------------------------------------------
+int CvDllGameContext::GetMAX_CITY_HIT_POINTS_AI_BONUS() const
+{
+	return GC.getMAX_CITY_HIT_POINTS_AI_BONUS();
+}
+//------------------------------------------------------------------------------
 float CvDllGameContext::GetCITY_ZOOM_OFFSET() const
 {
 	return GC.getCITY_ZOOM_OFFSET();

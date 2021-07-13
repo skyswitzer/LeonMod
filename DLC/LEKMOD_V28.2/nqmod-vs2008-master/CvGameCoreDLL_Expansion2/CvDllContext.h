@@ -114,6 +114,7 @@ public:
 
 	int DLLCALL GetMOVE_DENOMINATOR() const;
 	int DLLCALL GetMAX_CITY_HIT_POINTS() const;
+	int DLLCALL GetMAX_CITY_HIT_POINTS_AI_BONUS() const;
 	float DLLCALL GetCITY_ZOOM_OFFSET() const;
 	float DLLCALL GetCITY_ZOOM_LEVEL_1() const;
 	float DLLCALL GetCITY_ZOOM_LEVEL_2() const;

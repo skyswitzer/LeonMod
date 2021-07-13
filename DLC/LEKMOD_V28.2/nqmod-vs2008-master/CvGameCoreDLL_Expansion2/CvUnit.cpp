@@ -154,6 +154,7 @@ CvUnit::CvUnit() :
 	, m_iMustSetUpToRangedAttackCount("CvUnit::m_iMustSetUpToRangedAttackCount", m_syncArchive)
 	, m_iRangeAttackIgnoreLOSCount("CvUnit::m_iRangeAttackIgnoreLOSCount", m_syncArchive)
 	, m_iCityAttackOnlyCount(0)
+	, m_iNoCityAttackCount(0)
 	, m_iCaptureDefeatedEnemyCount(0)
 	, m_iRangedSupportFireCount("CvUnit::m_iRangedSupportFireCount", m_syncArchive)
 	, m_iAlwaysHealCount("CvUnit::m_iAlwaysHealCount", m_syncArchive)
@@ -924,6 +925,7 @@ void CvUnit::reset(int iID, UnitTypes eUnit, PlayerTypes eOwner, bool bConstruct
 	m_iMustSetUpToRangedAttackCount = 0;
 	m_iRangeAttackIgnoreLOSCount = 0;
 	m_iCityAttackOnlyCount = 0;
+	m_iNoCityAttackCount = 0;
 	m_iCaptureDefeatedEnemyCount = 0;
 	m_iRangedSupportFireCount = 0;
 	m_iAlwaysHealCount = 0;
@@ -4757,12 +4759,27 @@ bool CvUnit::IsCityAttackOnly() const
 }
 
 //	--------------------------------------------------------------------------------
+bool CvUnit::IsNoCityAttack() const
+{
+	VALIDATE_OBJECT
+	return m_iNoCityAttackCount > 0;
+}
+
+//	--------------------------------------------------------------------------------
 void CvUnit::ChangeCityAttackOnlyCount(int iChange)
 {
 	VALIDATE_OBJECT
 	if(iChange != 0)
 	{
 		m_iCityAttackOnlyCount += iChange;
+	}
+}
+void CvUnit::ChangeNoCityAttackCount(int iChange)
+{
+	VALIDATE_OBJECT
+	if(iChange != 0)
+	{
+		m_iNoCityAttackCount += iChange;
 	}
 }
 
@@ -11391,6 +11408,25 @@ int CvUnit::GetUnhappinessCombatPenalty() const
 
 	return iPenalty;
 }
+int CvUnit::GetTourismCombatPenalty(const PlayerTypes eOtherPlayerId) const
+{
+	int iRetVal = 0;
+	PlayerTypes eUsPlayerId = getOwner();
+
+	CvPlayer& usPlayer = GET_PLAYER(eUsPlayerId);
+	CvPlayer& themPlayer = GET_PLAYER(eOtherPlayerId);
+
+	int ourInfluence = usPlayer.GetCulture()->GetInfluencePercent(themPlayer.GetID());
+	int theirInfluence = themPlayer.GetCulture()->GetInfluencePercent(usPlayer.GetID());
+	
+	if (theirInfluence > ourInfluence)
+	{
+		int maxBonus = (int)GC.getTOURISM_COMBAT_MAX();
+		float influenceDivisor = GC.getTOURISM_COMBAT_DIVISOR();
+		iRetVal = -1 * min(maxBonus, (int)((theirInfluence - ourInfluence) / influenceDivisor));
+	}
+	return iRetVal;
+}
 
 //	--------------------------------------------------------------------------------
 void CvUnit::SetBaseCombatStrength(int iCombat)
@@ -11451,6 +11487,12 @@ int CvUnit::GetGenericMaxStrengthModifier(const CvUnit* pOtherUnit, const CvPlot
 	if(kPlayer.IsEmpireUnhappy())
 	{
 		iModifier += GetUnhappinessCombatPenalty();
+	}
+
+	// Tourism
+	if (pOtherUnit != NULL)
+	{
+		iModifier += GetTourismCombatPenalty(pOtherUnit->getOwner());
 	}
 
 	// Over our strategic resource limit?
@@ -12146,6 +12188,12 @@ int CvUnit::GetMaxRangedCombatStrength(const CvUnit* pOtherUnit, const CvCity* p
 		iModifier += GetUnhappinessCombatPenalty();
 	}
 
+	// Tourism
+	if(pOtherUnit != NULL)
+	{
+		iModifier += GetTourismCombatPenalty(pOtherUnit->getOwner());
+	}
+
 	// Over our strategic resource limit?
 	iTempModifier = GetStrategicResourceCombatPenalty();
 	if(iTempModifier != 0)
@@ -12606,6 +12654,11 @@ int CvUnit::GetAirCombatDamage(const CvUnit* pDefender, CvCity* pCity, bool bInc
 
 	iAttackerDamage = max(1,iAttackerDamage);
 
+	if (iAssumeExtraDamage > 0) // cap damage if intercepted
+	{
+		iAttackerDamage = 1;
+	}
+
 	return iAttackerDamage;
 }
 
@@ -12864,7 +12917,7 @@ CvUnit* CvUnit::GetBestInterceptor(const CvPlot& interceptPlot, CvUnit* pkDefend
 											if(plotDistance(pLoopUnit->getX(), pLoopUnit->getY(), interceptPlot.getX(), interceptPlot.getY()) <= pLoopUnit->getUnitInfo().GetAirInterceptRange())
 											{
 												iValue = pLoopUnit->currInterceptionProbability();
-
+												iValue *= (float)pLoopUnit->GetCurrHitPoints() / (float)pLoopUnit->GetMaxHitPoints();
 												if(iValue > iBestValue)
 												{
 													iBestValue = iValue;
@@ -13043,6 +13096,8 @@ int CvUnit::GetInterceptionDamage(const CvUnit* pAttacker, bool bIncludeRand) co
 	iInterceptorDamage /= 100;
 #endif
 
+	float interceptionDamageFraction = GC.getINTERCEPTION_DAMAGE_MULTIPLIER();
+	iInterceptorDamage *= interceptionDamageFraction;
 	// Bring it back out of hundreds
 	iInterceptorDamage /= 100;
 	
@@ -13742,14 +13797,7 @@ int CvUnit::maxInterceptionProbability() const
 int CvUnit::currInterceptionProbability() const
 {
 	VALIDATE_OBJECT
-	if(getDomainType() != DOMAIN_AIR)
-	{
-		return maxInterceptionProbability();
-	}
-	else
-	{
-		return ((maxInterceptionProbability() * GetCurrHitPoints()) / GetMaxHitPoints());
-	}
+	return maxInterceptionProbability();
 }
 
 
@@ -19415,6 +19463,7 @@ void CvUnit::setHasPromotion(PromotionTypes eIndex, bool bNewValue)
 		changeFreePillageMoveCount((thisPromotion.IsFreePillageMoves()) ? iChange: 0);
 		ChangeEmbarkAllWaterCount((thisPromotion.IsEmbarkedAllWater()) ? iChange: 0);
 		ChangeCityAttackOnlyCount((thisPromotion.IsCityAttackOnly()) ? iChange: 0);
+		ChangeNoCityAttackCount((thisPromotion.IsNoCityAttack()) ? iChange: 0);
 		ChangeCaptureDefeatedEnemyCount((thisPromotion.IsCaptureDefeatedEnemy()) ? iChange: 0);
 		ChangeCanHeavyChargeCount((thisPromotion.IsCanHeavyCharge()) ? iChange : 0);
 #ifdef NQ_HEAVY_CHARGE_DOWNHILL
@@ -19875,6 +19924,8 @@ void CvUnit::read(FDataStream& kStream)
 
 	kStream >> m_iCityAttackOnlyCount;
 
+	kStream >> m_iNoCityAttackCount;
+
 	kStream >> m_iCaptureDefeatedEnemyCount;
 
 	kStream >> m_iGreatAdmiralCount;
@@ -20018,6 +20069,7 @@ void CvUnit::write(FDataStream& kStream) const
 #endif
 	kStream << m_iNumExoticGoods;
 	kStream << m_iCityAttackOnlyCount;
+	kStream << m_iNoCityAttackCount;
 	kStream << m_iCaptureDefeatedEnemyCount;
 	kStream << m_iGreatAdmiralCount;
 

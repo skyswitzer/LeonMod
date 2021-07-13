@@ -1542,17 +1542,16 @@ void CvUnitCombat::GenerateAirCombatInfo(CvUnit& kAttacker, CvUnit* pkDefender, 
 	CvUnit* pInterceptor = kAttacker.GetBestInterceptor(plot, pkDefender);
 	int iInterceptionDamage = 0;
 
-	if(pInterceptor != NULL && pInterceptor != pkDefender)
+	// 0 evasion means it cannot be intercepted
+	if(kAttacker.evasionProbability() != 0 && pInterceptor != NULL)
 	{
 		pkCombatInfo->setUnit(BATTLE_UNIT_INTERCEPTOR, pInterceptor);
+		int evasion = kAttacker.evasionProbability();
+		int intercept = pInterceptor->currInterceptionProbability();
 		// Does the attacker evade?
-		if(GC.getGame().getJonRandNum(100, "Evasion Rand") >= kAttacker.evasionProbability())
+		if(intercept != 0 && GC.getGame().getJonRandNum(intercept + evasion, "Evasion Rand") < intercept)
 		{
-			// Is the interception successful?
-			if(GC.getGame().getJonRandNum(100, "Intercept Rand (Air)") < pInterceptor->currInterceptionProbability())
-			{
-				iInterceptionDamage = pInterceptor->GetInterceptionDamage(&kAttacker);
-			}
+			iInterceptionDamage = pInterceptor->GetInterceptionDamage(&kAttacker);
 		}
 		pkCombatInfo->setDamageInflicted(BATTLE_UNIT_INTERCEPTOR, iInterceptionDamage);		// Damage inflicted this round
 	}
@@ -1953,6 +1952,17 @@ void CvUnitCombat::ResolveAirUnitVsCombat(const CvCombatInfo& kCombatInfo, uint 
 
 		// Report that combat is over in case we want to queue another attack
 		GET_PLAYER(pkAttacker->getOwner()).GetTacticalAI()->CombatResolved(pkAttacker, bTargetDied);
+	}
+
+	if (pkAttacker && pInterceptor && iInterceptionDamage > 0)
+	{
+		strBuffer = GetLocalizedText("TXT_KEY_MISC_FRIENDLY_AIR_UNIT_INTERCEPTED", pkAttacker->getNameKey(), pkAttacker->getVisualCivAdjective(pInterceptor->getTeam()), pInterceptor->getNameKey(), iInterceptionDamage);
+		pkDLLInterface->AddMessage(uiParentEventID, pkAttacker->getOwner(), true, GC.getEVENT_MESSAGE_TIME(), strBuffer);
+	}
+	if (pkAttacker && pInterceptor && iInterceptionDamage <= 0)
+	{
+		strBuffer = GetLocalizedText("TXT_KEY_MISC_FRIENDLY_AIR_UNIT_INTERCEPTED_EVADED", pkAttacker->getNameKey(), pkAttacker->getVisualCivAdjective(pInterceptor->getTeam()), pInterceptor->getNameKey());
+		pkDLLInterface->AddMessage(uiParentEventID, pkAttacker->getOwner(), true, GC.getEVENT_MESSAGE_TIME(), strBuffer);
 	}
 }
 

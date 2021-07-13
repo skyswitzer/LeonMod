@@ -17302,7 +17302,17 @@ uint CvCity::GetCityBombardEffectTagHash() const
 //	---------------------------------------------------------------------------
 int CvCity::GetMaxHitPoints() const
 {
-	return GC.getMAX_CITY_HIT_POINTS() + m_iExtraHitPoints;
+	int total = GC.getMAX_CITY_HIT_POINTS() + GetExtraHitPoints();
+
+	// give AI some extra city hitpoints cents they dumm
+	int extraAiHitpoints = 0;
+	if (!this->isHuman())
+	{
+		extraAiHitpoints = total * GC.getMAX_CITY_HIT_POINTS_AI_BONUS();
+		extraAiHitpoints /= 100;
+	}
+
+	return total + extraAiHitpoints;
 }
 
 //	--------------------------------------------------------------------------------

@@ -239,6 +239,8 @@ public:
 
 	bool IsCityAttackOnly() const;
 	void ChangeCityAttackOnlyCount(int iChange);
+	bool IsNoCityAttack() const;
+	void ChangeNoCityAttackCount(int iChange);
 
 	bool IsCaptureDefeatedEnemy() const;
 	void ChangeCaptureDefeatedEnemyCount(int iChange);
@@ -480,6 +482,7 @@ public:
 
 	int GetStrategicResourceCombatPenalty() const;
 	int GetUnhappinessCombatPenalty() const;
+	int GetTourismCombatPenalty(const PlayerTypes eOtherPlayerId) const;
 
 	void SetBaseCombatStrength(int iCombat);
 	int GetBaseCombatStrength(bool bIgnoreEmbarked = false) const;
@@ -1397,6 +1400,7 @@ protected:
 	FAutoVariable<int, CvUnit> m_iMustSetUpToRangedAttackCount;
 	FAutoVariable<int, CvUnit> m_iRangeAttackIgnoreLOSCount;
 	int m_iCityAttackOnlyCount;
+	int m_iNoCityAttackCount;
 	int m_iCaptureDefeatedEnemyCount;
 	FAutoVariable<int, CvUnit> m_iRangedSupportFireCount;
 	FAutoVariable<int, CvUnit> m_iAlwaysHealCount;

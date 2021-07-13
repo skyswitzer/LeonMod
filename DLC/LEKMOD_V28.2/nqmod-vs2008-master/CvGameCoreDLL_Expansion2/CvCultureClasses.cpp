@@ -2604,11 +2604,9 @@ int CvPlayerCulture::GetInfluencePerTurn(PlayerTypes ePlayer) const
 
 	if ((int)ePlayer != m_pPlayer->GetID() && kOtherPlayer.isAlive() && !kOtherPlayer.isMinorCiv() && kOtherTeam.isHasMet(m_pPlayer->getTeam()))
 	{
-		// check to see if the other player has the Great Firewall
-		bool bTargetHasGreatFirewall = false;
-
 		int iLoopCity;
 		CvCity *pLoopCity;
+		float fInternetModifier = 1;
 
 		// only check for firewall if the internet influence spread modifier is > 0
 		int iTechSpreadModifier = m_pPlayer->GetInfluenceSpreadModifier();
@@ -2635,16 +2633,22 @@ int CvPlayerCulture::GetInfluencePerTurn(PlayerTypes ePlayer) const
 					BuildingTypes eBuilding = (BuildingTypes)playerCivilizationInfo.getCivilizationBuildings(eBuildingClass);
 					if(eBuilding != NO_BUILDING)
 					{
-
 						CvBuildingEntry* pBuildingEntry = GC.GetGameBuildings()->GetEntry(eBuilding);
-						if (!pBuildingEntry || !pBuildingEntry->NullifyInfluenceModifier())
+						// if the city has a building
+						if (pBuildingEntry != NULL && pLoopCity->GetCityBuildings()->GetNumBuilding(eBuilding) > 0)
 						{
-							continue;
-						}
-
-						if(pLoopCity->GetCityBuildings()->GetNumBuilding(eBuilding) > 0)
-						{
-							bTargetHasGreatFirewall = true;				
+							// if that building modifies internet
+							if(pBuildingEntry->GetInternetDefense() != 0)
+							{ 
+								// avoid subtracting more than internet
+								int internetDefense = max(0, pBuildingEntry->GetInternetDefense());
+								fInternetModifier *= (1.0f - (internetDefense / 100.0f));		
+							}
+							// if that building negates internet
+							if(pBuildingEntry->NullifyInfluenceModifier())
+							{
+								fInternetModifier = 0;
+							}
 						}
 					}
 				}
@@ -2664,12 +2668,10 @@ int CvPlayerCulture::GetInfluencePerTurn(PlayerTypes ePlayer) const
 
 			// if we have the internet online, check to see if the opponent has the firewall
 			// if they have the firewall, deduct the internet bonus from them
-			if (iTechSpreadModifier > 0 && bTargetHasGreatFirewall)
-			{
-				int iInfluenceWithoutModifier = pLoopCity->GetCityCulture()->GetBaseTourismBeforeModifiers();
-				int iInfluenceWithTechModifier = iInfluenceWithoutModifier * iTechSpreadModifier;
-				iInfluenceToAdd -= (iInfluenceWithTechModifier / 100);
-			}
+			int iInfluenceWithoutModifier = pLoopCity->GetCityCulture()->GetBaseTourismBeforeModifiers();
+			int iInfluenceWithTechModifier = iInfluenceWithoutModifier * iTechSpreadModifier;
+			fInternetModifier = max(0.0f, fInternetModifier); // avoid subtracting more than internet
+			iInfluenceToAdd -= (int)((iInfluenceWithTechModifier / 100) * (1.0f - fInternetModifier));
 			
 			iRtnValue += iInfluenceToAdd;
 		}
@@ -2678,6 +2680,24 @@ int CvPlayerCulture::GetInfluencePerTurn(PlayerTypes ePlayer) const
 
 	return iRtnValue;
 
+}
+
+int CvPlayerCulture::GetInfluencePercent(PlayerTypes ePlayer) const
+{
+	int iPercent = 0;
+	CvPlayer &kOtherPlayer = GET_PLAYER(ePlayer);
+	CvTeam &kOtherTeam = GET_TEAM(kOtherPlayer.getTeam());
+	if (kOtherTeam.isHasMet(m_pPlayer->getTeam()))
+	{
+		int iInfluenceOn = GetInfluenceOn(ePlayer);
+		int iLifetimeCulture = kOtherPlayer.GetJONSCultureEverGenerated();
+
+		if (iLifetimeCulture > 0)
+		{
+			iPercent = iInfluenceOn * 100 / iLifetimeCulture;
+		}
+	}
+	return max(0, iPercent);
 }
 
 /// Current influence level on this player
@@ -2694,14 +2714,7 @@ InfluenceLevelTypes CvPlayerCulture::GetInfluenceLevel(PlayerTypes ePlayer) cons
 	}
 	else
 	{
-		int iInfluenceOn = GetInfluenceOn(ePlayer);
-		int iLifetimeCulture = kOtherPlayer.GetJONSCultureEverGenerated();
-		int iPercent = 0;
-
-		if (iLifetimeCulture > 0)
-		{
-			iPercent = iInfluenceOn * 100 / iLifetimeCulture;
-		}
+		int iPercent = GetInfluencePercent(ePlayer);
 
 		eRtnValue = INFLUENCE_LEVEL_UNKNOWN;
 
@@ -4552,7 +4565,7 @@ int CvCityCulture::GetBaseTourismBeforeModifiers()
 			if(pkEntry && m_pCity->GetCityBuildings()->GetNumBuilding(eBuilding) > 0)
 			{
 				int iTourism = pkEntry->GetTechEnhancedTourism();
-				if (iTourism > 0 && GET_TEAM(m_pCity->getTeam()).GetTeamTechs()->HasTech((TechTypes)pkEntry->GetEnhancedYieldTech()))
+				if (GET_TEAM(m_pCity->getTeam()).GetTeamTechs()->HasTech((TechTypes)pkEntry->GetEnhancedYieldTech()))
 				{
 					iBase += iTourism;
 				}
@@ -4564,7 +4577,7 @@ int CvCityCulture::GetBaseTourismBeforeModifiers()
 	iBase += GET_PLAYER(m_pCity->getOwner()).GetPlayerPolicies()->GetNumericModifier(POLICYMOD_TOURISM_PER_CITY);
 #endif
 
-	return iBase;
+	return max(0, iBase);
 }
 
 /// What is the tourism output ignoring player-specific modifiers?
