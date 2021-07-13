@@ -41,6 +41,11 @@ Trireme
 
 
 issues:
+	background music
+	release v1
+
+
+
 	max out internet defense
 	GetNotifications()->Add
 	ai investment, see if(sGift.iGoldAmount > 0 && iGoldLeft >= (iGoldReserve / 2))

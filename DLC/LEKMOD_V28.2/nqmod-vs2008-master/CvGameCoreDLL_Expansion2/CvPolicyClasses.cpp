@@ -3568,6 +3568,8 @@ int CvPlayerPolicies::GetNextPolicyCost()
 	iCost *= m_pPlayer->getHandicapInfo().getPolicyPercent();
 	iCost /= 100;
 
+	iCost *= GC.getPOLICY_COST_MULTIPLIER();
+
 	// Make the number nice and even
 	int iDivisor = /*5*/ GC.getPOLICY_COST_VISIBLE_DIVISOR();
 	iCost /= iDivisor;
