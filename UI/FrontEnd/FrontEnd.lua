@@ -13,7 +13,7 @@ function ShowHideHandler( bIsHide, bIsInit )
     end
 
     if( not bIsHide ) then
-        Controls.AtlasLogo:SetTexture( "CivilzationVAtlas.dds" );
+        Controls.AtlasLogo:SetTexture( "civilzationvatlas-vanilla.dds" );
     	UIManager:SetUICursor( 0 );
         UIManager:QueuePopup( Controls.MainMenu, PopupPriority.MainMenu );
     else
