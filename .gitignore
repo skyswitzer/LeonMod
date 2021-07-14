@@ -23,7 +23,7 @@
 !/DLC/LEKMOD_V28.2/Mods/No Quitters Mod (v 11)/social_policies/8_exploration/*.lua
 
 # main menu background and music
-!/DLC/**/*OpeningMenu_Exp2.wav
+!/DLC/LEKMOD_V28.2/**/AudioDefinesExpansion1.xml
 !/DLC/LEKMOD_V28.2/civilzationvatlas-vanilla.dds
 !/UI/FrontEnd/FrontEnd.lua
 
