@@ -12,63 +12,50 @@ A CIV V mod starting with Lekmod V28.2. Requires all DLC.
 Create [Lekmod v28.2](https://docs.google.com/document/d/1-i_9E7hD_56WwNgj7LzrkbX7tCuNmud3AVyONijydWs/edit) Mirror
 Create vs2008 iso files and patch Mirror
 
- -- Uran, Horse, Oil,   Iron, Coal, Alum
- let city states spawn on islands
- canal maint
-the colloseum and zoo require a horse
+release v1
+	captured cities Urbanization buildings
+	make sure wonders do what they claim (like the great wall and terracotta army)
+	buff other naval melee
+	tech level palace defense bonus
 
-buff other naval melee
-Add smooth benefits to tourism - GetInfluenceTradeRouteScienceBonus (unit strength bonus as 
-Unit Strength +(min(100, tourismDifference) / 2)% )
-See GetUnhappinessCombatPenalty
-
-D:\SteamLibrary\steamapps\common\Sid Meier's Civilization V\Assets\DLC\LEKMOD_V28.2\Mods\No Quitters Mod (v 11)\ui\EnemyUnitPanel.lua:
-iModifier = theirUnit:GetUnhappinessCombatPenalty();
-
-
-
-cities start with 12 strength, increase with 0.5 pop, do 20 damage
-
-
-move governors mansion exploration benefits to Expansionist policy tree, rename governors mansion
-
-LeonModV0-LekmodV28.2
-Just the base LekmodV28.2 version, with maps included.
-
-Stele, or occasionally stela when derived from Latin, is a stone or wooden slab, generally taller than it is wide, erected in the ancient world as a monument. The surface of the stele often has text, ornamentation, or both. These may be inscribed, carved in relief, or painted. Stelae were created for many reasons. Grave stelae were used for funerary or commemorative purposes. Stelae as slabs of stone would also be used as ancient Greek and Roman government notices or as boundary markers to mark borders or property lines.
-BUILDING_STADE
-Trireme
-
-
-issues:
-	background music
-	release v1
+release v2
+	make good leaders worse
+	fix gimmic leaders
+	add messages to notification log
+	fix air strike damage notifications
+	city state purchasing improvements
+	provide way to keep improving internet defense
 
 
 
-	max out internet defense
-	GetNotifications()->Add
-	ai investment, see if(sGift.iGoldAmount > 0 && iGoldLeft >= (iGoldReserve / 2))
-		which eventually calls DoGoldGiftFromMajor
 
 
-	make priorities, then draw straws and Z draft, with placeholders for humans
-	once conflicts are handled the same way 
 
 
-	Have AI identify player with most city states, and then divvy up taking that player down
-	matrix 
 
-		At beginning of game, Use flavor, distance, etc. to get a matrix with some amount of randomness added. Draw straws to divvy up this many CS: floor(#AI * (#CS/#civs)). We'll go through and for the selected civ, boost their favorite 
 
-	Static Preference Matrix that gets scaled so each player divies up the CSs to be highest on 2 each (actually, not 2, but 
 
-		for each civ turn, use GPT, Current Influence, and # CS Allies as percent of total to multiply and get a
-		So if a civ has a bunch of city states, it will be devalued
 
-	Dynamic Preference Matrix
 
-		Use preference Matrix to make purchases, where we compare our preferences to others, and make gifts to those we have the highest relative preference until we are allies, then move on to second highest preference
+GetNotifications()->Add
+ai investment, see if(sGift.iGoldAmount > 0 && iGoldLeft >= (iGoldReserve / 2))
+	which eventually calls DoGoldGiftFromMajor
+
+
+make priorities, then draw straws and Z draft, with placeholders for humans
+once conflicts are handled the same way 
+
+
+Have AI identify player with most city states, and then divvy up taking that player down
+matrix 
+	At beginning of game, Use flavor, distance, etc. to get a matrix with some amount of randomness added. Draw straws to divvy up this many CS: floor(#AI * (#CS/#civs)). We'll go through and for the selected civ, boost their favorite 
+
+Static Preference Matrix that gets scaled so each player divies up the CSs to be highest on 2 each (actually, not 2, but 
+	for each civ turn, use GPT, Current Influence, and # CS Allies as percent of total to multiply and get a
+	So if a civ has a bunch of city states, it will be devalued
+
+Dynamic Preference Matrix
+	Use preference Matrix to make purchases, where we compare our preferences to others, and make gifts to those we have the highest relative preference until we are allies, then move on to second highest preference
 
 
 4 city states and 2 civs
