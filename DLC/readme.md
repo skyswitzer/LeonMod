@@ -16,8 +16,12 @@ release v1
 	captured cities Urbanization buildings
 	make sure wonders do what they claim (like the great wall and terracotta army)
 	tech level palace defense bonus
+	consider: remove +4 happiness from Liberty, make +1 happiness policy closer, +1 science earlier
+	even faster policy adoption?
 
 release v2
+	reconsider demographics (lower pop exponent) (gnp as net gpt) (literacy as number of techs researched)
+	ai combat mechanics, just move toward the enemy cities
 	make good leaders worse
 	fix gimmic leaders
 	add messages to notification log
@@ -29,7 +33,7 @@ release v2
 
 
 
-
+	84/85
 
 
 
