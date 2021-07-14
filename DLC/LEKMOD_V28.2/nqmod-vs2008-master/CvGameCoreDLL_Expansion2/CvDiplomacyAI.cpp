@@ -13146,7 +13146,7 @@ void CvDiplomacyAI::DoContactMinorCivs()
 
 			int iOldFriendship = GET_PLAYER(sGift.eMinor).GetMinorCivAI()->GetEffectiveFriendshipWithMajor(eID);
 
-			// Able to give a gift?  Don't gift more than half of the gold we have in one turn
+			// Able to give a gift? Leave 1/8th of our treasury at least.
 			if(sGift.iGoldAmount > 0 && iGoldLeft >= (iGoldReserve / 8))
 			{
 				GET_PLAYER(sGift.eMinor).GetMinorCivAI()->DoGoldGiftFromMajor(GetPlayer()->GetID(), sGift.iGoldAmount); //antonjs: todo: go through CvGame instead?
