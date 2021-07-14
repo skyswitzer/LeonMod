@@ -13,9 +13,9 @@ Create [Lekmod v28.2](https://docs.google.com/document/d/1-i_9E7hD_56WwNgj7Lzrkb
 Create vs2008 iso files and patch Mirror
 
 release v1
+	buff other naval melee
 	captured cities Urbanization buildings
 	make sure wonders do what they claim (like the great wall and terracotta army)
-	buff other naval melee
 	tech level palace defense bonus
 
 release v2
