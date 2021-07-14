@@ -17,10 +17,12 @@
 !/DLC/LEKMOD_V28.2/Mods/No Quitters Mod (v 11)/social_policies/8_exploration/Exploration1_Colonialism.lua
 !/DLC/LEKMOD_V28.2/CvGameCore_Expansion2*
 !/DLC/LEKMOD_V28.2/Mods/No Quitters Mod (v 11)/social_policies/8_exploration/*.lua
-!/DLC/LEKMOD_V28.2/civilzationvatlas-vanilla.dds
 !/DLC/LEKMOD_V28.2/nqmod-vs2008-master/**
+
+# main menu background and music
 !/DLC/**/*OpeningMenu_Exp2.wav
-!/DLC/**/*OpeningMenu_Exp2.wav
+!/DLC/LEKMOD_V28.2/civilzationvatlas-vanilla.dds
+!/UI/FrontEnd/FrontEnd.lua
 
 **.obj
 **.asm
