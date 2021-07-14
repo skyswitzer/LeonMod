@@ -151,7 +151,7 @@
     <!-- Menu Music -->
     <SoundData>
       <SoundID>SND_MUSIC_MAIN_MENU_EXP2</SoundID>
-      <Filename>OpeningMenu_Exp2</Filename>
+      <Filename>OpeningMenu_Proto_1</Filename>
       <LoadType>STREAMED</LoadType>
     </SoundData>
   </SoundDatas>
