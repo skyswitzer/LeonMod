@@ -34,6 +34,7 @@
 # dll code
 !/DLC/LEKMOD_V28.2/nqmod-vs2008-master/**
 # dll compile residue
+**.pdb
 **.obj
 **.asm
 **.ncb
