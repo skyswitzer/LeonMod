@@ -21,6 +21,8 @@
 !/DLC/LEKMOD_V28.2/Mods/No Quitters Mod (v 11)/ui/EnemyUnitPanel.lua
 # remove old exploration policy behavior
 !/DLC/LEKMOD_V28.2/Mods/No Quitters Mod (v 11)/social_policies/8_exploration/*.lua
+# demographics screen
+!/DLC/LEKMOD_V28.2/UI/InGame/Popups/Demographics.lua
 
 # main menu background and music
 !/DLC/Expansion2/**/AudioDefinesExpansion2.xml
@@ -38,4 +40,3 @@
 **.suo
 **.user
 **/BuildTemp
-**.pdb
