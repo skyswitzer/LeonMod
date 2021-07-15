@@ -222,7 +222,7 @@ end
 ----------------------------------------------------------------
 ----------------------------------------------------------------
 function GetGoldValue( iPlayer )
-    return Players[iPlayer]:CalculateGrossGold();
+    return Players[iPlayer]:CalculateGoldRate();
 end
 
 
