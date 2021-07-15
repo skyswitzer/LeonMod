@@ -10124,7 +10124,7 @@ void CvPlayer::changeTotalPopulation(int iChange)
 long CvPlayer::getRealPopulation() const
 {
 	const CvCity* pLoopCity;
-	__int64 iTotalPopulation = 0;
+	__int64 iTotalPopulation = 6142; // just make a minimum population
 	int iLoop = 0;
 
 	for(pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))

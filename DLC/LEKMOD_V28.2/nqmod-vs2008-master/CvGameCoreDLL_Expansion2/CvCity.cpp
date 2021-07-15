@@ -8223,7 +8223,7 @@ void CvCity::changePopulation(int iChange, bool bReassignPop)
 long CvCity::getRealPopulation() const
 {
 	VALIDATE_OBJECT
-	return (((long)(pow((double)getPopulation(), 2.8))) * 1000);
+	return (long)(getPopulation() * 1003742);
 }
 
 //	--------------------------------------------------------------------------------
