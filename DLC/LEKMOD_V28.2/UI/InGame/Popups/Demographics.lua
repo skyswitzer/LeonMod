@@ -383,13 +383,7 @@ end
 function GetLiteracyValue( iPlayer )
 
     local pTeamTechs = Teams[ Players[ iPlayer ]:GetTeam() ]:GetTeamTechs();
-    
-    local iWriting = GameInfoTypes[ "TECH_WRITING" ];
-    if( iWriting ~= nil and 
-        not pTeamTechs:HasTech( iWriting ) ) then
-        return 0;
-    end
-    
+        
     local iCount = 0;
 	for row in GameInfo.Technologies() do
 	    if( pTeamTechs:HasTech( row.ID ) ) then
@@ -397,7 +391,7 @@ function GetLiteracyValue( iPlayer )
 	    end
 	end
 	
-	return 100 * iCount / #GameInfo.Technologies;
+	return iCount;
 end
 
 
