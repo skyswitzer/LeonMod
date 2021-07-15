@@ -257,7 +257,7 @@ end
 ----------------------------------------------------------------
 ----------------------------------------------------------------
 function GetLandValue( iPlayer )
-    return Players[iPlayer]:GetNumPlots() * 10000;
+    return Players[iPlayer]:GetNumPlots() * 1000;
 end
 
 
