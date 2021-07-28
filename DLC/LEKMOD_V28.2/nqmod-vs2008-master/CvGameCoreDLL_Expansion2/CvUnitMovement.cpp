@@ -22,6 +22,9 @@ void CvUnitMovement::GetCostsForMove(const CvUnit* pUnit, const CvPlot* pFromPlo
 	CvFeatureInfo* pFeatureInfo = (eFeature > NO_FEATURE) ? GC.getFeatureInfo(eFeature) : 0;
 	TerrainTypes eTerrain = pToPlot->getTerrainType();
 	CvTerrainInfo* pTerrainInfo = (eTerrain > NO_TERRAIN) ? GC.getTerrainInfo(eTerrain) : 0;
+	
+	
+	
 
 #ifdef NQ_FIX_FASTER_ALONG_RIVER
 	if(bIgnoreTerrainCost || (bFasterAlongRiver && pToPlot->isRiver() && pFromPlot->isRiver()) || (bFasterInHills && pToPlot->isHills()))
@@ -45,6 +48,8 @@ void CvUnitMovement::GetCostsForMove(const CvUnit* pUnit, const CvPlot* pFromPlo
 		{
 			iRegularCost = std::max(1, (iRegularCost - pUnit->getExtraMoveDiscount()));
 		}
+
+		
 	}
 
 	// Is a unit's movement consumed for entering rough terrain?
@@ -146,6 +151,17 @@ void CvUnitMovement::GetCostsForMove(const CvUnit* pUnit, const CvPlot* pFromPlo
 		iRouteCost = INT_MAX;
 		iRouteFlatCost = INT_MAX;
 	}
+
+	if(pUnit->getDomainType() == DOMAIN_SEA && pToPlot->IsAllowsSailLand()){ // from Izy
+			iRegularCost = iMoveDenominator*3;
+			iRouteCost = iRegularCost;
+			iRouteFlatCost = iRegularCost;
+		}
+	if(pUnit->getDomainType() == DOMAIN_LAND && pToPlot->IsAllowsSailLand() && (!bIgnoreTerrainCost)) { 
+			iRegularCost = iMoveDenominator;
+			iRouteCost = iRegularCost;
+			iRouteFlatCost = iRegularCost;
+		}
 
 	// NQMP GJS - Great Wall fix
 	/*

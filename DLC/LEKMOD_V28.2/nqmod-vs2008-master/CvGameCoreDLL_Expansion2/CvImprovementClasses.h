@@ -54,6 +54,7 @@ public:
 
 	int GetGoldMaintenance() const;
 	int GetCultureBombRadius() const;
+	int GetCultureBombRadiusNeutral() const;
 	int GetCultureAdjacentSameType() const;
 
 	int GetTilesPerGoody() const;
@@ -65,6 +66,7 @@ public:
 	int GetHillsUpgradeMod() const;
 	int GetFreshWaterUpgradeMod() const;
 	int GetDefenseModifier() const;
+	int GetDefenseModifierGlobal() const;
 	int GetNearbyEnemyDamage() const;
 	int GetPillageGold() const;
 	int GetResourceExtractionMod() const;
@@ -76,6 +78,7 @@ public:
 	int GetRequiresXAdjacentLand() const;
 
 	bool IsHillsMakesValid() const;
+	bool IsWaterAdjacencyMakesValid() const;
 	bool IsFreshWaterMakesValid() const;
 	bool IsRiverSideMakesValid() const;
 	bool IsNoFreshWater() const;
@@ -100,6 +103,7 @@ public:
 	bool IsNoTwoAdjacent() const;
 	bool IsAdjacentLuxury() const;
 	bool IsAllowsWalkWater() const;
+	bool IsAllowsSailLand() const;
 	bool IsCreatedByGreatPerson() const;
 	bool IsSpecificCivRequired() const;
 
@@ -165,6 +169,7 @@ protected:
 
 	int m_iGoldMaintenance;
 	int m_iCultureBombRadius;
+	int m_iCultureBombRadiusNeutral;
 	int m_iCultureAdjacentSameType;
 
 	int m_iTilesPerGoody;
@@ -176,6 +181,7 @@ protected:
 	int m_iHillsUpgradeMod;
 	int m_iFreshWaterUpgradeMod;
 	int m_iDefenseModifier;
+	int m_iDefenseModifierGlobal;
 	int m_iNearbyEnemyDamage;
 	int m_iPillageGold;
 	int m_iResourceExtractionMod;
@@ -185,6 +191,7 @@ protected:
 	int m_iRequiresXAdjacentLand;
 
 	bool m_bHillsMakesValid;
+	bool m_bWaterAdjacencyMakesValid;
 	bool m_bFreshWaterMakesValid;
 	bool m_bRiverSideMakesValid;
 	bool m_bNoFreshWater;
@@ -209,6 +216,7 @@ protected:
 	bool m_bNoTwoAdjacent;
     bool m_bAdjacentLuxury;
 	bool m_bAllowsWalkWater;
+	bool m_bAllowsSailLand;
 	bool m_bCreatedByGreatPerson;
 	bool m_bSpecificCivRequired;
 

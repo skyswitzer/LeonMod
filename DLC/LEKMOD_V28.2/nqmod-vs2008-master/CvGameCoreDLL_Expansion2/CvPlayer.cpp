@@ -52,7 +52,7 @@
 
 #include "CvDllCity.h"
 #include "CvGoodyHuts.h"
-
+#include "CvVotingClasses.h"
 // Include this after all other headers.
 #define LINT_WARNINGS_ONLY
 #include "LintFree.h"
@@ -348,6 +348,7 @@ CvPlayer::CvPlayer() :
 	, m_iGarrisonedCityRangeStrikeModifier(0)
 	, m_iGarrisonFreeMaintenanceCount(0)
 	, m_iNumCitiesFreeAestheticsSchools(0) // NQMP GJS - add support for NumCitiesFreeAestheticsSchools
+	, m_iNumCitiesFreePietyGardens(0)
 	, m_iNumCitiesFreeWalls(0) // NQMP GJS - New Oligarchy add support for NumCitiesFreeWalls
 	, m_iNumCitiesFreeCultureBuilding(0)
 	, m_iNumCitiesFreeFoodBuilding(0)
@@ -458,6 +459,14 @@ CvPlayer::CvPlayer() :
 	, m_iFaithPurchaseIndex(0)
 	, m_bProcessedAutoMoves(false)
 	, m_kPlayerAchievements(*this)
+
+// CMP
+	, m_paiNumCitiesFreeChosenBuilding("CvPlayer::m_paiNumCitiesFreeChosenBuilding", m_syncArchive)
+	, m_pabFreeChosenBuildingNewCity("CvPlayer::m_pabFreeChosenBuildingNewCity", m_syncArchive)
+	, m_pabAllCityFreeBuilding("CvPlayer::m_pabAllCityFreeBuilding", m_syncArchive)
+	, m_pabNewFoundCityFreeUnit("CvPlayer::m_pabNewFoundCityFreeUnit", m_syncArchive)
+	, m_pabNewFoundCityFreeBuilding("CvPlayer::m_pabNewFoundCityFreeBuilding", m_syncArchive)
+
 {
 	m_pPlayerPolicies = FNEW(CvPlayerPolicies, c_eCiv5GameplayDLL, 0);
 	m_pEconomicAI = FNEW(CvEconomicAI, c_eCiv5GameplayDLL, 0);
@@ -725,6 +734,16 @@ void CvPlayer::uninit()
 	m_paiHurryCount.clear();
 	m_paiHurryModifier.clear();
 
+
+	/// CMP
+	m_paiNumCitiesFreeChosenBuilding.clear();
+	m_pabFreeChosenBuildingNewCity.clear();
+	m_pabAllCityFreeBuilding.clear();
+	m_pabNewFoundCityFreeUnit.clear();
+	m_pabNewFoundCityFreeBuilding.clear();
+
+	//
+
 	m_pabLoyalMember.clear();
 	m_pabGetsScienceFromPlayer.clear();
 
@@ -767,7 +786,9 @@ void CvPlayer::uninit()
 	}
 
 	m_ppaaiSpecialistExtraYield.clear();
+	m_ppiImprovementYieldChange.clear();
 	m_ppaaiImprovementYieldChange.clear();
+	m_ppiResourceYieldChange.clear();
 	m_ppaaiBuildingClassYieldMod.clear();
 
 	m_UnitCycle.Clear();
@@ -1025,6 +1046,7 @@ void CvPlayer::uninit()
 	m_iGarrisonedCityRangeStrikeModifier = 0;
 	m_iGarrisonFreeMaintenanceCount = 0;
 	m_iNumCitiesFreeAestheticsSchools = 0; // NQMP GJS - add support for NumCitiesFreeAestheticsSchools
+	m_iNumCitiesFreePietyGardens = 0;
 	m_iNumCitiesFreeWalls = 0; // NQMP GJS - New Oligarchy add support for NumCitiesFreeWalls
 	m_iNumCitiesFreeCultureBuilding = 0;
 	m_iNumCitiesFreeFoodBuilding = 0;
@@ -1226,6 +1248,26 @@ void CvPlayer::reset(PlayerTypes eID, bool bConstructorCall)
 		m_paiHurryModifier.clear();
 		m_paiHurryModifier.resize(GC.getNumHurryInfos(), 0);
 
+
+		/// CMP
+
+		m_paiNumCitiesFreeChosenBuilding.clear();
+		m_paiNumCitiesFreeChosenBuilding.resize(GC.getNumBuildingClassInfos(), 0);
+
+		m_pabFreeChosenBuildingNewCity.clear();
+		m_pabFreeChosenBuildingNewCity.resize(GC.getNumBuildingClassInfos(), false);
+
+		m_pabAllCityFreeBuilding.clear();
+		m_pabAllCityFreeBuilding.resize(GC.getNumBuildingClassInfos(), false);
+
+		m_pabNewFoundCityFreeUnit.clear();
+		m_pabNewFoundCityFreeUnit.resize(GC.getNumUnitClassInfos(), false);
+
+		m_pabNewFoundCityFreeBuilding.clear();
+		m_pabNewFoundCityFreeBuilding.resize(GC.getNumBuildingClassInfos(), false);
+
+		///
+
 		m_pabLoyalMember.clear();
 		m_pabLoyalMember.resize(GC.getNumVoteSourceInfos(), true);
 
@@ -1300,6 +1342,20 @@ void CvPlayer::reset(PlayerTypes eID, bool bConstructorCall)
 		for(unsigned int i = 0; i < m_ppaaiImprovementYieldChange.size(); ++i)
 		{
 			m_ppaaiImprovementYieldChange.setAt(i, yield);
+		}
+
+		m_ppiImprovementYieldChange.clear();
+		m_ppiImprovementYieldChange.resize(GC.getNumImprovementInfos());
+		for(unsigned int i = 0; i < m_ppiImprovementYieldChange.size(); ++i)
+		{
+			m_ppiImprovementYieldChange[i] = yield;
+		}
+		
+		m_ppiResourceYieldChange.clear();
+		m_ppiResourceYieldChange.resize(GC.getNumResourceInfos());
+		for(unsigned int i = 0; i < m_ppiResourceYieldChange.size(); ++i)
+		{
+			m_ppiResourceYieldChange[i] = yield;
 		}
 
 		m_ppaaiBuildingClassYieldMod.clear();
@@ -1480,8 +1536,14 @@ void CvPlayer::initFreeUnits(CvGameInitialItemsOverrides& /*kOverrides*/)
 				iFreeCount = playerCivilization.getCivilizationFreeUnitsClass(iI);
 				iDefaultAI = playerCivilization.getCivilizationFreeUnitsDefaultUnitAI(iI);
 
+#ifdef NQ_AI_HANDICAP_START // from Bing - Higher level AIs don't start with tech's and units which the player doesn't get.
+				if(!GC.getGame().isOption("GAMEOPTION_AI_HANDICAP_START"))
+				{
+					iFreeCount *= (gameStartEra.getStartingUnitMultiplier() + ((!isHuman()) ? gameHandicap.getAIStartingUnitMultiplier() : 0));
+				}
+#else
 				iFreeCount *= (gameStartEra.getStartingUnitMultiplier() + ((!isHuman()) ? gameHandicap.getAIStartingUnitMultiplier() : 0));
-
+#endif
 				// City states only get 1 of something
 				if(isMinorCiv() && iFreeCount > 1)
 					iFreeCount = 1;
@@ -1510,8 +1572,17 @@ void CvPlayer::initFreeUnits(CvGameInitialItemsOverrides& /*kOverrides*/)
 	iFreeCount = gameStartEra.getStartingDefenseUnits();
 	iFreeCount += playerHandicap.getStartingDefenseUnits();
 
+#ifdef NQ_AI_HANDICAP_START // From Bing <3 thanks bruv - Higher level AIs don't start with tech's and units which the player doesn't get.
+	if(!GC.getGame().isOption("GAMEOPTION_AI_HANDICAP_START"))
+	{
+		if(!isHuman())
+			iFreeCount += gameHandicap.getAIStartingDefenseUnits();
+	}
+#else
+
 	if(!isHuman())
 		iFreeCount += gameHandicap.getAIStartingDefenseUnits();
+#endif
 
 	if(iFreeCount > 0 && !isMinorCiv())
 		addFreeUnitAI(UNITAI_DEFENSE, iFreeCount);
@@ -1520,8 +1591,16 @@ void CvPlayer::initFreeUnits(CvGameInitialItemsOverrides& /*kOverrides*/)
 	iFreeCount = gameStartEra.getStartingWorkerUnits();
 	iFreeCount += playerHandicap.getStartingWorkerUnits();
 
+#ifdef NQ_AI_HANDICAP_START // From bing <<3 - Higher level AIs don't start with tech's and units which the player doesn't get.
+	if(!GC.getGame().isOption("GAMEOPTION_AI_HANDICAP_START"))
+	{
+		if(!isHuman())
+			iFreeCount += gameHandicap.getAIStartingWorkerUnits();
+	}
+#else
 	if(!isHuman())
 		iFreeCount += gameHandicap.getAIStartingWorkerUnits();
+#endif
 
 	if(iFreeCount > 0 && !isMinorCiv())
 		addFreeUnitAI(UNITAI_WORKER, iFreeCount);
@@ -1530,8 +1609,17 @@ void CvPlayer::initFreeUnits(CvGameInitialItemsOverrides& /*kOverrides*/)
 	iFreeCount = gameStartEra.getStartingExploreUnits();
 	iFreeCount += playerHandicap.getStartingExploreUnits();
 
+#ifdef NQ_AI_HANDICAP_START // NQMP_Bing - Higher level AIs don't start with tech's and units which the player doesn't get.
+	if(!GC.getGame().isOption("GAMEOPTION_AI_HANDICAP_START"))
+	{
+		if(!isHuman())
+			iFreeCount += gameHandicap.getAIStartingExploreUnits();
+	}
+#else
 	if(!isHuman())
 		iFreeCount += gameHandicap.getAIStartingExploreUnits();
+#endif
+
 
 	if(iFreeCount > 0 && !isMinorCiv())
 		addFreeUnitAI(UNITAI_EXPLORE, iFreeCount);
@@ -2039,11 +2127,14 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bGift)
 	{
 #endif
 #ifdef NQ_SPOILS_OF_WAR
-		// Will this be the first time we have owned this city? And was it not originally a city state?
+			// Will this be the first time we have owned this city? And was it not a city state?
+	//if(GC.getGame().isOption("GAMEOPTION_SPOILS_OF_WAR")) // Here we check for the Spoils of War Game option to be enabled
+	//{
 		if (!pOldCity->isEverOwned(GetID()) && !GET_PLAYER(pOldCity->getOriginalOwner()).isMinorCiv())
 		{
 			DoTechFromCityConquer(pOldCity);
 		}
+	//}
 #endif
 		if (GetPlayerTraits()->IsTechFromCityConquer())
 		{
@@ -7288,6 +7379,17 @@ void CvPlayer::doGoody(CvPlot* pPlot, CvUnit* pUnit)
 //	--------------------------------------------------------------------------------
 void CvPlayer::AwardFreeBuildings(CvCity* pCity)
 {
+	// LEKMOD - Free Piety Gardens on Finisher
+	int iNumFreePietyGardens = GetNumCitiesFreePietyGardens();
+	if (iNumFreePietyGardens > 0)
+	{
+		BuildingTypes ePietyGarden = pCity->ChooseFreeGardenBuilding();
+		if (ePietyGarden != NO_BUILDING)
+		{
+			pCity->GetCityBuildings()->SetNumFreeBuilding(ePietyGarden, 1);
+		}
+		ChangeNumCitiesFreePietyGardens(-1);
+	}
 	// NQMP GJS - add support for NumCitiesFreeAestheticsSchools
 	int iNumFreeAestheticsSchools = GetNumCitiesFreeAestheticsSchools();
 	if (iNumFreeAestheticsSchools > 0)
@@ -7344,6 +7446,7 @@ void CvPlayer::AwardFreeBuildings(CvCity* pCity)
 		BuildingTypes eBuilding = pCity->ChooseFreeFoodBuilding();
 		if(eBuilding != NO_BUILDING)
 		{
+			pCity->GetCityBuildings()->SetNumRealBuilding(eBuilding, 0);
 			pCity->GetCityBuildings()->SetNumFreeBuilding(eBuilding, 1);
 		}
 
@@ -9204,6 +9307,11 @@ void CvPlayer::processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst
 	{
 		pArea->changeYieldRateModifier(GetID(), ((YieldTypes)iI), (pBuildingInfo->GetAreaYieldModifier(iI) * iChange));
 		changeYieldRateModifier(((YieldTypes)iI), (pBuildingInfo->GetGlobalYieldModifier(iI) * iChange));
+		for (iJ = 0; iJ < GC.getNumResourceInfos(); iJ++)
+		{
+			changeResourceYieldChange(((ResourceTypes)iJ), ((YieldTypes)iI), (pBuildingInfo->GetResourceYieldChangeGlobal((ResourceTypes)iJ, (YieldTypes)iI) * iChange));
+		}
+		
 	}
 
 	for(iI = 0; iI < GC.getNumSpecialistInfos(); iI++)
@@ -9231,6 +9339,23 @@ void CvPlayer::processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst
 	}
 
 	ChangeExtraLeagueVotes(pBuildingInfo->GetExtraLeagueVotes() * iChange);
+
+	for(iJ = 0; iJ < NUM_YIELD_TYPES; iJ++)
+	{
+		YieldTypes eYield = (YieldTypes) iJ;
+		for(int iK = 0; iK < GC.getNumImprovementInfos(); iK++)
+		{
+			ImprovementTypes eImprovement = (ImprovementTypes)iK;
+			if(eImprovement != NO_IMPROVEMENT)
+			{
+				int iYieldChange = pBuildingInfo->GetImprovementYieldChangeGlobal(eImprovement, eYield);
+				if(iYieldChange != 0)
+				{
+					ChangeImprovementExtraYield(eImprovement, eYield, (iYieldChange * iChange));
+				}
+			}
+		}
+	}
 
 	// Loop through Cities
 	int iLoop;
@@ -9714,6 +9839,7 @@ int CvPlayer::calculateResearchModifier(TechTypes eTech)
 	if (!GC.getGame().isOption("GAMEOPTION_NO_TECH_COST_TOTAL_KNOWN_TEAM_MODIFIER"))
 	{
 #endif
+	int iLeaguesMod = GC.getGame().GetGameLeagues()->GetResearchMod(GetID(), eTech);
 	int iKnownCount = 0;
 	int iPossibleKnownCount = 0;
 	for(int iI = 0; iI < MAX_CIV_TEAMS; iI++)
@@ -9733,8 +9859,13 @@ int CvPlayer::calculateResearchModifier(TechTypes eTech)
 	}
 	if(iPossibleKnownCount > 0)
 	{
-		iModifier += (GC.getTECH_COST_TOTAL_KNOWN_TEAM_MODIFIER() * iKnownCount) / iPossibleKnownCount;
-	}
+		if (iLeaguesMod == 1)
+		{	
+			iModifier += ((GC.getTECH_COST_TOTAL_KNOWN_TEAM_MODIFIER() * iKnownCount) * 2 ) / iPossibleKnownCount;
+		}
+		else
+			iModifier += (GC.getTECH_COST_TOTAL_KNOWN_TEAM_MODIFIER() * iKnownCount) / iPossibleKnownCount;
+	}	
 #ifdef AUI_TECH_TOGGLEABLE_ALREADY_KNOWN_TECH_COST_DISCOUNT
 	}
 #endif
@@ -9760,7 +9891,7 @@ int CvPlayer::calculateResearchModifier(TechTypes eTech)
 	int iLeaguesMod = GC.getGame().GetGameLeagues()->GetResearchMod(GetID(), eTech);
 	if (iLeaguesMod != 0)
 	{
-		iModifier *= (100 + iLeaguesMod);
+		iModifier *= 100 + iLeaguesMod;
 		iModifier /= 100;
 	}
 
@@ -10124,7 +10255,7 @@ void CvPlayer::changeTotalPopulation(int iChange)
 long CvPlayer::getRealPopulation() const
 {
 	const CvCity* pLoopCity;
-	__int64 iTotalPopulation = 6142; // just make a minimum population
+	__int64 iTotalPopulation = 6142;
 	int iLoop = 0;
 
 	for(pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
@@ -10882,13 +11013,22 @@ int CvPlayer::GetCultureYieldFromPreviousTurns(int iGameTurn, int iNumPreviousTu
 	return iSum;
 }
 
+/// Cities remaining to get free Gardens
+int CvPlayer::GetNumCitiesFreePietyGardens() const
+{
+	return m_iNumCitiesFreePietyGardens;
+}
+
 // NQMP GJS - add support for NumCitiesFreeAestheticsSchools
 //	--------------------------------------------------------------------------------
+
 /// Cities remaining to get free Aesthetics Schools
 int CvPlayer::GetNumCitiesFreeAestheticsSchools() const
 {
 	return m_iNumCitiesFreeAestheticsSchools;
 }
+
+//	--------------------------------------------------------------------------------
 
 // NQMP GJS - New Oligarchy add support for NumCitiesFreeWalls
 //	--------------------------------------------------------------------------------
@@ -10904,6 +11044,14 @@ void CvPlayer::ChangeNumCitiesFreeAestheticsSchools(int iChange)
 {
 	if(iChange != 0)
 		m_iNumCitiesFreeAestheticsSchools += iChange;
+}
+
+//	--------------------------------------------------------------------------------
+/// Changes number of cities remaining to get free Piety Gardens
+void CvPlayer::ChangeNumCitiesFreePietyGardens(int iChange)
+{
+	if(iChange != 0)
+		m_iNumCitiesFreePietyGardens += iChange;
 }
 
 //	--------------------------------------------------------------------------------
@@ -10936,12 +11084,84 @@ int CvPlayer::GetNumCitiesFreeFoodBuilding() const
 	return m_iNumCitiesFreeFoodBuilding;
 }
 
+
+
 //	--------------------------------------------------------------------------------
 /// Changes number of cities remaining to get a free culture building
 void CvPlayer::ChangeNumCitiesFreeFoodBuilding(int iChange)
 {
 	if(iChange != 0)
 		m_iNumCitiesFreeFoodBuilding += iChange;
+}
+
+
+/// Cities remaining to get a free building
+int CvPlayer::GetNumCitiesFreeChosenBuilding(BuildingClassTypes eBuildingClass) const
+{
+	CvAssertMsg(eBuildingClass < GC.getNumBuildingClassInfos(), "Index out of bounds");
+	CvAssertMsg(eBuildingClass > -1, "Index out of bounds");
+	return m_paiNumCitiesFreeChosenBuilding[eBuildingClass];
+}
+
+//	--------------------------------------------------------------------------------
+/// Changes number of cities remaining to get a free building
+void CvPlayer::ChangeNumCitiesFreeChosenBuilding(BuildingClassTypes eBuildingClass, int iChange)
+{
+	m_paiNumCitiesFreeChosenBuilding.setAt(eBuildingClass, (m_paiNumCitiesFreeChosenBuilding[eBuildingClass] + iChange));
+}
+/// New Founded City waiting to get a free unit?
+bool CvPlayer::IsFreeUnitNewFoundCity(UnitClassTypes eUnitClass) const
+{
+	CvAssertMsg(eUnitClass < GC.getNumUnitClassInfos(), "Index out of bounds");
+	CvAssertMsg(eUnitClass > -1, "Index out of bounds");
+	return m_pabNewFoundCityFreeUnit[eUnitClass];
+}
+//	--------------------------------------------------------------------------------
+/// Changes number of newly founded cities to get a free building
+void CvPlayer::ChangeNewFoundCityFreeUnit(UnitClassTypes eUnitClass, bool bValue)
+{
+	m_pabNewFoundCityFreeUnit.setAt(eUnitClass, bValue);
+}
+/// New Founded City waiting to get a free building?
+bool CvPlayer::IsFreeBuildingNewFoundCity(BuildingClassTypes eBuildingClass) const
+{
+	CvAssertMsg(eBuildingClass < GC.getNumBuildingClassInfos(), "Index out of bounds");
+	CvAssertMsg(eBuildingClass > -1, "Index out of bounds");
+	return m_pabNewFoundCityFreeBuilding[eBuildingClass];
+}
+//	--------------------------------------------------------------------------------
+/// Changes number of newly founded cities to get a free building
+void CvPlayer::ChangeNewFoundCityFreeBuilding(BuildingClassTypes eBuildingClass, bool bValue)
+{
+	m_pabNewFoundCityFreeBuilding.setAt(eBuildingClass, bValue);
+}
+/// Cities remaining to get a free building
+bool CvPlayer::IsFreeChosenBuildingNewCity(BuildingClassTypes eBuildingClass) const
+{
+	CvAssertMsg(eBuildingClass < GC.getNumBuildingClassInfos(), "Index out of bounds");
+	CvAssertMsg(eBuildingClass > -1, "Index out of bounds");
+	return m_pabFreeChosenBuildingNewCity[eBuildingClass];
+}
+
+/// Changes number of new cities remaining to get a free building
+void CvPlayer::ChangeFreeChosenBuildingNewCity(BuildingClassTypes eBuildingClass, bool bValue)
+{
+	m_pabFreeChosenBuildingNewCity.setAt(eBuildingClass, bValue);
+}
+
+
+// City waiting to get a free building?
+bool CvPlayer::IsFreeBuildingAllCity(BuildingClassTypes eBuildingClass) const
+{
+	CvAssertMsg(eBuildingClass < GC.getNumBuildingClassInfos(), "Index out of bounds");
+	CvAssertMsg(eBuildingClass > -1, "Index out of bounds");
+	return m_pabAllCityFreeBuilding[eBuildingClass];
+}
+
+// Change Cities that get a Free building
+void CvPlayer::ChangeAllCityFreeBuilding(BuildingClassTypes eBuildingClass, bool bValue)
+{
+	m_pabAllCityFreeBuilding.setAt(eBuildingClass, bValue);
 }
 
 //	--------------------------------------------------------------------------------
@@ -14853,7 +15073,17 @@ void CvPlayer::DoSpawnGreatPerson(PlayerTypes eMinor)
 		if(pkUnitEntry && pkUnitEntry->GetSpecialUnitType() == eSpecialUnitGreatPerson)
 		{
 			// No prophets
+#ifdef NQ_PATRONAGE_GREAT_PEOPLE_FIX
+			if(eLoopUnit == GC.getInfoTypeForString("UNIT_WRITER") ||\
+				eLoopUnit == GC.getInfoTypeForString("UNIT_ARTIST") ||\
+				eLoopUnit == GC.getInfoTypeForString("UNIT_MUSICIAN") ||\
+				eLoopUnit == GC.getInfoTypeForString("UNIT_MERCHANT") ||\
+				eLoopUnit == GC.getInfoTypeForString("UNIT_ENGINEER") ||\
+				eLoopUnit == GC.getInfoTypeForString("UNIT_SCIENTIST") ||\
+				eLoopUnit == GC.getInfoTypeForString("UNIT_GREAT_GENERAL"))
+#else
 			if(!pkUnitEntry->IsFoundReligion())
+#endif
 			{
 				int iScore = GC.getGame().getJonRandNum(100, "Rand");
 
@@ -17447,6 +17677,12 @@ bool CvPlayer::isMinorCiv() const
 	return CvPreGame::isMinorCiv(m_eID);
 }
 
+//	--------------------------------------------------------------------------------
+bool CvPlayer::isMajorCiv() const
+{
+	return GET_TEAM(getTeam()).isMajorCiv();
+}
+
 #ifdef NQ_CHEAT_FIRST_ROYAL_LIBRARY_COMES_WITH_GREAT_WORK
 //	--------------------------------------------------------------------------------
 void CvPlayer::SetHasEverBuiltRoyalLibrary(bool bValue)
@@ -18559,7 +18795,35 @@ void CvPlayer::changeYieldRateModifier(YieldTypes eIndex, int iChange)
 		}
 	}
 }
+//	--------------------------------------------------------------------------------
+/// Extra yield for a improvement this city is working?
+int CvPlayer::GetImprovementExtraYield(ImprovementTypes eImprovement, YieldTypes eYield) const
+{
+	CvAssertMsg(eImprovement >= 0, "eIndex1 is expected to be non-negative (invalid Index)");
+	CvAssertMsg(eImprovement < GC.getNumFeatureInfos(), "eIndex1 is expected to be within maximum bounds (invalid Index)");
+	CvAssertMsg(eYield >= 0, "eIndex2 is expected to be non-negative (invalid Index)");
+	CvAssertMsg(eYield < NUM_YIELD_TYPES, "eIndex2 is expected to be within maximum bounds (invalid Index)");
+	return m_ppiImprovementYieldChange[eImprovement][eYield];
+}
 
+//	--------------------------------------------------------------------------------
+void CvPlayer::ChangeImprovementExtraYield(ImprovementTypes eImprovement, YieldTypes eYield, int iChange)
+{
+	CvAssertMsg(eImprovement >= 0, "eIndex1 is expected to be non-negative (invalid Index)");
+	CvAssertMsg(eImprovement < GC.getNumImprovementInfos(), "eIndex1 is expected to be within maximum bounds (invalid Index)");
+	CvAssertMsg(eYield >= 0, "eIndex2 is expected to be non-negative (invalid Index)");
+	CvAssertMsg(eYield < NUM_YIELD_TYPES, "eIndex2 is expected to be within maximum bounds (invalid Index)");
+
+	if(iChange != 0)
+	{
+		Firaxis::Array<int, NUM_YIELD_TYPES> yields = m_ppiImprovementYieldChange[eImprovement];
+		yields[eYield] = (m_ppiImprovementYieldChange[eImprovement][eYield] + iChange);
+		m_ppiImprovementYieldChange[eImprovement] = yields;
+		CvAssert(GetImprovementExtraYield(eImprovement, eYield) >= 0);
+
+		updateYield();
+	}
+}
 
 //	--------------------------------------------------------------------------------
 int CvPlayer::getCapitalYieldRateModifier(YieldTypes eIndex) const
@@ -20779,6 +21043,36 @@ void CvPlayer::changeSpecialistExtraYield(SpecialistTypes eIndex1, YieldTypes eI
 	}
 }
 
+//	--------------------------------------------------------------------------------
+int CvPlayer::getResourceYieldChange(ResourceTypes eIndex1, YieldTypes eIndex2) const
+{
+	CvAssertMsg(eIndex1 >= 0, "eIndex1 is expected to be non-negative (invalid Index)");
+	CvAssertMsg(eIndex1 < GC.getNumResourceInfos(), "eIndex1 is expected to be within maximum bounds (invalid Index)");
+	CvAssertMsg(eIndex2 >= 0, "eIndex2 is expected to be non-negative (invalid Index)");
+	CvAssertMsg(eIndex2 < NUM_YIELD_TYPES, "eIndex2 is expected to be within maximum bounds (invalid Index)");
+	return m_ppiResourceYieldChange[eIndex1][eIndex2];
+}
+
+//	--------------------------------------------------------------------------------
+void CvPlayer::changeResourceYieldChange(ResourceTypes eIndex1, YieldTypes eIndex2, int iChange)
+{
+	CvAssertMsg(eIndex1 >= 0, "eIndex1 is expected to be non-negative (invalid Index)");
+	CvAssertMsg(eIndex1 < GC.getNumResourceInfos(), "eIndex1 is expected to be within maximum bounds (invalid Index)");
+	CvAssertMsg(eIndex2 >= 0, "eIndex2 is expected to be non-negative (invalid Index)");
+	CvAssertMsg(eIndex2 < NUM_YIELD_TYPES, "eIndex2 is expected to be within maximum bounds (invalid Index)");
+
+	if(iChange != 0)
+	{
+		CvAssertMsg(iChange > -50 && iChange < 50, "GAMEPLAY: Yield for a plot is either negative or a ridiculously large number. Please send Jon this with your last 5 autosaves and what changelist # you're playing.");
+
+		Firaxis::Array<int, NUM_YIELD_TYPES> yields = m_ppiResourceYieldChange[eIndex1];
+		yields[eIndex2] = (m_ppiResourceYieldChange[eIndex1][eIndex2] + iChange);
+		m_ppiResourceYieldChange[eIndex1] = yields;
+		CvAssert(getResourceYieldChange(eIndex1, eIndex2) >= 0);
+
+		updateYield();
+	}
+}
 
 //	--------------------------------------------------------------------------------
 int CvPlayer::getImprovementYieldChange(ImprovementTypes eIndex1, YieldTypes eIndex2) const
@@ -23227,7 +23521,7 @@ void CvPlayer::processPolicies(PolicyTypes ePolicy, int iChange)
 	ChangeWarHeroCount((pPolicy->IsWarHero()) ? iChange : 0);
 #endif
 #ifdef NQ_IGNORE_PUPPETS_FOR_RESEARCH_COSTS_FROM_POLICIES
-	ChangeIgnorePuppetsForResearchCostsCount((pPolicy->IsIgnorePuppetsForResearchCosts()) ? iChange : 0);
+	ChangeIgnorePuppetsForResearchCostsCount ((pPolicy->IsIgnorePuppetsForResearchCosts()) ? iChange : 0);
 #endif
 #ifdef NQ_POLICY_TOGGLE_NO_MINOR_DOW_IF_FRIENDS
 	ChangeNoMinorDOWIfFriendsCount((pPolicy->IsNoMinorDOWIfFriends()) ? iChange : 0);
@@ -23420,6 +23714,7 @@ void CvPlayer::processPolicies(PolicyTypes ePolicy, int iChange)
 
 	// How many cities get free buildings?
 	int iNumCitiesFreeAestheticsSchools = pPolicy->GetNumCitiesFreeAestheticsSchools(); // NQMP GJS - add support for NumCitiesFreeAestheticsSchools
+	int iNumCitiesFreePietyGardens = pPolicy->GetNumCitiesFreePietyGardens();
 	int iNumCitiesFreeWalls = pPolicy->GetNumCitiesFreeWalls(); // NQMP GJS - New Oligarchy add support for NumCitiesFreeWalls
 	int iNumCitiesFreeCultureBuilding = pPolicy->GetNumCitiesFreeCultureBuilding();
 	int iNumCitiesFreeFoodBuilding = pPolicy->GetNumCitiesFreeFoodBuilding();
@@ -23428,6 +23723,22 @@ void CvPlayer::processPolicies(PolicyTypes ePolicy, int iChange)
 	int iLoop;
 	for(pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 	{
+		// LEKMOD - Piety Gardens now in the DLL
+
+		if (iNumCitiesFreePietyGardens > 0)
+		{
+			BuildingTypes ePietyGarden = pLoopCity->ChooseFreeGardenBuilding();
+			if (ePietyGarden != NO_BUILDING)
+			{
+				pLoopCity->GetCityBuildings()->SetNumFreeBuilding(ePietyGarden, 1);
+				if (pLoopCity->getFirstBuildingOrder(ePietyGarden) == 0)
+				{
+					pLoopCity->clearOrderQueue();
+					pLoopCity->chooseProduction();
+				}
+			}
+			iNumCitiesFreePietyGardens--;
+		}
 		// NQMP GJS - add support for NumCitiesFreeAestheticsSchools
 		if(iNumCitiesFreeAestheticsSchools > 0)
 		{
@@ -23610,6 +23921,7 @@ void CvPlayer::processPolicies(PolicyTypes ePolicy, int iChange)
 
 	// Store off number of newly built cities that will get a free building
 	ChangeNumCitiesFreeAestheticsSchools(iNumCitiesFreeAestheticsSchools); // NQMP GJS - add support for NumCitiesFreeAestheticsSchools
+	ChangeNumCitiesFreePietyGardens(iNumCitiesFreePietyGardens);
 	ChangeNumCitiesFreeWalls(iNumCitiesFreeWalls); // NQMP GJS - New Oligarchy add support for NumCitiesFreeWalls
 	ChangeNumCitiesFreeCultureBuilding(iNumCitiesFreeCultureBuilding);
 	ChangeNumCitiesFreeFoodBuilding(iNumCitiesFreeFoodBuilding);
@@ -24444,6 +24756,7 @@ void CvPlayer::Read(FDataStream& kStream)
 	kStream >> m_iGarrisonFreeMaintenanceCount;
 	kStream >> m_iGarrisonedCityRangeStrikeModifier;
 	kStream >> m_iNumCitiesFreeAestheticsSchools; // NQMP GJS - add support for NumCitiesFreeAestheticsSchools
+	kStream >> m_iNumCitiesFreePietyGardens;
 	kStream >> m_iNumCitiesFreeWalls; // NQMP GJS - New Oligarchy add support for NumCitiesFreeWalls
 	kStream >> m_iNumCitiesFreeCultureBuilding;
 	kStream >> m_iNumCitiesFreeFoodBuilding;
@@ -24758,6 +25071,9 @@ void CvPlayer::Read(FDataStream& kStream)
 	if(m_bTurnActive)
 		GC.getGame().changeNumGameTurnActive(1, std::string("setTurnActive() [loading save game] for player ") + getName());
 
+		kStream >> m_ppiImprovementYieldChange;
+		kStream >> m_ppiResourceYieldChange;
+
 }
 
 //	--------------------------------------------------------------------------------
@@ -24994,6 +25310,7 @@ void CvPlayer::Write(FDataStream& kStream) const
 	kStream << m_iGarrisonFreeMaintenanceCount;
 	kStream << m_iGarrisonedCityRangeStrikeModifier;
 	kStream << m_iNumCitiesFreeAestheticsSchools; // NQMP GJS - add support for NumCitiesFreeAestheticsSchools
+	kStream << m_iNumCitiesFreePietyGardens;
 	kStream << m_iNumCitiesFreeWalls; // NQMP GJS - New Oligarchy add support for NumCitiesFreeWalls
 	kStream << m_iNumCitiesFreeCultureBuilding;
 	kStream << m_iNumCitiesFreeFoodBuilding;
@@ -25222,7 +25539,11 @@ void CvPlayer::Write(FDataStream& kStream) const
 
 	kStream << m_strEmbarkedGraphicOverride;
 
+
 	m_kPlayerAchievements.Write(kStream);
+
+	kStream << m_ppiImprovementYieldChange;
+	kStream << m_ppiResourceYieldChange;
 }
 
 //	--------------------------------------------------------------------------------
@@ -27405,3 +27726,17 @@ bool CancelActivePlayerEndTurn()
 	}
 	return true;
 }
+
+/*
+bool CvPlayer::HasBuildingClass(BuildingClassTypes iBuildingClassType)
+{
+	int iLoopCity;
+	for (CvCity* pLoopCity = firstCity(&iLoopCity); pLoopCity != NULL; pLoopCity = nextCity(&iLoopCity)) {
+		if (pLoopCity->HasBuildingClass(iBuildingClassType)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+*/

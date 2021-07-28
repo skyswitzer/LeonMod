@@ -2532,6 +2532,11 @@ bool CvTeam::isMinorCiv() const
 
 	return bValid;
 }
+//  --------------------------------------------------------------------------------
+bool CvTeam::isMajorCiv() const
+{
+	return !(isMinorCiv() || isBarbarian() || isObserver());
+}
 
 //	--------------------------------------------------------------------------------
 /// The number of Minor Civs this player has declared war on
@@ -6577,6 +6582,112 @@ void CvTeam::processTech(TechTypes eTech, int iChange)
 				// Another?
 				iUnitClass = kPlayer.GetPlayerTraits()->GetNextFreeUnit();
 			}
+
+
+
+
+
+// -- From CMP DLL inserted table entried, very usefull ~EAP
+
+			if(kPlayer.getCapitalCity() != NULL) 
+			{
+		
+				//Free building in capital unlocked via tech?
+				if(kPlayer.GetPlayerTraits()->GetCapitalFreeBuildingPrereqTech() == eTech)
+				{
+					BuildingTypes eFreeCapitalBuilding = kPlayer.GetPlayerTraits()->GetFreeCapitalBuilding();
+					if(eFreeCapitalBuilding != NO_BUILDING)
+					{
+						if(kPlayer.getCapitalCity()->GetCityBuildings()->GetNumRealBuilding(eFreeCapitalBuilding) > 0)
+						{
+							kPlayer.getCapitalCity()->GetCityBuildings()->SetNumRealBuilding(eFreeCapitalBuilding, 0);
+						}
+						kPlayer.getCapitalCity()->GetCityBuildings()->SetNumFreeBuilding(eFreeCapitalBuilding, 1);
+					}
+				}
+			}
+
+			// Free buildings (once unlocked via tech) -- From CMP DLL inserted table entried, very usefull ~EAP
+			CvCity* pLoopCity;
+			const CvCivilizationInfo& thisCiv = kPlayer.getCivilizationInfo();
+			if(kPlayer.GetPlayerTraits()->GetFreeBuildingPrereqTech() == eTech)
+			{
+				for(iI = 0; iI < GC.getNumBuildingClassInfos(); iI++)
+				{
+					CvBuildingClassInfo* pkBuildingClassInfo = GC.getBuildingClassInfo((BuildingClassTypes)iI);
+					if(!pkBuildingClassInfo)
+					{
+						continue;
+					}
+					
+					if (kPlayer.GetNumCitiesFreeChosenBuilding((BuildingClassTypes)iI) > 0 || kPlayer.IsFreeChosenBuildingNewCity((BuildingClassTypes)iI) || kPlayer.IsFreeBuildingAllCity((BuildingClassTypes)iI))
+					{
+						BuildingTypes eBuilding = ((BuildingTypes)(thisCiv.getCivilizationBuildings((BuildingClassTypes)iI)));
+
+						if(eBuilding != NO_BUILDING)
+						{
+							CvBuildingEntry* pkBuildingInfo = GC.getBuildingInfo(eBuilding);
+							if(pkBuildingInfo)
+							{
+								int iLoop;
+								for(pLoopCity = kPlayer.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kPlayer.nextCity(&iLoop))
+								{
+									//bool bHasBuildingClass = pLoopCity->HasBuildingClass((BuildingClassTypes)iI);
+									BuildingTypes eReplacedBuilding = eBuilding;
+								
+									if(pLoopCity->isValidBuildingLocation(eBuilding) || (eBuilding != eReplacedBuilding && pLoopCity->isValidBuildingLocation(eReplacedBuilding)))
+									{
+										if (kPlayer.GetNumCitiesFreeChosenBuilding((BuildingClassTypes)iI) > 0 || kPlayer.IsFreeChosenBuildingNewCity((BuildingClassTypes)iI) || kPlayer.IsFreeBuildingAllCity((BuildingClassTypes)iI))
+										{
+											if (eBuilding != eReplacedBuilding)
+											{
+												pLoopCity->GetCityBuildings()->SetNumRealBuilding(eReplacedBuilding, 0);
+												if (pLoopCity->GetCityBuildings()->GetNumFreeBuilding(eReplacedBuilding) <= 0)
+												{
+													pLoopCity->GetCityBuildings()->SetNumFreeBuilding(eReplacedBuilding, 1);
+												}
+												if (pLoopCity->GetCityBuildings()->GetNumFreeBuilding(eReplacedBuilding) > 0)
+												{
+													kPlayer.ChangeNumCitiesFreeChosenBuilding((BuildingClassTypes)iI, -1);
+												}
+												if (pLoopCity->getFirstBuildingOrder(eReplacedBuilding) == 0)
+												{
+													pLoopCity->clearOrderQueue();
+													pLoopCity->chooseProduction();
+													// Send a notification to the user that what they were building was given to them, and they need to produce something else.
+												}
+											}
+											else
+											{
+												if (pLoopCity->GetCityBuildings()->GetNumRealBuilding(eBuilding) > 0)
+												{
+													pLoopCity->GetCityBuildings()->SetNumRealBuilding(eBuilding, 0);
+												}
+												if (pLoopCity->GetCityBuildings()->GetNumFreeBuilding(eBuilding) <= 0)
+												{
+													pLoopCity->GetCityBuildings()->SetNumFreeBuilding(eBuilding, 1);
+												}
+												if (pLoopCity->GetCityBuildings()->GetNumFreeBuilding(eBuilding) > 0)
+												{
+													kPlayer.ChangeNumCitiesFreeChosenBuilding((BuildingClassTypes)iI, -1);
+												}
+												if (pLoopCity->getFirstBuildingOrder(eBuilding) == 0)
+												{
+													pLoopCity->clearOrderQueue();
+													pLoopCity->chooseProduction();
+													// Send a notification to the user that what they were building was given to them, and they need to produce something else.
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+
+
 		}
 	}
 
@@ -7215,9 +7326,9 @@ int CvTeam::calculateResearchModifier(TechTypes eTech) const
 			iPossibleKnownCount++;
 		}
 	}
-	if (iPossibleKnownCount > 0)
+	if (iPossibleKnownCount > 0) 
 	{
-		iModifier += (GC.getTECH_COST_TOTAL_KNOWN_TEAM_MODIFIER() * iKnownCount) / iPossibleKnownCount;
+		iModifier += ((GC.getTECH_COST_TOTAL_KNOWN_TEAM_MODIFIER() * iKnownCount) / iPossibleKnownCount);
 	}
 #ifdef AUI_TECH_TOGGLEABLE_ALREADY_KNOWN_TECH_COST_DISCOUNT
 	}
@@ -7254,7 +7365,7 @@ int CvTeam::calculateResearchModifier(TechTypes eTech) const
 	int iLeaguesMod = GC.getGame().GetGameLeagues()->GetResearchMod(GetID(), eTech);
 	if (iLeaguesMod != 0)
 	{
-		iModifier *= (100 + iLeaguesMod);
+		iModifier *= (100 + (iLeaguesMod * iKnownCount ));
 		iModifier /= 100;
 	}
 

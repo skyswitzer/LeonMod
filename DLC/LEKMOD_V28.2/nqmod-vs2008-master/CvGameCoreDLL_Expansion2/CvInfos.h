@@ -24,6 +24,21 @@
 #pragma warning( disable: 4251 )		// needs to have dll-interface to be used by clients of class
 #pragma warning( disable: 4127 )
 
+#if defined(MOD_RESOURCES_PRODUCTION_COST_MODIFIERS)
+struct ProductionCostModifiers
+{
+	ProductionCostModifiers() :
+		m_iRequiredEra(-1),
+		m_iObsoleteEra(-1),
+		m_iCostModifier(0)
+	{};
+
+	int m_iRequiredEra;
+	int m_iObsoleteEra;
+	int m_iCostModifier;
+};
+#endif
+
 class CvDatabaseUtility;
 
 //------------------------------------------------------------------------------
@@ -1356,6 +1371,16 @@ public:
 	int* getYieldChangeArray();
 	int getImprovementChange(int i) const;
 
+#if defined(MOD_RESOURCES_PRODUCTION_COST_MODIFIERS)
+	bool isHasUnitCombatProductionCostModifiersLocal() const;
+	int getUnitCombatProductionCostModifiersLocal(UnitCombatTypes eUnitCombat, EraTypes eUnitEra) const;
+	std::vector<ProductionCostModifiers> getUnitCombatProductionCostModifiersLocal(UnitCombatTypes eUnitCombat) const;
+
+	bool isHasBuildingProductionCostModifiersLocal() const;
+	int getBuildingProductionCostModifiersLocal(EraTypes eBuildingEra) const;
+	std::vector<ProductionCostModifiers> getBuildingProductionCostModifiersLocal() const;
+#endif
+
 	int getResourceQuantityType(int i) const;
 
 	bool isTerrain(int i) const;
@@ -1415,6 +1440,10 @@ protected:
 
 	// Arrays
 	int* m_piYieldChange;
+#if defined(MOD_RESOURCES_PRODUCTION_COST_MODIFIERS)
+	std::map<int, std::vector<ProductionCostModifiers>> m_piiiUnitCombatProductionCostModifiersLocal;
+	std::vector<ProductionCostModifiers> m_aiiiBuildingProductionCostModifiersLocal;
+#endif
 	int* m_piResourceQuantityTypes;
 	int* m_piImprovementChange;
 	int* m_piFlavor;

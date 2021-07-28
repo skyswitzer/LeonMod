@@ -150,6 +150,13 @@ CvPromotionEntry::CvPromotionEntry():
 	m_bHasPostCombatPromotions(false),
 	m_bPostCombatPromotionsExclusive(false),
 	m_bSapper(false),
+
+	// CMP
+	m_iGiveDomain(NO_DOMAIN),
+	m_iConvertDomainUnit(NO_UNIT),
+	m_iConvertDomain(NO_DOMAIN),
+	//
+
 	m_bCanHeavyCharge(false),
 #ifdef NQ_HEAVY_CHARGE_DOWNHILL
 	m_iHeavyChargeDownhill(0),
@@ -251,6 +258,16 @@ bool CvPromotionEntry::CacheResults(Database::Results& kResults, CvDatabaseUtili
 	m_bHasPostCombatPromotions = kResults.GetBool("HasPostCombatPromotions");
 	m_bPostCombatPromotionsExclusive = kResults.GetBool("PostCombatPromotionsExclusive");
 	m_bSapper = kResults.GetBool("Sapper");
+
+	// CMP
+	const char* szGiveDomain = kResults.GetText("GiveDomain");
+	m_iGiveDomain = (DomainTypes)GC.getInfoTypeForString(szGiveDomain, true);
+	const char* szConvertDomainUnit = kResults.GetText("ConvertDomainUnit");
+	m_iConvertDomainUnit = (UnitTypes)GC.getInfoTypeForString(szConvertDomainUnit, true);
+	const char* szConvertDomain = kResults.GetText("ConvertDomain");
+	m_iConvertDomain = (DomainTypes)GC.getInfoTypeForString(szConvertDomain, true);
+	//
+
 	m_bCanHeavyCharge = kResults.GetBool("HeavyCharge");
 #ifdef NQ_HEAVY_CHARGE_DOWNHILL
 	m_iHeavyChargeDownhill = kResults.GetInt("HeavyChargeDownhill");
@@ -1469,6 +1486,25 @@ bool CvPromotionEntry::IsIgnoreZOC() const
 bool CvPromotionEntry::IsSapper() const
 {
 	return m_bSapper;
+}
+
+/// EAP: From CMP
+
+int CvPromotionEntry::GetConvertDomainUnit() const
+{
+	return m_iConvertDomainUnit;
+}
+
+
+int CvPromotionEntry::GetConvertDomain() const
+{
+	return m_iConvertDomain;
+}
+
+
+int CvPromotionEntry::GetGiveDomain() const
+{
+	return m_iGiveDomain;
 }
 
 /// Accessor: Can this unit doa heavy charge (which either force an enemy to retreat or take extra damage)

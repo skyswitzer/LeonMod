@@ -446,6 +446,8 @@ public:
 
 	bool IsAllowsWalkWater() const;
 
+	bool IsAllowsSailLand() const;
+
 	bool isRoughGround() const
 	{
 		if(isHills())
@@ -541,6 +543,13 @@ public:
 
 	CvCity* getWorkingCityOverride() const;
 	void setWorkingCityOverride(const CvCity* pNewValue);
+
+	int getOwningCityID() const;
+	CvCity* getOwningCity() const;
+	void updateOwningCity();
+
+	CvCity* getOwningCityOverride() const;
+	void setOwningCityOverride(const CvCity* pNewValue);
 
 	int getReconCount() const;
 	void changeReconCount(int iChange);

@@ -270,7 +270,7 @@ void CvPlot::reset(int iX, int iY, bool bConstructorCall)
 	m_workingCityOverride.reset();
 	m_ResourceLinkedCity.reset();
 	m_purchaseCity.reset();
-
+	
 	if(!bConstructorCall)
 	{
 		for(int iI = 0; iI < NUM_YIELD_TYPES; ++iI)
@@ -2157,6 +2157,19 @@ bool CvPlot::canHaveImprovement(ImprovementTypes eImprovement, TeamTypes eTeam, 
 		bValid = true;
 	}
 
+	if(pkImprovementInfo->IsWaterAdjacencyMakesValid())
+	{
+		if (isCoastalLand() || isFreshWater() || isRiver()) 
+		{
+			bValid = true;
+
+		}
+		else
+		{
+			bValid = false;
+		}
+	}
+
 	if(pkImprovementInfo->IsFreshWaterMakesValid() && bIsFreshWater)
 	{
 		bValid = true;
@@ -3071,6 +3084,11 @@ int CvPlot::defenseModifier(TeamTypes eDefender, bool, bool bHelp) const
 			if (pkImprovement)
 				iModifier += pkImprovement->GetDefenseModifier();
 		}
+		CvImprovementEntry* pkImprovement = GC.getImprovementInfo(eImprovement);
+		if (pkImprovement)
+		{
+			iModifier += pkImprovement->GetDefenseModifierGlobal();
+		}
 	}
 
 	if(!bHelp)
@@ -3108,6 +3126,18 @@ bool CvPlot::IsAllowsWalkWater() const
 			return pkEntry->IsAllowsWalkWater();
 	}
 	return false;
+}
+// --------------------------------------------------------------------------------- // from Izy
+bool CvPlot::IsAllowsSailLand() const
+{
+    ImprovementTypes eImprovement = getImprovementType();
+    if (eImprovement != NO_IMPROVEMENT)
+    {
+        CvImprovementEntry *pkEntry = GC.getImprovementInfo(eImprovement);
+        if (pkEntry)
+            return pkEntry->IsAllowsSailLand();
+    }
+    return false;
 }
 //	--------------------------------------------------------------------------------
 int CvPlot::getExtraMovePathCost() const
@@ -4458,7 +4488,7 @@ bool CvPlot::isValidDomainForAction(const CvUnit& unit) const
 	switch(unit.getDomainType())
 	{
 	case DOMAIN_SEA:
-		return (isWater() || unit.canMoveAllTerrain());
+		  return (isWater() || unit.canMoveAllTerrain() || IsAllowsSailLand());
 		break;
 
 	case DOMAIN_AIR:
@@ -7822,7 +7852,6 @@ int CvPlot::calculateYield(YieldTypes eYield, bool bDisplay)
 	{
 		int iCultureBoost = calculateImprovementYieldChange(eImprovement, eYield, ePlayer);
 		iYield += iCultureBoost;
-
 		if(eYield == YIELD_CULTURE)
 		{
 			CvImprovementEntry* pImprovement = GC.getImprovementInfo(eImprovement);
@@ -7840,6 +7869,8 @@ int CvPlot::calculateYield(YieldTypes eYield, bool bDisplay)
 				iYield += GET_PLAYER(getOwner()).GetPlayerPolicies()->GetImprovementCultureChange(eImprovement);
 			}
 		}
+
+		
 	}
 
 	if(eRoute != NO_ROUTE && !IsRoutePillaged())
@@ -7957,6 +7988,20 @@ int CvPlot::calculateYield(YieldTypes eYield, bool bDisplay)
 			}
 		}
 
+		if (eImprovement != NO_IMPROVEMENT && !IsImprovementPillaged())
+		{
+			if(pWorkingCity != NULL)
+			{
+		
+				//pPlot = plotDirection(getX(), getY(), DIRECTION_NORTHEAST);
+				pWorkingCity = getWorkingCity();
+				//CvCity* pOwningCity = getOwningCity(pPlot);
+				CvPlayer &kPlayer = GET_PLAYER(ePlayer);
+				iYield += pWorkingCity->GetImprovementExtraYield(eImprovement, eYield);
+				iYield += kPlayer.GetImprovementExtraYield(eImprovement, eYield);
+		
+			}
+		}
 		// Extra yield for terrain
 		if(getTerrainType() != NO_TERRAIN)
 		{
@@ -7991,6 +8036,8 @@ int CvPlot::calculateYield(YieldTypes eYield, bool bDisplay)
 					}
 					// NQMP GJS - New Netherlands UA END
 				}
+				CvPlayer &kPlayer = GET_PLAYER(ePlayer);
+				iYield += kPlayer.getResourceYieldChange(eResource, eYield);
 			}
 		}
 	}

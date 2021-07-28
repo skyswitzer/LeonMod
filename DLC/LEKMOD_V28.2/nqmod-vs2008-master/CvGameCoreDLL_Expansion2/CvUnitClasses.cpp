@@ -778,6 +778,19 @@ int CvUnitEntry::GetObsoleteTech() const
 	return m_iObsoleteTech;
 }
 
+/// Era this unit belongs to
+int CvUnitEntry::GetEra() const
+{
+	TechTypes eTech = (TechTypes)GetPrereqAndTech();
+	if (eTech != NO_TECH)
+	{
+		CvTechEntry* pTech = GC.getTechInfo((TechTypes)GetPrereqAndTech());
+		return pTech->GetEra();
+	}
+
+	return -1;
+}
+
 /// Policy required for this unit
 int CvUnitEntry::GetPolicyType() const
 {

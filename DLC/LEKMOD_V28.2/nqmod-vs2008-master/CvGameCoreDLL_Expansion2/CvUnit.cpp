@@ -332,6 +332,9 @@ CvUnit::CvUnit() :
 	, m_pReligion(FNEW(CvUnitReligion, c_eCiv5GameplayDLL, 0))
 	, m_iMapLayer(DEFAULT_UNIT_MAP_LAYER)
 	, m_iNumGoodyHutsPopped(0)
+	, m_eGiveDomain("CvUnit::m_eGiveDomain", m_syncArchive)
+	, m_eConvertDomain("CvUnit::m_eConvertDomain", m_syncArchive)
+	, m_eConvertDomainUnit("CvUnit::m_eConvertDomainUnit", m_syncArchive)
 	, m_iLastGameTurnAtFullHealth(-1)
 {
 	initPromotions();
@@ -983,6 +986,7 @@ void CvUnit::reset(int iID, UnitTypes eUnit, PlayerTypes eOwner, bool bConstruct
 	m_iKamikazePercent = 0;
 	m_eFacingDirection = DIRECTION_SOUTHEAST;
 	m_iIgnoreTerrainCostCount = 0;
+	m_eGiveDomain = NO_DOMAIN;
 	m_iRoughTerrainEndsTurnCount = 0;
 	m_iEmbarkAbilityCount = 0;
 	m_iHoveringUnitCount = 0;
@@ -2534,6 +2538,9 @@ bool CvUnit::canEnterTerrain(const CvPlot& enterPlot, byte bMoveFlags) const
 	switch(eDomain)
 	{
 	case DOMAIN_SEA:
+		if(enterPlot.IsAllowsSailLand()){
+            return true;
+        }
 		if(!enterPlot.isWater() && !canMoveAllTerrain())
 		{
 			if(!enterPlot.isFriendlyCity(*this, true) && !enterPlot.isEnemyCity(*this))
@@ -4724,6 +4731,33 @@ bool CvUnit::canAirPatrol(const CvPlot* pPlot) const
 		return false;
 	}
 
+#ifdef CAN_SET_INTERCEPT_HALF_TIMER
+	CvGame& kGame = GC.getGame();
+	if (kGame.isOption(GAMEOPTION_END_TURN_TIMER_ENABLED) && (kGame.isOption("GAMEOPTION_FAST_HAND")) && kGame.getElapsedGameTurns() > 0 && 
+#ifdef AUI_GAME_RELATIVE_TURN_TIMERS
+		(kGame.getPitbossTurnTime() == 0 || kGame.isOption("GAMEOPTION_RELATIVE_TURN_TIMER")))
+#else
+		kGame.getPitbossTurnTime() == 0)
+#endif
+	{
+		float fGameTurnEnd = static_cast<float>(kGame.getMaxTurnLen());
+
+		//NOTE:  These times exclude the time used for AI processing.
+		//Time since the current player's turn started.  Used for measuring time for players in sequential turn mode.
+		float fTimeSinceCurrentTurnStart = kGame.m_curTurnTimer.Peek() + kGame.m_fCurrentTurnTimerPauseDelta;
+
+		//Time since the game (year) turn started.  Used for measuring time for players in simultaneous turn mode.
+		float fTimeSinceGameTurnStart = kGame.m_timeSinceGameTurnStart.Peek() + kGame.m_fCurrentTurnTimerPauseDelta;
+
+		float fTimeElapsed = (GET_PLAYER(kGame.getActivePlayer()).isSimultaneousTurns() ? fTimeSinceGameTurnStart : fTimeSinceCurrentTurnStart);
+
+		if (fTimeElapsed * 2 > fGameTurnEnd)
+		{
+			return false;
+		}
+	}
+#endif
+
 	return true;
 }
 
@@ -4774,6 +4808,8 @@ void CvUnit::ChangeCityAttackOnlyCount(int iChange)
 		m_iCityAttackOnlyCount += iChange;
 	}
 }
+
+//	--------------------------------------------------------------------------------
 void CvUnit::ChangeNoCityAttackCount(int iChange)
 {
 	VALIDATE_OBJECT
@@ -5570,6 +5606,22 @@ int CvUnit::GetPower() const
 {
 	VALIDATE_OBJECT
 	int iPower = getUnitInfo().GetPower();
+
+
+	// the following code is from whoward's DLL mod
+#if defined(MOD_BUGFIX_UNIT_POWER_CALC)
+	if (getUnitInfo().GetCombat() > 0) {
+		iPower = iPower * GetBaseCombatStrength() / getUnitInfo().GetCombat();
+	}
+#endif
+#if defined(MOD_API_EXTENSIONS) && defined(MOD_BUGFIX_UNIT_POWER_CALC)
+	if (getUnitInfo().GetRangedCombat() > 0) {
+		iPower = iPower * GetBaseRangedCombatStrength() / getUnitInfo().GetRangedCombat();
+	}
+#endif
+
+
+
 	//Take promotions into account: unit with 4 promotions worth ~50% more
 	int iPowerMod = getLevel() * 125;
 	iPower = (iPower * (1000 + iPowerMod)) / 1000;
@@ -6385,6 +6437,33 @@ bool CvUnit::canParadropAt(const CvPlot* pPlot, int iX, int iY) const
 	{
 		return false;
 	}
+
+#ifdef CAN_PARADROP_HALF_TIMER
+	CvGame& kGame = GC.getGame();
+	if (kGame.isOption(GAMEOPTION_END_TURN_TIMER_ENABLED) && (kGame.isOption("GAMEOPTION_FAST_HAND")) && kGame.getElapsedGameTurns() > 0 && 
+#ifdef AUI_GAME_RELATIVE_TURN_TIMERS
+		(kGame.getPitbossTurnTime() == 0 || kGame.isOption("GAMEOPTION_RELATIVE_TURN_TIMER")))
+#else
+		kGame.getPitbossTurnTime() == 0)
+#endif
+	{
+		float fGameTurnEnd = static_cast<float>(kGame.getMaxTurnLen());
+
+		//NOTE:  These times exclude the time used for AI processing.
+		//Time since the current player's turn started.  Used for measuring time for players in sequential turn mode.
+		float fTimeSinceCurrentTurnStart = kGame.m_curTurnTimer.Peek() + kGame.m_fCurrentTurnTimerPauseDelta;
+
+		//Time since the game (year) turn started.  Used for measuring time for players in simultaneous turn mode.
+		float fTimeSinceGameTurnStart = kGame.m_timeSinceGameTurnStart.Peek() + kGame.m_fCurrentTurnTimerPauseDelta;
+
+		float fTimeElapsed = (GET_PLAYER(kGame.getActivePlayer()).isSimultaneousTurns() ? fTimeSinceGameTurnStart : fTimeSinceCurrentTurnStart);
+
+		if (fTimeElapsed * 2 > fGameTurnEnd && !pTargetPlot->IsFriendlyTerritory(getOwner()))
+		{
+			return false;
+		}
+	}
+#endif
 
 	return true;
 }
@@ -7344,6 +7423,20 @@ bool CvUnit::rebase(int iX, int iY)
 bool CvUnit::canPillage(const CvPlot* pPlot) const
 {
 	VALIDATE_OBJECT
+	//cant pillage canal with friendly ship ~ from Izy
+	if(pPlot->IsAllowsSailLand()){
+        for (int iUnitLoop = 0; iUnitLoop < pPlot->getNumUnits(); iUnitLoop++)
+        {
+            CvUnit* pkUnit = pPlot->getUnitByIndex(iUnitLoop);
+            if (pkUnit)
+            {
+                if (pkUnit->getDomainType() == DOMAIN_SEA)
+                {
+                    return false;
+                }
+            }
+        }
+    }
 	if(isEmbarked())
 	{
 		return false;
@@ -9405,6 +9498,188 @@ void CvUnit::PerformCultureBomb(int iRadius)
 }
 
 //	--------------------------------------------------------------------------------
+void CvUnit::PerformNeutralCultureBomb(int iRadius)
+{
+	CvPlot* pThisPlot = plot();
+
+	CvPlayerAI& kPlayer = GET_PLAYER(getOwner());
+
+	// Figure out which City gets ownership of these plots
+	int iBestCityID = -1;
+
+	// Plot we're standing on belongs to a city already
+	if(pThisPlot->getOwner() == getOwner() && pThisPlot->GetCityPurchaseID() != -1)
+	{
+		iBestCityID = pThisPlot->GetCityPurchaseID();
+	}
+	// Find closest city
+	else
+	{
+		int iBestCityDistance = -1;
+
+		int iDistance;
+
+		CvCity* pLoopCity = NULL;
+		int iLoop = 0;
+		for(pLoopCity = kPlayer.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kPlayer.nextCity(&iLoop))
+		{
+			CvPlot* pPlot = pLoopCity->plot();
+			if(pPlot)
+			{
+				iDistance = plotDistance(getX(), getY(), pLoopCity->getX(), pLoopCity->getY());
+
+				if(iBestCityDistance == -1 || iDistance < iBestCityDistance)
+				{
+					iBestCityID = pLoopCity->GetID();
+					iBestCityDistance = iDistance;
+				}
+			}
+		}
+	}
+
+	// Keep track of got hit by this so we can figure the diplo ramifications later
+	FStaticVector<bool, MAX_CIV_PLAYERS, true, c_eCiv5GameplayDLL, 0> vePlayersBombed;
+	for(int iPlayerLoop = 0; iPlayerLoop < MAX_CIV_PLAYERS; iPlayerLoop++)
+	{
+		vePlayersBombed.push_back(false);
+	}
+
+	// Change ownership of nearby plots
+	int iBombRange = iRadius;
+	CvPlot* pLoopPlot;
+#ifdef AUI_UNIT_CITADEL_RESISTANT_TO_CULTURE_BOMB
+	ImprovementTypes eLoopImprovement = NO_IMPROVEMENT;
+	const CvImprovementEntry* pImprovementInfo = NULL;
+	const CvPlot* pLoopPlot2 = NULL;
+	int iI;
+#endif
+#ifdef AUI_HEXSPACE_DX_LOOPS
+	int iMaxDX, iDX;
+	for (int iDY = -iBombRange; iDY <= iBombRange; iDY++)
+	{
+		iMaxDX = iBombRange - MAX(0, iDY);
+		for (iDX = -iBombRange - MIN(0, iDY); iDX <= iMaxDX; iDX++) // MIN() and MAX() stuff is to reduce loops (hexspace!)
+		{
+			// No need for range check because loops are set up properly
+			pLoopPlot = plotXY(getX(), getY(), iDX, iDY);
+#else
+	for(int i = -iBombRange; i <= iBombRange; ++i)
+	{
+		for(int j = -iBombRange; j <= iBombRange; ++j)
+		{
+			pLoopPlot = ::plotXYWithRangeCheck(getX(), getY(), i, j, iBombRange);
+#endif
+
+			if(pLoopPlot == NULL)
+				continue;
+
+			// Can't be our plot
+			if(pLoopPlot->getOwner() == getOwner())
+				continue;
+
+			// Can't be Enemy plots either, this is the neutral function!
+			if(pLoopPlot->getOwner() != NO_PLAYER )
+				continue;
+
+			// Can't flip Cities, sorry
+			if(pLoopPlot->isCity())
+				continue;
+
+#ifdef AUI_UNIT_CITADEL_RESISTANT_TO_CULTURE_BOMB
+			eLoopImprovement = pLoopPlot->getRevealedImprovementType(getTeam());
+			if (eLoopImprovement != NO_IMPROVEMENT)
+			{
+				pImprovementInfo = GC.getImprovementInfo(eLoopImprovement);
+				if (pImprovementInfo && pImprovementInfo->GetCultureBombRadius() > 0)
+				{
+					bool bPlotHasResistingCitadel = false;
+
+					for (iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
+					{
+						pLoopPlot2 = plotDirection(pLoopPlot->getX(), pLoopPlot->getY(), (DirectionTypes)iI);
+						if (pLoopPlot2 != NULL && pLoopPlot2->getOwner() == pLoopPlot->getOwner())
+						{
+							if (plotDistance(getX(), getY(), pLoopPlot2->getX(), pLoopPlot2->getY()) > iBombRange && !pLoopPlot->isCity())
+							{
+								eLoopImprovement = pLoopPlot->getRevealedImprovementType(getTeam());
+								// Citadels don't defend adjacent citadels on their own (so 2 neighboring citadels don't become invulnerable to culture bombs
+								if (eLoopImprovement == NO_IMPROVEMENT ||
+									(GC.getImprovementInfo(eLoopImprovement) && GC.getImprovementInfo(eLoopImprovement)->GetCultureBombRadius() <= 0))
+								{
+									bPlotHasResistingCitadel = true;
+									break;
+								}
+							}
+						}
+					}
+
+					if (bPlotHasResistingCitadel)
+						continue;
+				}
+			}
+#endif
+
+			if(pLoopPlot->getOwner() != NO_PLAYER){
+				// Notify plot owner
+				if(pLoopPlot->getOwner() != getOwner() && !vePlayersBombed[pLoopPlot->getOwner()]){
+					CvNotifications* pNotifications = GET_PLAYER(pLoopPlot->getOwner()).GetNotifications();
+					if(pNotifications){
+						CvString strBuffer = GetLocalizedText("TXT_KEY_NOTIFICATION_GREAT_ARTIST_STOLE_PLOT", GET_PLAYER(getOwner()).getNameKey());
+						CvString strSummary = GetLocalizedText("TXT_KEY_NOTIFICATION_SUMMARY_GREAT_ARTIST_STOLE_PLOT", GET_PLAYER(getOwner()).getNameKey());
+						pNotifications->Add(NOTIFICATION_GENERIC, strBuffer, strSummary, pLoopPlot->getX(), pLoopPlot->getY(), -1);
+					}
+				}
+				vePlayersBombed[pLoopPlot->getOwner()] = true;
+			}
+
+			// Have to set owner after we do the above stuff
+			pLoopPlot->setOwner(getOwner(), iBestCityID);
+		}
+	}
+
+	bool bAlreadyShownLeader = false;
+
+	// Now that we know who was hit, figure the diplo ramifications
+	CvPlayer* pPlayer;
+	for(int iSlotLoop = 0; iSlotLoop < MAX_CIV_PLAYERS; iSlotLoop++)
+	{
+		if(vePlayersBombed[iSlotLoop])
+		{
+			pPlayer = &GET_PLAYER((PlayerTypes) iSlotLoop);
+			TeamTypes eOtherTeam = pPlayer->getTeam();
+
+			// Humans can handle their own diplo
+			if(pPlayer->isHuman())
+				continue;
+
+			// Minor civ response
+			if(pPlayer->isMinorCiv())
+			{
+				int iFriendship = /*-50*/ GC.getCULTURE_BOMB_MINOR_FRIENDSHIP_CHANGE();
+				pPlayer->GetMinorCivAI()->ChangeFriendshipWithMajor(getOwner(), iFriendship);
+			}
+			// Major civ response
+			else
+			{
+				pPlayer->GetDiplomacyAI()->ChangeNumTimesCultureBombed(getOwner(), 1);
+
+				// Message for human
+				if(getTeam() != eOtherTeam && !GET_TEAM(eOtherTeam).isAtWar(getTeam()) && !CvPreGame::isNetworkMultiplayerGame() && GC.getGame().getActivePlayer() == getOwner() && !bAlreadyShownLeader)
+				{
+					bAlreadyShownLeader = true;
+
+					DLLUI->SetForceDiscussionModeQuitOnBack(true);		// Set force quit so that when discuss mode pops up the Back button won't go to leader root
+					const char* strText = pPlayer->GetDiplomacyAI()->GetDiploStringForMessage(DIPLO_MESSAGE_CULTURE_BOMBED);
+					gDLL->GameplayDiplomacyAILeaderMessage(pPlayer->GetID(), DIPLO_UI_STATE_BLANK_DISCUSSION, strText, LEADERHEAD_ANIM_HATE_NEGATIVE);
+				}
+			}
+		}
+	}
+}
+
+
+
+//	--------------------------------------------------------------------------------
 bool CvUnit::canGoldenAge(const CvPlot* pPlot, bool bTestVisible) const
 {
 	VALIDATE_OBJECT
@@ -9896,10 +10171,20 @@ bool CvUnit::build(BuildTypes eBuild)
 				CvImprovementEntry* pkImprovementInfo = GC.getImprovementInfo(eImprovement);
 				if(pkImprovementInfo)
 				{
-					if (pkImprovementInfo->GetCultureBombRadius() > 0)
+					if (pkImprovementInfo->GetCultureBombRadius() > 0) // 
 					{
 						PerformCultureBomb(pkImprovementInfo->GetCultureBombRadius());
 					}
+
+					if (pkImprovementInfo->GetCultureBombRadiusNeutral() > 0) // Decided to write new table entry instead, this is works like the one above, but for neutral tiles only!  ~EAP
+					{
+						PerformNeutralCultureBomb(pkImprovementInfo->GetCultureBombRadiusNeutral());
+					}
+					/*if (pkImprovementInfo->GetCultureBombRadius() = 2) // 2 will actually act as 1, but will not attempt to claim enemy tiles ~EAP
+					{
+						PerformCultureBombTwo(pkImprovementInfo->GetCultureBombRadius());
+					}
+					*/
 				}
 			}
 			else if(pkBuildInfo->getRoute() != NO_ROUTE)
@@ -11408,6 +11693,8 @@ int CvUnit::GetUnhappinessCombatPenalty() const
 
 	return iPenalty;
 }
+
+//	--------------------------------------------------------------------------------
 int CvUnit::GetTourismCombatPenalty(const PlayerTypes eOtherPlayerId) const
 {
 	int iRetVal = 0;
@@ -11418,7 +11705,7 @@ int CvUnit::GetTourismCombatPenalty(const PlayerTypes eOtherPlayerId) const
 
 	int ourInfluence = usPlayer.GetCulture()->GetInfluencePercent(themPlayer.GetID());
 	int theirInfluence = themPlayer.GetCulture()->GetInfluencePercent(usPlayer.GetID());
-	
+
 	if (theirInfluence > ourInfluence)
 	{
 		int maxBonus = (int)GC.getTOURISM_COMBAT_MAX();
@@ -13095,7 +13382,6 @@ int CvUnit::GetInterceptionDamage(const CvUnit* pAttacker, bool bIncludeRand) co
 	iInterceptorDamage *= (100 + pAttacker->GetInterceptionDefenseDamageModifier());
 	iInterceptorDamage /= 100;
 #endif
-
 	float interceptionDamageFraction = GC.getINTERCEPTION_DAMAGE_MULTIPLIER();
 	iInterceptorDamage *= interceptionDamageFraction;
 	// Bring it back out of hundreds
@@ -13347,6 +13633,42 @@ void CvUnit::changeIgnoreTerrainCostCount(int iValue)
 	{
 		m_iIgnoreTerrainCostCount += iValue;
 	}
+}
+
+// ---- from CMP -------------------------------------------------------------------
+
+const DomainTypes CvUnit::getGiveDomain() const
+{
+	VALIDATE_OBJECT
+	return (DomainTypes)(int)m_eGiveDomain;
+}
+void CvUnit::ChangeGiveDomain(DomainTypes eDomain)
+{
+	VALIDATE_OBJECT
+	m_eGiveDomain = eDomain;
+}
+
+const DomainTypes CvUnit::getConvertDomain() const
+{
+	VALIDATE_OBJECT
+	return (DomainTypes)(int)m_eConvertDomain;
+}
+void CvUnit::ChangeConvertDomain(DomainTypes eDomain)
+{
+	VALIDATE_OBJECT
+	m_eConvertDomain = eDomain;
+}
+const UnitTypes CvUnit::getConvertDomainUnitType() const
+{
+	VALIDATE_OBJECT
+	return m_eConvertDomainUnit;
+}
+
+
+void CvUnit::ChangeConvertDomainUnit(UnitTypes eUnit)
+{
+	VALIDATE_OBJECT
+	m_eConvertDomainUnit = eUnit;
 }
 
 
@@ -17559,7 +17881,7 @@ int CvUnit::GetReverseGreatGeneralModifier()const
 					{
 						pLoopUnit = ::getUnit(*pUnitNode);
 						pUnitNode = pLoopPlot->nextUnitNode(pUnitNode);
-
+						
 						// Owned by an enemy
 						if(pLoopUnit && GET_TEAM(getTeam()).isAtWar(pLoopUnit->getTeam()))
 						{
@@ -17567,8 +17889,9 @@ int CvUnit::GetReverseGreatGeneralModifier()const
 							int iMod = pLoopUnit->getNearbyEnemyCombatMod();
 							if(iMod != 0)
 							{
-								// Same domain
-								if(pLoopUnit->getDomainType() == getDomainType())
+								
+								// Same domain -> changed to the defined domain from CMP ~EAP -- insert if needed into below :  && !pLoopUnit->isEmbarked() 
+								if (pLoopUnit->getGiveDomain() != NO_DOMAIN && !pLoopUnit->isEmbarked() &&  (pLoopUnit->getGiveDomain() == getDomainType()))
 								{
 									// Within range?
 									int iRange = pLoopUnit->getNearbyEnemyCombatRange();
@@ -19589,6 +19912,18 @@ void CvUnit::setHasPromotion(PromotionTypes eIndex, bool bNewValue)
 		for(iI = 0; iI < NUM_DOMAIN_TYPES; iI++)
 		{
 			changeExtraDomainModifier(((DomainTypes)iI), (thisPromotion.GetDomainModifierPercent(iI) * iChange));
+		}
+		if (getGiveDomain() == NO_DOMAIN && thisPromotion.GetGiveDomain() != NO_DOMAIN)
+		{
+			ChangeGiveDomain((DomainTypes)thisPromotion.GetGiveDomain());
+		}
+		if (getConvertDomain() == NO_DOMAIN && thisPromotion.GetConvertDomain() != NO_DOMAIN)
+		{
+			ChangeConvertDomain((DomainTypes)thisPromotion.GetConvertDomain());
+		}
+		if (getConvertDomainUnitType() == NO_UNIT && thisPromotion.GetConvertDomainUnit() != NO_UNIT)
+		{
+			ChangeConvertDomainUnit((UnitTypes)thisPromotion.GetConvertDomainUnit());
 		}
 
 		if(IsSelected())

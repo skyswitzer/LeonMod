@@ -99,6 +99,7 @@ public:
 	int GetMutuallyExclusiveGroup() const;
 	int GetReplacementBuildingClass() const;
 	int GetPrereqAndTech() const;
+	int GetEra() const;
 	int GetPolicyBranchType() const;
 	int GetSpecialistType() const;
 	int GetSpecialistCount() const;
@@ -301,6 +302,12 @@ public:
 	int* GetResourceYieldChangeArray(int i) const;
 	int GetFeatureYieldChange(int i, int j) const;
 	int* GetFeatureYieldChangeArray(int i) const;
+	int GetResourceYieldChangeGlobal(int iResource, int iYieldType) const;
+	int GetImprovementYieldChange(int i, int j) const;
+	int* GetImprovementYieldChangeArray(int i) const;
+
+	int GetImprovementYieldChangeGlobal(int i, int j) const;
+	int* GetImprovementYieldChangeGlobalArray(int i) const;
 #ifdef AUI_WARNING_FIXES
 	int GetSpecialistYieldChange(uint i, int j) const;
 #else
@@ -529,6 +536,9 @@ private:
 #else
 	int** m_ppaiResourceYieldChange;
 	int** m_ppaiFeatureYieldChange;
+	std::map<int, std::map<int, int>> m_ppiResourceYieldChangeGlobal;
+	int** m_ppaiImprovementYieldChange;
+	int** m_ppaiImprovementYieldChangeGlobal;
 	int** m_ppaiSpecialistYieldChange;
 	int** m_ppaiResourceYieldModifier;
 	int** m_ppaiTerrainYieldChange;
@@ -604,6 +614,11 @@ public:
 	void ChangeNumBuildings(int iChange);
 
 	int GetNumBuilding(BuildingTypes eIndex) const;
+
+	/// CMP
+	bool HasBuildingClass(BuildingClassTypes eIndex) const;
+	BuildingTypes GetBuildingTypeFromClass(BuildingClassTypes eIndex) const;
+
 	int GetNumActiveBuilding(BuildingTypes eIndex) const;
 
 	bool IsBuildingSellable(const CvBuildingEntry& kBuilding) const;
@@ -710,6 +725,10 @@ public:
 	bool CheckForAllWondersBuilt();
 	bool CheckForSevenAncientWondersBuilt();
 
+	/// CMP
+	const std::vector<BuildingTypes>& GetAllBuildingsHere() const { return m_buildingsThatExistAtLeastOnce; }
+
+
 private:
 	void NotifyNewBuildingStarted(BuildingTypes eIndex);
 
@@ -732,6 +751,11 @@ private:
 	int* m_paiBuildingOriginalTime;
 	int* m_paiNumRealBuilding;
 	int* m_paiNumFreeBuilding;
+
+/// CMP
+
+	std::vector<BuildingTypes> m_buildingsThatExistAtLeastOnce;
+	///
 
 	std::vector<BuildingYieldChange> m_aBuildingYieldChange;
 	std::vector<BuildingGreatWork> m_aBuildingGreatWork;

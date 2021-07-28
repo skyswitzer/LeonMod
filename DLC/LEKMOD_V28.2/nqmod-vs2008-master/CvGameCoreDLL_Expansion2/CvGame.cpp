@@ -1427,15 +1427,43 @@ void CvGame::initFreeState(CvGameInitialItemsOverrides& kOverrides)
 
 						bool bValid = false;
 
+					#ifdef NQ_AI_HANDICAP_START // From bing - Higher level AIs don't start with tech's and units which the player doesn't get.
+						if(!GC.getGame().isOption("GAMEOPTION_AI_HANDICAP_START"))
+						{
+							if(!bValid)
+							{
+								if((getHandicapInfo().isFreeTechs(iI)) ||
+										(!(kTeam.isHuman())&& getHandicapInfo().isAIFreeTechs(iI)) ||
+										(pkTechInfo->GetEra() < getStartEra()))
+								{
+									bValid = true;
+								}
+							}
+						}
+						else
+						{
+							if(!bValid)
+							{
+								if((getHandicapInfo().isFreeTechs(iI)) ||
+										(pkTechInfo->GetEra() < getStartEra()))
+								{
+									bValid = true;
+								}
+							}
+						}
+#else
 						if(!bValid)
 						{
 							if((getHandicapInfo().isFreeTechs(iI)) ||
-							        (!(kTeam.isHuman())&& getHandicapInfo().isAIFreeTechs(iI)) ||
-							        (pkTechInfo->GetEra() < getStartEra()))
+									(!(kTeam.isHuman())&& getHandicapInfo().isAIFreeTechs(iI)) ||
+									(pkTechInfo->GetEra() < getStartEra()))
 							{
 								bValid = true;
 							}
 						}
+#endif
+
+
 
 						if(!bValid)
 						{
@@ -9085,8 +9113,11 @@ void CvGame::updateMoves()
 		{//Activate human players who are playing simultaneous turns now that we've finished moves for the AI.
 #ifdef AUI_GAME_FIX_MULTIPLAYER_BARBARIANS_SPAWN_AFTER_MOVING
 			// Only spawn barbarians now, otherwise the barbarian player gets a turn to move/attack after its units spawn before the human players do
+			if (GC.getGame().getElapsedGameTurns() > 0)
+			{
 			CvBarbarians::DoCamps();
 			CvBarbarians::DoUnits();
+			}
 #endif
 			// KWG: This code should go into CheckPlayerTurnDeactivate
 #ifdef NQM_GAME_RANDOMIZE_TURN_ACTIVATION_ORDER_IN_SIMULTANEOUS
@@ -12713,4 +12744,18 @@ void CvGame::SetLastTurnAICivsProcessed()
 		m_lastTurnAICivsProcessed = getGameTurn();
 	}
 }
+
+/*bool CvGame::AnyoneHasBuildingClass(BuildingClassTypes iBuildingClassType) const
+{
+	for (int i = 0; i < MAX_PLAYERS; ++i) {
+		CvPlayer& player = GET_PLAYER(static_cast<PlayerTypes>(i));
+
+		if(player.isAlive() && player.HasBuildingClass(iBuildingClassType)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+*/
 

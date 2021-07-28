@@ -1,4 +1,6 @@
 ﻿// Defines.h
+
+
 #pragma once
 
 #ifndef DEFINES_LIST
@@ -734,11 +736,13 @@
 // golden age points accrue even while in golden ages
 #define NQ_GOLDEN_AGE_OVERHAUL
 // coup chances now use base influence instead of effective influence (which would be -60 during war)
-#define NQ_COUP_FORMULA_USES_BASE_FRIENDSHIP_NOT_EFFECTIVE_FRIENDSHIP
+// Cirra Edit
+// #define NQ_COUP_FORMULA_USES_BASE_FRIENDSHIP_NOT_EFFECTIVE_FRIENDSHIP
 // show base influence you would have at peace in tooltip while at war with city states
 #define NQ_SHOW_BASE_INFLUENCE_WHILE_AT_WAR_IN_CS_TOOLTIP
 // disable gifting of great people between major powers
-#define NQ_NO_GIFTING_GREAT_PEOPLE_TO_MAJORS
+// Cirra Edit
+// #define NQ_NO_GIFTING_GREAT_PEOPLE_TO_MAJORS
 // world's fair # of turns scales with game speed now
 #define NQ_WORLDS_FAIR_GAME_SPEED_SCALING
 // one shot local population change when a building is constructed
@@ -768,7 +772,8 @@
 // trait attribute that make specific unit types immune to plunder mission
 #define NQ_UNIT_IMMUNE_TO_PLUNDER_FROM_TRAIT
 // fixing build times (sub-part of Delnar's fixes)
-#define NQ_FIX_BUILD_TIMES_UI
+// Cirra Edit
+// #define NQ_FIX_BUILD_TIMES_UI
 // make build times round down to lowest 10 so that Quick Speed doesn't have built times of 201 or 402
 #define NQ_ROUND_BUILD_TIMES_DOWN
 // HACK: Golden Pilgrimage Trait (new civ Mali) needs to give +1 Faith to tiles that make at least 1 Gold during a golden age
@@ -789,7 +794,7 @@
 // with this policy, gain a free great artist whenever a great general is born (very ugly cheat code)
 #define NQ_WAR_HERO
 // ignore puppets when calculating tech research cost
-#define NQ_IGNORE_PUPPETS_FOR_RESEARCH_COSTS_FROM_POLICIES
+//#define NQ_IGNORE_PUPPETS_FOR_RESEARCH_COSTS_FROM_POLICIES
 // allows purchasing of units in puppet cities from policies
 #define NQ_ALLOW_PUPPET_PURCHASING_FROM_POLICIES
 // bonus strength when near friendly city states or city states conquered by another civ
@@ -857,4 +862,23 @@
 // Adjacent Mod (PROMOTION_ADJACENT_BONUS) now requires same combat type
 #define NQ_ADJACENT_MOD_REQUIRES_SAME_COMBAT_TYPE
 
+// Fix great people from patronage bo either merchant, engineer, scientist, writer, artist, general
+#define NQ_PATRONAGE_GREAT_PEOPLE_FIX
+
+// GAME OPTION: AI's can't vote in the World Congress
+#define NQ_AI_NO_VOTE
+// GAME OPTION: AI's don't start with more units and techs than the players.
+#define NQ_AI_HANDICAP_START
+// GAME OPTIONS: AI CANNOT Spread minor (city-state
+#define NQ_AI_GIMP_NO_MINOR_SPREAD
+
+// Resource production similar to Marble additions for v28 -- From Community Patch DLL
+
+
+// from ImmoS
+#define CAN_PARADROP_HALF_TIMER
+///
+#define CAN_SET_INTERCEPT_HALF_TIMER
+
+#define MOD_RESOURCES_PRODUCTION_COST_MODIFIERS
 #endif

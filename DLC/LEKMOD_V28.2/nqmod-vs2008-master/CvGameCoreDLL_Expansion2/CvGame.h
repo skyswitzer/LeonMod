@@ -597,19 +597,16 @@ public:
 	bool IsArchaeologyTriggered() const;
 	int GetNumArchaeologySites() const;
 	int GetNumHiddenArchaeologySites() const;
-
-#ifdef NQM_GAME_EXTEND_TURN_TIMER_ON_LAST_MINUTE_WAR_DECLARATION_IF_SIMULTANEOUS
+	
+#if defined (CAN_PARADROP_HALF_TIMER) || defined (CAN_SET_INTERCEPT_HALF_TIMER)
 	FTimer  m_endTurnTimer;
 	int     m_endTurnTimerSemaphore;
 	FTimer  m_curTurnTimer;
-#ifndef AUI_GAME_PLAYER_BASED_TURN_LENGTH
 	FTimer  m_timeSinceGameTurnStart;		//time since game turn started for human players
+	float	m_fCurrentTurnTimerPauseDelta;
 #endif
-	float	m_fCurrentTurnTimerPauseDelta;	//
-#if defined(AUI_GAME_BETTER_HYBRID_MODE) && defined(AUI_GAME_PLAYER_BASED_TURN_LENGTH)
-	FFastVector<int, true, c_eCiv5GameplayDLL> m_aiMaxTurnLengths;
-#endif
-#endif
+
+	bool AnyoneHasBuildingClass(BuildingClassTypes iBuildingClassType) const;
 
 public:
 
@@ -768,16 +765,18 @@ protected:
 
 	// CACHE: cache frequently used values
 
-#ifndef NQM_GAME_EXTEND_TURN_TIMER_ON_LAST_MINUTE_WAR_DECLARATION_IF_SIMULTANEOUS
+#if !defined (CAN_PARADROP_HALF_TIMER) || !defined (CAN_SET_INTERCEPT_HALF_TIMER)
 	FTimer  m_endTurnTimer;
 	int     m_endTurnTimerSemaphore;
 #endif
 	int     m_lastTurnAICivsProcessed;
-#ifndef NQM_GAME_EXTEND_TURN_TIMER_ON_LAST_MINUTE_WAR_DECLARATION_IF_SIMULTANEOUS
+#if !defined (CAN_PARADROP_HALF_TIMER) || !defined (CAN_SET_INTERCEPT_HALF_TIMER)
 	FTimer  m_curTurnTimer;
-#ifndef AUI_GAME_PLAYER_BASED_TURN_LENGTH
+#endif
+#if !defined (CAN_PARADROP_HALF_TIMER) || !defined (CAN_SET_INTERCEPT_HALF_TIMER)
 	FTimer  m_timeSinceGameTurnStart;		//time since game turn started for human players
 #endif
+#if !defined (CAN_PARADROP_HALF_TIMER) || !defined (CAN_SET_INTERCEPT_HALF_TIMER)
 	float	m_fCurrentTurnTimerPauseDelta;	//
 #endif
 	bool    m_sentAutoMoves;

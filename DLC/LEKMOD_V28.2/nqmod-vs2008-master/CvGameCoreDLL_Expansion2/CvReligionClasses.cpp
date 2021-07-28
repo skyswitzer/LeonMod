@@ -5498,6 +5498,10 @@ CvCity *CvReligionAI::ChooseProphetConversionCity(bool bOnlyBetterThanEnhancingR
 				if (GC.getGame().isOption("GAMEOPTION_AI_GIMP_NO_RELIGION_SPREAD") && kLoopPlayer.isHuman())
 					continue;
 #endif
+#ifdef NQ_AI_GIMP_NO_MINOR_SPREAD // NQMP_Bing - AI cannot spread religion to City-States
+				if (GC.getGame().isOption("GAMEOPTION_AI_GIMP_NO_MINOR_RELIGION_SPREAD") && kLoopPlayer.isMinorCiv())
+					continue;
+#endif
 #ifdef AUI_RELIGION_FIX_CHOOSE_PROPHET_CONVERSION_CITY_HONOR_NONCONVERT_PROMISE
 				if (m_pPlayer->GetDiplomacyAI()->IsPlayerAgreeNotToConvert((PlayerTypes)iPlayerLoop))
 					continue;
@@ -6635,6 +6639,15 @@ int CvReligionAI::ScoreCityForMissionary(CvCity* pCity, UnitHandle pUnit)
 			return 0;
 		}
 	}
+#ifdef NQ_AI_GIMP_NO_MINOR_SPREAD // From Bing much love bro - AI cannot spread religion to City-States
+	else
+	{
+		if (GC.getGame().isOption("GAMEOPTION_AI_GIMP_NO_MINOR_RELIGION_SPREAD"))
+		{
+			return 0;
+		}
+	}
+#endif
 
 	CvPlayer& kCityPlayer = GET_PLAYER(pCity->getOwner());
 	// Much better score if our own city or if this city owner isn't starting a religion
@@ -6817,6 +6830,10 @@ bool CvReligionAI::HaveNearbyConversionTarget(ReligionTypes eReligion, bool bCan
 		{
 			if(kPlayer.isMinorCiv())
 			{
+#ifdef NQ_AI_GIMP_NO_MINOR_SPREAD // NQMP_Bing - AI cannot spread religion to City-States
+				if (GC.getGame().isOption("GAMEOPTION_AI_GIMP_NO_MINOR_RELIGION_SPREAD"))
+					continue;
+#endif
 				bStartedOwnReligion = false;
 			}
 			else

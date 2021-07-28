@@ -230,6 +230,7 @@ CvPolicyEntry::CvPolicyEntry(void):
 	m_iGoldToScience(0),
 #endif
 	m_iNumCitiesFreeAestheticsSchools(0), // NQMP GJS - add support for NumCitiesFreeAestheticsSchools
+	m_iNumCitiesFreePietyGardens(0),
 	m_iNumCitiesFreeWalls(0), // NQMP GJS - New Oligarchy add support for NumCitiesFreeWalls
 	m_iNumCitiesFreeCultureBuilding(0),
 	m_iNumCitiesFreeFoodBuilding(0),
@@ -451,6 +452,7 @@ bool CvPolicyEntry::CacheResults(Database::Results& kResults, CvDatabaseUtility&
 	m_iGoldToScience = kResults.GetInt("GoldToScience");
 #endif
 	m_iNumCitiesFreeAestheticsSchools = kResults.GetInt("NumCitiesFreeAestheticsSchools"); // NQMP GJS - add support for NumCitiesFreeAestheticsSchools
+	m_iNumCitiesFreePietyGardens = kResults.GetInt("NumCitiesFreePietyGardens");
 	m_iNumCitiesFreeWalls = kResults.GetInt("NumCitiesFreeWalls"); // NQMP GJS - New Oligarchy add support for NumCitiesFreeWalls
 	m_iNumCitiesFreeCultureBuilding = kResults.GetInt("NumCitiesFreeCultureBuilding");
 	m_iNumCitiesFreeFoodBuilding = kResults.GetInt("NumCitiesFreeFoodBuilding");
@@ -1798,6 +1800,12 @@ int CvPolicyEntry::GetGoldToScience() const
 int CvPolicyEntry::GetNumCitiesFreeAestheticsSchools() const
 {
 	return m_iNumCitiesFreeAestheticsSchools;
+}
+
+/// Cities that receive free Piety Gardens on Piety Finisher
+int CvPolicyEntry::GetNumCitiesFreePietyGardens() const
+{
+	return m_iNumCitiesFreePietyGardens;
 }
 
 // NQMP GJS - New Oligarchy add support for NumCitiesFreeWalls

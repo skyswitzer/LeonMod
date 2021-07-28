@@ -178,6 +178,13 @@ public:
 	bool IsIgnoreGreatGeneralBenefit() const;
 	bool IsIgnoreZOC() const;
 	bool IsSapper() const;
+
+	// CMP
+	int GetConvertDomainUnit() const;
+	int GetConvertDomain() const;
+	int GetGiveDomain() const;
+	//
+
 	bool IsCanHeavyCharge() const;
 #ifdef NQ_HEAVY_CHARGE_DOWNHILL
 	int GetHeavyChargeDownhill() const;
@@ -369,6 +376,11 @@ protected:
 	bool m_bHasPostCombatPromotions;
 	bool m_bPostCombatPromotionsExclusive;
 	bool m_bSapper;
+
+	int m_iGiveDomain;
+	int m_iConvertDomainUnit;
+	int m_iConvertDomain;
+
 	bool m_bCanHeavyCharge;
 #ifdef NQ_HEAVY_CHARGE_DOWNHILL
 	int m_iHeavyChargeDownhill;

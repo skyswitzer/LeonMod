@@ -208,6 +208,9 @@ CvBuildingEntry::CvBuildingEntry(void):
 #else
 	m_ppaiResourceYieldChange(NULL),
 	m_ppaiFeatureYieldChange(NULL),
+	m_ppiResourceYieldChangeGlobal(),
+	m_ppaiImprovementYieldChange(NULL),
+	m_ppaiImprovementYieldChangeGlobal(NULL),
 	m_ppaiSpecialistYieldChange(NULL),
 	m_ppaiResourceYieldModifier(NULL),
 	m_ppaiTerrainYieldChange(NULL),
@@ -276,6 +279,9 @@ CvBuildingEntry::~CvBuildingEntry(void)
 #else
 	CvDatabaseUtility::SafeDelete2DArray(m_ppaiResourceYieldChange);
 	CvDatabaseUtility::SafeDelete2DArray(m_ppaiFeatureYieldChange);
+	m_ppiResourceYieldChangeGlobal.clear();
+	CvDatabaseUtility::SafeDelete2DArray(m_ppaiImprovementYieldChange);
+	CvDatabaseUtility::SafeDelete2DArray(m_ppaiImprovementYieldChangeGlobal);
 	CvDatabaseUtility::SafeDelete2DArray(m_ppaiSpecialistYieldChange);
 	CvDatabaseUtility::SafeDelete2DArray(m_ppaiResourceYieldModifier);
 	CvDatabaseUtility::SafeDelete2DArray(m_ppaiTerrainYieldChange);
@@ -572,6 +578,31 @@ bool CvBuildingEntry::CacheResults(Database::Results& kResults, CvDatabaseUtilit
 #endif
 		}
 	}
+	//Building_ResourceYieldChangesGlobal
+	{
+		std::string strKey("Building_ResourceYieldChangesGlobal");
+		Database::Results* pResults = kUtility.GetResults(strKey);
+		if (pResults == NULL)
+		{
+			pResults = kUtility.PrepareResults(strKey, "select Resources.ID as ResourceID, Yields.ID as YieldID, Yield from Building_ResourceYieldChangesGlobal inner join Resources on Resources.Type = ResourceType inner join Yields on Yields.Type = YieldType where BuildingType = ?");
+		}
+
+		pResults->Bind(1, szBuildingType);
+
+		while (pResults->Step())
+		{
+			const int iResource = pResults->GetInt(0);
+			const int iYieldType = pResults->GetInt(1);
+			const int iYield = pResults->GetInt(2);
+
+			m_ppiResourceYieldChangeGlobal[iResource][iYieldType] += iYield;
+		}
+
+		pResults->Reset();
+
+		//Trim extra memory off container since this is mostly read-only.
+		std::map<int, std::map<int, int>>(m_ppiResourceYieldChangeGlobal).swap(m_ppiResourceYieldChangeGlobal);
+	}
 
 	//FeatureYieldChanges
 	{
@@ -602,6 +633,50 @@ bool CvBuildingEntry::CacheResults(Database::Results& kResults, CvDatabaseUtilit
 #else
 			m_ppaiFeatureYieldChange[FeatureID][YieldID] = yield;
 #endif
+		}
+	}
+	//ImprovementYieldChanges
+	{
+		kUtility.Initialize2DArray(m_ppaiImprovementYieldChange, "Improvements", "Yields");
+
+		std::string strKey("Building_ImprovementYieldChanges");
+		Database::Results* pResults = kUtility.GetResults(strKey);
+		if(pResults == NULL)
+		{
+			pResults = kUtility.PrepareResults(strKey, "select Improvements.ID as ImprovementID, Yields.ID as YieldID, Yield from Building_ImprovementYieldChanges inner join Improvements on Improvements.Type = ImprovementType inner join Yields on Yields.Type = YieldType where BuildingType = ?");
+		}
+
+		pResults->Bind(1, szBuildingType);
+
+		while(pResults->Step())
+		{
+			const int ImprovementID = pResults->GetInt(0);
+			const int YieldID = pResults->GetInt(1);
+			const int yield = pResults->GetInt(2);
+
+			m_ppaiImprovementYieldChange[ImprovementID][YieldID] = yield;
+		}
+	}
+	//ImprovementYieldChangesGlobal
+	{
+		kUtility.Initialize2DArray(m_ppaiImprovementYieldChangeGlobal, "Improvements", "Yields");
+
+		std::string strKey("Building_ImprovementYieldChangesGlobal");
+		Database::Results* pResults = kUtility.GetResults(strKey);
+		if(pResults == NULL)
+		{
+			pResults = kUtility.PrepareResults(strKey, "select Improvements.ID as ImprovementID, Yields.ID as YieldID, Yield from Building_ImprovementYieldChangesGlobal inner join Improvements on Improvements.Type = ImprovementType inner join Yields on Yields.Type = YieldType where BuildingType = ?");
+		}
+
+		pResults->Bind(1, szBuildingType);
+
+		while(pResults->Step())
+		{
+			const int ImprovementID = pResults->GetInt(0);
+			const int YieldID = pResults->GetInt(1);
+			const int yield = pResults->GetInt(2);
+
+			m_ppaiImprovementYieldChangeGlobal[ImprovementID][YieldID] = yield;
 		}
 	}
 
@@ -862,6 +937,20 @@ int CvBuildingEntry::GetReplacementBuildingClass() const
 {
 	return m_iReplacementBuildingClass;
 }
+
+/// Era this building belongs to
+int CvBuildingEntry::GetEra() const
+{
+	TechTypes eTech = (TechTypes)GetPrereqAndTech();
+	if (eTech != NO_TECH)
+	{
+		CvTechEntry* pTech = GC.getTechInfo((TechTypes)GetPrereqAndTech());
+		return pTech->GetEra();
+	}
+
+	return -1;
+}
+
 
 /// Techs required for this building
 int CvBuildingEntry::GetPrereqAndTech() const
@@ -2069,7 +2158,25 @@ int* CvBuildingEntry::GetResourceYieldChangeArray(int i) const
 	return m_ppaiResourceYieldChange[i];
 #endif
 }
+/// Change to Resource yield by type
+int CvBuildingEntry::GetResourceYieldChangeGlobal(int iResource, int iYieldType) const
+{
+	CvAssertMsg(iResource < GC.getNumResourceInfos(), "Index out of bounds");
+	CvAssertMsg(iResource > -1, "Index out of bounds");
+	CvAssertMsg(iYieldType < NUM_YIELD_TYPES, "Index out of bounds");
+	CvAssertMsg(iYieldType > -1, "Index out of bounds");
+	std::map<int, std::map<int, int>>::const_iterator itResource = m_ppiResourceYieldChangeGlobal.find(iResource);
+	if (itResource != m_ppiResourceYieldChangeGlobal.end()) // find returns the iterator to map::end if the key iResource is not present in the map
+	{
+		std::map<int, int>::const_iterator itYield = itResource->second.find(iYieldType);
+		if (itYield != itResource->second.end()) // find returns the iterator to map::end if the key iYield is not present in the map
+		{
+			return itYield->second;
+		}
+	}
 
+	return 0;
+}
 /// Change to Feature yield by type
 int CvBuildingEntry::GetFeatureYieldChange(int i, int j) const
 {
@@ -2094,6 +2201,40 @@ int* CvBuildingEntry::GetFeatureYieldChangeArray(int i) const
 #else
 	return m_ppaiFeatureYieldChange[i];
 #endif
+}
+/// Change to Improvement yield by type
+int CvBuildingEntry::GetImprovementYieldChange(int i, int j) const
+{
+	CvAssertMsg(i < GC.getNumImprovementInfos(), "Index out of bounds");
+	CvAssertMsg(i > -1, "Index out of bounds");
+	CvAssertMsg(j < NUM_YIELD_TYPES, "Index out of bounds");
+	CvAssertMsg(j > -1, "Index out of bounds");
+	return m_ppaiImprovementYieldChange ? m_ppaiImprovementYieldChange[i][j] : -1;
+}
+
+/// Array of changes to Improvement yield
+int* CvBuildingEntry::GetImprovementYieldChangeArray(int i) const
+{
+	CvAssertMsg(i < GC.getNumImprovementInfos(), "Index out of bounds");
+	CvAssertMsg(i > -1, "Index out of bounds");
+	return m_ppaiImprovementYieldChange[i];
+}
+/// Change to Improvement yield by type
+int CvBuildingEntry::GetImprovementYieldChangeGlobal(int i, int j) const
+{
+	CvAssertMsg(i < GC.getNumImprovementInfos(), "Index out of bounds");
+	CvAssertMsg(i > -1, "Index out of bounds");
+	CvAssertMsg(j < NUM_YIELD_TYPES, "Index out of bounds");
+	CvAssertMsg(j > -1, "Index out of bounds");
+	return m_ppaiImprovementYieldChangeGlobal ? m_ppaiImprovementYieldChangeGlobal[i][j] : -1;
+}
+
+/// Array of changes to Improvement yield
+int* CvBuildingEntry::GetImprovementYieldChangeGlobalArray(int i) const
+{
+	CvAssertMsg(i < GC.getNumFeatureInfos(), "Index out of bounds");
+	CvAssertMsg(i > -1, "Index out of bounds");
+	return m_ppaiImprovementYieldChangeGlobal[i];
 }
 
 /// Change to specialist yield by type
@@ -2389,8 +2530,11 @@ void CvCityBuildings::Reset()
 		m_paiNumRealBuilding[iI] = 0;
 		m_paiNumFreeBuilding[iI] = 0;
 	}
+
+	m_buildingsThatExistAtLeastOnce.clear();
 }
 
+		
 /// Serialization read
 void CvCityBuildings::Read(FDataStream& kStream)
 {
@@ -2501,6 +2645,21 @@ int CvCityBuildings::GetNumBuilding(BuildingTypes eIndex) const
 	}
 }
 
+/// Accessor: Is there at least one building of the class in the city? Potentially faster function than the above.
+bool CvCityBuildings::HasBuildingClass(BuildingClassTypes eIndex) const
+{
+	CvAssertMsg(eIndex != NO_BUILDINGCLASS, "BuildingClassTypes eIndex is expected to not be NO_BUILDINGCLASS");
+
+	for (std::vector<BuildingTypes>::const_iterator iI = m_buildingsThatExistAtLeastOnce.begin(); iI != m_buildingsThatExistAtLeastOnce.end(); ++iI)
+	{
+		CvBuildingEntry* pkInfo = GC.getBuildingInfo(*iI);
+		if (pkInfo && pkInfo->GetBuildingClassType() == eIndex && GetNumBuilding(*iI) > 0)
+		{
+			return true;
+		}
+	}
+	return false;
+}
 /// Accessor: How many of these buildings are not obsolete?
 int CvCityBuildings::GetNumActiveBuilding(BuildingTypes eIndex) const
 {
@@ -2521,9 +2680,14 @@ bool CvCityBuildings::IsBuildingSellable(const CvBuildingEntry& kBuilding) const
 	if(IsSoldBuildingThisTurn())
 		return false;
 
-	// Can't sell a building if it doesn't cost us anything (no exploits)
+	// Can't sell a building if it doesn't cost us anything
+	
 	if(kBuilding.GetGoldMaintenance() <= 0)
 		return false;
+
+	// Can't sell a building if it's a shrine (no exploits)
+    if (kBuilding.GetBuildingClassType() == (BuildingClassTypes)GC.getInfoTypeForString("BUILDINGCLASS_SHRINE"))
+        return false;
 
 	// Is this a free building?
 	if(GetNumFreeBuilding((BuildingTypes)kBuilding.GetID()) > 0)

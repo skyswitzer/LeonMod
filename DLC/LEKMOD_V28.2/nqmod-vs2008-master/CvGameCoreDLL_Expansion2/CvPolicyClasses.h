@@ -218,6 +218,7 @@ public:
 	int GetGoldToScience() const;
 #endif
 	int GetNumCitiesFreeAestheticsSchools() const; // NQMP GJS - add support for NumCitiesFreeAestheticsSchools
+	int GetNumCitiesFreePietyGardens() const; // LEKMOD - Piety Gardens
 	int GetNumCitiesFreeWalls() const; // NQMP GJS - New Oligarchy add support for NumCitiesFreeWalls
 	int GetNumCitiesFreeCultureBuilding() const;
 	int GetNumCitiesFreeFoodBuilding() const;
@@ -500,6 +501,7 @@ private:
 	int m_iGoldToScience;
 #endif
 	int m_iNumCitiesFreeAestheticsSchools; // NQMP GJS - add support for NumCitiesFreeAestheticsSchools
+	int m_iNumCitiesFreePietyGardens;
 	int m_iNumCitiesFreeWalls; // NQMP GJS - New Oligarchy add support for NumCitiesFreeWalls
 	int m_iNumCitiesFreeCultureBuilding;
 	int m_iNumCitiesFreeFoodBuilding;

@@ -129,10 +129,16 @@ public:
 	int GetLandTradeRouteRangeBonus() const;
 	int GetTradeReligionModifier() const;
 	int GetTradeBuildingModifier() const;
+	
+	// Here we insert usefull new table entries to smooth out existing code (From the Community-Patch DLL) ~EAP
+	TechTypes GetFreeBuildingPrereqTech() const; 
+	TechTypes GetCapitalFreeBuildingPrereqTech() const;
+
 
 	TechTypes GetFreeUnitPrereqTech() const;
 	ImprovementTypes GetCombatBonusImprovement() const;
 	BuildingTypes GetFreeBuilding() const;
+	BuildingTypes GetFreeCapitalBuilding() const;
 	BuildingTypes GetFreeBuildingOnConquest() const;
 
 	bool IsFightWellDamaged() const;
@@ -283,6 +289,9 @@ protected:
 	TechTypes m_eFreeUnitPrereqTech;
 	ImprovementTypes m_eCombatBonusImprovement;
 	BuildingTypes m_eFreeBuilding;
+	BuildingTypes m_eFreeCapitalBuilding;
+	TechTypes m_eFreeBuildingPrereqTech;
+	TechTypes m_eCapitalFreeBuildingPrereqTech;
 	BuildingTypes m_eFreeBuildingOnConquest;
 
 	bool m_bFightWellDamaged;
@@ -872,7 +881,14 @@ public:
 	void AddUniqueLuxuries(CvCity *pCity);
 	bool CheckForBarbarianConversion(CvPlot* pPlot);
 	int GetCapitalBuildingDiscount(BuildingTypes eBuilding);
+	
+	// Inserted Table Entries from CMP DLL ~EAP
+	TechTypes GetFreeBuildingPrereqTech() const;
+	TechTypes GetCapitalFreeBuildingPrereqTech() const;
+
+
 	BuildingTypes GetFreeBuilding() const;
+	BuildingTypes GetFreeCapitalBuilding() const;
 	BuildingTypes GetFreeBuildingOnConquest() const;
 	void SetDefeatedBarbarianCampGuardType(UnitTypes eType)
 	{
@@ -909,12 +925,16 @@ public:
 	void Read(FDataStream& kStream);
 	void Write(FDataStream& kStream);
 
+	const std::vector<TraitTypes> GetPotentiallyActiveTraits() { return m_vPotentiallyActiveLeaderTraits; }
+
 private:
 	bool ConvertBarbarianCamp(CvPlot* pPlot);
 	bool ConvertBarbarianNavalUnit(UnitHandle pUnit);
 
 	CvTraitXMLEntries* m_pTraits;
 	CvPlayer* m_pPlayer;
+	std::vector<bool> m_vLeaderHasTrait;
+	std::vector<TraitTypes> m_vPotentiallyActiveLeaderTraits;
 
 	// Cached data about this player's traits
 	int m_iGreatPeopleRateModifier;
@@ -1031,6 +1051,9 @@ private:
 	TechTypes m_eFreeUnitPrereqTech;
 	ImprovementTypes m_eCombatBonusImprovement;
 	BuildingTypes m_eFreeBuilding;
+	BuildingTypes m_eFreeCapitalBuilding;
+	
+
 	BuildingTypes m_eFreeBuildingOnConquest;
 
 	int m_iExtraYieldThreshold[NUM_YIELD_TYPES];

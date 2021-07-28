@@ -88,6 +88,7 @@ public:
 	int GetPrereqPillageTech() const;
 	int GetPrereqAndTech() const;
 	int GetObsoleteTech() const;
+	int GetEra() const;
 	int GetPolicyType() const;
 	int GetGoodyHutUpgradeUnitClass() const;
 	int GetGroupSize() const;			// the initial number of individuals in the unit group
@@ -107,6 +108,7 @@ public:
 	bool IsFound() const;
 	bool IsFoundAbroad() const;
 	int GetCultureBombRadius() const;
+	int GetCultureBombRadiusNeutral() const;
 	int GetGoldenAgeTurns() const;
 	int GetFreePolicies() const;
 	int GetOneShotTourism() const;
@@ -241,6 +243,7 @@ private:
 	bool m_bFound;
 	bool m_bFoundAbroad;
 	int m_iCultureBombRadius;
+	int m_iCultureBombRadiusNeutral;
 	int m_iGoldenAgeTurns;
 	int m_iFreePolicies;
 	int m_iOneShotTourism;

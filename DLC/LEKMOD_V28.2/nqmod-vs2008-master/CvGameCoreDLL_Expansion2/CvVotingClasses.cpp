@@ -2881,6 +2881,8 @@ bool CvLeague::IsResolutionEffectsValid(ResolutionTypes eResolution, int iPropos
 			return false;
 		}
 	}
+
+
 	if (pInfo->GetVotesForFollowingReligion() != 0 ||
 		pInfo->GetHolyCityTourism() != 0 ||
 		pInfo->GetReligionSpreadStrengthMod() != 0)
@@ -7253,7 +7255,18 @@ void CvGameLeagues::DoPlayerTurn(CvPlayer& kPlayer)
 							}
 							else
 							{
+#ifdef NQ_AI_NO_VOTE // NQMP_Bing - Game option which prevents AI from voting in World Congress
+								if(GC.getGame().isOption("GAMEOPTION_AI_NO_VOTE"))
+								{
+									kPlayer.GetLeagueAI()->DoAbstainAllVotes(it);
+								}
+								else
+								{
+									kPlayer.GetLeagueAI()->DoVotes(it);
+								}
+#else
 								kPlayer.GetLeagueAI()->DoVotes(it);
+#endif
 							}
 						}
 						else

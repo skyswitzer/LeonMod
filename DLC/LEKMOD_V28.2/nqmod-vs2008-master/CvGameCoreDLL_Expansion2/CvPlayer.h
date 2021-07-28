@@ -415,12 +415,36 @@ public:
 	
 	int GetNumCitiesFreeAestheticsSchools() const; // NQMP GJS - add support for NumCitiesFreeAestheticsSchools
 	void ChangeNumCitiesFreeAestheticsSchools(int iChange); // NQMP GJS - add support for NumCitiesFreeAestheticsSchools
+	int GetNumCitiesFreePietyGardens() const;
+	void ChangeNumCitiesFreePietyGardens(int iChange); // LEKMOD - add support for Free Piety Gardens on Finisher
 	int GetNumCitiesFreeWalls() const; // NQMP GJS - New Oligarchy add support for NumCitiesFreeWalls
 	void ChangeNumCitiesFreeWalls(int iChange); // NQMP GJS - New Oligarchy add support for NumCitiesFreeWalls
 	int GetNumCitiesFreeCultureBuilding() const;
 	void ChangeNumCitiesFreeCultureBuilding(int iChange);
 	int GetNumCitiesFreeFoodBuilding() const;
 	void ChangeNumCitiesFreeFoodBuilding(int iChange);
+
+	// CMP DLL -- Might not be needing most but I already spent 10 hours on this, COPY PASTE WE GO ~EAP
+	int GetNumCitiesFreeChosenBuilding(BuildingClassTypes eBuildingClass) const;
+	void ChangeNumCitiesFreeChosenBuilding(BuildingClassTypes eBuildingClass, int iChange);
+
+	bool IsFreeUnitNewFoundCity(UnitClassTypes eUnitClass) const;
+	void ChangeNewFoundCityFreeUnit(UnitClassTypes eUnitClass, bool bValue);
+
+	bool IsFreeBuildingNewFoundCity(BuildingClassTypes eBuildingClass) const;
+	void ChangeNewFoundCityFreeBuilding(BuildingClassTypes eBuildingClass, bool bValue);
+
+	bool IsFreeChosenBuildingNewCity(BuildingClassTypes eBuildingClass) const;
+	void ChangeFreeChosenBuildingNewCity(BuildingClassTypes eBuildingClass, bool bValue);
+
+	bool IsFreeBuildingAllCity(BuildingClassTypes eBuildingClass) const;
+	void ChangeAllCityFreeBuilding(BuildingClassTypes eBuildingClass, bool bValue);
+	
+	void SetReformation(bool bValue);
+	bool IsReformation() const;
+
+	int GetReformationFollowerReduction() const;
+	void ChangeReformationFollowerReduction(int iValue);
 
 	void DoYieldsFromKill(UnitTypes eAttackingUnitType, UnitTypes eKilledUnitType, int iX, int iY, bool bWasBarbarian, int iExistingDelay);
 	void DoYieldBonusFromKill(YieldTypes eYield, UnitTypes eAttackingUnitType, UnitTypes eKilledUnitType, int iX, int iY, bool bWasBarbarian, int &iNumBonuses);
@@ -1054,6 +1078,7 @@ public:
 #endif
 
 	bool isMinorCiv() const;
+	bool isMajorCiv() const;
 	bool IsHasBetrayedMinorCiv() const;
 	void SetHasBetrayedMinorCiv(bool bValue);
 
@@ -1161,6 +1186,9 @@ public:
 
 	int getYieldRateModifier(YieldTypes eIndex) const;
 	void changeYieldRateModifier(YieldTypes eIndex, int iChange);
+
+	int GetImprovementExtraYield(ImprovementTypes eImprovement, YieldTypes eYield) const;
+	void ChangeImprovementExtraYield(ImprovementTypes eImprovement, YieldTypes eYield, int iChange);
 
 	int getCapitalYieldRateModifier(YieldTypes eIndex) const;
 	void changeCapitalYieldRateModifier(YieldTypes eIndex, int iChange);
@@ -1326,6 +1354,9 @@ public:
 
 	int getSpecialistExtraYield(SpecialistTypes eIndex1, YieldTypes eIndex2) const;
 	void changeSpecialistExtraYield(SpecialistTypes eIndex1, YieldTypes eIndex2, int iChange);
+
+	int getResourceYieldChange(ResourceTypes eIndex1, YieldTypes eIndex2) const;
+	void changeResourceYieldChange(ResourceTypes eIndex1, YieldTypes eIndex2, int iChange);
 
 	int getImprovementYieldChange(ImprovementTypes eIndex1, YieldTypes eIndex2) const;
 	void changeImprovementYieldChange(ImprovementTypes eIndex1, YieldTypes eIndex2, int iChange);
@@ -1634,6 +1665,8 @@ public:
 	{
 		return m_strEmbarkedGraphicOverride;
 	};
+
+	bool HasBuildingClass(BuildingClassTypes iBuildingClassType);
 
 	// for serialization
 	virtual void Read(FDataStream& kStream);
@@ -1976,6 +2009,7 @@ protected:
 	int m_iGarrisonedCityRangeStrikeModifier;
 	int m_iGarrisonFreeMaintenanceCount;
 	int m_iNumCitiesFreeAestheticsSchools; // NQMP GJS - add support for NumCitiesFreeAestheticsSchools
+	int m_iNumCitiesFreePietyGardens;
 	int m_iNumCitiesFreeWalls; // NQMP GJS - New Oligarchy add support for NumCitiesFreeWalls
 	int m_iNumCitiesFreeCultureBuilding;
 	int m_iNumCitiesFreeFoodBuilding;
@@ -2083,6 +2117,16 @@ protected:
 	FAutoVariable<std::vector<int>, CvPlayer> m_paiHurryCount;
 	FAutoVariable<std::vector<int>, CvPlayer> m_paiHurryModifier;
 
+	/// CMP
+
+	FAutoVariable<std::vector<int>, CvPlayer> m_paiNumCitiesFreeChosenBuilding;
+	FAutoVariable<std::vector<int>, CvPlayer> m_pabFreeChosenBuildingNewCity;
+	FAutoVariable<std::vector<int>, CvPlayer> m_pabAllCityFreeBuilding;
+	FAutoVariable<std::vector<int>, CvPlayer> m_pabNewFoundCityFreeUnit;
+	FAutoVariable<std::vector<int>, CvPlayer> m_pabNewFoundCityFreeBuilding;
+
+	///
+
 	FAutoVariable<std::vector<bool>, CvPlayer> m_pabLoyalMember;
 
 	FAutoVariable<std::vector<bool>, CvPlayer> m_pabGetsScienceFromPlayer;
@@ -2090,6 +2134,8 @@ protected:
 	FAutoVariable< std::vector< Firaxis::Array<int, NUM_YIELD_TYPES > >, CvPlayer> m_ppaaiSpecialistExtraYield;
 	FAutoVariable< std::vector< Firaxis::Array<int, NUM_YIELD_TYPES > >, CvPlayer> m_ppaaiImprovementYieldChange;
 
+	std::vector< Firaxis::Array<int, NUM_YIELD_TYPES > > m_ppiImprovementYieldChange;
+	std::vector< Firaxis::Array<int, NUM_YIELD_TYPES > > m_ppiResourceYieldChange;
 	// Obsolete: only used to read old saves
 	FAutoVariable< std::vector< Firaxis::Array< int, NUM_YIELD_TYPES > >, CvPlayer> m_ppaaiBuildingClassYieldMod;
 

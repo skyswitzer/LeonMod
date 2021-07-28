@@ -96,8 +96,12 @@ CvTraitEntry::CvTraitEntry() :
 
 	m_eFreeUnitPrereqTech(NO_TECH),
 	m_eFreeBuilding(NO_BUILDING),
-	m_eFreeBuildingOnConquest(NO_BUILDING),
 
+	m_eFreeCapitalBuilding(NO_BUILDING),
+	m_eFreeBuildingPrereqTech(NO_TECH),
+	m_eCapitalFreeBuildingPrereqTech(NO_TECH),
+
+	m_eFreeBuildingOnConquest(NO_BUILDING),
 	m_bFightWellDamaged(false),
 	m_bMoveFriendlyWoodsAsRoad(false),
 	m_bFasterAlongRiver(false),
@@ -611,6 +615,17 @@ int CvTraitEntry::GetTradeBuildingModifier() const
 	return m_iTradeBuildingModifier;
 }
 
+// CMP DLL Table inserts ~EAP
+
+TechTypes CvTraitEntry::GetFreeBuildingPrereqTech() const
+{
+	return m_eFreeBuildingPrereqTech;
+}
+TechTypes CvTraitEntry::GetCapitalFreeBuildingPrereqTech() const
+{
+	return m_eCapitalFreeBuildingPrereqTech;
+}
+
 /// Accessor: tech that triggers this free unit
 TechTypes CvTraitEntry::GetFreeUnitPrereqTech() const
 {
@@ -627,6 +642,12 @@ ImprovementTypes CvTraitEntry::GetCombatBonusImprovement() const
 BuildingTypes CvTraitEntry::GetFreeBuilding() const
 {
 	return m_eFreeBuilding;
+}
+
+/// Does the capital get a free building? -- From CMP DLL
+BuildingTypes CvTraitEntry::GetFreeCapitalBuilding() const
+{
+	return m_eFreeCapitalBuilding;
 }
 
 /// Accessor: free building in each city conquered
@@ -1111,6 +1132,22 @@ bool CvTraitEntry::CacheResults(Database::Results& kResults, CvDatabaseUtility& 
 		m_eFreeUnitPrereqTech = (TechTypes)GC.getInfoTypeForString(szTextVal, true);
 	}
 
+	//// CMP DLL THING
+
+	szTextVal = kResults.GetText("FreeBuildingPrereqTech");
+	if(szTextVal)
+	{
+		m_eFreeBuildingPrereqTech = (TechTypes)GC.getInfoTypeForString(szTextVal, true);
+	}
+	szTextVal = kResults.GetText("CapitalFreeBuildingPrereqTech");
+	if(szTextVal)
+	{
+		m_eCapitalFreeBuildingPrereqTech = (TechTypes)GC.getInfoTypeForString(szTextVal, true);
+	}
+
+	///
+
+
 	szTextVal = kResults.GetText("CombatBonusImprovement");
 	if(szTextVal)
 	{
@@ -1133,6 +1170,12 @@ bool CvTraitEntry::CacheResults(Database::Results& kResults, CvDatabaseUtility& 
 	if(szTextVal)
 	{
 		m_eFreeBuilding = (BuildingTypes)GC.getInfoTypeForString(szTextVal, true);
+	}
+
+	szTextVal = kResults.GetText("FreeCapitalBuilding");
+	if(szTextVal)
+	{
+		m_eFreeCapitalBuilding = (BuildingTypes)GC.getInfoTypeForString(szTextVal, true);
 	}
 
 	szTextVal = kResults.GetText("FreeBuildingOnConquest");
@@ -1526,16 +1569,31 @@ void CvPlayerTraits::Init(CvTraitXMLEntries* pTraits, CvPlayer* pPlayer)
 
 	m_aUniqueLuxuryAreas.clear();
 	m_iUniqueLuxuryCitiesPlaced = 0;
+
+	m_vLeaderHasTrait = std::vector<bool>( GC.getNumTraitInfos(), false );
 }
 
 /// Store off data on bonuses from traits
 void CvPlayerTraits::InitPlayerTraits()
 {
+
+	// precompute the traits our leader has
+	m_vPotentiallyActiveLeaderTraits.clear();
+	for(int iI = 0; iI < GC.getNumTraitInfos(); iI++)
+	{
+		m_vLeaderHasTrait[iI] = false;
+		if (m_pPlayer && m_pPlayer->isMajorCiv() && m_pPlayer->isAlive() && m_pPlayer->getLeaderInfo().hasTrait( (TraitTypes)iI ))
+		{
+			m_vLeaderHasTrait[iI] = true;
+			m_vPotentiallyActiveLeaderTraits.push_back( (TraitTypes)iI );
+		}
+	}
 #ifdef AUI_WARNING_FIXES
 	for (uint iI = 0; iI < GC.getNumTraitInfos(); iI++)
 #else
 	for(int iI = 0; iI < GC.getNumTraitInfos(); iI++)
 #endif
+
 	{
 		if(HasTrait((TraitTypes)iI))
 		{
@@ -1853,6 +1911,10 @@ void CvPlayerTraits::Uninit()
 void CvPlayerTraits::Reset()
 {
 	Uninit();
+
+
+	m_vLeaderHasTrait = std::vector<bool>( GC.getNumTraitInfos(), false );
+	m_vPotentiallyActiveLeaderTraits.clear();
 
 	m_iGreatPeopleRateModifier = 0;
 	m_iGreatScientistRateModifier = 0;
@@ -2265,22 +2327,32 @@ bool CvPlayerTraits::HasFreePromotionUnitCombat(const int promotionID, const int
 /// Does each city get a free building?
 BuildingTypes CvPlayerTraits::GetFreeBuilding() const
 {
-#ifdef AUI_WARNING_FIXES
-	for (uint iI = 0; iI < GC.getNumTraitInfos(); iI++)
-#else
-	for(int iI = 0; iI < GC.getNumTraitInfos(); iI++)
-#endif
+	for(size_t iI = 0; iI < m_vPotentiallyActiveLeaderTraits.size(); iI++)
 	{
-		const TraitTypes eTrait = static_cast<TraitTypes>(iI);
-		CvTraitEntry* pkTraitInfo = GC.getTraitInfo(eTrait);
-		if(pkTraitInfo)
+		CvTraitEntry* pkTraitInfo = GC.getTraitInfo(m_vPotentiallyActiveLeaderTraits[iI]);
+		if(pkTraitInfo && HasTrait(m_vPotentiallyActiveLeaderTraits[iI]))
 		{
-			if(HasTrait(eTrait))
+			if(pkTraitInfo->GetFreeBuilding()!=NO_BUILDING)
 			{
-				if(pkTraitInfo->GetFreeBuilding())
-				{
-					return pkTraitInfo->GetFreeBuilding();
-				}
+				return pkTraitInfo->GetFreeBuilding();
+			}
+		}
+	}
+
+
+	return NO_BUILDING;
+}
+/// Does each conquered city get a free building?
+BuildingTypes CvPlayerTraits::GetFreeCapitalBuilding() const
+{
+	for(size_t iI = 0; iI < m_vPotentiallyActiveLeaderTraits.size(); iI++)
+	{
+		CvTraitEntry* pkTraitInfo = GC.getTraitInfo(m_vPotentiallyActiveLeaderTraits[iI]);
+		if(pkTraitInfo && HasTrait(m_vPotentiallyActiveLeaderTraits[iI]))
+		{
+			if(pkTraitInfo->GetFreeCapitalBuilding()!=NO_BUILDING)
+			{
+				return pkTraitInfo->GetFreeCapitalBuilding();
 			}
 		}
 	}
@@ -2288,25 +2360,18 @@ BuildingTypes CvPlayerTraits::GetFreeBuilding() const
 	return NO_BUILDING;
 }
 
+
 /// Does each conquered city get a free building?
 BuildingTypes CvPlayerTraits::GetFreeBuildingOnConquest() const
 {
-#ifdef AUI_WARNING_FIXES
-	for (uint iI = 0; iI < GC.getNumTraitInfos(); iI++)
-#else
-	for(int iI = 0; iI < GC.getNumTraitInfos(); iI++)
-#endif
+	for(size_t iI = 0; iI < m_vPotentiallyActiveLeaderTraits.size(); iI++)
 	{
-		const TraitTypes eTrait = static_cast<TraitTypes>(iI);
-		CvTraitEntry* pkTraitInfo = GC.getTraitInfo(eTrait);
-		if(pkTraitInfo)
+		CvTraitEntry* pkTraitInfo = GC.getTraitInfo(m_vPotentiallyActiveLeaderTraits[iI]);
+		if(pkTraitInfo && HasTrait(m_vPotentiallyActiveLeaderTraits[iI]))
 		{
-			if(HasTrait(eTrait))
+			if(pkTraitInfo->GetFreeBuildingOnConquest()!=NO_BUILDING)
 			{
-				if(pkTraitInfo->GetFreeBuildingOnConquest())
-				{
-					return pkTraitInfo->GetFreeBuildingOnConquest();
-				}
+				return pkTraitInfo->GetFreeBuildingOnConquest();
 			}
 		}
 	}
@@ -2454,6 +2519,33 @@ int CvPlayerTraits::GetCapitalBuildingDiscount(BuildingTypes eBuilding)
 	}
 	return 0;
 }
+
+/// Table Entries from CMP DLL ~EAP
+
+TechTypes CvPlayerTraits::GetFreeBuildingPrereqTech() const
+{
+	for(size_t iI = 0; iI < m_vPotentiallyActiveLeaderTraits.size(); iI++)
+	{
+		CvTraitEntry* pkTraitInfo = GC.getTraitInfo(m_vPotentiallyActiveLeaderTraits[iI]);
+		if(pkTraitInfo && HasTrait(m_vPotentiallyActiveLeaderTraits[iI]) && pkTraitInfo->GetFreeBuildingPrereqTech())
+			return pkTraitInfo->GetFreeBuildingPrereqTech();
+	}
+
+	return NO_TECH;
+}
+
+TechTypes CvPlayerTraits::GetCapitalFreeBuildingPrereqTech() const
+{
+	for(size_t iI = 0; iI < m_vPotentiallyActiveLeaderTraits.size(); iI++)
+	{
+		CvTraitEntry* pkTraitInfo = GC.getTraitInfo(m_vPotentiallyActiveLeaderTraits[iI]);
+		if(pkTraitInfo && HasTrait(m_vPotentiallyActiveLeaderTraits[iI]) && pkTraitInfo->GetCapitalFreeBuildingPrereqTech())
+			return pkTraitInfo->GetCapitalFreeBuildingPrereqTech();
+	}
+
+	return NO_TECH;
+}
+
 
 /// First free unit received through traits
 int CvPlayerTraits::GetFirstFreeUnit(TechTypes eTech)
@@ -2871,6 +2963,18 @@ void CvPlayerTraits::Read(FDataStream& kStream)
 	// Version number to maintain backwards compatibility
 	uint uiVersion;
 	kStream >> uiVersion;
+
+	// precompute the traits our leader has
+	m_vPotentiallyActiveLeaderTraits.clear();
+	for(int iI = 0; iI < GC.getNumTraitInfos(); iI++)
+	{
+		m_vLeaderHasTrait[iI] = false;
+		if (m_pPlayer && m_pPlayer->isMajorCiv() && m_pPlayer->isAlive() && m_pPlayer->getLeaderInfo().hasTrait( (TraitTypes)iI ))
+		{
+			m_vLeaderHasTrait[iI] = true;
+			m_vPotentiallyActiveLeaderTraits.push_back( (TraitTypes)iI );
+		}
+	}
 
 	kStream >> m_iGreatPeopleRateModifier;
 	kStream >> m_iGreatScientistRateModifier;

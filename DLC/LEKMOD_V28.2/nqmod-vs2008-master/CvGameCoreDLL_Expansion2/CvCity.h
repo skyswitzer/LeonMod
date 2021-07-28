@@ -37,6 +37,11 @@ class CvCityEspionage;
 class CvCityCulture;
 class CvPlayer;
 
+struct SCityExtraYields
+{
+	vector<pair<ImprovementTypes, int>> forImprovement;
+};
+
 class CvCity
 {
 
@@ -128,11 +133,16 @@ public:
 	void SetFeatureSurrounded(bool bValue);
 	void DoUpdateFeatureSurrounded();
 
+	const SCityExtraYields& GetYieldChanges(YieldTypes eYield) const { return m_yieldChanges[eYield]; }
+
 	int GetResourceExtraYield(ResourceTypes eResource, YieldTypes eYield) const;
 	void ChangeResourceExtraYield(ResourceTypes eResource, YieldTypes eYield, int iChange);
 
 	int GetFeatureExtraYield(FeatureTypes eFeature, YieldTypes eYield) const;
 	void ChangeFeatureExtraYield(FeatureTypes eFeature, YieldTypes eYield, int iChange);
+
+	int GetImprovementExtraYield(ImprovementTypes eImprovement, YieldTypes eYield) const;
+	void ChangeImprovementExtraYield(ImprovementTypes eImprovement, YieldTypes eYield, int iChange);
 
 	int GetTerrainExtraYield(TerrainTypes eTerrain, YieldTypes eYield) const;
 	void ChangeTerrainExtraYield(TerrainTypes eTerrain, YieldTypes eYield, int iChange);
@@ -556,6 +566,7 @@ public:
 	void SetIgnoreCityForHappiness(bool bValue);
 	
 	BuildingTypes ChooseFreeWallsBuilding() const; // NQMP GJS - Oligarchy free walls
+	BuildingTypes ChooseFreeGardenBuilding() const;
 	BuildingTypes ChooseFreeCultureBuilding() const;
 	BuildingTypes ChooseFreeFoodBuilding() const;
 
@@ -925,6 +936,10 @@ public:
 	void			clearCombat();
 	bool			isFighting() const;
 
+	///
+	bool HasBuilding(BuildingTypes iBuildingType) const;
+	bool HasBuildingClass(BuildingClassTypes iBuildingClassType) const;
+
 	int iScratch; // know the scope of your validity
 
 protected:
@@ -1080,6 +1095,8 @@ protected:
 
 	mutable FFastSmallFixedList< OrderData, 25, true, c_eCiv5GameplayDLL > m_orderQueue;
 
+	vector<SCityExtraYields> m_yieldChanges; //[NUM_YIELD_TYPES]
+
 	int** m_aaiBuildingSpecialistUpgradeProgresses;
 	int** m_ppaiResourceYieldChange;
 	int** m_ppaiFeatureYieldChange;
@@ -1136,3 +1153,6 @@ void ClearCityDeltas();
 }
 
 #endif
+
+FDataStream& operator>>(FDataStream& loadFrom, SCityExtraYields& writeTo);
+FDataStream& operator<<(FDataStream& saveTo, const SCityExtraYields& readFrom);

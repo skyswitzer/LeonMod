@@ -106,6 +106,53 @@ void ClearCityDeltas()
 }
 }
 
+template <typename T>
+bool ModifierUpdateInsertRemove(vector<pair<T, int>>& container, T key, int value, bool modifyExisting)
+{
+	for (vector<pair<T, int>>::iterator it = container.begin(); it != container.end(); ++it)
+	{
+		if (it->first == key)
+		{
+			if (modifyExisting && value != 0)
+			{
+				it->second += value;
+				if (it->second == 0)
+					container.erase(it);
+				return true; //update was made
+			}
+		
+			if (!modifyExisting && value != it->second)
+			{
+				it->second = value;
+				if (it->second == 0)
+					container.erase(it);
+				return true; //update was made
+			}
+
+			return false; //no change
+		}
+	}
+
+	//if we're here we don't have an entry yet
+	if (value != 0)
+	{
+		container.push_back(make_pair(key, value));
+		return true; //update was made
+	}
+
+	return false;
+}
+
+template <typename T>
+int ModifierLookup(const vector<pair<T, int>>& container, T key)
+{
+	for (vector<pair<T, int>>::const_iterator it = container.begin(); it != container.end(); ++it)
+		if (it->first == key)
+			return it->second;
+
+	return 0;
+}
+
 
 //	--------------------------------------------------------------------------------
 // Public Functions...
@@ -238,6 +285,7 @@ CvCity::CvCity() :
 	, m_bRouteToCapitalConnectedThisTurn(false)
 	, m_strName("")
 	, m_orderQueue()
+	, m_yieldChanges( NUM_YIELD_TYPES )
 	, m_aaiBuildingSpecialistUpgradeProgresses(0)
 	, m_ppaiResourceYieldChange(0)
 	, m_ppaiFeatureYieldChange(0)
@@ -430,7 +478,55 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, 
 		}
 	}
 
-	area()->changeCitiesPerPlayer(getOwner(), 1);
+	// Free Buildings -- FROM CMP
+	const CvCivilizationInfo& thisCiv = getCivilizationInfo();
+	for(int iBuildingClassLoop = 0; iBuildingClassLoop < GC.getNumBuildingClassInfos(); iBuildingClassLoop++)
+	{
+		const BuildingClassTypes eBuildingClass = static_cast<BuildingClassTypes>(iBuildingClassLoop);
+		CvBuildingClassInfo* pkBuildingClassInfo = GC.getBuildingClassInfo(eBuildingClass);
+		if(!pkBuildingClassInfo)
+		{
+			continue;
+		}
+
+		BuildingTypes eBuilding = ((BuildingTypes)(thisCiv.getCivilizationBuildings(eBuildingClass)));
+
+		if(eBuilding != NO_BUILDING)
+		{
+			if (GET_PLAYER(getOwner()).GetNumCitiesFreeChosenBuilding(eBuildingClass) > 0
+				|| GET_PLAYER(getOwner()).IsFreeChosenBuildingNewCity(eBuildingClass)
+				|| GET_PLAYER(getOwner()).IsFreeBuildingAllCity(eBuildingClass)
+				|| (GET_PLAYER(getOwner()).IsFreeBuildingNewFoundCity(eBuildingClass) && bInitialFounding))
+			{		
+				CvBuildingEntry* pkBuildingInfo = GC.getBuildingInfo(eBuilding);
+				if(pkBuildingInfo)
+				{
+					if(isValidBuildingLocation(eBuilding))
+					{
+						if(GetCityBuildings()->GetNumRealBuilding(eBuilding) > 0)
+						{
+							GetCityBuildings()->SetNumRealBuilding(eBuilding, 0);
+						}
+
+						GetCityBuildings()->SetNumFreeBuilding(eBuilding, 1);
+
+						if(GetCityBuildings()->GetNumFreeBuilding(eBuilding) > 0)
+						{
+							GET_PLAYER(getOwner()).ChangeNumCitiesFreeChosenBuilding(eBuildingClass, -1);
+						}
+						if(getFirstBuildingOrder(eBuilding) == 0)
+						{
+							clearOrderQueue();
+							chooseProduction();
+							// Send a notification to the user that what they were building was given to them, and they need to produce something else.
+						}
+					}
+				}
+			}
+		}
+	}
+
+	GC.getMap().getArea(pPlot->getArea())->changeCitiesPerPlayer(getOwner(), 1);
 
 	GET_TEAM(getTeam()).changeNumCities(1);
 
@@ -609,7 +705,6 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, 
 	}
 
 	// Free Buildings in the first City
-	CvCivilizationInfo& thisCiv = getCivilizationInfo();
 	if(GC.getGame().isFinalInitialized())
 	{
 		if(owningPlayer.getNumCities() == 1)
@@ -633,6 +728,22 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, 
 #else
 						m_pCityBuildings->SetNumRealBuilding(eLoopBuilding, true);
 #endif
+					}
+				}
+			}
+
+			//Free building in Capital from Trait?
+			if(owningPlayer.GetPlayerTraits()->GetFreeCapitalBuilding() != NO_BUILDING)
+			{
+				if(owningPlayer.GetPlayerTraits()->GetCapitalFreeBuildingPrereqTech() == NO_TECH)
+				{
+					BuildingTypes eBuilding = owningPlayer.GetPlayerTraits()->GetFreeCapitalBuilding();
+					if(eBuilding != NO_BUILDING)
+					{
+						if(isValidBuildingLocation(eBuilding))
+						{
+							m_pCityBuildings->SetNumFreeBuilding(eBuilding, 1);
+						}
 					}
 				}
 			}
@@ -758,6 +869,8 @@ void CvCity::uninit()
 	m_pCityEspionage->Uninit();
 
 	m_orderQueue.clear();
+
+	m_yieldChanges.clear();
 }
 
 //	--------------------------------------------------------------------------------
@@ -1146,6 +1259,8 @@ void CvCity::reset(int iID, PlayerTypes eOwner, int iX, int iY, bool bConstructo
 			}
 		}
 	}
+
+	m_yieldChanges = vector<SCityExtraYields>(NUM_YIELD_TYPES);
 
 	if(!bConstructorCall)
 	{
@@ -2506,7 +2621,7 @@ UnitTypes CvCity::allUpgradesAvailable(UnitTypes eUnit, int iUpgradeCount) const
 	bUpgradeAvailable = false;
 	bUpgradeUnavailable = false;
 
-	CvCivilizationInfo& thisCiv = getCivilizationInfo();
+	const CvCivilizationInfo& thisCiv = getCivilizationInfo();
 
 #ifdef AUI_WARNING_FIXES
 	for (uint iI = 0; iI < GC.getNumUnitClassInfos(); iI++)
@@ -3227,6 +3342,28 @@ void CvCity::ChangeFeatureExtraYield(FeatureTypes eFeature, YieldTypes eYield, i
 }
 
 //	--------------------------------------------------------------------------------
+/// Extra yield for a improvement this city is working?
+int CvCity::GetImprovementExtraYield(ImprovementTypes eImprovement, YieldTypes eYield) const
+{
+	VALIDATE_OBJECT
+	CvAssertMsg(eImprovement > -1 && eImprovement < GC.getNumImprovementInfos(), "Invalid Improvement index.");
+	CvAssertMsg(eYield > -1 && eYield < NUM_YIELD_TYPES, "Invalid yield index.");
+	return ModifierLookup(m_yieldChanges[eYield].forImprovement, eImprovement);
+}
+
+//	--------------------------------------------------------------------------------
+void CvCity::ChangeImprovementExtraYield(ImprovementTypes eImprovement, YieldTypes eYield, int iChange)
+{
+	VALIDATE_OBJECT
+	CvAssertMsg(eImprovement > -1 && eImprovement < GC.getNumImprovementInfos(), "Invalid Improvement index.");
+	CvAssertMsg(eYield > -1 && eYield < NUM_YIELD_TYPES, "Invalid yield index.");
+
+	SCityExtraYields& y = m_yieldChanges[eYield];
+	if (ModifierUpdateInsertRemove(y.forImprovement,eImprovement,iChange,true))
+		updateYield();
+}
+
+//	--------------------------------------------------------------------------------
 /// Extra yield for a Terrain this city is working?
 int CvCity::GetTerrainExtraYield(TerrainTypes eTerrain, YieldTypes eYield) const
 {
@@ -3322,6 +3459,8 @@ void CvCity::ChangeNumResourceLocal(ResourceTypes eResource, int iChange)
 			{
 				processResource(eResource, 1);
 
+				CvResourceInfo* pkResource = GC.getResourceInfo(eResource);
+
 				// Notification letting player know his city gets a bonus for wonders
 				int iWonderMod = GC.getResourceInfo(eResource)->getWonderProductionMod();
 				if(iWonderMod != 0)
@@ -3336,6 +3475,105 @@ void CvCity::ChangeNumResourceLocal(ResourceTypes eResource, int iChange)
 						pNotifications->Add(NOTIFICATION_DISCOVERED_BONUS_RESOURCE, strText.toUTF8(), strSummary.toUTF8(), getX(), getY(), eResource);
 					}
 				}
+
+#if defined (MOD_RESOURCES_PRODUCTION_COST_MODIFIERS)
+				
+				// Notification letting player know his city gets a production cost modifier
+				//if (MOD_RESOURCES_PRODUCTION_COST_MODIFIERS)
+				//{
+
+					Localization::String strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_CITY_RESOURCE_WONDER_MOD_SUMMARY");
+					strSummary << getNameKey() << pkResource->GetTextKey();
+
+					CvString strList = "";
+					
+					// Unit combat cost modifier
+					if (pkResource->isHasUnitCombatProductionCostModifiersLocal())
+					{
+						for (int iUnitCombat = 0; iUnitCombat < GC.getNumUnitCombatClassInfos(); iUnitCombat++)
+						{
+							UnitCombatTypes eUnitCombat = (UnitCombatTypes)iUnitCombat;
+							CvBaseInfo* pkUnitCombat = GC.getUnitCombatClassInfo(eUnitCombat);
+
+							if (eUnitCombat == NO_UNITCOMBAT)
+							{
+								continue;
+							}
+							std::vector<ProductionCostModifiers> aiiiUnitCostMod = pkResource->getUnitCombatProductionCostModifiersLocal(eUnitCombat);
+							for (std::vector<ProductionCostModifiers>::const_iterator it = aiiiUnitCostMod.begin(); it != aiiiUnitCostMod.end(); ++it)
+							{
+								EraTypes eRequiredEra = (EraTypes)it->m_iRequiredEra;
+								EraTypes eObsoleteEra = (EraTypes)it->m_iObsoleteEra;
+								int iCostModifier = it->m_iCostModifier;
+
+								CvString strEraText = "";
+
+								if (iCostModifier != 0)
+								{
+									if (eRequiredEra != NO_ERA)
+									{
+										strEraText += " ";
+										strEraText += GetLocalizedText("TXT_KEY_NOTIFICATION_CITY_RESOURCE_PROD_COST_MOD_ERA_PREREQUISITE", GC.getEraInfo(eRequiredEra)->getShortDesc());
+									}
+
+									if (eObsoleteEra != NO_ERA)
+									{
+										strEraText += " ";
+										strEraText += GetLocalizedText("TXT_KEY_NOTIFICATION_CITY_RESOURCE_PROD_COST_MOD_ERA_OBSOLETE", GC.getEraInfo(eObsoleteEra)->getShortDesc());
+									}
+
+									strList += "[NEWLINE]" + GetLocalizedText("TXT_KEY_NOTIFICATION_CITY_RESOURCE_PROD_COST_MOD_LIST", pkUnitCombat->GetDescriptionKey(), iCostModifier, strEraText);
+								}
+							}
+						}
+					}
+
+					// Building cost modifier
+					if (pkResource->isHasBuildingProductionCostModifiersLocal())
+					{
+						std::vector<ProductionCostModifiers> aiiiBuildingCostMod = pkResource->getBuildingProductionCostModifiersLocal();
+						for (std::vector<ProductionCostModifiers>::const_iterator it = aiiiBuildingCostMod.begin(); it != aiiiBuildingCostMod.end(); ++it)
+						{
+							EraTypes eRequiredEra = (EraTypes)it->m_iRequiredEra;
+							EraTypes eObsoleteEra = (EraTypes)it->m_iObsoleteEra;
+							int iCostModifier = it->m_iCostModifier;
+
+							CvString strEraText = "";
+
+							if (iCostModifier != 0)
+							{
+								if (eRequiredEra != NO_ERA)
+								{
+									strEraText += " ";
+									strEraText += GetLocalizedText("TXT_KEY_NOTIFICATION_CITY_RESOURCE_PROD_COST_MOD_ERA_PREREQUISITE", GC.getEraInfo(eRequiredEra)->getShortDesc());
+								}
+
+								if (eObsoleteEra != NO_ERA)
+								{
+									strEraText += " ";
+									strEraText += GetLocalizedText("TXT_KEY_NOTIFICATION_CITY_RESOURCE_PROD_COST_MOD_ERA_OBSOLETE", GC.getEraInfo(eObsoleteEra)->getShortDesc());
+								}
+
+								strList += "[NEWLINE]" + GetLocalizedText("TXT_KEY_NOTIFICATION_CITY_RESOURCE_PROD_COST_MOD_LIST", "TXT_KEY_NOTIFICATION_CITY_RESOURCE_PROD_COST_MOD_BUILDING", iCostModifier, strEraText);
+							}
+						}
+					}
+
+					// Combine the list we just made with the header text
+					if (strList != "")
+					{
+						Localization::String strText = Localization::Lookup("TXT_KEY_NOTIFICATION_CITY_RESOURCE_PROD_COST_MOD");
+						strText << getNameKey() << pkResource->GetTextKey() << strList;
+
+						CvNotifications* pNotifications = GET_PLAYER(getOwner()).GetNotifications();
+						if (pNotifications)
+						{
+							pNotifications->Add((NotificationTypes)FString::Hash("NOTIFICATION_PRODUCTION_COST_MODIFIERS_FROM_RESOURCES"), strText.toUTF8(), strSummary.toUTF8(), getX(), getY(), eResource);
+						}
+					}
+				//}
+#endif
+
 			}
 			else
 			{
@@ -4719,6 +4957,40 @@ int CvCity::getProductionNeeded(UnitTypes eUnit) const
 	VALIDATE_OBJECT
 	int iNumProductionNeeded = GET_PLAYER(getOwner()).getProductionNeeded(eUnit);
 
+	if (eUnit != NO_UNIT)
+	{
+		CvUnitEntry* pGameUnit = GC.getUnitInfo(eUnit);
+
+#ifdef MOD_RESOURCES_PRODUCTION_COST_MODIFIERS
+		int iCostMod = 0;
+
+		UnitCombatTypes eUnitCombat = (UnitCombatTypes)pGameUnit->GetUnitCombatType();
+		EraTypes eUnitEra = (EraTypes)pGameUnit->GetEra();
+
+		if(eUnitEra == NO_ERA)
+		{
+			eUnitEra = GET_PLAYER(getOwner()).GetCurrentEra();
+		}
+
+		if(eUnitCombat != NO_UNITCOMBAT && eUnitEra != NO_ERA)
+		{
+			for (int iResourceLoop = 0; iResourceLoop < GC.getNumResourceInfos(); iResourceLoop++)
+			{
+				const ResourceTypes eResource = static_cast<ResourceTypes>(iResourceLoop);
+				CvResourceInfo* pkResource = GC.getResourceInfo(eResource);
+				if (pkResource && pkResource->isHasUnitCombatProductionCostModifiersLocal() && IsHasResourceLocal(eResource, false))
+				{
+					iCostMod += pkResource->getUnitCombatProductionCostModifiersLocal(eUnitCombat, eUnitEra);
+				}
+			}
+		}
+
+		// Cost modifiers must be applied before the investment code
+		iNumProductionNeeded *= (iCostMod + 100);
+		iNumProductionNeeded /= 100;
+#endif
+	}
+
 	return iNumProductionNeeded;
 }
 
@@ -4727,6 +4999,52 @@ int CvCity::getProductionNeeded(BuildingTypes eBuilding) const
 {
 	VALIDATE_OBJECT
 	int iNumProductionNeeded = GET_PLAYER(getOwner()).getProductionNeeded(eBuilding);
+
+	if(eBuilding != NO_BUILDING)
+	{
+		CvBuildingEntry* pGameBuilding = GC.getBuildingInfo(eBuilding);
+		if(pGameBuilding)
+		{
+			const BuildingClassTypes eBuildingClass = (BuildingClassTypes)(pGameBuilding->GetBuildingClassType());
+
+#if defined(MOD_RESOURCES_PRODUCTION_COST_MODIFIERS)
+			int iCostMod = 0;
+			EraTypes eBuildingEra = (EraTypes)pGameBuilding->GetEra();
+
+			bool bWonder = false;
+			if (eBuildingClass != NO_BUILDINGCLASS)
+			{
+				const CvBuildingClassInfo* pkBuildingClassInfo = GC.getBuildingClassInfo(eBuildingClass);
+				if (pkBuildingClassInfo)
+				{
+					bWonder = isWorldWonderClass(*pkBuildingClassInfo) || isTeamWonderClass(*pkBuildingClassInfo) || isNationalWonderClass(*pkBuildingClassInfo);
+				}
+			}
+
+			if (eBuildingEra == NO_ERA)
+			{
+				eBuildingEra = GET_PLAYER(getOwner()).GetCurrentEra();
+			}
+
+			if (bWonder == false && eBuildingEra != NO_ERA)
+			{
+				for (int iResourceLoop = 0; iResourceLoop < GC.getNumResourceInfos(); iResourceLoop++)
+				{
+					const ResourceTypes eResource = static_cast<ResourceTypes>(iResourceLoop);
+					CvResourceInfo* pkResource = GC.getResourceInfo(eResource);
+					if (pkResource && pkResource->isHasBuildingProductionCostModifiersLocal() && IsHasResourceLocal(eResource, false))
+					{
+						iCostMod += pkResource->getBuildingProductionCostModifiersLocal(eBuildingEra);
+					}
+				}
+			}
+
+			// Cost modifiers must be applied before the investment code
+			iNumProductionNeeded *= (iCostMod + 100);
+			iNumProductionNeeded /= 100;
+#endif
+		}
+	}
 
 	return iNumProductionNeeded;
 }
@@ -6299,7 +6617,7 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst, 
 
 	CvPlayer& owningPlayer = GET_PLAYER(getOwner());
 	CvTeam& owningTeam = GET_TEAM(getTeam());
-	CvCivilizationInfo& thisCiv = getCivilizationInfo();
+	const CvCivilizationInfo& thisCiv = getCivilizationInfo();
 
 	if(!(owningTeam.isObsoleteBuilding(eBuilding)) || bObsolete)
 	{
@@ -6320,7 +6638,8 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst, 
 #endif
 
 #ifdef NQ_MALI_TREASURY
-			// HACK: Mali Treasury needs to be here instead
+			// HACK: Mali Treasury needs to be here instead 
+			// New LEKMOD. Yoinking this code to make mongolia spicy ~EAP
 			if (pBuildingInfo->IsMalianTreasury())
 			{
 				int validPlotCount = 0;
@@ -6336,17 +6655,18 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst, 
 
 					// Must be owned by this player, not water, not mountain, and unimproved with no resources
 					if(pLoopPlot->getOwner() != getOwner() || pLoopPlot->isWater() || pLoopPlot->isMountain() || 
-						pLoopPlot->getImprovementType() != NO_IMPROVEMENT || pLoopPlot->getResourceType() != NO_RESOURCE)
+						//pLoopPlot->getImprovementType() != NO_IMPROVEMENT || 
+						pLoopPlot->getResourceType() != NO_RESOURCE)
 						continue;
 
-					// must be desert, tundra, plains, or grassland
-					if (pLoopPlot->getTerrainType() != TERRAIN_DESERT && pLoopPlot->getTerrainType() != TERRAIN_PLAINS && 
+					// must be, tundra, plains, or grassland -- Edit: Deleted desert as we do not want horses to spawn on desert
+					if (pLoopPlot->getTerrainType() != TERRAIN_PLAINS && pLoopPlot->getTerrainType() == TERRAIN_HILL &&
 						pLoopPlot->getTerrainType() != TERRAIN_TUNDRA && pLoopPlot->getTerrainType() != TERRAIN_GRASS)
 						continue;
 					
 					// cannot have any feature other than forest or jungle
-					if (pLoopPlot->getFeatureType() != NO_FEATURE && pLoopPlot->getFeatureType() != FEATURE_FOREST && 
-						pLoopPlot->getFeatureType() != FEATURE_JUNGLE)
+					if (pLoopPlot->getFeatureType() != NO_FEATURE) //&& pLoopPlot->getFeatureType() != FEATURE_FOREST && 
+						//pLoopPlot->getFeatureType() != FEATURE_JUNGLE  -- It now applies for horses, these shouldn't spawn on forest/jungle tiles.
 						continue;
 					
 					validPlotList[validPlotCount] = iCityPlotLoop;
@@ -6997,6 +7317,10 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst, 
 			{
 				ChangeResourceExtraYield(((ResourceTypes)iJ), eYield, (GC.getBuildingInfo(eBuilding)->GetResourceYieldChange(iJ, eYield) * iChange));
 			}
+			//for(int iJ = 0; iJ < GC.getNumResourceInfos(); iJ++)
+			//{
+			//	ChangeResourceExtraYield(((ResourceTypes)iJ), eYield, (GC.getBuildingInfo(eBuilding)->GetResourceYieldChangeGlobal(iJ, eYield) * iChange));
+			//}
 
 #ifdef AUI_WARNING_FIXES
 			for (uint iJ = 0; iJ < GC.getNumFeatureInfos(); iJ++)
@@ -7005,6 +7329,19 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst, 
 #endif
 			{
 				ChangeFeatureExtraYield(((FeatureTypes)iJ), eYield, (GC.getBuildingInfo(eBuilding)->GetFeatureYieldChange(iJ, eYield) * iChange));
+			}
+
+			for(int iJ = 0; iJ < GC.getNumImprovementInfos(); iJ++)
+			{
+				ImprovementTypes eImprovement = (ImprovementTypes)iJ;
+				if(eImprovement != NO_IMPROVEMENT)
+				{
+					int iYieldChange = pBuildingInfo->GetImprovementYieldChange(eImprovement, eYield);
+					if(iYieldChange > 0)
+					{
+						ChangeImprovementExtraYield(eImprovement, eYield, (iYieldChange * iChange));
+					}
+				}		
 			}
 
 #ifdef AUI_WARNING_FIXES
@@ -9900,6 +10237,29 @@ void CvCity::SetIgnoreCityForHappiness(bool bValue)
 	m_bIgnoreCityForHappiness = bValue;
 }
 
+
+/// Find the gardens ~EAP
+//	--------------------------------------------------------------------------------
+BuildingTypes CvCity::ChooseFreeGardenBuilding() const
+{
+	CvString strGardenBuildingClass = "BUILDINGCLASS_GARDEN";
+#ifdef AUI_WARNING_FIXES
+	for (uint iI = 0; iI < GC.getNumBuildingClassInfos(); iI++)
+#else
+	for (int iI = 0; iI < GC.getNumBuildingClassInfos(); iI++)
+#endif
+	{
+		const BuildingClassTypes eBuildingClass = static_cast<BuildingClassTypes>(iI);
+		CvBuildingClassInfo* pkBuildingClassInfo = GC.getBuildingClassInfo(eBuildingClass);
+		if (pkBuildingClassInfo && pkBuildingClassInfo->GetType() == strGardenBuildingClass)
+		{
+			return (BuildingTypes)getCivilizationInfo().getCivilizationBuildings(iI);
+		}
+	}
+
+	return NO_BUILDING;
+}
+
 // NQMP GJS - Oligarchy free walls
 //	--------------------------------------------------------------------------------
 /// Find the non-wonder building that provides the highest defense at the least cost
@@ -9922,6 +10282,8 @@ BuildingTypes CvCity::ChooseFreeWallsBuilding() const
 
 	return NO_BUILDING;
 }
+
+
 
 //	--------------------------------------------------------------------------------
 /// Find the non-wonder building that provides the highest culture at the least cost
@@ -15763,6 +16125,8 @@ void CvCity::read(FDataStream& kStream)
 		ChangeExtraHitPoints(iTotalExtraHitPoints);
 	}
 
+	kStream >> m_yieldChanges;
+
 	CvCityManager::OnCityCreated(this);
 }
 
@@ -15986,6 +16350,8 @@ void CvCity::write(FDataStream& kStream) const
 	kStream << *m_pCityEspionage;
 
 	kStream << m_iExtraHitPoints;
+
+	kStream << m_yieldChanges;
 }
 
 
@@ -17420,4 +17786,22 @@ void CvCity::clearCombat()
 bool CvCity::isFighting() const
 {
 	return getCombatUnit() != NULL;
+}
+
+/* Error Hunting Attempt
+bool CvCity::HasBuildingClass() const
+{
+	return HasBuilding((BuildingTypes)getCivilizationInfo().getCivilizationBuildings(iBuildingClassType));
+}
+*/
+
+FDataStream& operator<<(FDataStream& saveTo, const SCityExtraYields& readFrom)
+{
+	saveTo << readFrom.forImprovement;
+	return saveTo;
+}
+FDataStream& operator>>(FDataStream& loadFrom, SCityExtraYields& writeTo)
+{
+	loadFrom >> writeTo.forImprovement;
+	return loadFrom;
 }

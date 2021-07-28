@@ -799,7 +799,25 @@ void CvPlayerTechs::Reset()
 						}
 					}
 
-					// Other traits that unlock by tech?
+					// Other traits that unlock by tech? -- Yep. ~EAP
+					int iPrereqTech = pkTraitInfo->GetFreeUnitPrereqTech();
+					if (iPrereqTech != NO_TECH)
+					{
+						m_piCivTechPriority[iPrereqTech] += GC.getTECH_PRIORITY_MAYA_CALENDAR_BONUS();
+					}
+
+					iPrereqTech = pkTraitInfo->GetCapitalFreeBuildingPrereqTech();
+					if (iPrereqTech != NO_TECH)
+					{
+						m_piCivTechPriority[iPrereqTech] += GC.getTECH_PRIORITY_MAYA_CALENDAR_BONUS();
+					}
+
+
+					iPrereqTech = pkTraitInfo->GetFreeBuildingPrereqTech();
+					if (iPrereqTech != NO_TECH)
+					{
+						m_piCivTechPriority[iPrereqTech] += GC.getTECH_PRIORITY_MAYA_CALENDAR_BONUS();
+					}
 				}
 			}
 		}
@@ -1516,7 +1534,7 @@ int CvPlayerTechs::GetResearchCost(TechTypes eTech) const
 	// NQMP GJS - new Dictatorship of the Proletariat i.e. Communism END
 
 #ifdef NQ_IGNORE_PUPPETS_FOR_RESEARCH_COSTS_FROM_POLICIES
-	bool bIncludePuppets = !m_pPlayer->IsIgnorePuppetsForResearchCosts();
+	bool bIncludePuppets = (GC.getGame().isOption("GAMEOPTION_FAST_HAND"));
 	iMod = iMod * m_pPlayer->GetMaxEffectiveCities(bIncludePuppets);
 #else
 	iMod = iMod * m_pPlayer->GetMaxEffectiveCities(/*bIncludePuppets*/ true);

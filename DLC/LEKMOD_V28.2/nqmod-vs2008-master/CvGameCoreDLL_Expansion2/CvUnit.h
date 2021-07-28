@@ -377,6 +377,7 @@ public:
 	bool CanCultureBomb(const CvPlot* pPlot, bool bTestVisible = false) const;
 	bool DoCultureBomb();
 	void PerformCultureBomb(int iRadius);
+	void PerformNeutralCultureBomb(int iRadius);
 
 	bool canGoldenAge(const CvPlot* pPlot, bool bTestVisible = false) const;
 	bool goldenAge();
@@ -534,6 +535,18 @@ public:
 	bool ignoreTerrainCost() const;
 	int getIgnoreTerrainCostCount() const;
 	void changeIgnoreTerrainCostCount(int iValue);
+
+	// from CMP
+
+	const DomainTypes getGiveDomain() const;
+	void ChangeGiveDomain(DomainTypes eDomain);
+
+	const DomainTypes getConvertDomain() const;
+	void ChangeConvertDomain(DomainTypes eDomain);
+	const UnitTypes getConvertDomainUnitType() const;
+	void ChangeConvertDomainUnit(UnitTypes eUnit);
+
+	//
 
 	bool IsRoughTerrainEndsTurn() const;
 	int GetRoughTerrainEndsTurnCount() const;
@@ -1461,6 +1474,14 @@ protected:
 	FAutoVariable<int, CvUnit> m_iArmyId;
 
 	FAutoVariable<int, CvUnit> m_iIgnoreTerrainCostCount;
+
+	// CMP
+
+	FAutoVariable<int, CvUnit> m_eGiveDomain;
+	FAutoVariable<int, CvUnit> m_eConvertDomain;
+	FAutoVariable<UnitTypes, CvUnit> m_eConvertDomainUnit;
+
+	//
 	FAutoVariable<int, CvUnit> m_iRoughTerrainEndsTurnCount;
 	FAutoVariable<int, CvUnit> m_iEmbarkAbilityCount;
 	FAutoVariable<int, CvUnit> m_iHoveringUnitCount;

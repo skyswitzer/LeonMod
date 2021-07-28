@@ -66,6 +66,7 @@ int CvImprovementResourceInfo::getYieldChange(int i) const
 CvImprovementEntry::CvImprovementEntry(void):
 	m_iGoldMaintenance(0),
 	m_iCultureBombRadius(0),
+	m_iCultureBombRadiusNeutral(0),
 	m_iRequiresXAdjacentLand(-1),
 	m_iCultureAdjacentSameType(0),
 	m_iTilesPerGoody(0),
@@ -77,6 +78,7 @@ CvImprovementEntry::CvImprovementEntry(void):
 	m_iHillsUpgradeMod(0),
 	m_iFreshWaterUpgradeMod(0),
 	m_iDefenseModifier(0),
+	m_iDefenseModifierGlobal(0),
 	m_iNearbyEnemyDamage(0),
 	m_iPillageGold(0),
 	m_iResourceExtractionMod(0),
@@ -84,6 +86,7 @@ CvImprovementEntry::CvImprovementEntry(void):
 	m_iImprovementPillage(NO_IMPROVEMENT),
 	m_iImprovementUpgrade(NO_IMPROVEMENT),
 	m_bHillsMakesValid(false),
+	m_bWaterAdjacencyMakesValid(false),
 	m_bFreshWaterMakesValid(false),
 	m_bRiverSideMakesValid(false),
 	m_bNoFreshWater(false),
@@ -108,6 +111,7 @@ CvImprovementEntry::CvImprovementEntry(void):
 	m_bNoTwoAdjacent(false),
 	m_bAdjacentLuxury(false),
 	m_bAllowsWalkWater(false),
+	m_bAllowsSailLand(false),
 	m_bCreatedByGreatPerson(false),
 	m_bSpecificCivRequired(false),
 	m_eImprovementUsageType(IMPROVEMENTUSAGE_BASIC),
@@ -205,9 +209,11 @@ bool CvImprovementEntry::CacheResults(Database::Results& kResults, CvDatabaseUti
 
 	m_iGoldMaintenance = kResults.GetInt("GoldMaintenance");
 	m_iCultureBombRadius = kResults.GetInt("CultureBombRadius");
+	m_iCultureBombRadiusNeutral = kResults.GetInt("CultureBombRadiusNeutral");
 	m_iRequiresXAdjacentLand = kResults.GetInt("RequiresXAdjacentLand");
 	m_iCultureAdjacentSameType = kResults.GetInt("CultureAdjacentSameType");
 	m_bHillsMakesValid = kResults.GetBool("HillsMakesValid");
+	m_bWaterAdjacencyMakesValid = kResults.GetBool("WaterAdjacencyMakesValid");
 	m_bFreshWaterMakesValid = kResults.GetBool("FreshWaterMakesValid");
 	m_bRiverSideMakesValid = kResults.GetBool("RiverSideMakesValid");
 	m_bNoFreshWater = kResults.GetBool("NoFreshWater");
@@ -235,6 +241,7 @@ bool CvImprovementEntry::CacheResults(Database::Results& kResults, CvDatabaseUti
 	m_iHillsUpgradeMod = kResults.GetInt("HillsUpgradeMod");
 	m_iFreshWaterUpgradeMod = kResults.GetInt("FreshWaterUpgradeMod");
 	m_iDefenseModifier = kResults.GetInt("DefenseModifier");
+	m_iDefenseModifierGlobal = kResults.GetInt("DefenseModifierGlobal");
 	m_iNearbyEnemyDamage = kResults.GetInt("NearbyEnemyDamage");
 	m_iPillageGold = kResults.GetInt("PillageGold");
 	m_bOutsideBorders = kResults.GetBool("OutsideBorders");
@@ -244,6 +251,7 @@ bool CvImprovementEntry::CacheResults(Database::Results& kResults, CvDatabaseUti
 	m_bNoTwoAdjacent = kResults.GetBool("NoTwoAdjacent");
 	m_bAdjacentLuxury = kResults.GetBool("AdjacentLuxury");
 	m_bAllowsWalkWater = kResults.GetBool("AllowsWalkWater");
+	m_bAllowsSailLand = kResults.GetBool("AllowsSailLand"); // from Izy
 	m_bCreatedByGreatPerson = kResults.GetBool("CreatedByGreatPerson");
 	m_bSpecificCivRequired = kResults.GetBool("SpecificCivRequired");
 	m_iResourceExtractionMod = kResults.GetInt("ResourceExtractionMod");
@@ -535,6 +543,11 @@ int CvImprovementEntry::GetCultureBombRadius() const
 	return m_iCultureBombRadius;
 }
 
+int CvImprovementEntry::GetCultureBombRadiusNeutral() const
+{
+	return m_iCultureBombRadiusNeutral;
+}
+
 /// How many adjacent tiles must be land?
 int CvImprovementEntry::GetRequiresXAdjacentLand() const
 {
@@ -601,6 +614,12 @@ int CvImprovementEntry::GetDefenseModifier() const
 	return m_iDefenseModifier;
 }
 
+/// Modifier for the defensive improvement this improvement provides Global ~EAP
+int CvImprovementEntry::GetDefenseModifierGlobal() const
+{
+	return m_iDefenseModifierGlobal;
+}
+
 /// Damage done to nearby enemy units
 int CvImprovementEntry::GetNearbyEnemyDamage() const
 {
@@ -653,6 +672,11 @@ void CvImprovementEntry::SetImprovementUpgrade(int i)
 bool CvImprovementEntry::IsHillsMakesValid() const
 {
 	return m_bHillsMakesValid;
+}
+// Requires any body of water to build
+bool CvImprovementEntry::IsWaterAdjacencyMakesValid() const
+{
+	return m_bWaterAdjacencyMakesValid;
 }
 
 /// Requires fresh water to build
@@ -793,7 +817,11 @@ bool CvImprovementEntry::IsAllowsWalkWater() const
 {
 	return m_bAllowsWalkWater;
 }
-
+/// Does this improvement allow naval units to cross land?
+bool CvImprovementEntry::IsAllowsSailLand() const // from Izy
+{
+    return m_bAllowsSailLand;
+}
 /// Does this improvement need to be built inside or adjacent to a civ's borders?
 bool CvImprovementEntry::IsInAdjacentFriendly() const
 {
