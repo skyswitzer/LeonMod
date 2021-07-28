@@ -11427,7 +11427,6 @@ void CvPlayer::DoReligionOneShots(ReligionTypes eReligion)
 
 		for(int iUnitClassLoop = 0; iUnitClassLoop < GC.getNumUnitClassInfos(); iUnitClassLoop++)
 		{
-			bool bValid = false;
 			CvUnitClassInfo* pkUnitClassInfo = GC.getUnitClassInfo((UnitClassTypes)iUnitClassLoop);
 			if(pkUnitClassInfo == NULL)
 				continue;
