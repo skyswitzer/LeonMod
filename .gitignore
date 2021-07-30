@@ -6,7 +6,7 @@
 # allow these exact files:
 !.gitignore
 !*/
-!/DLC/readme.md
+!/readme.md
 
 # most data
 !/DLC/LEKMOD_V28.2/Override/CIV5Units.xml
