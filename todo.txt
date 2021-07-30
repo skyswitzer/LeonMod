@@ -1,0 +1,38 @@
+
+redo branches so main is v2
+
+consider more of leons old changes
+
+airport description
+city state war should not prevent allyship
+gatling gun
+ironclad should mention its double move
+fix ironclad move (just 5 moves)
+atoll enable improvement
+urbanization happiness
+future tech military advantage?
+
+national wonder, defensive building
+
+
+Restrict civs to:
+	Spain
+	Rome
+	England
+	Germany
+
+	China
+	Japan
+	Khmer
+	India
+
+	Egypt
+	Arabia
+	Bayblon
+	Ottomans
+
+	Russia
+	Byzantium
+	Inca
+	Maya
+	Zulus
