@@ -1180,30 +1180,22 @@ class CvGoodyInfo :	public CvBaseInfo
 public:
 	CvGoodyInfo();
 
-	int getGold() const;
-	int getNumGoldRandRolls() const;
-	int getGoldRandAmount() const;
+	bool isGold() const;
+	bool isFood() const;
+	bool isBeakers() const;
+	bool isCulture() const;
+
+	bool isFaith() const;
+	bool isUnitUpgrade() const;
+
 	int getMapOffset() const;
 	int getMapRange() const;
 	int getMapProb() const;
-	int getExperience() const;
-	int getHealing() const;
-	int getDamagePrereq() const;
-	int getPopulation() const;
-	int getCulture() const;
-	int getFaith() const;
-	int getProphetPercent() const;
-	int getRevealNearbyBarbariansRange() const;
+
 	int getBarbarianUnitProb() const;
 	int getMinBarbarians() const;
 	int getUnitClassType() const;
 	int getBarbarianUnitClass() const;
-
-	bool isTech() const;
-	bool isRevealUnknownResource() const;
-	bool isUpgradeUnit() const;
-	bool isPantheonFaith() const;
-	bool isBad() const;
 
 	const char* getSound() const;
 	void setSound(const char* szVal);
@@ -1214,30 +1206,21 @@ public:
 	virtual bool CacheResults(Database::Results& kResults, CvDatabaseUtility& kUtility);
 
 protected:
-	int m_iGold;
-	int m_iNumGoldRandRolls;
-	int m_iGoldRandAmount;
+	bool m_bGold;
+	bool m_bFood;
+	bool m_bBeakers;
+	bool m_bCulture;
+	bool m_bFaith;
+	bool m_bUnitUpgrade;
+
 	int m_iMapOffset;
 	int m_iMapRange;
 	int m_iMapProb;
-	int m_iExperience;
-	int m_iHealing;
-	int m_iDamagePrereq;
-	int m_iPopulation;
-	int m_iCulture;
-	int m_iFaith;
-	int m_iProphetPercent;
-	int m_iRevealNearbyBarbariansRange;
+
 	int m_iBarbarianUnitProb;
 	int m_iMinBarbarians;
 	int m_iUnitClassType;
 	int m_iBarbarianUnitClass;
-
-	bool m_bTech;
-	bool m_bRevealUnknownResource;
-	bool m_bUpgradeUnit;
-	bool m_bPantheonFaith;
-	bool m_bBad;
 
 	CvString m_strSound;
 	CvString m_strChooseDesc;

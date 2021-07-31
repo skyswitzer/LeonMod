@@ -2034,6 +2034,7 @@ protected:
 	FAutoVariable<int, CvPlayer> m_iNumFreePolicies;
 	FAutoVariable<int, CvPlayer> m_iNumFreePoliciesEver; 
 	int m_iNumFreeTenets;
+	int m_iNumGoodyHutsPopped;
     int m_iMaxEffectiveCities;
 
 	int m_iLastSliceMoved;

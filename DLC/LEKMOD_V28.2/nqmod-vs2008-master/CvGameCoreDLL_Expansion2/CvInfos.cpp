@@ -14,6 +14,7 @@
 //				and type strings
 //
 
+
 #include "CvGameCoreDLLPCH.h"
 #include "CvInfos.h"
 #include "CvGlobals.h"
@@ -3181,6 +3182,7 @@ int CvHandicapInfo::isAIFreeTechs(int i) const
 	CvAssertMsg(i > -1, "Index out of bounds");
 	return m_pbAIFreeTechs[i];
 }
+
 //------------------------------------------------------------------------------
 bool CvHandicapInfo::CacheResults(Database::Results& kResults, CvDatabaseUtility& kUtility)
 {
@@ -3252,6 +3254,8 @@ bool CvHandicapInfo::CacheResults(Database::Results& kResults, CvDatabaseUtility
 
 	//Goodies
 	{
+		// debugger popup automatic
+
 		//First find out how many goodies there are.
 		Database::SingleResult kCount("count(*)");
 		if(DB.SelectAt(kCount, "HandicapInfo_Goodies", "HandicapType", szHandicapType))
@@ -3961,167 +3965,45 @@ void BuildArrayHelpers::Write(FDataStream& kStream, short* paiBuildArray, int iA
 //
 //------------------------------------------------------------------------------------------------------
 CvGoodyInfo::CvGoodyInfo() : CvBaseInfo()
-	, m_iGold(0)
-	, m_iNumGoldRandRolls(0)
-	, m_iGoldRandAmount(0)
+	, m_bGold(0)
+	, m_bFood(0)
+	, m_bBeakers(0)
+	, m_bCulture(0)
+
+	, m_bFaith(0)
+	, m_bUnitUpgrade(0)
+
 	, m_iMapOffset(0)
 	, m_iMapRange(0)
 	, m_iMapProb(0)
-	, m_iExperience(0)
-	, m_iHealing(0)
-	, m_iDamagePrereq(0)
-	, m_iPopulation(0)
-	, m_iCulture(0)
-	, m_iFaith(0)
-	, m_iProphetPercent(0)
-	, m_iRevealNearbyBarbariansRange(0)
+
 	, m_iBarbarianUnitProb(0)
 	, m_iMinBarbarians(0)
 	, m_iUnitClassType(NO_UNITCLASS)
 	, m_iBarbarianUnitClass(NO_UNITCLASS)
-	, m_bTech(false)
-	, m_bRevealUnknownResource(false)
-	, m_bUpgradeUnit(false)
-	, m_bPantheonFaith(false)
-	, m_bBad(false)
 {
 }
+bool CvGoodyInfo::isGold() const { return m_bGold; }
+bool CvGoodyInfo::isFood() const { return m_bFood; }
+bool CvGoodyInfo::isBeakers() const{return m_bBeakers;}
+bool CvGoodyInfo::isCulture() const { return m_bCulture; }
 
-int CvGoodyInfo::getGold() const
-{
-	return m_iGold;
-}
+bool CvGoodyInfo::isFaith() const { return m_bFaith; }
+bool CvGoodyInfo::isUnitUpgrade() const{	return m_bUnitUpgrade;}
 
-int CvGoodyInfo::getNumGoldRandRolls() const
-{
-	return m_iNumGoldRandRolls;
-}
+int CvGoodyInfo::getMapOffset() const{	return m_iMapOffset;}
+int CvGoodyInfo::getMapRange() const{	return m_iMapRange;}
+int CvGoodyInfo::getMapProb() const{	return m_iMapProb;}
 
-int CvGoodyInfo::getGoldRandAmount() const
-{
-	return m_iGoldRandAmount;
-}
+int CvGoodyInfo::getBarbarianUnitProb() const{	return m_iBarbarianUnitProb;}
+int CvGoodyInfo::getMinBarbarians() const{	return m_iMinBarbarians;}
+int CvGoodyInfo::getUnitClassType() const{	return m_iUnitClassType;}
+int CvGoodyInfo::getBarbarianUnitClass() const{	return m_iBarbarianUnitClass;}
 
-int CvGoodyInfo::getMapOffset() const
-{
-	return m_iMapOffset;
-}
-
-int CvGoodyInfo::getMapRange() const
-{
-	return m_iMapRange;
-}
-
-int CvGoodyInfo::getMapProb() const
-{
-	return m_iMapProb;
-}
-
-int CvGoodyInfo::getExperience() const
-{
-	return m_iExperience;
-}
-
-int CvGoodyInfo::getHealing() const
-{
-	return m_iHealing;
-}
-
-int CvGoodyInfo::getDamagePrereq() const
-{
-	return m_iDamagePrereq;
-}
-
-int CvGoodyInfo::getCulture() const
-{
-	return m_iCulture;
-}
-
-int CvGoodyInfo::getFaith() const
-{
-	return m_iFaith;
-}
-
-int CvGoodyInfo::getProphetPercent() const
-{
-	return m_iProphetPercent;
-}
-
-int CvGoodyInfo::getRevealNearbyBarbariansRange() const
-{
-	return m_iRevealNearbyBarbariansRange;
-}
-
-int CvGoodyInfo::getPopulation() const
-{
-	return m_iPopulation;
-}
-
-int CvGoodyInfo::getBarbarianUnitProb() const
-{
-	return m_iBarbarianUnitProb;
-}
-
-int CvGoodyInfo::getMinBarbarians() const
-{
-	return m_iMinBarbarians;
-}
-
-int CvGoodyInfo::getUnitClassType() const
-{
-	return m_iUnitClassType;
-}
-
-int CvGoodyInfo::getBarbarianUnitClass() const
-{
-	return m_iBarbarianUnitClass;
-}
-
-bool CvGoodyInfo::isTech() const
-{
-	return m_bTech;
-}
-
-bool CvGoodyInfo::isRevealUnknownResource() const
-{
-	return m_bRevealUnknownResource;
-}
-
-bool CvGoodyInfo::isUpgradeUnit() const
-{
-	return m_bUpgradeUnit;
-}
-
-bool CvGoodyInfo::isPantheonFaith() const
-{
-	return m_bPantheonFaith;
-}
-
-bool CvGoodyInfo::isBad() const
-{
-	return m_bBad;
-}
-
-const char* CvGoodyInfo::getSound() const
-{
-	return m_strSound.c_str();
-}
-
-void CvGoodyInfo::setSound(const char* szVal)
-{
-	m_strSound = szVal;
-}
-
-const char* CvGoodyInfo::GetChooseDesc() const
-{
-	return m_strChooseDesc;
-}
-
-void CvGoodyInfo::SetChooseDesc(const char* szVal)
-{
-	m_strChooseDesc = szVal;
-}
-
+const char* CvGoodyInfo::getSound() const{	return m_strSound.c_str();}
+void CvGoodyInfo::setSound(const char* szVal){	m_strSound = szVal;}
+const char* CvGoodyInfo::GetChooseDesc() const{	return m_strChooseDesc;}
+void CvGoodyInfo::SetChooseDesc(const char* szVal){	m_strChooseDesc = szVal;}
 bool CvGoodyInfo::CacheResults(Database::Results& results, CvDatabaseUtility& kUtility)
 {
 	if(!CvBaseInfo::CacheResults(results, kUtility))
@@ -4137,29 +4019,21 @@ bool CvGoodyInfo::CacheResults(Database::Results& results, CvDatabaseUtility& kU
 	if(szSound)
 		m_strSound = szSound;
 
-	m_iGold = results.GetInt("Gold");
-	m_iNumGoldRandRolls = results.GetInt("NumGoldRandRolls");
-	m_iGoldRandAmount = results.GetInt("GoldRandAmount");
+	m_bGold = results.GetBool("GivesGold");
+	m_bFood = results.GetBool("GivesFood");
+	m_bBeakers = results.GetBool("GivesBeakers");
+	m_bCulture = results.GetBool("GivesCulture");
+
+	m_bFaith = results.GetBool("GivesFaith");
+	m_bUnitUpgrade = results.GetBool("GivesUnitUpgrade");
+
 	m_iMapOffset = results.GetInt("MapOffset");
 	m_iMapRange = results.GetInt("MapRange");
 	m_iMapProb = results.GetInt("MapProb");
-	m_iExperience = results.GetInt("Experience");
-	m_iHealing = results.GetInt("Healing");
-	m_iDamagePrereq = results.GetInt("DamagePrereq");
-	m_iPopulation = results.GetInt("Population");
-	m_iCulture = results.GetInt("Culture");
-	m_iFaith = results.GetInt("Faith");
-	m_iProphetPercent = results.GetInt("ProphetPercent");
-	m_iRevealNearbyBarbariansRange = results.GetInt("RevealNearbyBarbariansRange");
+
+	// what does this do?
 	m_iBarbarianUnitProb = results.GetInt("BarbarianUnitProb");
 	m_iMinBarbarians = results.GetInt("MinBarbarians");
-	m_bTech = results.GetBool("Tech");
-	m_bBad = results.GetBool("Bad");
-	m_bRevealUnknownResource = results.GetBool("RevealUnknownResource");
-	m_bUpgradeUnit = results.GetBool("UpgradeUnit");
-	m_bPantheonFaith = results.GetBool("PantheonFaith");
-
-	//TEMP TEMP TEMP TEMP
 	m_iUnitClassType = GC.getInfoTypeForString(results.GetText("UnitClass"), true);
 	m_iBarbarianUnitClass = GC.getInfoTypeForString(results.GetText("BarbarianUnitClass"), true);
 
