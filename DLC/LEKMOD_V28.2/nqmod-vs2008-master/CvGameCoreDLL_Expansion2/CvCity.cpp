@@ -6992,7 +6992,6 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst, 
 				else
 				{
 					// get the great work we're spawning		
-					GreatWorkSlotType eGreatWorkSlot = CvTypes::getGREAT_WORK_SLOT_LITERATURE();
 					GreatWorkClass eGreatWorkClass = (GreatWorkClass)GC.getInfoTypeForString("GREAT_WORK_LITERATURE");
 					UnitTypes eUnitType = (UnitTypes)GC.getInfoTypeForString("UNIT_WRITER");
 					GreatWorkType eGreatWorkType = NO_GREAT_WORK;
