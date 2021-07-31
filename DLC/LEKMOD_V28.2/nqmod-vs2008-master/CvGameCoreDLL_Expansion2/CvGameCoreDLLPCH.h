@@ -60,6 +60,8 @@
 #include <hash_map>
 #include <limits>
 #include <unordered_set>
+#include <sstream>
+#include <iostream>
 
 #define DllExport   __declspec( dllexport )
 

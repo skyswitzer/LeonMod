@@ -2012,11 +2012,56 @@ LONG WINAPI CustomFilter(EXCEPTION_POINTERS *ExceptionInfo)
 /* MINIDUMP_MOD                                END                                              */
 /************************************************************************************************/
 
+
+bool launchDebugger()
+{
+	// Get System directory, typically c:\windows\system32
+	std::wstring systemDir(MAX_PATH + 1, '\0');
+	UINT nChars = GetSystemDirectoryW(&systemDir[0], systemDir.length());
+	if (nChars == 0) return false; // failed to get system directory
+	systemDir.resize(nChars);
+
+	// Get process ID and create the command line
+	DWORD pid = GetCurrentProcessId();
+	std::wostringstream s;
+	s << systemDir << L"\\vsjitdebugger.exe -p " << pid;
+	std::wstring cmdLine = s.str();
+
+	// Start debugger process
+	STARTUPINFOW si;
+	ZeroMemory(&si, sizeof(si));
+	si.cb = sizeof(si);
+
+	PROCESS_INFORMATION pi;
+	ZeroMemory(&pi, sizeof(pi));
+
+	if (!CreateProcessW(NULL, &cmdLine[0], NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) return false;
+
+	// Close debugger process handles to eliminate resource leak
+	CloseHandle(pi.hThread);
+	CloseHandle(pi.hProcess);
+
+	// Wait for the debugger to attach
+	int msToWait = 100; // increase if you need to debug immediately on load
+	int msIncrement = 50;
+	while (msToWait > 0 && !IsDebuggerPresent())
+	{
+		Sleep(msIncrement);
+		msToWait -= msIncrement;
+	}
+
+	// Stop execution so the debugger can take over
+	if(IsDebuggerPresent())
+		DebugBreak();
+
+	return true;
+}
 //
 // allocate
 //
 void CvGlobals::init()
 {
+	launchDebugger();
 	//
 	// These vars are used to initialize the globals.
 	//
