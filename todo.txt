@@ -1,5 +1,7 @@
 Center of progress description
 XCOM teleportation too good
+Aircraft rebase range display
+Aircraft rebase extra dist damage
 Aircraft retreat
 Multiple nuke types
 Space ship part Wonder op, capital should take 4 turns at minimum to complete one
