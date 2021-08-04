@@ -1,5 +1,7 @@
 Center of progress description
 XCOM teleportation too good
+Aircraft retreat
+Multiple nuke types
 
 redo branches so main is v2
 
