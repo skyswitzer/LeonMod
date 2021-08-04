@@ -3,7 +3,7 @@ XCOM teleportation too good
 Aircraft retreat
 Multiple nuke types
 Space ship part Wonder op, capital should take 4 turns at minimum to complete one
-
+Give ai much better vision
 
 redo branches so main is v2
 
