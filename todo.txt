@@ -24,23 +24,29 @@ national wonder, defensive building
 
 
 Restrict civs to:
-	Spain
-	Rome
-	England
-	Germany
-
-	China
-	Japan
-	Khmer
-	India
-
-	Egypt
-	Arabia
-	Bayblon
-	Ottomans
-
-	Russia
-	Byzantium
+	Iroquois
+	Shoshone
+	Aztec
 	Inca
 	Maya
-	Zulus
+
+	England
+	Rome
+	Russia
+	Spain
+	Songhai
+
+	Zulu
+	Kongo
+	Egypt
+	Babylon
+	Arabia
+
+	India
+	Japan
+	China
+	Mongolian
+	Indonesia
+
+
+the the the

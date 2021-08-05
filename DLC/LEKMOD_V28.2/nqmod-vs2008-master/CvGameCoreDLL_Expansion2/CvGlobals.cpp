@@ -2396,6 +2396,39 @@ CvGlobals& CvGlobals::getInstance()
 {
 	return gGlobals;
 }
+// [0, 1] Number of turns DONE as a percentage of max turns 
+float CvGlobals::getPercentTurnsDone()
+{
+	return (float)this->getGamePointer()->getGameTurn() / (float)this->getGamePointer()->getMaxTurns();
+}
+// max turns in an online speed game
+float CvGlobals::onlineSpeedMaxTurns()
+{
+	return 250.0f;
+}
+// on turn 100 this would return: onlineSpeed: 100, normalSpeed: 50
+float CvGlobals::onePerOnlineSpeedTurn()
+{
+	return getPercentTurnsDone() * onlineSpeedMaxTurns();
+}
+float CvGlobals::adjustForSpeed(YieldTypes type)
+{
+	float xmlValue = this->getGame().getGameSpeedInfo().getConstructPercent();
+	if (type == YIELD_FOOD)
+		xmlValue = this->getGame().getGameSpeedInfo().getGrowthPercent();
+	else if (type == YIELD_PRODUCTION)
+		xmlValue = this->getGame().getGameSpeedInfo().getConstructPercent();
+	else if (type == YIELD_GOLD)
+		xmlValue = this->getGame().getGameSpeedInfo().getGoldPercent();
+	else if (type == YIELD_SCIENCE)
+		xmlValue = this->getGame().getGameSpeedInfo().getResearchPercent();
+	else if (type == YIELD_CULTURE)
+		xmlValue = this->getGame().getGameSpeedInfo().getCulturePercent();
+	else if (type == YIELD_FAITH)
+		xmlValue = this->getGame().getGameSpeedInfo().getFaithPercent();
+
+	return xmlValue / 100.0f;
+}
 
 CvRandom& CvGlobals::getASyncRand()
 {

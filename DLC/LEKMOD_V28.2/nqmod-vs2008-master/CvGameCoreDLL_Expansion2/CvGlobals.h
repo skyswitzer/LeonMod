@@ -137,7 +137,6 @@ class ICvPlot1;
 class ICvRandom1;
 class ICvUnit1;
 
-
 class CvGlobals
 {
 public:
@@ -194,6 +193,13 @@ public:
 	{
 		return m_aiPlotDirectionY;
 	}
+	// [0, 1] Number of turns DONE as a percentage of max turns 
+	float getPercentTurnsDone();
+	// max turns in an online speed game
+	float onlineSpeedMaxTurns();
+	// on turn 100 this would return: onlineSpeed: 100, normalSpeed: 50
+	float onePerOnlineSpeedTurn();
+	float adjustForSpeed(YieldTypes type);
 
 	CvRandom& getASyncRand();
 	CvTwoLayerPathFinder& getPathFinder();

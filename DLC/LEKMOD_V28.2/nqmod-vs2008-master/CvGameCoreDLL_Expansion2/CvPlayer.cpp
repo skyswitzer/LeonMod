@@ -6205,26 +6205,26 @@ void CvPlayer::disband(CvCity* pCity)
 
 //	--------------------------------------------------------------------------------
 /// Is a Particular Goody ID a valid Goody for a certain plot?
-bool CvPlayer::canReceiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit) const
+bool CvPlayer::canReceiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pDiscoverUnit) const
 {
 	return true;
 
-	CvCity* pCity;
-	UnitTypes eUnit;
-	bool bTechFound;
-	int iI;
+	//CvCity* pCity;
+	//UnitTypes eUnit;
+	//bool bTechFound;
+	//int iI;
 
-	Database::SingleResult kResult;
-	CvGoodyInfo kGoodyInfo;
-	const bool bResult = DB.SelectAt(kResult, "GoodyHuts", eGoody);
-	DEBUG_VARIABLE(bResult);
-	CvAssertMsg(bResult, "Cannot find goody info.");
-	kGoodyInfo.CacheResult(kResult);
+	//Database::SingleResult kResult;
+	//CvGoodyInfo kGoodyInfo;
+	//const bool bResult = DB.SelectAt(kResult, "GoodyHuts", eGoody);
+	//DEBUG_VARIABLE(bResult);
+	//CvAssertMsg(bResult, "Cannot find goody info.");
+	//kGoodyInfo.CacheResult(kResult);
 
-	if(!CvGoodyHuts::IsCanPlayerReceiveGoody(GetID(), eGoody))
-	{
-		return false;
-	}
+	//if(!CvGoodyHuts::IsCanPlayerReceiveGoody(GetID(), eGoody))
+	//{
+	//	return false;
+	//}
 
 	// No XP in first 10 turns
 //	if(kGoodyInfo.getExperience() > 0)
@@ -6464,150 +6464,221 @@ bool CvPlayer::canReceiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit) 
 	// Bad Goodies follow beneath this line
 	///////////////////////////////////////
 	///////////////////////////////////////
-
-	if(kGoodyInfo.getUnitClassType() != NO_UNITCLASS)
-	{
-		eUnit = ((UnitTypes)(getCivilizationInfo().getCivilizationUnits(kGoodyInfo.getUnitClassType())));
-
-		if(eUnit == NO_UNIT)
-		{
-			return false;
-		}
-
-		CvUnitEntry* pUnitInfo = GC.getUnitInfo(eUnit);
-		if(pUnitInfo == NULL)
-		{
-			return false;
-		}
-
-		// No combat units in MP in the first 20 turns
-		if(pUnitInfo->GetCombat() > 0)
-		{
-			if(GC.getGame().isGameMultiPlayer() || (GC.getGame().getElapsedGameTurns() < 20))
-			{
-				return false;
-			}
-		}
-
-		// Builders
-		if(pUnitInfo->GetWorkRate() > 0)
-		{
-			// Max limit
-			if(GetMaxNumBuilders() > -1 && GetNumBuilders() >= GetMaxNumBuilders())
-			{
-				return false;
-			}
-
-			bool bHasTechWhichUnlocksImprovement = false;
-
-			// Need a tech which unlocks something to do
-			int iNumTechInfos = GC.getNumTechInfos();
-			int iNumBuildInfos = GC.getNumBuildInfos();
-			for(int iTechLoop = 0; iTechLoop < iNumTechInfos; iTechLoop++)
-			{
-				if(GET_TEAM(getTeam()).GetTeamTechs()->HasTech((TechTypes) iTechLoop))
-				{
-					// Look at Builds
-					for(int iBuildLoop = 0; iBuildLoop < iNumBuildInfos; iBuildLoop++)
-					{
-						CvBuildInfo* pkBuildInfo = GC.getBuildInfo((BuildTypes) iBuildLoop);
-						if(!pkBuildInfo)
-						{
-							continue;
-						}
-						if(pkBuildInfo->getTechPrereq() == (TechTypes) iTechLoop)
-						{
-							if(pkBuildInfo->getImprovement() != NO_IMPROVEMENT || pkBuildInfo->getRoute() != NO_ROUTE)
-							{
-								bHasTechWhichUnlocksImprovement = true;
-								break;
-							}
-						}
-					}
-				}
-				// Already found something
-				if(bHasTechWhichUnlocksImprovement)
-				{
-					break;
-				}
-			}
-
-			// Player doesn't have any Tech which allows Improvements
-			if(!bHasTechWhichUnlocksImprovement)
-			{
-				return false;
-			}
-		}
-
-		// OCC games - no Settlers
-#ifdef AUI_PLAYER_FIX_VENICE_ONLY_BANS_SETTLERS_NOT_SETTLING
-		if ((GetPlayerTraits()->IsNoAnnexing() && pUnitInfo->GetDefaultUnitAIType() == UNITAI_SETTLE) || (GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) && isHuman()))
-#else
-		if(GetPlayerTraits()->IsNoAnnexing() || (GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) && isHuman()))
-#endif
-		{
-			if(pUnitInfo->IsFound() || pUnitInfo->IsFoundAbroad())
-			{
-				return false;
-			}
-		}
-	}
-
-	// Barbarians
-	if(kGoodyInfo.getBarbarianUnitClass() != NO_UNITCLASS)
-	{
-		if(GC.getGame().isOption(GAMEOPTION_NO_BARBARIANS))
-		{
-			return false;
-		}
-
-		if(getNumCities() == 0)
-		{
-			return false;
-		}
-
-		if(getNumCities() == 1)
-		{
-			pCity = GC.getMap().findCity(pPlot->getX(), pPlot->getY(), NO_PLAYER, getTeam());
-
-			if(pCity != NULL)
-			{
-				if(plotDistance(pPlot->getX(), pPlot->getY(), pCity->getX(), pCity->getY()) <= (8 - getNumCities()))
-				{
-					return false;
-				}
-			}
-		}
-	}
-
-	return true;
+//
+//	if(kGoodyInfo.getUnitClassType() != NO_UNITCLASS)
+//	{
+//		eUnit = ((UnitTypes)(getCivilizationInfo().getCivilizationUnits(kGoodyInfo.getUnitClassType())));
+//
+//		if(eUnit == NO_UNIT)
+//		{
+//			return false;
+//		}
+//
+//		CvUnitEntry* pUnitInfo = GC.getUnitInfo(eUnit);
+//		if(pUnitInfo == NULL)
+//		{
+//			return false;
+//		}
+//
+//		// No combat units in MP in the first 20 turns
+//		if(pUnitInfo->GetCombat() > 0)
+//		{
+//			if(GC.getGame().isGameMultiPlayer() || (GC.getGame().getElapsedGameTurns() < 20))
+//			{
+//				return false;
+//			}
+//		}
+//
+//		// Builders
+//		if(pUnitInfo->GetWorkRate() > 0)
+//		{
+//			// Max limit
+//			if(GetMaxNumBuilders() > -1 && GetNumBuilders() >= GetMaxNumBuilders())
+//			{
+//				return false;
+//			}
+//
+//			bool bHasTechWhichUnlocksImprovement = false;
+//
+//			// Need a tech which unlocks something to do
+//			int iNumTechInfos = GC.getNumTechInfos();
+//			int iNumBuildInfos = GC.getNumBuildInfos();
+//			for(int iTechLoop = 0; iTechLoop < iNumTechInfos; iTechLoop++)
+//			{
+//				if(GET_TEAM(getTeam()).GetTeamTechs()->HasTech((TechTypes) iTechLoop))
+//				{
+//					// Look at Builds
+//					for(int iBuildLoop = 0; iBuildLoop < iNumBuildInfos; iBuildLoop++)
+//					{
+//						CvBuildInfo* pkBuildInfo = GC.getBuildInfo((BuildTypes) iBuildLoop);
+//						if(!pkBuildInfo)
+//						{
+//							continue;
+//						}
+//						if(pkBuildInfo->getTechPrereq() == (TechTypes) iTechLoop)
+//						{
+//							if(pkBuildInfo->getImprovement() != NO_IMPROVEMENT || pkBuildInfo->getRoute() != NO_ROUTE)
+//							{
+//								bHasTechWhichUnlocksImprovement = true;
+//								break;
+//							}
+//						}
+//					}
+//				}
+//				// Already found something
+//				if(bHasTechWhichUnlocksImprovement)
+//				{
+//					break;
+//				}
+//			}
+//
+//			// Player doesn't have any Tech which allows Improvements
+//			if(!bHasTechWhichUnlocksImprovement)
+//			{
+//				return false;
+//			}
+//		}
+//
+//		// OCC games - no Settlers
+//#ifdef AUI_PLAYER_FIX_VENICE_ONLY_BANS_SETTLERS_NOT_SETTLING
+//		if ((GetPlayerTraits()->IsNoAnnexing() && pUnitInfo->GetDefaultUnitAIType() == UNITAI_SETTLE) || (GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) && isHuman()))
+//#else
+//		if(GetPlayerTraits()->IsNoAnnexing() || (GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) && isHuman()))
+//#endif
+//		{
+//			if(pUnitInfo->IsFound() || pUnitInfo->IsFoundAbroad())
+//			{
+//				return false;
+//			}
+//		}
+//	}
+//
+//	// Barbarians
+//	if(kGoodyInfo.getBarbarianUnitClass() != NO_UNITCLASS)
+//	{
+//		if(GC.getGame().isOption(GAMEOPTION_NO_BARBARIANS))
+//		{
+//			return false;
+//		}
+//
+//		if(getNumCities() == 0)
+//		{
+//			return false;
+//		}
+//
+//		if(getNumCities() == 1)
+//		{
+//			pCity = GC.getMap().findCity(pPlot->getX(), pPlot->getY(), NO_PLAYER, getTeam());
+//
+//			if(pCity != NULL)
+//			{
+//				if(plotDistance(pPlot->getX(), pPlot->getY(), pCity->getX(), pCity->getY()) <= (8 - getNumCities()))
+//				{
+//					return false;
+//				}
+//			}
+//		}
+//	}
+//
+//	return true;
 }
 
+
+//int iLoop;
+//// pick a city
+//for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
+//{
+//	if (pLoopCity->isCapital()) // give to capital
+//	{
+//		pChosenCity = pLoopCity;
+//		break;
+//	}
+//	// iDistance = plotDistance(pPlot->getX(), pPlot->getY(), pLoopCity->getX(), pLoopCity->getY());
+//}
+// give the city stuff
+
+
+
+
+
+// random number
+int rand(int maxExclusive)
+{
+	return (GC.getGame().getJonRandNum(maxExclusive, "generic_rand"));
+}
+// randomly adjust this value by +/- 10%
+int varyByPercent(int original)
+{
+	float percent = original * 0.10f;
+	int range = ceil(2 * percent);
+	return original + rand(range) - range / 2;
+}
+// Food a goody hut gives
+int hutFood()
+{
+	float value = 2 * (7 + 1.0 * pow(GC.onePerOnlineSpeedTurn(), 0.8f));
+	value *= GC.adjustForSpeed(YIELD_FOOD);
+	return varyByPercent(value);
+}
+// Production a goody hut gives
+int hutProduction()
+{
+	float value = 2 * (7 + 1.0 * pow(GC.onePerOnlineSpeedTurn(), 0.8f));
+	value *= GC.adjustForSpeed(YIELD_PRODUCTION);
+	return varyByPercent(value);
+}
+// Gold a goody hut gives
+int hutGold()
+{
+	float value = 2 * (60 + 1.0 * GC.onePerOnlineSpeedTurn());
+	value *= GC.adjustForSpeed(YIELD_GOLD);
+	return varyByPercent(value);
+}
+// Science a goody hut gives
+int hutScience()
+{
+	float value = 2 * (20 + 1.0 * GC.onePerOnlineSpeedTurn());
+	value *= GC.adjustForSpeed(YIELD_SCIENCE);
+	return varyByPercent(value);
+}
+// Culture a goody hut gives
+int hutCulture()
+{
+	float value = 2 * (10 + pow(0.66f * GC.onePerOnlineSpeedTurn(), 0.8f));
+	value *= GC.adjustForSpeed(YIELD_CULTURE);
+	return varyByPercent(value);
+}
+// Culture a goody hut gives
+int hutFaith()
+{
+	float value = 2 * (15 + GC.onePerOnlineSpeedTurn());
+	value *= GC.adjustForSpeed(YIELD_FAITH);
+	return varyByPercent(value);
+}
+// Map radius a goody hut gives
+int hutMapRadius()
+{
+	int baseRadius = 7; // starts with this much radius
+	int turnsPerRadius = 20; // on average, will grant 1 more radius every 20 turns on online speed
+	int randValue = GC.getGame().getJonRandNum(turnsPerRadius + 1, "Goody Hut Map"); // [1-20]
+	int bonusRadius = ((int)GC.onePerOnlineSpeedTurn() + randValue) / turnsPerRadius;
+	float value = baseRadius + bonusRadius;
+	return value;
+}
+// random tile offset
+int hutMapOffset()
+{
+	return 2;
+}
+// odds any individual tile will be revealed
+int hutMapHexProbability()
+{
+	return 80;
+}
 
 //	--------------------------------------------------------------------------------
 void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit)
 {
-	CvPlot* pLoopPlot;
-	CvPlot* pBestPlot = NULL;
-	CvString strBuffer;
-	CvString strTempBuffer;
-	TechTypes eBestTech;
-	UnitTypes eUnit;
-	int iOffset;
-	int iBarbCount;
-	int iValue;
-	int iBestValue;
-	int iPass;
-	int iDX, iDY;
-#ifdef AUI_HEXSPACE_DX_LOOPS
-	int iMaxDX;
-#endif
-#ifdef AUI_WARNING_FIXES
-	uint iI;
-#else
-	int iI;
-#endif
-
 	//////////
 	// Load from database
 	//////////
@@ -6620,205 +6691,125 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit)
 	kGoodyInfo.CacheResult(kResult);
 	CvGoodyHuts::DoPlayerReceivedGoody(GetID(), eGoody);
 
-#ifdef AUI_PLAYER_RECEIVE_GOODY_PLOT_MESSAGE_FOR_YIELD
-	int iNumYieldBonuses = 0;
-#endif
 
-	strBuffer = kGoodyInfo.GetDescription();
+	int iRewardValue = 0; // amount of reward
+	int iNumYieldBonuses = 0; // count plot yield display lines
 
 	//////////
 	// Gold
 	//////////
-	int iGold = 0;
 	if (kGoodyInfo.isGold())
 	{
-		iGold = 129;
+		iRewardValue = hutGold();
+		GetTreasury()->ChangeGold(iRewardValue);
 
-		if (iGold != 0)
-		{
-			GetTreasury()->ChangeGold(iGold);
-
-#ifdef AUI_PLAYER_FIX_RECEIVE_GOODY_MESSAGE
-			strBuffer = GetLocalizedText(kGoodyInfo.GetDescriptionKey(), iGold);
-#else
-			strBuffer += GetLocalizedText("TXT_KEY_MISC_RECEIVED_GOLD", iGold);
-#endif
-#ifdef AUI_PLAYER_RECEIVE_GOODY_PLOT_MESSAGE_FOR_YIELD
-			ReportYieldFromKill(YIELD_GOLD, iGold, pPlot->getX(), pPlot->getY(), iNumYieldBonuses);
-			iNumYieldBonuses += 1;
-#endif
-		}
+		ReportYieldFromKill(YIELD_GOLD, iRewardValue, pPlot->getX(), pPlot->getY(), iNumYieldBonuses);
+		iNumYieldBonuses += 1;
 	}
 	//////////
 	// Food
 	//////////
 	if (kGoodyInfo.isFood())
 	{
-		CvCity* pChosenCity = NULL;
-		int iLoop;
-		// pick a city
-		for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
-		{
-			if (pLoopCity->isCapital()) // give to capital
-			{
-				pChosenCity = pLoopCity;
-				break;
-			}
-			// iDistance = plotDistance(pPlot->getX(), pPlot->getY(), pLoopCity->getX(), pLoopCity->getY());
-		}
-		// give the city stuff
+		CvCity* pChosenCity = this->getCapitalCity();
 		if (pChosenCity != NULL)
 		{
-			pChosenCity->changeFood(129);
+			iRewardValue = hutFood();
+			pChosenCity->changeFood(iRewardValue);
+
+			ReportYieldFromKill(YIELD_FOOD, iRewardValue, pPlot->getX(), pPlot->getY(), iNumYieldBonuses);
+			iNumYieldBonuses += 1;
+		}
+	}
+	//////////
+	// Production
+	//////////
+	if (kGoodyInfo.isProduction())
+	{
+		CvCity* pChosenCity = this->getCapitalCity();
+		if (pChosenCity != NULL)
+		{
+			iRewardValue = hutProduction();
+			pChosenCity->changeProduction(iRewardValue);
+
+			ReportYieldFromKill(YIELD_PRODUCTION, iRewardValue, pPlot->getX(), pPlot->getY(), iNumYieldBonuses);
+			iNumYieldBonuses += 1;
 		}
 	}
 	//////////
 	// Beakers
 	//////////
-	int iBeakers = 0;
 	if (kGoodyInfo.isBeakers())
 	{
-		iBestValue = 0;
-		eBestTech = NO_TECH;
-
-		for (iI = 0; iI < GC.getNumTechInfos(); iI++)
-		{
-			const TechTypes eTech = static_cast<TechTypes>(iI);
-			CvTechEntry* pkTech = GC.getTechInfo(eTech);
-			if (pkTech != NULL && pkTech->IsGoodyTech())
-			{
-				if (GetPlayerTechs()->CanResearch(eTech))
-				{
-					bool bUseTech = true;
-
-					ICvEngineScriptSystem1* pkScriptSystem = gDLL->GetScriptSystem();
-					if (pkScriptSystem)
-					{
-						CvLuaArgsHandle args;
-						args->Push(GetID());
-						args->Push(eTech);
-
-						// Attempt to execute the game events.
-						// Will return false if there are no registered listeners.
-						bool bScriptResult = false;
-						if (LuaSupport::CallTestAll(pkScriptSystem, "GoodyHutCanResearch", args.get(), bScriptResult))
-						{
-							bUseTech = bScriptResult;
-						}
-					}
-
-					if (bUseTech)
-					{
-						iValue = (1 + GC.getGame().getJonRandNum(10000, "Goody Tech"));
-
-						if (iValue > iBestValue)
-						{
-							iBestValue = iValue;
-							eBestTech = eTech;
-						}
-					}
-				}
-			}
-		}
-
-		CvAssertMsg(eBestTech != NO_TECH, "BestTech is not assigned a valid value");
-
 		ICvEngineScriptSystem1* pkScriptSystem = gDLL->GetScriptSystem();
 		if (pkScriptSystem)
 		{
 			CvLuaArgsHandle args;
 			args->Push(GetID());
-			args->Push(eBestTech);
+			args->Push(TechTypes::NO_TECH);
 
 			bool bScriptResult;
 			LuaSupport::CallHook(pkScriptSystem, "GoodyHutTechResearched", args.get(), bScriptResult);
 		}
 
-		//GET_TEAM(getTeam()).setHasTech(eBestTech, true, GetID(), true, true);
-
 		// give this many beakers to the player
-		iBeakers = 129;
+		iRewardValue = hutScience();
 		CvPlayer* pPlayer = this;
 		CvTeam* pTeam = &GET_TEAM(pPlayer->getTeam());
 		TechTypes eCurrentTech = pPlayer->GetPlayerTechs()->GetCurrentResearch();
 		if (eCurrentTech == NO_TECH)
-			this->changeOverflowResearch(iBeakers);
+			this->changeOverflowResearch(iRewardValue);
 		else
-			pTeam->GetTeamTechs()->ChangeResearchProgress(eCurrentTech, iBeakers, pPlayer->GetID());
+			pTeam->GetTeamTechs()->ChangeResearchProgress(eCurrentTech, iRewardValue, pPlayer->GetID());
+
+		// show on tile
+		ReportYieldFromKill(YIELD_SCIENCE, iRewardValue, pPlot->getX(), pPlot->getY(), iNumYieldBonuses);
+		iNumYieldBonuses += 1;
 	}
 	//////////
 	// Culture
 	//////////
-	int iCulture = 0;
 	if (kGoodyInfo.isCulture())
 	{
-		iCulture = 129;
-		if (iCulture > 0)
-		{
-			// Game Speed Mod
-			iCulture *= GC.getGame().getGameSpeedInfo().getCulturePercent();
-			iCulture /= 100;
+		iRewardValue = hutCulture();
+		changeJONSCulture(iRewardValue);
 
-			changeJONSCulture(iCulture);
-#ifdef AUI_PLAYER_FIX_RECEIVE_GOODY_MESSAGE
-			strBuffer = GetLocalizedText(kGoodyInfo.GetDescriptionKey(), iCulture);
-#endif
-#ifdef AUI_PLAYER_RECEIVE_GOODY_PLOT_MESSAGE_FOR_YIELD
-			ReportYieldFromKill(YIELD_CULTURE, iCulture, pPlot->getX(), pPlot->getY(), iNumYieldBonuses);
-			iNumYieldBonuses += 1;
-#endif
-		}
+		// show on tile
+		ReportYieldFromKill(YIELD_CULTURE, iRewardValue, pPlot->getX(), pPlot->getY(), iNumYieldBonuses);
+		iNumYieldBonuses += 1;
 	}
 	//////////
 	// Faith
 	//////////
-	int iFaith = 0;
-	if( kGoodyInfo.isFaith())
+	if(kGoodyInfo.isFaith())
 	{
-		iFaith = 129;
-		// Game Speed Mod
-		iFaith *= GC.getGame().getGameSpeedInfo().getFaithPercent();
-		iFaith /= 100;
+		iRewardValue = hutFaith();
+		ChangeFaith(iRewardValue);
 
-		ChangeFaith(iFaith);
-#ifdef AUI_PLAYER_FIX_RECEIVE_GOODY_MESSAGE
-		strBuffer = GetLocalizedText(kGoodyInfo.GetDescriptionKey(), iFaith);
-#endif
-#ifdef AUI_PLAYER_RECEIVE_GOODY_PLOT_MESSAGE_FOR_YIELD
-		ReportYieldFromKill(YIELD_FAITH, iFaith, pPlot->getX(), pPlot->getY(), iNumYieldBonuses);
+		// show on tile
+		ReportYieldFromKill(YIELD_FAITH, iRewardValue, pPlot->getX(), pPlot->getY(), iNumYieldBonuses);
 		iNumYieldBonuses += 1;
-#endif
 	}
 	//////////
 	// Map
 	//////////
-	if(kGoodyInfo.getMapRange() > 0)
+	if(kGoodyInfo.isMap())
 	{
-		int iRange = kGoodyInfo.getMapRange();
-		iOffset = kGoodyInfo.getMapOffset();
+		CvPlot* pBestPlot = NULL;
+		int iRange = hutMapRadius();
+		int iOffset = hutMapOffset();
+		int hexProbability = hutMapHexProbability();
 
 		if(iOffset > 0)
 		{
-			iBestValue = 0;
-			pBestPlot = NULL;
-
+			int iBestValue = 0;
 			int iRandLimit;
 
-#ifdef AUI_HEXSPACE_DX_LOOPS
-			for (iDY = -iOffset; iDY <= iOffset; iDY++)
+			for(int iDX = -(iOffset); iDX <= iOffset; iDX++)
 			{
-				iMaxDX = iOffset - MAX(0, iDY);
-				for (iDX = -iOffset - MIN(0, iDY); iDX <= iMaxDX; iDX++) // MIN() and MAX() stuff is to reduce loops (hexspace!)
+				for(int iDY = -(iOffset); iDY <= iOffset; iDY++)
 				{
-					pLoopPlot = plotXY(pPlot->getX(), pPlot->getY(), iDX, iDY);
-#else
-			for(iDX = -(iOffset); iDX <= iOffset; iDX++)
-			{
-				for(iDY = -(iOffset); iDY <= iOffset; iDY++)
-				{
-					pLoopPlot = plotXYWithRangeCheck(pPlot->getX(), pPlot->getY(), iDX, iDY, iOffset);
-#endif
-
+					CvPlot* pLoopPlot = plotXYWithRangeCheck(pPlot->getX(), pPlot->getY(), iDX, iDY, iOffset);
 					if(pLoopPlot != NULL)
 					{
 						if(!(pLoopPlot->isRevealed(getTeam())))
@@ -6829,17 +6820,12 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit)
 							else
 								iRandLimit = 10000;
 
-							iValue = (1 + GC.getGame().getJonRandNum(iRandLimit, "Goody Map"));
+							int randValue = (1 + GC.getGame().getJonRandNum(iRandLimit, "Goody Map"));
+							randValue *= plotDistance(pPlot->getX(), pPlot->getY(), pLoopPlot->getX(), pLoopPlot->getY());
 
-#ifdef AUI_FIX_HEX_DISTANCE_INSTEAD_OF_PLOT_DISTANCE
-							iValue *= hexDistance(iDX, iDY);
-#else
-							iValue *= plotDistance(pPlot->getX(), pPlot->getY(), pLoopPlot->getX(), pLoopPlot->getY());
-#endif
-
-							if(iValue > iBestValue)
+							if(randValue > iBestValue)
 							{
-								iBestValue = iValue;
+								iBestValue = randValue;
 								pBestPlot = pLoopPlot;
 							}
 						}
@@ -6852,31 +6838,17 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit)
 		{
 			pBestPlot = pPlot;
 		}
-
-#ifdef AUI_HEXSPACE_DX_LOOPS
-		for (iDY = -iRange; iDY <= iRange; iDY++)
+		for(int iDX = -(iRange); iDX <= iRange; iDX++)
 		{
-			iMaxDX = iRange - MAX(0, iDY);
-			for (iDX = -iRange - MIN(0, iDY); iDX <= iMaxDX; iDX++) // MIN() and MAX() stuff is to reduce loops (hexspace!)
-#else
-		for(iDX = -(iRange); iDX <= iRange; iDX++)
-		{
-			for(iDY = -(iRange); iDY <= iRange; iDY++)
-#endif
+			for(int iDY = -(iRange); iDY <= iRange; iDY++)
 			{
-				pLoopPlot = plotXY(pBestPlot->getX(), pBestPlot->getY(), iDX, iDY);
+				CvPlot* pLoopPlot = plotXY(pBestPlot->getX(), pBestPlot->getY(), iDX, iDY);
 
 				if(pLoopPlot != NULL)
 				{
-#ifndef AUI_HEXSPACE_DX_LOOPS
-#ifdef AUI_FIX_HEX_DISTANCE_INSTEAD_OF_PLOT_DISTANCE
 					if (hexDistance(iDX, iDY) <= iRange)
-#else
-					if (plotDistance(pBestPlot->getX(), pBestPlot->getY(), pLoopPlot->getX(), pLoopPlot->getY()) <= iRange)
-#endif
-#endif
 					{
-						if(GC.getGame().getJonRandNum(100, "Goody Map") < kGoodyInfo.getMapProb())
+						if (GC.getGame().getJonRandNum(100, "Goody Map") < hexProbability)
 						{
 							pLoopPlot->setRevealed(getTeam(), true);
 						}
@@ -6886,183 +6858,50 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit)
 		}
 	}
 	//////////
-	// Unit Upgrade
+	// Units
 	//////////
-	if(kGoodyInfo.isUnitUpgrade())
+	if(kGoodyInfo.isUnit())
 	{
-		UnitClassTypes eUpgradeUnitClass = NO_UNITCLASS;
-		UnitTypes eUpgradeUnit = NO_UNIT;
-
-		if(pUnit != NULL)
+		UnitTypes eUnit = (UnitTypes)GC.getInfoTypeForString("UNIT_ARCHER");
+		CvCity* pChosenCity = this->getCapitalCity(); // try to put at capital
+		CvPlot* pTargetPlot = pPlot;
+		if (pChosenCity != NULL)
 		{
-			eUpgradeUnitClass = (UnitClassTypes) pUnit->getUnitInfo().GetGoodyHutUpgradeUnitClass();
-			eUpgradeUnit = (UnitTypes) getCivilizationInfo().getCivilizationUnits(eUpgradeUnitClass);
+			pTargetPlot = pChosenCity->plot();
 		}
-		
-		if(eUpgradeUnit != NO_UNIT)
-		{
-			// Add new upgrade Unit
 
-			// if we promoted an scouting unit from a goody hut, turn him into whatever the new unit's default AI is if it is not a suitable explorer anymore
-			UnitAITypes currentAIDefault = pUnit->AI_getUnitAIType();
-			UnitAITypes newAIDefault = (UnitAITypes)GC.getUnitInfo(eUpgradeUnit)->GetDefaultUnitAIType();
-			if(currentAIDefault == UNITAI_EXPLORE)
-			{
-				if(newAIDefault == UNITAI_EXPLORE || newAIDefault == UNITAI_ATTACK || newAIDefault == UNITAI_DEFENSE || newAIDefault == UNITAI_FAST_ATTACK || newAIDefault == UNITAI_COUNTER)
-				{
-					newAIDefault = UNITAI_EXPLORE;
-				}
-			}
-
-			CvUnit* pNewUnit = initUnit(eUpgradeUnit, pPlot->getX(), pPlot->getY(), newAIDefault, NO_DIRECTION, false, false, 0, pUnit->GetNumGoodyHutsPopped());
-			pUnit->finishMoves();
-			pUnit->SetBeenPromotedFromGoody(true);
-
-			CvAssert(pNewUnit);
-			if (pNewUnit != NULL)
-			{
-				pNewUnit->convert(pUnit, true);
-				pNewUnit->setupGraphical();
-
-				ICvEngineScriptSystem1* pkScriptSystem = gDLL->GetScriptSystem();
-				if (pkScriptSystem)
-				{
-					CvLuaArgsHandle args;
-					args->Push(GetID());
-					args->Push(pUnit->GetID());
-					args->Push(pNewUnit->GetID());
-					args->Push(true); // bGoodyHut
-
-					bool bScriptResult;
-					LuaSupport::CallHook(pkScriptSystem, "UnitUpgraded", args.get(), bScriptResult);
-				}
-			}
-			else
-				pUnit->kill(false);
-
-			// Since the old unit died, it will block the goody reward popup unless we call this
-			GC.GetEngineUserInterface()->SetDontShowPopups(false);
-		}
-	}
-	//////////
-	// Units DEAD
-	//////////
-	if(kGoodyInfo.getUnitClassType() != NO_UNITCLASS)
-	{
-		eUnit = (UnitTypes)getCivilizationInfo().getCivilizationUnits(kGoodyInfo.getUnitClassType());
-
-		if(eUnit != NO_UNIT)
-		{
-			CvUnit* pNewUnit = initUnit(eUnit, pPlot->getX(), pPlot->getY());
-			// see if there is an open spot to put him - no over-stacking allowed!
-			if(pNewUnit && pUnit && pUnit->AreUnitsOfSameType(*pNewUnit))  // pUnit isn't in this plot yet (if it even exists) so we can't check on if we are over-stacked directly
-			{
-				pBestPlot = NULL;
-				iBestValue = INT_MAX;
-				const int iPopRange = 2;
-#ifdef AUI_HEXSPACE_DX_LOOPS
-				for (iDY = -iPopRange; iDY <= iPopRange; iDY++)
-				{
-					iMaxDX = iPopRange - MAX(0, iDY);
-					for (iDX = -iPopRange - MIN(0, iDY); iDX <= iMaxDX; iDX++) // MIN() and MAX() stuff is to reduce loops (hexspace!)
-					{
-						pLoopPlot = plotXY(pPlot->getX(), pPlot->getY(), iDX, iDY);
-#else
-				for(iDX = -(iPopRange); iDX <= iPopRange; iDX++)
-				{
-					for(iDY = -(iPopRange); iDY <= iPopRange; iDY++)
-					{
-						pLoopPlot	= plotXYWithRangeCheck(pPlot->getX(), pPlot->getY(), iDX, iDY, iPopRange);
-#endif
-						if(pLoopPlot != NULL)
-						{
-							if(pLoopPlot->isValidDomainForLocation(*pNewUnit))
-							{
-								if(pNewUnit->canMoveInto(*pLoopPlot))
-								{
-									if(pLoopPlot->getNumFriendlyUnitsOfType(pUnit) < GC.getPLOT_UNIT_LIMIT())
-									{
-										if(pNewUnit->canEnterTerritory(pLoopPlot->getTeam()) && !pNewUnit->isEnemy(pLoopPlot->getTeam(), pLoopPlot))
-										{
-											if((pNewUnit->getDomainType() != DOMAIN_AIR) || pLoopPlot->isFriendlyCity(*pNewUnit, true))
-											{
-												if(pLoopPlot->isRevealed(getTeam()))
-												{
-													iValue = 1 + GC.getGame().getJonRandNum(6, "spawn goody unit that would over-stack"); // okay, I'll admit it, not a great heuristic
-
-#ifdef AUI_FIX_HEX_DISTANCE_INSTEAD_OF_PLOT_DISTANCE
-													if (hexDistance(iDX, iDY) > 1)
-#else
-													if(plotDistance(pPlot->getX(),pPlot->getY(),pLoopPlot->getX(),pLoopPlot->getY()) > 1)
-#endif
-													{
-														iValue += 12;
-													}
-
-													if(pLoopPlot->area() != pPlot->area())  // jumped to a different land mass, cool
-													{
-														iValue *= 10;
-													}
-
-													if(iValue < iBestValue)
-													{
-														iBestValue = iValue;
-														pBestPlot = pLoopPlot;
-													}
-												}
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-				if(pBestPlot != NULL)
-				{
-					bool bVis = pBestPlot->isVisibleToWatchingHuman();
-					pNewUnit->setXY(pBestPlot->getX(), pBestPlot->getY(), false, true, true && bVis, true);
-					pNewUnit->SetPosition(pBestPlot);	// Need this to put the unit in the right spot graphically
-					pNewUnit->finishMoves();
-				}
-				else
-				{
-					pNewUnit->kill(false);
-				}
-			}
-		}
+		CvUnit* pNewUnit = initUnit(eUnit, pTargetPlot->getX(), pTargetPlot->getY());
+		pNewUnit->setXY(pTargetPlot->getX(), pTargetPlot->getY(), false, true, pTargetPlot->isVisibleToWatchingHuman(), true);
+		pNewUnit->SetPosition(pTargetPlot); // Need this to put the unit in the right spot graphically
+		pNewUnit->finishMoves();
 	}
 
+	CvString strBuffer = GetLocalizedText(kGoodyInfo.GetDescriptionKey(), iRewardValue);
+	GetNotifications()->AddToLog(strBuffer);
+
+	// message at top of screen
 	if(!strBuffer.empty() && GC.getGame().getActivePlayer() == GetID())
 	{
 		GC.GetEngineUserInterface()->AddPlotMessage(0, pPlot->GetPlotIndex(), GetID(), true, GC.getEVENT_MESSAGE_TIME(), strBuffer);
 	}
 
+	/// just remove the default popup
+
 	// If it's the active player then show the popup
-	if(GetID() == GC.getGame().getActivePlayer())
-	{
-		GC.getMap().updateDeferredFog();
+	//if(GetID() == GC.getGame().getActivePlayer())
+	//{
+	//	GC.getMap().updateDeferredFog();
 
-		bool bDontShowRewardPopup = GC.GetEngineUserInterface()->IsOptionNoRewardPopups();
-
-		// Don't show in MP, or if the player has turned it off
-		if(!GC.getGame().isNetworkMultiPlayer() && !bDontShowRewardPopup)	// KWG: Candidate for !GC.getGame().isOption(GAMEOPTION_SIMULTANEOUS_TURNS)
-		{
-			int iSpecialValue = 0;
-
-			if(iGold > 0)
-				iSpecialValue = iGold;
-			else if(iCulture > 0)
-				iSpecialValue = iCulture;
-			else if(iFaith > 0)
-				iSpecialValue = iFaith;
-
-			CvPopupInfo kPopupInfo(BUTTONPOPUP_GOODY_HUT_REWARD, eGoody, iSpecialValue);
-			GC.GetEngineUserInterface()->AddPopup(kPopupInfo);
-			// We are adding a popup that the player must make a choice in, make sure they are not in the end-turn phase.
-			CancelActivePlayerEndTurn();
-		}
-	}
+	//	// Don't show in MP, or if the player has turned it off
+	//	bool bDontShowRewardPopup = GC.GetEngineUserInterface()->IsOptionNoRewardPopups();
+	//	if(!GC.getGame().isNetworkMultiPlayer() && !bDontShowRewardPopup)	// KWG: Candidate for !GC.getGame().isOption(GAMEOPTION_SIMULTANEOUS_TURNS)
+	//	{
+	//		CvPopupInfo kPopupInfo(BUTTONPOPUP_GOODY_HUT_REWARD, eGoody, iRewardValue);
+	//		GC.GetEngineUserInterface()->AddPopup(kPopupInfo);
+	//		// We are adding a popup that the player must make a choice in, make sure they are not in the end-turn phase.
+	//		CancelActivePlayerEndTurn();
+	//	}
+	//}
 }
 
 // determine which goody hut
@@ -7144,12 +6983,27 @@ void CvPlayer::doGoody(CvPlot* pPlot, CvUnit* pUnit)
 				}
 				else
 				{
-					// choose a goody hut
-					const int numGoodyHuts = DB.Count("GoodyHuts");
-					eGoody = getGoodyHut(m_iNumGoodyHutsPopped, numGoodyHuts);
-					++m_iNumGoodyHutsPopped;
+					const int numPossibleGoodyHuts = DB.Count("GoodyHuts");
+
+					if (m_iNumGoodyHutsPopped == 0)
+					{
+						m_nextGoodyType = getGoodyHut(m_iNumGoodyHutsPopped, numPossibleGoodyHuts);
+					}
+
+					// get the alternate goody
+					eGoody = getGoodyHut(m_iNumGoodyHutsPopped + 1, numPossibleGoodyHuts);
+
+					int probabilityOfExpectedReward = 60;
+					int randValue = (1 + GC.getGame().getJonRandNum(100, "Random Goody"));
+					if (randValue < probabilityOfExpectedReward) // randomly possibly choose the alternate goody (or not)
+					{
+						GoodyTypes temp = m_nextGoodyType;
+						m_nextGoodyType = eGoody;
+						eGoody = temp;
+					}
 
 					// give goody hut reward to player
+					++m_iNumGoodyHutsPopped;
 					receiveGoody(pPlot, eGoody, pUnit);
 				}
 				
@@ -24578,13 +24432,15 @@ void CvPlayer::Read(FDataStream& kStream)
 	{
 		m_iNumFreeTenets = 0;
 	}
+	int temp;
 	kStream >> m_iNumGoodyHutsPopped;
+	kStream >> temp;
+	m_nextGoodyType = (GoodyTypes)temp;
 	kStream >> m_iNumFreeGreatPeople;
 	kStream >> m_iNumMayaBoosts;
 	kStream >> m_iNumFaithGreatPeople;
 	kStream >> m_iNumArchaeologyChoices;
 
-	int temp;
 	kStream >> temp;
 	m_eFaithPurchaseType = (FaithPurchaseTypes)temp;
 	kStream >> m_iFaithPurchaseIndex;
@@ -25127,6 +24983,7 @@ void CvPlayer::Write(FDataStream& kStream) const
 	kStream << m_iNumFreePoliciesEver;
 	kStream << m_iNumFreeTenets;
 	kStream << m_iNumGoodyHutsPopped;
+	kStream << (int)m_nextGoodyType;
 	kStream << m_iNumFreeGreatPeople;
 	kStream << m_iNumMayaBoosts;
 	kStream << m_iNumFaithGreatPeople;

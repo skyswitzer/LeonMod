@@ -1185,12 +1185,10 @@ public:
 	bool isBeakers() const;
 	bool isCulture() const;
 
+	bool isProduction() const;
 	bool isFaith() const;
-	bool isUnitUpgrade() const;
-
-	int getMapOffset() const;
-	int getMapRange() const;
-	int getMapProb() const;
+	bool isUnit() const;
+	bool isMap() const;
 
 	int getBarbarianUnitProb() const;
 	int getMinBarbarians() const;
@@ -1210,12 +1208,11 @@ protected:
 	bool m_bFood;
 	bool m_bBeakers;
 	bool m_bCulture;
-	bool m_bFaith;
-	bool m_bUnitUpgrade;
 
-	int m_iMapOffset;
-	int m_iMapRange;
-	int m_iMapProb;
+	bool m_bProduction;
+	bool m_bFaith;
+	bool m_bUnit;
+	bool m_bMap;
 
 	int m_iBarbarianUnitProb;
 	int m_iMinBarbarians;

@@ -3970,12 +3970,10 @@ CvGoodyInfo::CvGoodyInfo() : CvBaseInfo()
 	, m_bBeakers(0)
 	, m_bCulture(0)
 
+	, m_bProduction(0)
 	, m_bFaith(0)
-	, m_bUnitUpgrade(0)
-
-	, m_iMapOffset(0)
-	, m_iMapRange(0)
-	, m_iMapProb(0)
+	, m_bUnit(0)
+	, m_bMap(0)
 
 	, m_iBarbarianUnitProb(0)
 	, m_iMinBarbarians(0)
@@ -3988,12 +3986,10 @@ bool CvGoodyInfo::isFood() const { return m_bFood; }
 bool CvGoodyInfo::isBeakers() const{return m_bBeakers;}
 bool CvGoodyInfo::isCulture() const { return m_bCulture; }
 
+bool CvGoodyInfo::isProduction() const { return m_bProduction; }
 bool CvGoodyInfo::isFaith() const { return m_bFaith; }
-bool CvGoodyInfo::isUnitUpgrade() const{	return m_bUnitUpgrade;}
-
-int CvGoodyInfo::getMapOffset() const{	return m_iMapOffset;}
-int CvGoodyInfo::getMapRange() const{	return m_iMapRange;}
-int CvGoodyInfo::getMapProb() const{	return m_iMapProb;}
+bool CvGoodyInfo::isUnit() const{ return m_bUnit;}
+bool CvGoodyInfo::isMap() const{	return m_bMap;}
 
 int CvGoodyInfo::getBarbarianUnitProb() const{	return m_iBarbarianUnitProb;}
 int CvGoodyInfo::getMinBarbarians() const{	return m_iMinBarbarians;}
@@ -4024,12 +4020,10 @@ bool CvGoodyInfo::CacheResults(Database::Results& results, CvDatabaseUtility& kU
 	m_bBeakers = results.GetBool("GivesBeakers");
 	m_bCulture = results.GetBool("GivesCulture");
 
+	m_bProduction = results.GetBool("GivesProduction");
 	m_bFaith = results.GetBool("GivesFaith");
-	m_bUnitUpgrade = results.GetBool("GivesUnitUpgrade");
-
-	m_iMapOffset = results.GetInt("MapOffset");
-	m_iMapRange = results.GetInt("MapRange");
-	m_iMapProb = results.GetInt("MapProb");
+	m_bUnit = results.GetBool("GivesUnit");
+	m_bMap = results.GetInt("GivesMap");
 
 	// what does this do?
 	m_iBarbarianUnitProb = results.GetInt("BarbarianUnitProb");
