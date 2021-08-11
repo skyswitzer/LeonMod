@@ -2411,6 +2411,11 @@ float CvGlobals::onePerOnlineSpeedTurn()
 {
 	return getPercentTurnsDone() * onlineSpeedMaxTurns();
 }
+float CvGlobals::turnsToPercentage(float start, float end)
+{
+	float turnsPastStart = max(0.0f, onePerOnlineSpeedTurn() - start);
+	return min(1.0f, turnsPastStart / (end - start));
+}
 float CvGlobals::adjustForSpeed(YieldTypes type)
 {
 	float xmlValue = this->getGame().getGameSpeedInfo().getConstructPercent();

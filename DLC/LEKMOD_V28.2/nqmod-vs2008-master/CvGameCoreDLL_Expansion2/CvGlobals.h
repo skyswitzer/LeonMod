@@ -193,6 +193,8 @@ public:
 	{
 		return m_aiPlotDirectionY;
 	}
+	// in online turns, indicates the percentage [0,1]
+	float turnsToPercentage(float start, float end);
 	// [0, 1] Number of turns DONE as a percentage of max turns 
 	float getPercentTurnsDone();
 	// max turns in an online speed game

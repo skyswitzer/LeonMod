@@ -17664,6 +17664,7 @@ uint CvCity::GetCityBombardEffectTagHash() const
 	return GC.getEraInfo(eCityEra)->GetCityBombardEffectTagHash();
 }
 
+
 //	---------------------------------------------------------------------------
 int CvCity::GetMaxHitPoints() const
 {
@@ -17673,8 +17674,11 @@ int CvCity::GetMaxHitPoints() const
 	int extraAiHitpoints = 0;
 	if (!this->isHuman())
 	{
-		extraAiHitpoints = total * GC.getMAX_CITY_HIT_POINTS_AI_BONUS();
+		float percentage = GC.turnsToPercentage(10.0f, 75.0f);
+
+		extraAiHitpoints = GC.getMAX_CITY_HIT_POINTS_AI_BONUS();
 		extraAiHitpoints /= 100;
+		extraAiHitpoints *= percentage;
 	}
 
 	return total + extraAiHitpoints;
