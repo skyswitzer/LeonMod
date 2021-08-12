@@ -189,6 +189,7 @@ public:
 	{
 		return m_aiPlotDirectionX;
 	}
+	int rand(int maxInclusive, string log);
 	int* getPlotDirectionY()
 	{
 		return m_aiPlotDirectionY;

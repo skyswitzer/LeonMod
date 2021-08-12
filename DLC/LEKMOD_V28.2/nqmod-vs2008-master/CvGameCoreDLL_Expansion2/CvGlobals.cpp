@@ -2411,6 +2411,10 @@ float CvGlobals::onePerOnlineSpeedTurn()
 {
 	return getPercentTurnsDone() * onlineSpeedMaxTurns();
 }
+int CvGlobals::rand(int maxInclusive, string log)
+{
+	return this->getGame().getJonRandNum(maxInclusive + 1, log.c_str());
+}
 float CvGlobals::turnsToPercentage(float start, float end)
 {
 	float turnsPastStart = max(0.0f, onePerOnlineSpeedTurn() - start);

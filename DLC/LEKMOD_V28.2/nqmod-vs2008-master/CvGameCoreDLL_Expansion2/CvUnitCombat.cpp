@@ -2439,6 +2439,49 @@ uint CvUnitCombat::ApplyNuclearExplosionDamage(CvPlot* pkTargetPlot, int iDamage
 	return ApplyNuclearExplosionDamage(&kDamageMembers[0], iDamageMembers, NULL, pkTargetPlot, iDamageLevel);
 }
 
+// find how much population to remove from this city
+int getNukePopulationDamage(CvCity* nukedCity, int dist)
+{
+	float distanceReduction = 0.50f;
+
+	float nukePopPercentModifier = max(0.0f, nukedCity->getNukeModifier() / 100.0f + 1.0f);
+	float nukePopPercentBase = GC.getNUKE_LEVEL1_POPULATION_DEATH_BASE() / 100.0f;
+	float nukePopPercentRand = GC.rand(GC.getNUKE_LEVEL1_POPULATION_DEATH_RAND_1(), "Pop Nuked 1") / 100.0f;
+	float percentToRemove = pow(distanceReduction, dist) * nukePopPercentModifier * (nukePopPercentBase + nukePopPercentRand);
+
+	int startPop = nukedCity->getPopulation();
+	int popToRemove = startPop * percentToRemove;
+	popToRemove = max(1, popToRemove); // remove at least 1 pop
+	return min((startPop - 1), popToRemove); // don't go lower than 1 pop
+}
+
+// damage done to units from a nuke
+int getNukeUnitDamage(int dist, CvCity* cityOnHex)
+{
+	float distanceReduction = 0.50f;
+
+	int damage = GC.getNUKE_UNIT_DAMAGE_BASE() + GC.rand(GC.getNUKE_UNIT_DAMAGE_RAND_1(), "Nuke Damage 1");
+	damage *= pow(distanceReduction, dist);
+
+	if (cityOnHex) // do less damage to units in a city
+	{
+		float cityModifier = max(0.0f, cityOnHex->getNukeModifier() / 100.0f + 1.0f); // like 0.25 if modifier was -75
+		damage *= cityModifier * distanceReduction; // reduce damage for units in a city by 1 distance always
+	}
+	return damage;
+}
+
+// find how many hitpoints should be removed from this city
+int getNukeCityHitpointDamage(CvCity* nukedCity, int dist)
+{
+	float distanceReduction = 0.50f;
+
+	int damage = (nukedCity->GetMaxHitPoints() - nukedCity->getDamage()) * (GC.getNUKE_CITY_HIT_POINT_DAMAGE() / 100.0f);
+	damage *= pow(distanceReduction, dist);
+
+	return damage;
+}
+
 //	-------------------------------------------------------------------------------------
 uint CvUnitCombat::ApplyNuclearExplosionDamage(const CvCombatMemberEntry* pkDamageArray, int iDamageMembers, CvUnit* pkAttacker, CvPlot* pkTargetPlot, int iDamageLevel)
 {
@@ -2555,6 +2598,7 @@ uint CvUnitCombat::ApplyNuclearExplosionDamage(const CvCombatMemberEntry* pkDama
 			CvCity* pkCity = GET_PLAYER(kEntry.GetPlayer()).getCity(kEntry.GetCityID());
 			if(pkCity)
 			{
+				int dist = hexDistance(pkCity->plot()->getX() - pkTargetPlot->getX(), pkCity->plot()->getY() - pkTargetPlot->getY());
 				pkCity->setCombatUnit(NULL);
 
 				if(eAttackerOwner == NO_PLAYER || pkCity->getOwner() != eAttackerOwner)
@@ -2577,30 +2621,8 @@ uint CvUnitCombat::ApplyNuclearExplosionDamage(const CvCombatMemberEntry* pkDama
 				}
 				else
 				{
-					// Unlike the city hit points, the population damage is calculated when the pre-calculated damage is applied.
-					// This is simply to save space in the damage array, since the combat visualization does not need it.
-					// It can be moved into the pre-calculated damage array if needed.
-					int iBaseDamage, iRandDamage1, iRandDamage2;
-					// How much destruction is unleashed on nearby Cities?
-					if(iDamageLevel == 1)
-					{
-						iBaseDamage = /*30*/ GC.getNUKE_LEVEL1_POPULATION_DEATH_BASE();
-						iRandDamage1 = GC.getGame().getJonRandNum(/*20*/ GC.getNUKE_LEVEL1_POPULATION_DEATH_RAND_1(), "Population Nuked 1");
-						iRandDamage2 = GC.getGame().getJonRandNum(/*20*/ GC.getNUKE_LEVEL1_POPULATION_DEATH_RAND_2(), "Population Nuked 2");
-					}
-					else
-					{
-						iBaseDamage = /*60*/ GC.getNUKE_LEVEL2_POPULATION_DEATH_BASE();
-						iRandDamage1 = GC.getGame().getJonRandNum(/*10*/ GC.getNUKE_LEVEL2_POPULATION_DEATH_RAND_1(), "Population Nuked 1");
-						iRandDamage2 = GC.getGame().getJonRandNum(/*10*/ GC.getNUKE_LEVEL2_POPULATION_DEATH_RAND_2(), "Population Nuked 2");
-					}
-
-					int iNukedPopulation = pkCity->getPopulation() * (iBaseDamage + iRandDamage1 + iRandDamage2) / 100;
-
-					iNukedPopulation *= std::max(0, (pkCity->getNukeModifier() + 100));
-					iNukedPopulation /= 100;
-
-					pkCity->changePopulation(-(std::min((pkCity->getPopulation() - 1), iNukedPopulation)));
+					int popToRemove = getNukePopulationDamage(pkCity, dist);
+					pkCity->changePopulation(-popToRemove);
 
 					// Add damage to the city
 					pkCity->setDamage(kEntry.GetFinalDamage());
@@ -2642,6 +2664,7 @@ void CvUnitCombat::GenerateNuclearExplosionDamage(CvPlot* pkTargetPlot, int iDam
 		{
 			CvPlot* pLoopPlot = plotXYWithRangeCheck(pkTargetPlot->getX(), pkTargetPlot->getY(), iDX, iDY, iBlastRadius);
 #endif
+			int dist = hexDistance(iDX, iDY);
 
 			if(pLoopPlot != NULL)
 			{
@@ -2669,23 +2692,7 @@ void CvUnitCombat::GenerateNuclearExplosionDamage(CvPlot* pkTargetPlot, int iDam
 						{
 							if(!pLoopUnit->isNukeImmune() && !pLoopUnit->isDelayedDeath())
 							{
-								int iNukeDamage;
-								// How much destruction is unleashed on nearby Units?
-								if(iDamageLevel == 1 && pLoopPlot != pkTargetPlot)	// Nuke level 1, but NOT the plot that got hit directly (units there are killed)
-								{
-									iNukeDamage = (/*3*/ GC.getNUKE_UNIT_DAMAGE_BASE() + /*4*/ GC.getGame().getJonRandNum(GC.getNUKE_UNIT_DAMAGE_RAND_1(), "Nuke Damage 1") + /*4*/ GC.getGame().getJonRandNum(GC.getNUKE_UNIT_DAMAGE_RAND_2(), "Nuke Damage 2"));
-								}
-								// Wipe everything out
-								else
-								{
-									iNukeDamage = GC.getMAX_HIT_POINTS();
-								}
-
-								if(pLoopCity != NULL)
-								{
-									iNukeDamage *= std::max(0, (pLoopCity->getNukeModifier() + 100));
-									iNukeDamage /= 100;
-								}
+								int iNukeDamage = getNukeUnitDamage(dist, pLoopCity);
 
 								CvCombatMemberEntry* pkDamageEntry = AddCombatMember(pkDamageArray, piDamageMembers, iMaxDamageMembers, pLoopUnit);
 								if(pkDamageEntry)
@@ -2733,10 +2740,8 @@ void CvUnitCombat::GenerateNuclearExplosionDamage(CvPlot* pkTargetPlot, int iDam
 					else
 					{
 						// Add damage to the city
-						iTotalDamage = (pLoopCity->GetMaxHitPoints() - pLoopCity->getDamage()) * /*50*/ GC.getNUKE_CITY_HIT_POINT_DAMAGE();
-						iTotalDamage /= 100;
-
-						iTotalDamage += pLoopCity->getDamage();
+						int netDamage = getNukeCityHitpointDamage(pLoopCity, dist);
+						iTotalDamage = netDamage + pLoopCity->getDamage();
 
 						// Can't bring a city below 1 HP
 						iTotalDamage = min(iTotalDamage, pLoopCity->GetMaxHitPoints() - 1);
