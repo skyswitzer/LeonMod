@@ -201,6 +201,7 @@ public:
 	float onlineSpeedMaxTurns();
 	// on turn 100 this would return: onlineSpeed: 100, normalSpeed: 50
 	float onePerOnlineSpeedTurn();
+	// online: 0.5,  normal: 1,  etc
 	float adjustForSpeed(YieldTypes type);
 
 	CvRandom& getASyncRand();

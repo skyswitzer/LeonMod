@@ -1038,6 +1038,9 @@ public:
 	int GetOriginalCapitalY() const;
 
 	bool IsHasLostCapital() const;
+	int GetNumCapitals() const;
+	int GetNumTotalCapitalsInWorld() const;
+	int GetNumTotalCitiesInWorld() const;
 	void SetHasLostCapital(bool bValue, PlayerTypes eConqueror);
 	PlayerTypes GetCapitalConqueror() const;
 

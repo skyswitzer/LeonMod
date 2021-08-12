@@ -1099,6 +1099,8 @@ public:
 	void LogOpenEmbassy(PlayerTypes ePlayer);
 	void LogCloseEmbassy(PlayerTypes ePlayer);
 
+	MajorCivApproachTypes GetApproachScratchPad(PlayerTypes ePlayer);
+
 private:
 	bool IsValidUIDiplomacyTarget(PlayerTypes eTargetPlayer);
 

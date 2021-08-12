@@ -310,6 +310,7 @@ public:
 	int GetBestRoadMovementMultiplier(const CvUnit* pUnit) const;
 #endif
 
+	int getNumSpaceshipParts() const;
 	int getProjectCount(ProjectTypes eIndex) const;
 	int getProjectDefaultArtType(ProjectTypes eIndex) const;
 	void setProjectDefaultArtType(ProjectTypes eIndex, int value);

@@ -16311,6 +16311,70 @@ bool CvPlayer::IsHasLostCapital() const
 	return m_bLostCapital;
 }
 
+int CvPlayer::GetNumCapitals() const
+{
+	CvMap& kMap = GC.getMap();
+
+	const CvPlayer& us = *this;
+	int numCapitals = 0;
+	for (int iLoopPlayer = 0; iLoopPlayer < MAX_MAJOR_CIVS; ++iLoopPlayer)
+	{
+		const PlayerTypes ePlayer = static_cast<PlayerTypes>(iLoopPlayer);
+		CvPlayer& kLoopPlayer = GET_PLAYER(ePlayer);
+		if (kLoopPlayer.isEverAlive())
+		{
+			const int iOriginalCapitalX = kLoopPlayer.GetOriginalCapitalX();
+			const int iOriginalCapitalY = kLoopPlayer.GetOriginalCapitalY();
+			if (iOriginalCapitalX != -1 && iOriginalCapitalY != -1)
+			{
+				CvPlot* pkPlot = kMap.plot(iOriginalCapitalX, iOriginalCapitalY);
+				if (pkPlot != NULL)
+				{
+					CvCity* pkCapitalCity = pkPlot->getPlotCity();
+					if (pkCapitalCity != NULL)
+					{
+						if (us.GetID() == pkCapitalCity->getOwner()) // we own it!
+						{
+							numCapitals += 1;
+						}
+					}
+				}
+			}
+		}
+	}
+	return numCapitals;
+}
+int CvPlayer::GetNumTotalCapitalsInWorld() const
+{
+	const CvPlayer& us = *this;
+	int numCapitals = 0;
+	for (int iLoopPlayer = 0; iLoopPlayer < MAX_MAJOR_CIVS; ++iLoopPlayer)
+	{
+		const PlayerTypes ePlayer = static_cast<PlayerTypes>(iLoopPlayer);
+		CvPlayer& kLoopPlayer = GET_PLAYER(ePlayer);
+		if (kLoopPlayer.isEverAlive())
+		{
+			numCapitals += 1;
+		}
+	}
+	return numCapitals;
+}
+int CvPlayer::GetNumTotalCitiesInWorld() const
+{
+	const CvPlayer& us = *this;
+	int numCities = 0;
+	for (int iLoopPlayer = 0; iLoopPlayer < MAX_MAJOR_CIVS; ++iLoopPlayer)
+	{
+		const PlayerTypes ePlayer = static_cast<PlayerTypes>(iLoopPlayer);
+		CvPlayer& kLoopPlayer = GET_PLAYER(ePlayer);
+		if (kLoopPlayer.isEverAlive())
+		{
+			numCities += kLoopPlayer.getNumCities();
+		}
+	}
+	return numCities;
+}
+
 //	--------------------------------------------------------------------------------
 /// Sets us to having lost our capital in war
 void CvPlayer::SetHasLostCapital(bool bValue, PlayerTypes eConqueror)
