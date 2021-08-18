@@ -1,11 +1,4 @@
-------------------------------------------------------------------------------
---	FILE:			   FeatureGenerator.lua
---	MODIFIED FOR CIV5:  Bob Thomas
---	PYTHON TO LUA:	  Shaun Seckman
---	PURPOSE:			Default method for feature generation
-------------------------------------------------------------------------------
---	Copyright (c) 2009, 2010 Firaxis Games, Inc. All rights reserved.
-------------------------------------------------------------------------------
+-- copied from HBFeatureGeneratorRectangular.lua
 
 include("HBMapmakerUtilities");
 

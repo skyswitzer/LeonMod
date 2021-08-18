@@ -1,11 +1,4 @@
-------------------------------------------------------------------------------
---	FILE:               FeatureGenerator.lua
---	MODIFIED FOR CIV5:  Bob Thomas
---	PYTHON TO LUA:      Shaun Seckman
---	PURPOSE:            Default method for feature generation
-------------------------------------------------------------------------------
---	Copyright (c) 2009, 2010 Firaxis Games, Inc. All rights reserved.
-------------------------------------------------------------------------------
+-- copied from HBFeatureGeneratorRectangular.lua
 
 include("HBMapmakerUtilities");
 
@@ -13,6 +6,7 @@ include("HBMapmakerUtilities");
 FeatureGenerator = {};
 ------------------------------------------------------------------------------
 function FeatureGenerator.Create(args)
+	print("leon feet");
 	--[[ Civ4's truncated "Climate" setting has been abandoned. Civ5 has returned to 
 	Civ3-style map options for World Age, Temperature, and Rainfall. Control over the 
 	terrain has been removed from the XML.  - Bob Thomas, March 2010  ]]--
@@ -322,21 +316,12 @@ function FeatureGenerator:AdjustTerrainTypes()
 	end
 end
 ------------------------------------------------------------------------------
+function mod(a,b)
+	return a - math.floor(a/b)*b;
+end
+------------------------------------------------------------------------------
 function FeatureGenerator:AddAtolls()
-	-- This function added Feb 2011 by Bob Thomas.
-	-- Adds the new feature Atolls in to the game, for oceanic maps.
-	local iW, iH = Map.GetGridSize()
-	local biggest_ocean = Map.FindBiggestArea(true)
-	local iNumBiggestOceanPlots = 0;
-	if biggest_ocean ~= nil then
-		iNumBiggestOceanPlots = biggest_ocean:GetNumTiles()
-	end
-	if iNumBiggestOceanPlots <= (iW * iH) / 4 then -- No major oceans on this world.
-		return
-	end
-	
-	-- World has oceans, proceed with adding Atolls.
-	local iNumAtollsPlaced = 0;
+	print("AddAtolls")
 	local direction_types = {
 		DirectionTypes.DIRECTION_NORTHEAST,
 		DirectionTypes.DIRECTION_EAST,
@@ -345,226 +330,45 @@ function FeatureGenerator:AddAtolls()
 		DirectionTypes.DIRECTION_WEST,
 		DirectionTypes.DIRECTION_NORTHWEST
 	};
-	local worldsizes = {
-		[GameInfo.Worlds.WORLDSIZE_DUEL.ID] = 2,
-		[GameInfo.Worlds.WORLDSIZE_TINY.ID] = 4,
-		[GameInfo.Worlds.WORLDSIZE_SMALL.ID] = 5,
-		[GameInfo.Worlds.WORLDSIZE_STANDARD.ID] = 7,
-		[GameInfo.Worlds.WORLDSIZE_LARGE.ID] = 9,
-		[GameInfo.Worlds.WORLDSIZE_HUGE.ID] = 12,
-	};
-	local atoll_target = worldsizes[Map.GetWorldSize()];
-	local atoll_number = atoll_target + Map.Rand(atoll_target, "Number of Atolls to place - LUA");
-	local feature_atoll;
+
+	local xMod = 3;
+	local yMod = 3;
+	local oddsPerTile = 900;
+
+	local iW, iH = Map.GetGridSize()
+	local possibleAtolls = {};
 	for thisFeature in GameInfo.Features() do
-		if thisFeature.Type == "FEATURE_ATOLL" then
-			feature_atoll = thisFeature.ID;
-		end
+		if thisFeature.Type == "FEATURE_ATOLL" then table.insert(possibleAtolls, thisFeature.ID) end
+		if thisFeature.Type == "FEATURE_ATOLL_GOLD" then table.insert(possibleAtolls, thisFeature.ID) end
+		if thisFeature.Type == "FEATURE_ATOLL_PRODUCTION" then table.insert(possibleAtolls, thisFeature.ID) end
+		if thisFeature.Type == "FEATURE_ATOLL_CULTURE" then table.insert(possibleAtolls, thisFeature.ID) end
+		if thisFeature.Type == "FEATURE_ATOLL_SCIENCE" then table.insert(possibleAtolls, thisFeature.ID) end
 	end
 
-	-- Generate candidate plot lists.
-	local temp_one_tile_island_list, temp_alpha_list, temp_beta_list = {}, {}, {};
-	local temp_gamma_list, temp_delta_list, temp_epsilon_list = {}, {}, {};
-	for y = 0, iH - 1 do
+	for y = 10, iH - 11 do
 		for x = 0, iW - 1 do
-			local i = y * iW + x + 1; -- Lua tables/lists/arrays start at 1, not 0 like C++ or Python
-			local plot = Map.GetPlot(x, y)
-			local plotType = plot:GetPlotType()
-			if plotType == PlotTypes.PLOT_OCEAN then
-				local featureType = plot:GetFeatureType()
-				if featureType ~= FeatureTypes.FEATURE_ICE then
-					if not plot:IsLake() then
-						local terrainType = plot:GetTerrainType()
-						if terrainType == TerrainTypes.TERRAIN_COAST then
-							if plot:IsAdjacentToLand() then
-								-- Check all adjacent plots and identify adjacent landmasses.
-								local iNumLandAdjacent, biggest_adj_area = 0, 0;
-								local bPlotValid = true;
-								for loop, direction in ipairs(direction_types) do
-									local adjPlot = Map.PlotDirection(x, y, direction)
-									if adjPlot ~= nil then
-										local adjPlotType = adjPlot:GetPlotType()
-										if adjPlotType ~= PlotTypes.PLOT_OCEAN then -- Found land.
-											iNumLandAdjacent = iNumLandAdjacent + 1;
-											-- Avoid being adjacent to tundra, snow, or feature ice!
-											local adjTerrainType = adjPlot:GetTerrainType()
-											if adjTerrainType == TerrainTypes.TERRAIN_TUNDRA or adjTerrainType == TerrainTypes.TERRAIN_SNOW then
-												bPlotValid = false;
-											end
-											local adjFeatureType = adjPlot:GetFeatureType()
-											if adjFeatureType == FeatureTypes.FEATURE_ICE then
-												bPlotValid = false;
-											end
-											if adjPlotType == PlotTypes.PLOT_LAND or adjPlotType == PlotTypes.PLOT_HILLS then
-												local iArea = adjPlot:GetArea()
-												local adjArea = Map.GetArea(iArea)
-												local iNumAreaPlots = adjArea:GetNumTiles()
-												if iNumAreaPlots > biggest_adj_area then
-													biggest_adj_area = iNumAreaPlots;
-												end
-											end
-										end
-									end
-								end
-								-- Only plots with a single land plot adjacent can be eligible.
-								if iNumLandAdjacent == 1 and bPlotValid == true then
-									if biggest_adj_area >= 76 then
-										-- discard this site
-									elseif biggest_adj_area >= 41 then
-										table.insert(temp_epsilon_list, i);
-									elseif biggest_adj_area >= 17 then
-										table.insert(temp_delta_list, i);
-									elseif biggest_adj_area >= 8 then
-										table.insert(temp_gamma_list, i);
-									elseif biggest_adj_area >= 3 then
-										table.insert(temp_beta_list, i);
-									elseif biggest_adj_area >= 1 then
-										table.insert(temp_alpha_list, i);
-									--else -- Unexpected result
-										--print("** Area Plot Count =", biggest_adj_area);
-									end
-								end
-							end
-						end
-					end
-				end
-			end
-		end
-	end
-	local alpha_list = GetShuffledCopyOfTable(temp_alpha_list)
-	local beta_list = GetShuffledCopyOfTable(temp_beta_list)
-	local gamma_list = GetShuffledCopyOfTable(temp_gamma_list)
-	local delta_list = GetShuffledCopyOfTable(temp_delta_list)
-	local epsilon_list = GetShuffledCopyOfTable(temp_epsilon_list)
+			repeat
+				if mod(x,xMod) ~= 0 or mod(y,yMod) ~= 0 then do break end end
 
-	-- Determine maximum number able to be placed, per candidate category.
-	local max_alpha = math.ceil(table.maxn(alpha_list) / 4);
-	local max_beta = math.ceil(table.maxn(beta_list) / 5);
-	local max_gamma = math.ceil(table.maxn(gamma_list) / 4);
-	local max_delta = math.ceil(table.maxn(delta_list) / 3);
-	local max_epsilon = math.ceil(table.maxn(epsilon_list) / 4);
-	
-	-- Place Atolls.
-	local plotIndex;
-	local i_alpha, i_beta, i_gamma, i_delta, i_epsilon = 1, 1, 1, 1, 1;
-	for loop = 1, atoll_number do
-		local able_to_proceed = true;
-		local diceroll = 1 + Map.Rand(100, "Atoll Placement Type - LUA");
-		if diceroll <= 40 and max_alpha > 0 then
-			plotIndex = alpha_list[i_alpha];
-			i_alpha = i_alpha + 1;
-			max_alpha = max_alpha - 1;
-			--print("- Alpha site chosen");
-		elseif diceroll <= 65 then
-			if max_beta > 0 then
-				plotIndex = beta_list[i_beta];
-				i_beta = i_beta + 1;
-				max_beta = max_beta - 1;
-				--print("- Beta site chosen");
-			elseif max_alpha > 0 then
-				plotIndex = alpha_list[i_alpha];
-				i_alpha = i_alpha + 1;
-				max_alpha = max_alpha - 1;
-				--print("- Alpha site chosen");
-			else -- Unable to place this Atoll
-				--print("-"); print("* Atoll #", loop, "was unable to be placed.");
-				able_to_proceed = false;
-			end
-		elseif diceroll <= 80 then
-			if max_gamma > 0 then
-				plotIndex = gamma_list[i_gamma];
-				i_gamma = i_gamma + 1;
-				max_gamma = max_gamma - 1;
-				--print("- Gamma site chosen");
-			elseif max_beta > 0 then
-				plotIndex = beta_list[i_beta];
-				i_beta = i_beta + 1;
-				max_beta = max_beta - 1;
-				--print("- Beta site chosen");
-			elseif max_alpha > 0 then
-				plotIndex = alpha_list[i_alpha];
-				i_alpha = i_alpha + 1;
-				max_alpha = max_alpha - 1;
-				--print("- Alpha site chosen");
-			else -- Unable to place this Atoll
-				--print("-"); print("* Atoll #", loop, "was unable to be placed.");
-				able_to_proceed = false;
-			end
-		elseif diceroll <= 90 then
-			if max_delta > 0 then
-				plotIndex = delta_list[i_delta];
-				i_delta = i_delta + 1;
-				max_delta = max_delta - 1;
-				--print("- Delta site chosen");
-			elseif max_gamma > 0 then
-				plotIndex = gamma_list[i_gamma];
-				i_gamma = i_gamma + 1;
-				max_gamma = max_gamma - 1;
-				--print("- Gamma site chosen");
-			elseif max_beta > 0 then
-				plotIndex = beta_list[i_beta];
-				i_beta = i_beta + 1;
-				max_beta = max_beta - 1;
-				--print("- Beta site chosen");
-			elseif max_alpha > 0 then
-				plotIndex = alpha_list[i_alpha];
-				i_alpha = i_alpha + 1;
-				max_alpha = max_alpha - 1;
-				--print("- Alpha site chosen");
-			else -- Unable to place this Atoll
-				--print("-"); print("* Atoll #", loop, "was unable to be placed.");
-				able_to_proceed = false;
-			end
-		else
-			if max_epsilon > 0 then
-				plotIndex = epsilon_list[i_epsilon];
-				i_epsilon = i_epsilon + 1;
-				max_epsilon = max_epsilon - 1;
-				--print("- Epsilon site chosen");
-			elseif max_delta > 0 then
-				plotIndex = delta_list[i_delta];
-				i_delta = i_delta + 1;
-				max_delta = max_delta - 1;
-				--print("- Delta site chosen");
-			elseif max_gamma > 0 then
-				plotIndex = gamma_list[i_gamma];
-				i_gamma = i_gamma + 1;
-				max_gamma = max_gamma - 1;
-				--print("- Gamma site chosen");
-			elseif max_beta > 0 then
-				plotIndex = beta_list[i_beta];
-				--print("- Beta site chosen");
-				i_beta = i_beta + 1;
-				max_beta = max_beta - 1;
-			elseif max_alpha > 0 then
-				plotIndex = alpha_list[i_alpha];
-				i_alpha = i_alpha + 1;
-				max_alpha = max_alpha - 1;
-				--print("- Alpha site chosen");
-			else -- Unable to place this Atoll
-				--print("-"); print("* Atoll #", loop, "was unable to be placed.");
-				able_to_proceed = false;
-			end
-		end
-		if able_to_proceed and plotIndex ~= nil then
-			local x = (plotIndex - 1) % iW;
-			local y = (plotIndex - x - 1) / iW;
-			local plot = Map.GetPlot(x, y)
-			plot:SetFeatureType(feature_atoll, -1);
-			iNumAtollsPlaced = iNumAtollsPlaced + 1;
-		--else
-			--print("** ERROR ** Atoll unable to be placed and/or chosen Plot Index was nil.");
+				local targetX = x + Map.Rand(xMod - 1, "");
+				local targetY = y + Map.Rand(yMod - 1, "");
+				local plot = Map.GetPlot(targetX, targetY);
+
+				-- skip most plots
+				if PlotTypes.PLOT_OCEAN ~= plot:GetPlotType() then do break end end			-- must be ocean
+				if FeatureTypes.FEATURE_ICE == plot:GetFeatureType() then do break end end 	-- cannot be ice
+				if TerrainTypes.TERRAIN_COAST ~= plot:GetTerrainType() then do break end end -- must be coast
+				if plot:IsLake() then do break end end 										-- cannot be a lake
+				if not plot:IsAdjacentToLand() then do break end end 						-- must be immediate coast
+				if x > iW - 1 or y > iH - 11 then do break end end 
+
+				if Map.Rand(1000, "Atoll Chance") < oddsPerTile then
+					local randIdx = 1 + Map.Rand(table.getn(possibleAtolls), "atoll random");
+					print("AddAtolls +1"..randIdx);
+					plot:SetFeatureType(possibleAtolls[randIdx], -1);
+				end
+			until true
 		end
 	end
-	
-	--[[ Debug report
-	print("-"); print("- Atoll Target Number: ", atoll_number);
-	print("- Number of Atolls placed: ", iNumAtollsPlaced); print("-");
-	print("- Atolls placed in Alpha locations: ", i_alpha - 1);
-	print("- Atolls placed in Beta locations: ", i_beta - 1);
-	print("- Atolls placed in Gamma locations: ", i_gamma - 1);
-	print("- Atolls placed in Delta locations: ", i_delta - 1);
-	print("- Atolls placed in Epsilon locations: ", i_epsilon - 1);
-	]]--
 end
 ------------------------------------------------------------------------------
