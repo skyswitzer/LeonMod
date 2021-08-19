@@ -3897,7 +3897,7 @@ bool CvPlayerTrade::PlunderTradeRoute(int iTradeConnectionID)
 		}
 
 		
-		DLLUI->AddMessage(0, m_pPlayer->GetID(), true, GC.getEVENT_MESSAGE_TIME(), strBuffer);
+		GC.messagePlayer(0, m_pPlayer->GetID(), true, GC.getEVENT_MESSAGE_TIME(), strBuffer);
 	}
 
 	// barbarians get a bonus unit out of the deal!

@@ -5559,7 +5559,7 @@ void CvLeague::CheckStartSpecialSession(LeagueSpecialSessionTypes eSpecialSessio
 				GC.GetEngineUserInterface()->AddPopup(kPopup);
 			}
 
-			DLLUI->AddMessage(0, kGame.getActivePlayer(), false, GC.getEVENT_MESSAGE_TIME(), 
+			GC.messagePlayer(0, kGame.getActivePlayer(), false, GC.getEVENT_MESSAGE_TIME(), 
 				GetLocalizedText(pInfo->GetDescriptionKey()).GetCString());
 
 			// Becomes United Nations?
@@ -7389,7 +7389,7 @@ void CvGameLeagues::FoundLeague(PlayerTypes eFounder)
 				GC.GetEngineUserInterface()->AddPopup(kPopup);
 			}
 
-			DLLUI->AddMessage(0, GC.getGame().getActivePlayer(), false, GC.getEVENT_MESSAGE_TIME(), 
+			GC.messagePlayer(0, GC.getGame().getActivePlayer(), false, GC.getEVENT_MESSAGE_TIME(), 
 													GetLocalizedText("TXT_KEY_LEAGUE_SPECIAL_SESSION_START_WORLD_CONGRESS").GetCString());
 
 			// Begins as United Nations?

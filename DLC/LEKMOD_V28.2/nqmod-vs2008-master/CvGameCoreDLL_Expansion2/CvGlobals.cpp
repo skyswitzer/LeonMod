@@ -2439,6 +2439,83 @@ float CvGlobals::adjustForSpeed(YieldTypes type)
 	return xmlValue / 100.0f;
 }
 
+uint CvGlobals::messageUnit(
+	uint uiParentEvent, const IDInfo& unitID, PlayerTypes ePlayer, bool bForce, int iLength, const char* strString, LPCTSTR pszSound,
+	InterfaceMessageTypes eType, LPCSTR pszIcon, ColorTypes eFlashColor,
+	int iFlashX, int iFlashY, bool bShowOffScreenArrows, bool bShowOnScreenArrows)
+{
+	uint value = GetEngineUserInterface()->AddUnitMessage(
+		uiParentEvent, unitID, ePlayer, bForce,
+		iLength, strString, pszSound, eType,
+		pszIcon, eFlashColor, iFlashX, iFlashY,
+		bShowOffScreenArrows, bShowOnScreenArrows
+	);
+
+	// add to log
+	messagePlayer(ePlayer, strString);
+	return value;
+}
+uint CvGlobals::messagePlot(
+	uint uiParentEvent, int iPlotID, PlayerTypes ePlayer, bool bForce, int iLength, const char* strString, LPCTSTR pszSound,
+	InterfaceMessageTypes eType, LPCSTR pszIcon, ColorTypes eFlashColor,
+	int iFlashX, int iFlashY, bool bShowOffScreenArrows, bool bShowOnScreenArrows)
+{
+	uint value = GetEngineUserInterface()->AddPlotMessage(
+		uiParentEvent, iPlotID, ePlayer, bForce,
+		iLength, strString, pszSound, eType,
+		pszIcon, eFlashColor, iFlashX, iFlashY,
+		bShowOffScreenArrows, bShowOnScreenArrows
+	);
+
+	// add to log
+	messagePlayer(ePlayer, strString);
+	return value;
+}
+uint CvGlobals::messageCity(
+	uint uiParentEvent, const IDInfo& cityID, PlayerTypes ePlayer, bool bForce, int iLength, const char* strString, LPCTSTR pszSound,
+	InterfaceMessageTypes eType, LPCSTR pszIcon, ColorTypes eFlashColor,
+	int iFlashX, int iFlashY, bool bShowOffScreenArrows, bool bShowOnScreenArrows)
+{
+	uint value = GetEngineUserInterface()->AddCityMessage(
+		uiParentEvent, cityID, ePlayer, bForce,
+		iLength, strString, pszSound, eType,
+		pszIcon, eFlashColor, iFlashX, iFlashY,
+		bShowOffScreenArrows, bShowOnScreenArrows
+	);
+
+	// add to log
+	messagePlayer(ePlayer, strString);
+	return value;
+}
+void CvGlobals::messagePlayer(
+	uint uiParentEvent, PlayerTypes ePlayer, bool bForce, 
+	int iLength, const char* strString, LPCTSTR pszSound, InterfaceMessageTypes eType, 
+	LPCSTR pszIcon, ColorTypes eFlashColor, int iFlashX, int iFlashY, 
+	bool bShowOffScreenArrows, bool bShowOnScreenArrows
+)
+{
+	// show on screen
+	GetEngineUserInterface()->AddMessage(
+		uiParentEvent, ePlayer, bForce, 
+		iLength, strString, pszSound, eType, 
+		pszIcon ,eFlashColor, iFlashX, iFlashY, 
+		bShowOffScreenArrows, bShowOnScreenArrows
+	);
+
+	// add to log
+	messagePlayer(ePlayer, strString);
+}
+void CvGlobals::messagePlayer(PlayerTypes ePlayer, const char* strString)
+{
+	// add to log
+	if (ePlayer != NO_PLAYER)
+	{
+		CvNotifications* pNotifs = GET_PLAYER(ePlayer).GetNotifications();
+		if (pNotifs != NULL)
+			pNotifs->AddToLog(strString);
+	}
+}
+
 CvRandom& CvGlobals::getASyncRand()
 {
 	return *m_asyncRand;

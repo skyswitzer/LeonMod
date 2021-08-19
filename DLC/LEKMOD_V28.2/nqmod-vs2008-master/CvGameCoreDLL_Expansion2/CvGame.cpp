@@ -10107,6 +10107,9 @@ void CvGame::addReplayMessage(ReplayMessageTypes eType, PlayerTypes ePlayer, con
 	message.addPlot(iPlotX, iPlotY);
 	message.setText(pszText);
 	m_listReplayMessages.push_back(message);
+
+	// add to log
+	GC.messagePlayer(ePlayer, pszText);
 }
 
 //	--------------------------------------------------------------------------------

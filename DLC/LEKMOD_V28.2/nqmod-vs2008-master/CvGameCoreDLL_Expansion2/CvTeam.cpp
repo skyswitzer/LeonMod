@@ -429,7 +429,7 @@ void CvTeam::addTeam(TeamTypes eTeam)
 					if(iI == GC.getGame().getActivePlayer())
 					{
 						strBuffer = GetLocalizedText("TXT_KEY_MISC_PLAYER_PERMANENT_ALLIANCE", getName().GetCString(), GET_TEAM(eTeam).getName().GetCString());
-						DLLUI->AddMessage(0, ((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), strBuffer/*, "AS2D_THEIRALLIANCE", MESSAGE_TYPE_MINOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT")*/);
+						GC.messagePlayer(0, ((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), strBuffer/*, "AS2D_THEIRALLIANCE", MESSAGE_TYPE_MINOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT")*/);
 					}
 				}
 			}
@@ -1305,7 +1305,7 @@ void CvTeam::DoDeclareWar(TeamTypes eTeam, bool bDefensivePact, bool bMinorAllyP
 								{
 									locString = Localization::Lookup("TXT_KEY_MISC_YOU_DECLARED_WAR_ON");
 									locString << GET_TEAM(eTeam).getName().GetCString();
-									DLLUI->AddMessage(0, (ePlayer), true, GC.getEVENT_MESSAGE_TIME(), locString.toUTF8()/*, "AS2D_DECLAREWAR", MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT")*/);
+									GC.messagePlayer(0, (ePlayer), true, GC.getEVENT_MESSAGE_TIME(), locString.toUTF8()/*, "AS2D_DECLAREWAR", MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT")*/);
 								}
 							}
 							// Players on team that got declared on
@@ -4707,7 +4707,7 @@ void CvTeam::changeProjectCount(ProjectTypes eIndex, int iChange)
 						{
 							if(ePlayer == GC.getGame().getActivePlayer())
 							{
-								DLLUI->AddCityMessage(0, pLeadersCapital->GetIDInfo(), ePlayer, false, GC.getEVENT_MESSAGE_TIME(), strSomeoneCompletedProject);
+								GC.messageCity(0, pLeadersCapital->GetIDInfo(), ePlayer, false, GC.getEVENT_MESSAGE_TIME(), strSomeoneCompletedProject);
 							}
 							CvNotifications* pNotifications = kPlayer.GetNotifications();
 							pNotifications->Add(NOTIFICATION_PROJECT_COMPLETED, strSomeoneCompletedProject, strSomeoneCompletedProject, pLeadersCapital->getX(), pLeadersCapital->getY(), eIndex, playerWhoLeadsTeam.GetID());
@@ -4716,7 +4716,7 @@ void CvTeam::changeProjectCount(ProjectTypes eIndex, int iChange)
 						{
 							if(ePlayer == GC.getGame().getActivePlayer())
 							{
-								DLLUI->AddCityMessage(0, pLeadersCapital->GetIDInfo(), ePlayer, false, GC.getEVENT_MESSAGE_TIME(), strUnknownCompletesProject);
+								GC.messageCity(0, pLeadersCapital->GetIDInfo(), ePlayer, false, GC.getEVENT_MESSAGE_TIME(), strUnknownCompletesProject);
 							}
 							CvNotifications* pNotifications = kPlayer.GetNotifications();
 							pNotifications->Add(NOTIFICATION_PROJECT_COMPLETED, strUnknownCompletesProject, strUnknownCompletesProject, -1, -1, eIndex, NO_PLAYER);
@@ -5117,7 +5117,7 @@ void CvTeam::resetVictoryProgress()
 				{
 					if(GET_PLAYER((PlayerTypes)iJ).isAlive())
 					{
-						DLLUI->AddMessage(0, ((PlayerTypes)iJ), false, GC.getEVENT_MESSAGE_TIME(), strBuffer, "AS2D_MELTDOWN", MESSAGE_TYPE_MAJOR_EVENT);
+						GC.messagePlayer(0, ((PlayerTypes)iJ), false, GC.getEVENT_MESSAGE_TIME(), strBuffer, "AS2D_MELTDOWN", MESSAGE_TYPE_MAJOR_EVENT);
 					}
 				}
 
@@ -5357,7 +5357,7 @@ void CvTeam::announceTechToPlayers(TechTypes eIndex, bool bPartial)
 			if(ePlayer == GC.getGame().getActivePlayer())
 			{
 				CvString strBuffer = GetLocalizedText((bPartial ? "TXT_KEY_MISC_PROGRESS_TOWARDS_TECH" : "TXT_KEY_MISC_YOU_DISCOVERED_TECH"), szTechTextKey);
-				DLLUI->AddMessage(0, ePlayer, false, (bSound ? GC.getEVENT_MESSAGE_TIME() : -1), strBuffer/*, (bSound ? GC.getTechInfo(eIndex)->GetSoundMP() : NULL), MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_TECH_TEXT")*/);
+				GC.messagePlayer(0, ePlayer, false, (bSound ? GC.getEVENT_MESSAGE_TIME() : -1), strBuffer/*, (bSound ? GC.getTechInfo(eIndex)->GetSoundMP() : NULL), MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_TECH_TEXT")*/);
 			}
 		}
 	}
@@ -5830,7 +5830,7 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 								{
 									strBuffer = GetLocalizedText("TXT_KEY_MISC_UNKNOWN_FIRST_TO_TECH", GC.getTechInfo(eIndex)->GetTextKey());
 								}
-								DLLUI->AddMessage(0, eLoopPlayer, false, GC.getEVENT_MESSAGE_TIME(), strBuffer/*, "AS2D_FIRSTTOTECH", MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT")*/);
+								GC.messagePlayer(0, eLoopPlayer, false, GC.getEVENT_MESSAGE_TIME(), strBuffer/*, "AS2D_FIRSTTOTECH", MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT")*/);
 							}
 						}
 
@@ -5901,7 +5901,7 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 											strBuffer = GetLocalizedText("TXT_KEY_MISC_YOU_DISCOVERED_RESOURCE", pResourceInfo->GetTextKey(), pCity->getNameKey());
 										}
 
-										DLLUI->AddPlotMessage(0, pLoopPlot->GetPlotIndex(), pLoopPlot->getOwner(), false, GC.getEVENT_MESSAGE_TIME(), strBuffer/*, "AS2D_DISCOVERRESOURCE", MESSAGE_TYPE_INFO, GC.getResourceInfo(eResource)->GetButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"), pLoopPlot->getX(), pLoopPlot->getY(), true, true*/);
+										GC.messagePlot(0, pLoopPlot->GetPlotIndex(), pLoopPlot->getOwner(), false, GC.getEVENT_MESSAGE_TIME(), strBuffer/*, "AS2D_DISCOVERRESOURCE", MESSAGE_TYPE_INFO, GC.getResourceInfo(eResource)->GetButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"), pLoopPlot->getX(), pLoopPlot->getY(), true, true*/);
 									}
 								}
 							}
@@ -5932,7 +5932,7 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 									if(GC.getResourceInfo(eResourceDemanded)->getTechReveal() == eIndex)
 									{
 										strBuffer = GetLocalizedText("TXT_KEY_MISC_RESOURCE_DISCOVERED_CITY_DEMANDS", GC.getResourceInfo(eResourceDemanded)->GetTextKey(), pLoopCity->getNameKey());
-										DLLUI->AddCityMessage(0, pLoopCity->GetIDInfo(), eLoopPlayer, false, GC.getEVENT_MESSAGE_TIME(), strBuffer/*, "AS2D_DISCOVERRESOURCE", MESSAGE_TYPE_INFO, GC.getResourceInfo(eResourceDemanded)->GetButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"), pLoopCity->getX(), pLoopCity->getY(), true, true*/);
+										GC.messageCity(0, pLoopCity->GetIDInfo(), eLoopPlayer, false, GC.getEVENT_MESSAGE_TIME(), strBuffer/*, "AS2D_DISCOVERRESOURCE", MESSAGE_TYPE_INFO, GC.getResourceInfo(eResourceDemanded)->GetButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"), pLoopCity->getX(), pLoopCity->getY(), true, true*/);
 									}
 								}
 							}
@@ -6344,7 +6344,7 @@ void CvTeam::testCircumnavigated()
 					{
 						strBuffer = GetLocalizedText("TXT_KEY_MISC_UNKNOWN_CIRC_GLOBE");
 					}
-					DLLUI->AddMessage(0, ((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), strBuffer);
+					GC.messagePlayer(0, ((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), strBuffer);
 
 					ICvEngineScriptSystem1* pkScriptSystem = gDLL->GetScriptSystem();
 					if (pkScriptSystem)

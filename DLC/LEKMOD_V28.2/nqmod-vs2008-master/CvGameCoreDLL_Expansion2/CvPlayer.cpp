@@ -2036,7 +2036,7 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bGift)
 		if(GetID() == GC.getGame().getActivePlayer())
 		{
 			strBuffer = GetLocalizedText("TXT_KEY_MISC_CAPTURED_CITY", pOldCity->getNameKey()).GetCString();
-			GC.GetEngineUserInterface()->AddCityMessage(0, pOldCity->GetIDInfo(), GetID(), true, GC.getEVENT_MESSAGE_TIME(), strBuffer/*, "AS2D_CITYCAPTURE", MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pOldCity->getX(), pOldCity->getY(), true, true*/);
+			GC.messageCity(0, pOldCity->GetIDInfo(), GetID(), true, GC.getEVENT_MESSAGE_TIME(), strBuffer/*, "AS2D_CITYCAPTURE", MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pOldCity->getX(), pOldCity->getY(), true, true*/);
 		}
 
 		strName.Format("%s (%s)", pOldCity->getName().GetCString(), GET_PLAYER(pOldCity->getOwner()).getName());
@@ -2056,7 +2056,7 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bGift)
 						if(pOldCity->isRevealed(GET_PLAYER((PlayerTypes)iI).getTeam(), false))
 						{
 							strBuffer = GetLocalizedText("TXT_KEY_MISC_CITY_CAPTURED_BY", strName.GetCString(), getCivilizationShortDescriptionKey());
-							GC.GetEngineUserInterface()->AddCityMessage(0, pOldCity->GetIDInfo(), ((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), strBuffer/*, "AS2D_CITYCAPTURED", MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pOldCity->getX(), pOldCity->getY(), true, true*/);
+							GC.messageCity(0, pOldCity->GetIDInfo(), ((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), strBuffer/*, "AS2D_CITYCAPTURED", MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pOldCity->getX(), pOldCity->getY(), true, true*/);
 						}
 					}
 				}
@@ -3062,12 +3062,12 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bGift)
 				if (iCaptureCulture == 0 && iCaptureGreatWorks == 0)
 				{
 					strBuffer = GetLocalizedText("TXT_KEY_POPUP_GOLD_CITY_CAPTURE", iCaptureGold, pNewCity->getNameKey());
-					GC.GetEngineUserInterface()->AddCityMessage(0, pNewCity->GetIDInfo(), GetID(), true, GC.getEVENT_MESSAGE_TIME(), strBuffer);
+					GC.messageCity(0, pNewCity->GetIDInfo(), GetID(), true, GC.getEVENT_MESSAGE_TIME(), strBuffer);
 				}
 				else
 				{
 					strBuffer = GetLocalizedText("TXT_KEY_POPUP_GOLD_AND_CULTURE_CITY_CAPTURE", iCaptureGold, iCaptureCulture, iCaptureGreatWorks, pNewCity->getNameKey());
-					GC.GetEngineUserInterface()->AddCityMessage(0, pNewCity->GetIDInfo(), GetID(), true, GC.getEVENT_MESSAGE_TIME(), strBuffer);
+					GC.messageCity(0, pNewCity->GetIDInfo(), GetID(), true, GC.getEVENT_MESSAGE_TIME(), strBuffer);
 
 				}
 			}
@@ -3854,7 +3854,7 @@ void CvPlayer::disbandUnit(bool)
 		if(GetID() == GC.getGame().getActivePlayer())
 		{
 			sprintf_s(szBuffer, lenBuffer, GetLocalizedText("TXT_KEY_MISC_UNIT_DISBANDED_NO_MONEY", pBestUnit->getNameKey()).GetCString());
-			GC.GetEngineUserInterface()->AddUnitMessage(0, pBestUnit->GetIDInfo(), GetID(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer);//, "AS2D_UNITDISBANDED", MESSAGE_TYPE_MINOR_EVENT, pBestUnit->getUnitInfo().GetButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pBestUnit->getX(), pBestUnit->getY(), true, true);
+			GC.messageUnit(0, pBestUnit->GetIDInfo(), GetID(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer);//, "AS2D_UNITDISBANDED", MESSAGE_TYPE_MINOR_EVENT, pBestUnit->getUnitInfo().GetButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pBestUnit->getX(), pBestUnit->getY(), true, true);
 		}
 
 		CvAssert(!(pBestUnit->isGoldenAge()));
@@ -4212,7 +4212,7 @@ void CvPlayer::doBarbarianRansom(int iOption, int iUnitID)
 	{
 		if(GetID() == GC.getGame().getActivePlayer())
 		{
-			GC.GetEngineUserInterface()->AddUnitMessage(0, pUnit->GetIDInfo(), GetID(), true, GC.getEVENT_MESSAGE_TIME(), GetLocalizedText("TXT_KEY_MISC_YOU_UNIT_RANSOM_KILL_BY_BARBARIANS", pUnit->getNameKey()));//,GC.getEraInfo(GC.getGame().getCurrentEra())->getAudioUnitDefeatScript(), MESSAGE_TYPE_INFO, pUnit->getUnitInfo().GetButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pUnit->getX(), pUnit->getY(), true, true);
+			GC.messageUnit(0, pUnit->GetIDInfo(), GetID(), true, GC.getEVENT_MESSAGE_TIME(), GetLocalizedText("TXT_KEY_MISC_YOU_UNIT_RANSOM_KILL_BY_BARBARIANS", pUnit->getNameKey()));//,GC.getEraInfo(GC.getGame().getCurrentEra())->getAudioUnitDefeatScript(), MESSAGE_TYPE_INFO, pUnit->getUnitInfo().GetButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pUnit->getX(), pUnit->getY(), true, true);
 		}
 
 		pUnit->kill(true, BARBARIAN_PLAYER);
@@ -6049,7 +6049,7 @@ void CvPlayer::raze(CvCity* pCity)
 	if(GetID() == GC.getGame().getActivePlayer())
 	{
 		sprintf_s(szBuffer, lenBuffer, GetLocalizedText("TXT_KEY_MISC_DESTROYED_CITY", pCity->getNameKey()).GetCString());
-		GC.GetEngineUserInterface()->AddCityMessage(0, pCity->GetIDInfo(), GetID(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer/*, "AS2D_CITYRAZE", MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pCity->getX(), pCity->getY(), true, true*/);
+		GC.messageCity(0, pCity->GetIDInfo(), GetID(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer/*, "AS2D_CITYRAZE", MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pCity->getX(), pCity->getY(), true, true*/);
 
 	}
 
@@ -6062,7 +6062,7 @@ void CvPlayer::raze(CvCity* pCity)
 				if(pCity->isRevealed(GET_PLAYER((PlayerTypes)iI).getTeam(), false))
 				{
 					sprintf_s(szBuffer, lenBuffer, GetLocalizedText("TXT_KEY_MISC_CITY_HAS_BEEN_RAZED_BY", pCity->getNameKey(), getCivilizationDescriptionKey()).GetCString());
-					GC.GetEngineUserInterface()->AddCityMessage(0, pCity->GetIDInfo(), ((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer/*, "AS2D_CITYRAZED", MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pCity->getX(), pCity->getY(), true, true*/);
+					GC.messageCity(0, pCity->GetIDInfo(), ((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer/*, "AS2D_CITYRAZED", MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pCity->getX(), pCity->getY(), true, true*/);
 				}
 			}
 		}
@@ -6877,12 +6877,14 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit)
 	}
 
 	CvString strBuffer = GetLocalizedText(kGoodyInfo.GetDescriptionKey(), iRewardValue);
-	GetNotifications()->AddToLog(strBuffer);
-
-	// message at top of screen
-	if(!strBuffer.empty() && GC.getGame().getActivePlayer() == GetID())
+	// messages
+	if(!strBuffer.empty())
 	{
-		GC.GetEngineUserInterface()->AddPlotMessage(0, pPlot->GetPlotIndex(), GetID(), true, GC.getEVENT_MESSAGE_TIME(), strBuffer);
+		// add to log
+		GC.messagePlayer(GetID(), strBuffer);
+
+		if (GC.getGame().getActivePlayer() == GetID())
+			GC.messagePlot(0, pPlot->GetPlotIndex(), GetID(), true, GC.getEVENT_MESSAGE_TIME(), strBuffer);
 	}
 
 	/// just remove the default popup
@@ -17733,7 +17735,7 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 				{
 					if(kGame.isNetworkMultiPlayer())
 					{
-						DLLUI->AddMessage(0, GetID(), true, GC.getEVENT_MESSAGE_TIME(), GetLocalizedText("TXT_KEY_MISC_TURN_BEGINS").GetCString(), "AS2D_NEWTURN", MESSAGE_TYPE_DISPLAY_ONLY);
+						GC.messagePlayer(0, GetID(), true, GC.getEVENT_MESSAGE_TIME(), GetLocalizedText("TXT_KEY_MISC_TURN_BEGINS").GetCString(), "AS2D_NEWTURN", MESSAGE_TYPE_DISPLAY_ONLY);
 					}
 				}
 
@@ -18204,7 +18206,7 @@ void CvPlayer::setStrike(bool bNewValue)
 		{
 			if(GetID() == GC.getGame().getActivePlayer())
 			{
-				GC.GetEngineUserInterface()->AddMessage(0, GetID(), false, GC.getEVENT_MESSAGE_TIME(), GetLocalizedText("TXT_KEY_MISC_UNITS_ON_STRIKE").GetCString(), "AS2D_STRIKE", MESSAGE_TYPE_MINOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT"));
+				GC.messagePlayer(0, GetID(), false, GC.getEVENT_MESSAGE_TIME(), GetLocalizedText("TXT_KEY_MISC_UNITS_ON_STRIKE").GetCString(), "AS2D_STRIKE", MESSAGE_TYPE_MINOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT"));
 
 				GC.GetEngineUserInterface()->setDirty(GameData_DIRTY_BIT, true);
 			}
@@ -23131,7 +23133,7 @@ void CvPlayer::doWarnings()
 							if(pNearestCity != NULL)
 							{
 								CvString message = GetLocalizedText("TXT_KEY_MISC_ENEMY_TROOPS_SPOTTED", pNearestCity->getNameKey());
-								GC.GetEngineUserInterface()->AddPlotMessage(0, pLoopPlot->GetPlotIndex(), GetID(), true, GC.getEVENT_MESSAGE_TIME(), message);
+								GC.messagePlot(0, pLoopPlot->GetPlotIndex(), GetID(), true, GC.getEVENT_MESSAGE_TIME(), message);
 
 								iMaxCount--;
 							}
