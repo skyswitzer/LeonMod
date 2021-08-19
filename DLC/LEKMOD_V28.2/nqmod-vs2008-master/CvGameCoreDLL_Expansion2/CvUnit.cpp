@@ -3527,6 +3527,14 @@ bool CvUnit::IsAngerFreeUnit() const
 
 	return false;
 }
+// Uses a non linear damage ratio.
+// 
+// original:
+// https://www.wolframalpha.com/input/?i=w%3Dfloor%2830*r%29+z%3Dfloor%2830%2Fr%29+where+r%3D%28%28%28%28%28%281450%2F800%29%2B3%29%2F4%29%5E4%29%2B1%29%2F2%29
+float adjustedDamageRatio(double r)
+{
+	return (pow(((r + 3.0) / 4.0), 2.3) + 1.0) / 2.0;
+}
 
 //	---------------------------------------------------------------------------
 int CvUnit::getCombatDamage(int iStrength, int iOpponentStrength, int iCurrentDamage, bool bIncludeRand, bool bAttackerIsCity, bool bDefenderIsCity) const
@@ -3600,22 +3608,14 @@ int CvUnit::getCombatDamage(int iStrength, int iOpponentStrength, int iCurrentDa
 	// 1.301 = (((((9 / 6) + 3) / 4) ^ 4) + 1 / 2
 	// 17.5 = (((((40 / 6) + 3) / 4) ^ 4) + 1 / 2
 
-	double fStrengthRatio = (double(iStrength) / iOpponentStrength);
-
 	// In case our strength is less than the other guy's, we'll do things in reverse then make the ratio 1 over the result (we need a # above 1.0)
+	double r = (double(iStrength) / iOpponentStrength);
 	if(iOpponentStrength > iStrength)
-	{
-		fStrengthRatio = (double(iOpponentStrength) / iStrength);
-	}
-
-	fStrengthRatio = (fStrengthRatio + 3) / 4;
-	fStrengthRatio = pow(fStrengthRatio, 4.0);
-	fStrengthRatio = (fStrengthRatio + 1) / 2;
-
+		r = 1.0 / r;
+	double fStrengthRatio = adjustedDamageRatio(r);
 	if(iOpponentStrength > iStrength)
-	{
-		fStrengthRatio = 1 / fStrengthRatio;
-	}
+		fStrengthRatio = 1.0 / fStrengthRatio;
+
 
 	iDamage = int(iDamage * fStrengthRatio);
 
