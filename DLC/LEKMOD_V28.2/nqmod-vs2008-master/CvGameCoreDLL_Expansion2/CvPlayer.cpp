@@ -6880,15 +6880,11 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit)
 	// messages
 	if(!strBuffer.empty())
 	{
-		// add to log
-		GC.messagePlayer(GetID(), strBuffer);
-
 		if (GC.getGame().getActivePlayer() == GetID())
 			GC.messagePlot(0, pPlot->GetPlotIndex(), GetID(), true, GC.getEVENT_MESSAGE_TIME(), strBuffer);
 	}
 
 	/// just remove the default popup
-
 	// If it's the active player then show the popup
 	//if(GetID() == GC.getGame().getActivePlayer())
 	//{
