@@ -3533,7 +3533,10 @@ bool CvUnit::IsAngerFreeUnit() const
 // https://www.wolframalpha.com/input/?i=w%3Dfloor%2830*r%29+z%3Dfloor%2830%2Fr%29+where+r%3D%28%28%28%28%28%281450%2F800%29%2B3%29%2F4%29%5E4%29%2B1%29%2F2%29
 float adjustedDamageRatio(double r)
 {
-	return (pow(((r + 3.0) / 4.0), 2.3) + 1.0) / 2.0;
+	float ratioAdjust = -0.25f;
+	float newRatio = (pow(((r + 3.0) / 4.0), 4) + 1.0) / 2.0;
+	newRatio = (newRatio - 1.0f) * (1.0f + ratioAdjust) + 1.0f;
+	return newRatio;
 }
 
 //	---------------------------------------------------------------------------
