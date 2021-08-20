@@ -48,6 +48,12 @@ FDataStream& operator>>(FDataStream&, DeclarationLogData&);
 //!  Key Attributes:
 //!  - Object created by CvPlayer
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+struct MinorGoldGiftInfo
+{
+	PlayerTypes eMinor;
+	PlayerTypes eMajorRival;
+	float numSmallGiftsNeeded;
+};
 class CvDiplomacyAI
 {
 public:
@@ -59,13 +65,6 @@ public:
 	    DIPLO_HUMAN_PLAYERS		= -3
 	};
 
-	struct MinorGoldGiftInfo
-	{
-		PlayerTypes eMinor;
-		PlayerTypes eMajorRival;
-		bool bQuickBoost;
-		int iGoldAmount;
-	};
 
 	CvDiplomacyAI(void);
 	~CvDiplomacyAI(void);
@@ -546,6 +545,18 @@ public:
 
 	void DoContactMajorCivs();
 	void DoContactPlayer(PlayerTypes ePlayer);
+	int weightFriendshipNeeded(
+		MinorCivApproachTypes approach,
+		PlayerTypes minor,
+		CvWeightedVector<MinorGoldGiftInfo, MAX_PLAYERS, true>& veMinorsToGiveGold,
+		int& weight,
+		PlayerTypes& majorRival
+	);
+	bool considerGivingGift(
+		MinorCivApproachTypes approach,
+		PlayerTypes minor,
+		CvWeightedVector<MinorGoldGiftInfo, MAX_PLAYERS, true>& veMinorsToGiveGold
+	);
 
 	void DoContactMinorCivs();
 

@@ -264,6 +264,7 @@ public:
 	int GetVotesNeededForDiploVictory() const;
 	void SetVotesNeededForDiploVictory(int iValue);
 	bool IsUnitedNationsActive();
+	bool IsWorldCongressActive();
 
 	// DEPRECATED
 	int GetUnitedNationsCountdown() const;

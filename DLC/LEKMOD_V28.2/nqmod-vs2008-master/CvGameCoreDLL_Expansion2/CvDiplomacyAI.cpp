@@ -3634,7 +3634,7 @@ void applyScore(CvDiplomacyAI& us, CvPlayer& them, FStaticVector<int, 128, true,
 		viApproachWeights[MAJOR_CIV_APPROACH_WAR] += weight;
 	}
 }
-bool nearCultureVictory(CvPlayer& them, FStaticVector<int, 128, true, c_eCiv5GameplayDLL>& viApproachWeights)
+bool nearCultureVictory(CvPlayer& them)
 {
 	int nearTurns = 30; // if player controls more than this percentage, they are near!
 	bool isNear = true;
@@ -3650,14 +3650,14 @@ bool nearCultureVictory(CvPlayer& them, FStaticVector<int, 128, true, c_eCiv5Gam
 	}
 	return isNear;
 }
-bool nearScienceVictory(CvPlayer& them, FStaticVector<int, 128, true, c_eCiv5GameplayDLL>& viApproachWeights)
+bool nearScienceVictory(CvPlayer& them)
 {
 	bool isNear = false;
 	ProjectTypes ApolloProgram = (ProjectTypes)GC.getSPACE_RACE_TRIGGER_PROJECT();
 	isNear = GET_TEAM(them.getTeam()).getProjectCount((ProjectTypes)ApolloProgram) >= 1;
 	return isNear;
 }
-bool nearDiplomaticVictory(CvPlayer& them, FStaticVector<int, 128, true, c_eCiv5GameplayDLL>& viApproachWeights)
+bool nearDiplomaticVictory(CvPlayer& them)
 {
 	float voteRatioThreshold = 0.5f; // if player controls more than this percentage, they are near!
 	bool isNear = false;
@@ -3678,7 +3678,7 @@ bool nearDiplomaticVictory(CvPlayer& them, FStaticVector<int, 128, true, c_eCiv5
 	}
 	return isNear;
 }
-bool nearDominationVictory(CvPlayer& them, FStaticVector<int, 128, true, c_eCiv5GameplayDLL>& viApproachWeights)
+bool nearDominationVictory(CvPlayer& them)
 {
 	float capitalThreshold = 0.45; // if you control this percentage of capitals
 	float cityThreshold = 0.50; // if you control this percentage of cities
@@ -3702,10 +3702,10 @@ bool nearDominationVictory(CvPlayer& them, FStaticVector<int, 128, true, c_eCiv5
 void applyNearVictory(CvDiplomacyAI& us, CvPlayer& them, FStaticVector<int, 128, true, c_eCiv5GameplayDLL>& viApproachWeights)
 {
 	bool isNearVictory = 
-		nearCultureVictory(them, viApproachWeights) ||
-		nearScienceVictory(them, viApproachWeights) ||
-		nearDiplomaticVictory(them, viApproachWeights) ||
-		nearDominationVictory(them, viApproachWeights);
+		nearCultureVictory(them) ||
+		nearScienceVictory(them) ||
+		nearDiplomaticVictory(them) ||
+		nearDominationVictory(them);
 	
 	if (isNearVictory)
 	{
@@ -12531,9 +12531,254 @@ void CvDiplomacyAI::DoContactPlayer(PlayerTypes ePlayer)
 	}
 }
 
+//--------------------------------------------------------------------------------------------------------
+// adjust weight based on gold needed to become allies
+int CvDiplomacyAI::weightFriendshipNeeded(
+	MinorCivApproachTypes approach,
+	PlayerTypes minor,
+	CvWeightedVector<MinorGoldGiftInfo, MAX_PLAYERS, true>& veMinorsToGiveGold,
+	int& weight,
+	PlayerTypes& majorRival
+)
+{
+	const PlayerTypes eID = GetPlayer()->GetID();
+	const CvPlayer* pMinor = &GET_PLAYER(minor);
+	CvMinorCivAI* const pMinorCivAI = pMinor->GetMinorCivAI();
+	const TeamTypes eMinorTeam = pMinor->getTeam();
+	const int iSmallGiftGold = /*250*/ GC.getMINOR_GOLD_GIFT_SMALL();
+	const int ourFriendship = pMinorCivAI->GetEffectiveFriendshipWithMajor(eID);
+	const int smallGiftFriendship = pMinorCivAI->GetFriendshipFromGoldGift(eID, iSmallGiftGold);
+	const int playerGold = GetPlayer()->GetTreasury()->GetGold();
+	
+	// already allies
+	if (pMinorCivAI->IsAllies(eID))
+	{
+		// about to lose ally
+		if (pMinorCivAI->IsCloseToNotBeingAllies(eID))
+		{
+			weight += /*250*/ GC.getMC_GIFT_WEIGHT_ALMOST_NOT_ALLIES();
+			float numSmallGiftsNeeded = 1;
+			return numSmallGiftsNeeded;
+		}
+		else // not about to lose
+		{
+			weight = 0;
+			float numSmallGiftsNeeded = 0;
+			return numSmallGiftsNeeded;
+		}
+	}
+	// we aren't allies
+	else 
+	{
+		// find how much friendship we need to be allies
+		const int allyThreshold = pMinorCivAI->GetAlliesThreshold();
+		int friendshipToBeatHighest = allyThreshold;
+		for (int iOtherMajorLoop = 0; iOtherMajorLoop < MAX_MAJOR_CIVS; iOtherMajorLoop++)
+		{
+			PlayerTypes them = (PlayerTypes)iOtherMajorLoop;
+			int themFriendship = pMinorCivAI->GetEffectiveFriendshipWithMajor(them);
+			if (!GET_PLAYER(them).isAlive()) continue; // they dead
+
+			if (themFriendship > friendshipToBeatHighest) // new highest
+			{
+				friendshipToBeatHighest = themFriendship;
+				majorRival = them;
+			}
+		}
+		// how many small gifts are needed
+		const float friendshipNeeded = max(smallGiftFriendship, friendshipToBeatHighest - ourFriendship);
+		const int numSmallGiftsNeeded = ceil((float)friendshipNeeded / (float)smallGiftFriendship);
+
+		// weight based on gift needed
+		const float basePassWeight = GC.getMC_SMALL_GIFT_WEIGHT_PASS_OTHER_PLAYER(); // 30
+		weight += basePassWeight - (numSmallGiftsNeeded - 1) * basePassWeight / 2.0f; // 2500 gold > 10 gifts > 30-135 > -105 weight
+
+		// do we have enough gold?
+		const int goldNeeded = numSmallGiftsNeeded * iSmallGiftGold;
+		if (playerGold < goldNeeded)
+		{
+			weight += -GC.getMC_SMALL_GIFT_WEIGHT_PASS_OTHER_PLAYER(); // don't have enough gold
+		}
+		else // we have enough gold
+		{
+			weight += 10;
+			// try to buy up winner
+			if (nearDiplomaticVictory(GET_PLAYER(majorRival)))
+				weight += 500;
+		}
+		return numSmallGiftsNeeded;
+	}
+}
+//--------------------------------------------------------------------------------------------------------
+bool CvDiplomacyAI::considerGivingGift(
+	MinorCivApproachTypes approach, 
+	PlayerTypes minor, 
+	CvWeightedVector<MinorGoldGiftInfo, MAX_PLAYERS, true>& veMinorsToGiveGold
+)
+{
+	bool wantsToGiveGold = false;
+	int iSmallGiftGold = /*250*/ GC.getMINOR_GOLD_GIFT_SMALL();
+	CvPlayer* pMinor = &GET_PLAYER(minor);
+	CvMinorCivAI* pMinorCivAI = pMinor->GetMinorCivAI();		
+	TeamTypes eMinorTeam = pMinor->getTeam();
+	PlayerTypes eID = GetPlayer()->GetID();
+	int iGrowthFlavor = GetPlayer()->GetGrandStrategyAI()->GetPersonalityAndGrandStrategy((FlavorTypes)GC.getInfoTypeForString("FLAVOR_GROWTH"));
+	CvMinorCivInfo* pMinorInfo = GC.getMinorCivInfo(pMinorCivAI->GetMinorCivType());
+	int playerGold = GetPlayer()->GetTreasury()->GetGold();
+	int ourFriendship = pMinorCivAI->GetEffectiveFriendshipWithMajor(eID);
+	bool empireIsHappy = !GetPlayer()->IsEmpireUnhappy();
+	int smallGiftFriendship = pMinorCivAI->GetFriendshipFromGoldGift(eID, iSmallGiftGold);
+	MinorGoldGiftInfo giftData;
+	giftData.eMinor = minor;
+	giftData.eMajorRival = NO_PLAYER;
+
+	// we must like the minor
+	if (approach != MINOR_CIV_APPROACH_PROTECTIVE && approach != MINOR_CIV_APPROACH_FRIENDLY) return wantsToGiveGold;
+
+	// if weight is > 100, we will start saving or give gold
+	int weight = /*100*/ GC.getMC_GIFT_WEIGHT_THRESHOLD();
+
+	// if making lots of money, 150 gpt -> 100
+	weight += min(max(0, m_pPlayer->calculateGoldRate() - 50), 100);
+	// if large bank, 2500 -> 100
+	weight += playerGold / 25.0f;
+
+
+	// leagues increase desire
+	if (GC.getGame().IsWorldCongressActive())
+		weight += 0.50f * GC.getMC_GIFT_WEIGHT_DIPLO_VICTORY(); /*100*/
+	if (GC.getGame().IsUnitedNationsActive())
+		weight += 1.00f * GC.getMC_GIFT_WEIGHT_DIPLO_VICTORY(); /*100*/
+
+
+	// focus culture
+	if (pMinorInfo->GetMinorCivTrait() == MINOR_CIV_TRAIT_CULTURED)
+	{
+		if (IsGoingForCultureVictory())
+		{
+			weight += /*100*/ GC.getMC_GIFT_WEIGHT_CULTURE_VICTORY();
+		}
+	}
+	// focus military
+	if (pMinorInfo->GetMinorCivTrait() == MINOR_CIV_TRAIT_MILITARISTIC)
+	{
+		if (IsGoingForWorldConquest())
+			weight += /*100*/ GC.getMC_GIFT_WEIGHT_CONQUEST_VICTORY();
+		else
+			weight += /*-50*/ GC.getMC_GIFT_WEIGHT_MILITARISTIC();
+	}
+	// focus growth
+	if (pMinorInfo->GetMinorCivTrait() == MINOR_CIV_TRAIT_MARITIME)
+	{
+		if (empireIsHappy)
+		{
+			// Nearly everyone likes to grow
+			weight += /*20*/ GC.getMC_GIFT_WEIGHT_MARITIME_GROWTH() * iGrowthFlavor * max(1, GetPlayer()->getNumCities() / 3);
+			if (IsGoingForSpaceshipVictory()) // science needs pop
+				weight += /*100*/ GC.getMC_GIFT_WEIGHT_CULTURE_VICTORY();
+		}
+	}
+	// focus happiness
+	if (pMinorInfo->GetMinorCivTrait() == MINOR_CIV_TRAIT_MERCANTILE)
+	{
+		int mercantileWeight = 30;
+		if (empireIsHappy) weight += -mercantileWeight; // we are already happy
+		else weight += +mercantileWeight; // we need happiness
+	}
+	// focus religion
+	if (pMinorInfo->GetMinorCivTrait() == MINOR_CIV_TRAIT_RELIGIOUS)
+	{
+
+	}
+
+
+	// diplomacy victory
+	if (IsGoingForDiploVictory())
+	{
+		weight += /*100*/ GC.getMC_GIFT_WEIGHT_DIPLO_VICTORY();
+	}
+
+
+	// gold quests
+	if (pMinorCivAI->IsActiveQuestForPlayer(eID, MINOR_CIV_QUEST_GIVE_GOLD))
+	{
+		weight += 150;
+	}
+	if (pMinorCivAI->IsActiveQuestForPlayer(eID, MINOR_CIV_QUEST_INVEST))
+	{
+		weight += 100;
+	}
+
+
+	// player traits
+	if (m_pPlayer->GetPlayerTraits()->GetCityStateFriendshipModifier() > 0 || m_pPlayer->GetPlayerTraits()->GetCityStateBonusModifier())
+		weight += /*100*/ GC.getMC_GIFT_WEIGHT_DIPLO_VICTORY();
+
+
+	// minor traits
+	if (pMinorCivAI->GetPersonality() == MINOR_CIV_PERSONALITY_HOSTILE)
+		weight += /*-20*/ GC.getMC_GIFT_WEIGHT_HOSTILE();
+
+
+	// strategic resource
+	int iResourcesWeLack = pMinorCivAI->GetNumResourcesMajorLacks(eID);
+	if (iResourcesWeLack > 0)
+		weight += (iResourcesWeLack * /*80*/ GC.getMC_GIFT_WEIGHT_RESOURCE_WE_NEED());
+
+
+	// protected is better than friendly
+	if (approach == MINOR_CIV_APPROACH_PROTECTIVE)
+		weight += /*10*/ GC.getMC_GIFT_WEIGHT_PROTECTIVE();
+
+
+	// distance
+	if (GetPlayer()->GetProximityToPlayer(minor) == PLAYER_PROXIMITY_NEIGHBORS)
+		weight += GC.getMC_GIFT_WEIGHT_NEIGHBORS();
+	else if (GetPlayer()->GetProximityToPlayer(minor) == PLAYER_PROXIMITY_CLOSE)
+		weight += GC.getMC_GIFT_WEIGHT_CLOSE();
+	else if (GetPlayer()->GetProximityToPlayer(minor) == PLAYER_PROXIMITY_FAR)
+		weight += GC.getMC_GIFT_WEIGHT_FAR();
+
+
+	giftData.numSmallGiftsNeeded = weightFriendshipNeeded(approach, minor, veMinorsToGiveGold, weight, giftData.eMajorRival);
+
+
+	// we recently bullied them
+	if (pMinorCivAI->IsRecentlyBulliedByMajor(eID))
+	{
+		weight -= 400; //antonjs: todo: constant/XML
+	}
+
+
+	// what is this?
+	bool minorAcceptsGold = true;
+	PlayerTypes iAlly = pMinorCivAI->GetAlly();
+	if (iAlly != NO_PLAYER && iAlly != eID)
+	{
+		int iNumTurns = GET_PLAYER(iAlly).GetNumTurnsBeforeMinorAlliesRefuseBribes();
+		if (iNumTurns > 0 && pMinorCivAI->GetAlliedTurns() >= iNumTurns)
+		{
+			minorAcceptsGold = false;
+		}
+	}
+
+
+	// actually assign
+	if (weight > GC.getMC_GIFT_WEIGHT_THRESHOLD() && minorAcceptsGold)
+	{
+		wantsToGiveGold = true;
+		veMinorsToGiveGold.push_back(giftData, weight);
+	}
+	return wantsToGiveGold;
+}
+//--------------------------------------------------------------------------------------------------------
 /// Anyone we want to chat with?
 void CvDiplomacyAI::DoContactMinorCivs()
 {
+	int iSmallGiftGold = /*250*/ GC.getMINOR_GOLD_GIFT_SMALL();
+
+	int iGoldReserve = GetPlayer()->GetTreasury()->GetGold();
+
 	// If the player has deleted the DIPLOMACY Flavor we have to account for that
 	int iDiplomacyFlavor = /*5*/ GC.getDEFAULT_FLAVOR_VALUE();
 	int iGoldFlavor = /*5*/ GC.getDEFAULT_FLAVOR_VALUE();
@@ -12565,7 +12810,7 @@ void CvDiplomacyAI::DoContactMinorCivs()
 	EconomicAIStrategyTypes eNeedHappiness = (EconomicAIStrategyTypes) GC.getInfoTypeForString("ECONOMICAISTRATEGY_NEED_HAPPINESS");
 	EconomicAIStrategyTypes eNeedHappinessCritical = (EconomicAIStrategyTypes) GC.getInfoTypeForString("ECONOMICAISTRATEGY_NEED_HAPPINESS_CRITICAL");
 	EconomicAIStrategyTypes eLosingMoney = (EconomicAIStrategyTypes) GC.getInfoTypeForString("ECONOMICAISTRATEGY_LOSING_MONEY");
-#ifdef AUI_WARNING_FIXES
+
 	CvEconomicAI* pEconomicAI = GetPlayer()->GetEconomicAI();
 	bool bFoundCity = (eFoundCity != NO_ECONOMICAISTRATEGY) ? pEconomicAI->IsUsingStrategy(eFoundCity) : false;
 	bool bExpandLikeCrazy = (eExpandLikeCrazy != NO_ECONOMICAISTRATEGY) ? pEconomicAI->IsUsingStrategy(eExpandLikeCrazy) : false;
@@ -12573,14 +12818,6 @@ void CvDiplomacyAI::DoContactMinorCivs()
 	bool bNeedHappiness = (eNeedHappiness != NO_ECONOMICAISTRATEGY) ? pEconomicAI->IsUsingStrategy(eNeedHappiness) : false;
 	bool bNeedHappinessCritical = (eNeedHappinessCritical != NO_ECONOMICAISTRATEGY) ? pEconomicAI->IsUsingStrategy(eNeedHappinessCritical) : false;
 	bool bLosingMoney = (eLosingMoney != NO_ECONOMICAISTRATEGY) ? pEconomicAI->IsUsingStrategy(eLosingMoney) : false;
-#else
-	bool bFoundCity = (eFoundCity != NO_ECONOMICAISTRATEGY) ? GetPlayer()->GetEconomicAI()->IsUsingStrategy(eFoundCity) : false;
-	bool bExpandLikeCrazy = (eExpandLikeCrazy != NO_ECONOMICAISTRATEGY) ? GetPlayer()->GetEconomicAI()->IsUsingStrategy(eExpandLikeCrazy) : false;
-	bool bExpandToOtherContinents = (eExpandToOtherContinents != NO_ECONOMICAISTRATEGY) ? GetPlayer()->GetEconomicAI()->IsUsingStrategy(eExpandToOtherContinents) : false;
-	bool bNeedHappiness = (eNeedHappiness != NO_ECONOMICAISTRATEGY) ? GetPlayer()->GetEconomicAI()->IsUsingStrategy(eNeedHappiness) : false;
-	bool bNeedHappinessCritical = (eNeedHappinessCritical != NO_ECONOMICAISTRATEGY) ? GetPlayer()->GetEconomicAI()->IsUsingStrategy(eNeedHappinessCritical) : false;
-	bool bLosingMoney = (eLosingMoney != NO_ECONOMICAISTRATEGY) ? GetPlayer()->GetEconomicAI()->IsUsingStrategy(eLosingMoney) : false;
-#endif
 
 	// **************************
 	// Would we like to buyout a minor this turn?  (Austria UA)
@@ -12614,11 +12851,7 @@ void CvDiplomacyAI::DoContactMinorCivs()
 	if(iDiplomacyFlavor >= /*4*/ GC.getMC_ALWAYS_GIFT_DIPLO_THRESHOLD() ||
 	        IsGoingForDiploVictory() ||
 	        IsGoingForCultureVictory() ||
-#ifdef AUI_WARNING_FIXES
 			pEconomicAI->IsSavingForThisPurchase(PURCHASE_TYPE_MINOR_CIV_GIFT) ||
-#else
-	        GetPlayer()->GetEconomicAI()->IsSavingForThisPurchase(PURCHASE_TYPE_MINOR_CIV_GIFT) ||
-#endif
 	        IsHasActiveGoldQuest() ||
 	        m_pPlayer->calculateGoldRate() > 100) // if we are very wealthy always do this
 	{
@@ -12627,7 +12860,7 @@ void CvDiplomacyAI::DoContactMinorCivs()
 	// Otherwise, do a random roll
 	else
 	{
-		int iThreshold = iDiplomacyFlavor* /*5*/ GC.getMC_SOMETIMES_GIFT_RAND_MULTIPLIER();
+		int iThreshold = iDiplomacyFlavor * GC.getMC_SOMETIMES_GIFT_RAND_MULTIPLIER(); /*5*/ 
 		int iRandRoll = GC.getGame().getJonRandNum(100, "Diplomacy AI: good turn to make a gold gift to a minor?");
 
 		// Threshold will be 15 for a player (3 flavor * 5)
@@ -12642,13 +12875,8 @@ void CvDiplomacyAI::DoContactMinorCivs()
 	// **************************
 	bool bWantsToBullyUnit = false;
 
-#ifdef AUI_WARNING_FIXES
 	if (pEconomicAI->GetWorkersToCitiesRatio() < 0.25 &&  //antonjs: todo: XML
 		pEconomicAI->GetImprovedToImprovablePlotsRatio() < 0.50) //antonjs: todo: XML
-#else
-	if(GetPlayer()->GetEconomicAI()->GetWorkersToCitiesRatio() < 0.25 &&  //antonjs: todo: XML
-	        GetPlayer()->GetEconomicAI()->GetImprovedToImprovablePlotsRatio() < 0.50) //antonjs: todo: XML
-#endif
 	{
 		bWantsToBullyUnit = true;
 	}
@@ -12669,14 +12897,9 @@ void CvDiplomacyAI::DoContactMinorCivs()
 	bool bWantsToBullyGold = false;
 
 	if(iGoldFlavor >= 6 ||  //antonjs: todo: GC.getMC_ALWAYS_BULLY_GOLD_THRESHOLD()
-	        IsGoingForWorldConquest() ||
-#ifdef AUI_WARNING_FIXES
+	    IsGoingForWorldConquest() ||
 		pEconomicAI->IsSavingForThisPurchase(PURCHASE_TYPE_UNIT) ||
 		pEconomicAI->IsSavingForThisPurchase(PURCHASE_TYPE_BUILDING) ||
-#else
-	        GetPlayer()->GetEconomicAI()->IsSavingForThisPurchase(PURCHASE_TYPE_UNIT) ||
-	        GetPlayer()->GetEconomicAI()->IsSavingForThisPurchase(PURCHASE_TYPE_BUILDING) ||
-#endif
 	        bLosingMoney ||
 	        m_pPlayer->calculateGoldRate() < 0) // if we are losing gold per turn
 	{
@@ -12692,21 +12915,10 @@ void CvDiplomacyAI::DoContactMinorCivs()
 			bWantsToBullyGold = true;
 	}
 
-	if(BULLY_DEBUGGING)
-	{
-		//bWantsToMakeGoldGift = false;
-		//bWantsToBullyGold = true;
-		//bWantsToBullyUnit = true;
-	}
-
 	CvWeightedVector<PlayerTypes, MAX_PLAYERS, true> veMinorsToBuyout; // Austria UA
 	CvWeightedVector<MinorGoldGiftInfo, MAX_PLAYERS, true> veMinorsToGiveGold;
 	CvWeightedVector<PlayerTypes, MAX_PLAYERS, true> veMinorsToBullyGold;
 	CvWeightedVector<PlayerTypes, MAX_PLAYERS, true> veMinorsToBullyUnit;
-
-	int iLargeGift = /*1000*/ GC.getMINOR_GOLD_GIFT_LARGE();
-	int iMediumGift = /*500*/ GC.getMINOR_GOLD_GIFT_MEDIUM();
-	int iSmallGift = /*250*/ GC.getMINOR_GOLD_GIFT_SMALL();
 	int iLargeGiftFriendship;
 	int iMediumGiftFriendship;
 	int iSmallGiftFriendship;
@@ -12724,7 +12936,7 @@ void CvDiplomacyAI::DoContactMinorCivs()
 	int iOtherMajorLoop;
 	PlayerTypes eOtherMajor;
 	int iFriendshipWithMinor;
-	int iOtherPlayerFriendshipWithMinor;
+	int themFriendship;
 
 	bool bWantsToConnect;
 
@@ -12933,195 +13145,7 @@ void CvDiplomacyAI::DoContactMinorCivs()
 			// Calculate desirability to give this minor gold
 			if(bWantsToMakeGoldGift && !bWantsToBuyoutThisMinor)
 			{
-				int iValue = /*100*/ GC.getMC_GIFT_WEIGHT_THRESHOLD();
-				// If we're not protective or friendly, then don't bother with minor diplo
-				if(eApproach == MINOR_CIV_APPROACH_PROTECTIVE || eApproach == MINOR_CIV_APPROACH_FRIENDLY)
-				{
-					MinorGoldGiftInfo sGiftInfo;
-					sGiftInfo.eMinor = eMinor;
-					sGiftInfo.eMajorRival = NO_PLAYER;
-					sGiftInfo.bQuickBoost = false;
-					sGiftInfo.iGoldAmount = 0;
-
-					// if we are rich we are more likely to, conversely if we are poor...
-					iValue += min(max(0, m_pPlayer->calculateGoldRate() - 50),100);
-
-					pMinorInfo = GC.getMinorCivInfo(pMinorCivAI->GetMinorCivType());
-
-					// Diplo victory makes us more likely to spend gold
-					if(IsGoingForDiploVictory())
-						iValue += /*100*/ GC.getMC_GIFT_WEIGHT_DIPLO_VICTORY();
-					// double up if this is the home stretch
-					if(GC.getGame().IsUnitedNationsActive())
-					{
-						iValue += /*100*/ GC.getMC_GIFT_WEIGHT_DIPLO_VICTORY();
-					}
-					// Going for Culture victory, focus on Cultural city states
-					else if(IsGoingForCultureVictory())
-					{
-						if(pMinorInfo->GetMinorCivTrait() == MINOR_CIV_TRAIT_CULTURED)
-							iValue += /*100*/ GC.getMC_GIFT_WEIGHT_CULTURE_VICTORY();
-					}
-					// Going for Conquest victory, focus on Militaristic city states
-					else if(IsGoingForWorldConquest())
-					{
-						if(pMinorInfo->GetMinorCivTrait() == MINOR_CIV_TRAIT_MILITARISTIC)
-							iValue += /*100*/ GC.getMC_GIFT_WEIGHT_CONQUEST_VICTORY();
-					}
-
-					//antonjs: todo: work extra gold quest INF potential into the friends/allies/passing logic as well
-					// Gold gift quest is active, so we would get more bang for our bucks
-					if(pMinorCivAI->IsActiveQuestForPlayer(eID, MINOR_CIV_QUEST_GIVE_GOLD))
-					{
-						iValue += 150; //antonjs: todo: constant/XML
-					}
-
-					// Invest quest is active, so we would get more bang for our bucks
-					if(pMinorCivAI->IsActiveQuestForPlayer(eID, MINOR_CIV_QUEST_INVEST))
-					{
-						iValue += 100; //antonjs: todo: constant/XML
-					}
-
-					// having traits that give us bonuses also make us want to spend gold
-					if(m_pPlayer->GetPlayerTraits()->GetCityStateFriendshipModifier() > 0 || m_pPlayer->GetPlayerTraits()->GetCityStateBonusModifier())
-					{
-						iValue += /*100*/ GC.getMC_GIFT_WEIGHT_DIPLO_VICTORY();
-					}
-
-					// Nearly everyone likes to grow
-					if(pMinorInfo->GetMinorCivTrait() == MINOR_CIV_TRAIT_MARITIME && !GetPlayer()->IsEmpireUnhappy())
-					{
-						iValue += /*20*/ GC.getMC_GIFT_WEIGHT_MARITIME_GROWTH() * iGrowthFlavor * max(1, GetPlayer()->getNumCities() / 3);
-					}
-
-					// Slight negative weight towards militaristic
-					if(pMinorInfo->GetMinorCivTrait() == MINOR_CIV_TRAIT_MILITARISTIC && !IsGoingForWorldConquest())
-						iValue += /*-50*/ GC.getMC_GIFT_WEIGHT_MILITARISTIC();
-
-					// If they have a resource we don't have, add extra weight
-					int iResourcesWeLack = pMinorCivAI->GetNumResourcesMajorLacks(eID);
-					if(iResourcesWeLack > 0)
-						iValue += (iResourcesWeLack* /*80*/ GC.getMC_GIFT_WEIGHT_RESOURCE_WE_NEED());
-
-					// If we're protective this is worth more than if we're friendly
-					if(eApproach == MINOR_CIV_APPROACH_PROTECTIVE)
-						iValue += /*10*/ GC.getMC_GIFT_WEIGHT_PROTECTIVE();
-
-					// If the minor is hostile, then reduce the weighting
-					if(pMinorCivAI->GetPersonality() == MINOR_CIV_PERSONALITY_HOSTILE)
-						iValue += /*-20*/ GC.getMC_GIFT_WEIGHT_HOSTILE();
-
-					// The closer we are the better
-					if(GetPlayer()->GetProximityToPlayer(eMinor) == PLAYER_PROXIMITY_NEIGHBORS)
-						iValue += /*5*/ GC.getMC_GIFT_WEIGHT_NEIGHBORS();
-					else if(GetPlayer()->GetProximityToPlayer(eMinor) == PLAYER_PROXIMITY_CLOSE)
-						iValue += /*4*/ GC.getMC_GIFT_WEIGHT_CLOSE();
-					else if(GetPlayer()->GetProximityToPlayer(eMinor) == PLAYER_PROXIMITY_FAR)
-						iValue += /*3*/ GC.getMC_GIFT_WEIGHT_FAR();
-
-					iLargeGiftFriendship = pMinorCivAI->GetFriendshipFromGoldGift(eID, iLargeGift);
-					iMediumGiftFriendship = pMinorCivAI->GetFriendshipFromGoldGift(eID, iMediumGift);
-					iSmallGiftFriendship = pMinorCivAI->GetFriendshipFromGoldGift(eID, iSmallGift);
-
-					iFriendshipWithMinor = pMinorCivAI->GetEffectiveFriendshipWithMajor(eID);
-
-					// Loop through other players to see if we can pass them
-					for(iOtherMajorLoop = 0; iOtherMajorLoop < MAX_MAJOR_CIVS; iOtherMajorLoop++)
-					{
-						eOtherMajor = (PlayerTypes) iOtherMajorLoop;
-
-						// Player must be alive
-						if(!GET_PLAYER(eOtherMajor).isAlive())
-							continue;
-
-						iOtherPlayerFriendshipWithMinor = pMinorCivAI->GetEffectiveFriendshipWithMajor(eOtherMajor);
-
-						// Player must have friendship with this major
-						if(iOtherPlayerFriendshipWithMinor <= 0)
-							continue;
-
-						// They must have more friendship with this guy than us
-						if(iFriendshipWithMinor <= iOtherPlayerFriendshipWithMinor)
-							continue;
-
-						// Only care if we'll actually be Allies or better
-						bMediumGiftAllies = iFriendshipWithMinor + iMediumGiftFriendship >= pMinorCivAI->GetAlliesThreshold();
-						bSmallGiftAllies = iFriendshipWithMinor + iSmallGiftFriendship >= pMinorCivAI->GetAlliesThreshold();
-
-						// If we can pass them with a small gift, great
-						if(bSmallGiftAllies && iOtherPlayerFriendshipWithMinor - iFriendshipWithMinor < iSmallGiftFriendship)
-						{
-							iValue += /*15*/ GC.getMC_SMALL_GIFT_WEIGHT_PASS_OTHER_PLAYER();
-							sGiftInfo.bQuickBoost = true;
-							sGiftInfo.eMajorRival = eOtherMajor;
-						}
-						// If a medium gift passes them up, that's good too
-						else if(bMediumGiftAllies && iOtherPlayerFriendshipWithMinor - iFriendshipWithMinor < iMediumGiftFriendship)
-						{
-							iValue += /*10*/ GC.getMC_GIFT_WEIGHT_PASS_OTHER_PLAYER();
-							sGiftInfo.eMajorRival = eOtherMajor;
-						}
-						// We're behind and we can't catch up right now, so zero-out the value
-						else
-							iValue = 0;
-					}
-
-					// Are we already allies?
-					if(pMinorCivAI->IsAllies(eID))
-					{
-						// Are we close to losing our status?
-						if(pMinorCivAI->IsCloseToNotBeingAllies(eID))
-						{
-							iValue += /*150*/ GC.getMC_GIFT_WEIGHT_ALMOST_NOT_ALLIES();
-							sGiftInfo.bQuickBoost = true;
-						}
-						// Not going to lose status, so not worth going after this guy
-						else
-							iValue = 0;
-					}
-					// Are we already Friends?
-					else if(pMinorCivAI->IsFriends(eID))
-					{
-						// Are we close to losing our status?
-						if(pMinorCivAI->IsCloseToNotBeingFriends(eID))
-						{
-							iValue += /*125*/ GC.getMC_GIFT_WEIGHT_ALMOST_NOT_FRIENDS();
-							sGiftInfo.bQuickBoost = true;
-						}
-						// Not going to lose status, so not worth going after this guy
-						else if(!IsGoingForDiploVictory() || !GC.getGame().IsUnitedNationsActive())
-							iValue = 0;
-					}
-
-					// Did we bully you recently?  If so, giving you gold now would be very odd.
-					if(pMinorCivAI->IsRecentlyBulliedByMajor(eID))
-					{
-						iValue -= 100; //antonjs: todo: constant/XML
-					}
-
-					//antonjs: consider: different behavior to CS that have been bullied by others, bullied by rival, etc.
-
-					// Do we want it enough?
-#ifdef NQ_NUM_TURNS_BEFORE_MINOR_ALLIES_REFUSE_BRIBES_FROM_TRAIT
-					bool bAcceptsBribes = true;
-					PlayerTypes iAlly = pMinorCivAI->GetAlly();
-					if (iAlly != NO_PLAYER && iAlly != eID)
-					{
-						int iNumTurns = GET_PLAYER(iAlly).GetNumTurnsBeforeMinorAlliesRefuseBribes();
-						if (iNumTurns > 0 && pMinorCivAI->GetAlliedTurns() >= iNumTurns)
-						{
-							bAcceptsBribes = false;
-						}
-					}
-					if(iValue > GC.getMC_GIFT_WEIGHT_THRESHOLD() && bAcceptsBribes)
-#else
-					if(iValue > GC.getMC_GIFT_WEIGHT_THRESHOLD())
-#endif
-					{
-						veMinorsToGiveGold.push_back(sGiftInfo, iValue);
-						bWantsToGiveGoldToThisMinor = true;
-					}
-				}
+				bWantsToGiveGoldToThisMinor = considerGivingGift(eApproach, eMinor, veMinorsToGiveGold);
 			}
 
 			// Calculate desirability to bully a unit from this minor
@@ -13131,11 +13155,7 @@ void CvDiplomacyAI::DoContactMinorCivs()
 				if(eApproach == MINOR_CIV_APPROACH_BULLY)
 				{
 					// Only bother if we can successfully bully
-#ifdef AUI_WARNING_FIXES
 					if (pMinorCivAI->CanMajorBullyUnit(eID))
-#else
-					if(pMinor->GetMinorCivAI()->CanMajorBullyUnit(eID))
-#endif
 					{
 						// The closer we are the better, because the unit travels less distance to get home
 						if(GetPlayer()->GetProximityToPlayer(eMinor) == PLAYER_PROXIMITY_NEIGHBORS)
@@ -13152,11 +13172,7 @@ void CvDiplomacyAI::DoContactMinorCivs()
 						//antonjs: consider: if military unit, it would be a good thing to get it near a rival or ongoing war
 
 						// If this minor has a PtP from someone, bullying it could have big consequences
-#ifdef AUI_WARNING_FIXES
 						if (pMinorCivAI->IsProtectedByAnyMajor())
-#else
-						if(pMinor->GetMinorCivAI()->IsProtectedByAnyMajor())
-#endif
 						{
 							iValue += -20;
 							//antonjs: consider: scale based on which major is protecting it
@@ -13168,13 +13184,8 @@ void CvDiplomacyAI::DoContactMinorCivs()
 
 						//antonjs: consider: allies or friends with another major
 						//antonjs: consider: distance to other majors
-
 						// If we are getting a bonus, don't mess that up!
-#ifdef AUI_WARNING_FIXES
 						if (pMinorCivAI->IsAllies(eID) || pMinorCivAI->IsFriends(eID))
-#else
-						if(pMinor->GetMinorCivAI()->IsAllies(eID) || pMinor->GetMinorCivAI()->IsFriends(eID))
-#endif
 						{
 							iValue = 0;
 						}
@@ -13196,11 +13207,7 @@ void CvDiplomacyAI::DoContactMinorCivs()
 				if(eApproach == MINOR_CIV_APPROACH_BULLY)
 				{
 					// Only bother if we can successfully bully
-#ifdef AUI_WARNING_FIXES
 					if (pMinorCivAI->CanMajorBullyGold(eID))
-#else
-					if(pMinor->GetMinorCivAI()->CanMajorBullyGold(eID))
-#endif
 					{
 						// The closer we are the better
 						if(GetPlayer()->GetProximityToPlayer(eMinor) == PLAYER_PROXIMITY_NEIGHBORS)
@@ -13209,32 +13216,20 @@ void CvDiplomacyAI::DoContactMinorCivs()
 							iValue += 20;
 
 						// We like to keep bullying the same minor
-#ifdef AUI_WARNING_FIXES
 						if (pMinorCivAI->IsEverBulliedByMajor(eID))
-#else
-						if(pMinor->GetMinorCivAI()->IsEverBulliedByMajor(eID))
-#endif
 						{
 							iValue += 20;
 						}
 
 						// If we have not bullied this minor recently, but someone else has, it might be good to wait for an opportunity to gain a lot of INF
-#ifdef AUI_WARNING_FIXES
 						if (!pMinorCivAI->IsRecentlyBulliedByMajor(eID) && pMinorCivAI->IsRecentlyBulliedByAnyMajor())
-#else
-						if(!pMinor->GetMinorCivAI()->IsRecentlyBulliedByMajor(eID) && pMinor->GetMinorCivAI()->IsRecentlyBulliedByAnyMajor())
-#endif
 						{
 							iValue += -10;
 							//antonjs: consider: but if everyone near the minor has bullied it, then there is nobody to come to its rescue, so we can bully safely
 						}
 
 						// If this minor has a PtP from someone, bullying it could have big consequences
-#ifdef AUI_WARNING_FIXES
 						if (pMinorCivAI->IsProtectedByAnyMajor())
-#else
-						if(pMinor->GetMinorCivAI()->IsProtectedByAnyMajor())
-#endif
 						{
 							iValue += -10;
 							//antonjs: consider: scale based on which major is protecting it
@@ -13248,11 +13243,7 @@ void CvDiplomacyAI::DoContactMinorCivs()
 						//antonjs: consider: distance to other majors
 
 						// If we are getting a bonus, don't mess that up!
-#ifdef AUI_WARNING_FIXES
 						if (pMinorCivAI->IsAllies(eID) || pMinorCivAI->IsFriends(eID))
-#else
-						if(pMinor->GetMinorCivAI()->IsAllies(eID) || pMinor->GetMinorCivAI()->IsFriends(eID))
-#endif
 						{
 							iValue = 0;
 						}
@@ -13271,8 +13262,6 @@ void CvDiplomacyAI::DoContactMinorCivs()
 
 		SetWantToRouteConnectToMinor(eMinor, bWantsToConnect);
 	}
-
-	int iGoldReserve = GetPlayer()->GetTreasury()->GetGold();
 
 	// ===========================================================
 	// ===========================================================
@@ -13304,21 +13293,12 @@ void CvDiplomacyAI::DoContactMinorCivs()
 			}
 			else
 			{
-#ifdef AUI_WARNING_FIXES
 				if (!pEconomicAI->IsSavingForThisPurchase(PURCHASE_TYPE_MINOR_CIV_GIFT))
 				{
 					LogMinorCivBuyout(eLoopMinor, iBuyoutCost, /*bSaving*/ true);
 
 					int iPriority = GC.getAI_GOLD_PRIORITY_BUYOUT_CITY_STATE();
 					pEconomicAI->StartSaveForPurchase(PURCHASE_TYPE_MINOR_CIV_GIFT, iBuyoutCost, iPriority);
-#else
-				if(!GetPlayer()->GetEconomicAI()->IsSavingForThisPurchase(PURCHASE_TYPE_MINOR_CIV_GIFT))
-				{
-					LogMinorCivBuyout(eLoopMinor, iBuyoutCost, /*bSaving*/ true);
-
-					int iPriority = GC.getAI_GOLD_PRIORITY_BUYOUT_CITY_STATE();
-					GetPlayer()->GetEconomicAI()->StartSaveForPurchase(PURCHASE_TYPE_MINOR_CIV_GIFT, iBuyoutCost, iPriority);
-#endif
 				}
 			}
 		}
@@ -13338,42 +13318,31 @@ void CvDiplomacyAI::DoContactMinorCivs()
 		{
 			int iGoldLeft = GetPlayer()->GetTreasury()->GetGold();
 			MinorGoldGiftInfo sGift = veMinorsToGiveGold.GetElement(i);
-			sGift.iGoldAmount = 0;
-
-			if(iGoldLeft >= iSmallGift && sGift.bQuickBoost)
-				sGift.iGoldAmount = iSmallGift;
-			else if(iGoldLeft >= iLargeGift)
-				sGift.iGoldAmount = iLargeGift;
-			else if(iGoldLeft >= iMediumGift)
-				sGift.iGoldAmount = iMediumGift;
-
+			int goldToGift = floor(sGift.numSmallGiftsNeeded + 0.5f) * iSmallGiftGold; // round gifts and calc gold
 			int iOldFriendship = GET_PLAYER(sGift.eMinor).GetMinorCivAI()->GetEffectiveFriendshipWithMajor(eID);
+			bool isBoost = sGift.numSmallGiftsNeeded;
 
-			// Able to give a gift? Leave 1/8th of our treasury at least.
-			if(sGift.iGoldAmount > 0 && iGoldLeft >= (iGoldReserve / 8))
+			// Able to give a gift?
+			if(iGoldLeft > goldToGift)
 			{
-				GET_PLAYER(sGift.eMinor).GetMinorCivAI()->DoGoldGiftFromMajor(GetPlayer()->GetID(), sGift.iGoldAmount); //antonjs: todo: go through CvGame instead?
-
-				LogMinorCivGiftGold(sGift.eMinor, iOldFriendship, sGift.iGoldAmount, /*bSaving*/ false, sGift.bQuickBoost, sGift.eMajorRival);
-
+				// give gold
+				GET_PLAYER(sGift.eMinor).GetMinorCivAI()->DoGoldGiftFromMajor(GetPlayer()->GetID(), goldToGift);
 				if(GetPlayer()->GetEconomicAI()->IsSavingForThisPurchase(PURCHASE_TYPE_MINOR_CIV_GIFT))
 					GetPlayer()->GetEconomicAI()->CancelSaveForPurchase(PURCHASE_TYPE_MINOR_CIV_GIFT);
+
+				LogMinorCivGiftGold(sGift.eMinor, iOldFriendship, goldToGift, /*bSaving*/ false, isBoost, sGift.eMajorRival);
 			}
 			// Can't afford gift yet, so start saving
 			else
 			{
 				if(!GetPlayer()->GetEconomicAI()->IsSavingForThisPurchase(PURCHASE_TYPE_MINOR_CIV_GIFT))
 				{
-					int iAmountToSaveFor = iMediumGift;
-
-					if(sGift.bQuickBoost)
-						iAmountToSaveFor = iSmallGift;
-
-					LogMinorCivGiftGold(sGift.eMinor, iOldFriendship, iAmountToSaveFor, /*bSaving*/ true, sGift.bQuickBoost, sGift.eMajorRival);
-
+					int iAmountToSaveFor = goldToGift / 2;
 					int iPriority = GC.getAI_GOLD_PRIORITY_DIPLOMACY_BASE();
 					iPriority += GC.getAI_GOLD_PRIORITY_DIPLOMACY_PER_FLAVOR_POINT() * iDiplomacyFlavor;
 					GetPlayer()->GetEconomicAI()->StartSaveForPurchase(PURCHASE_TYPE_MINOR_CIV_GIFT, iAmountToSaveFor, iPriority);
+					break; // we shouldn't save up for more than one purchase
+					LogMinorCivGiftGold(sGift.eMinor, iOldFriendship, iAmountToSaveFor, /*bSaving*/ true, isBoost, sGift.eMajorRival);
 				}
 			}
 		}

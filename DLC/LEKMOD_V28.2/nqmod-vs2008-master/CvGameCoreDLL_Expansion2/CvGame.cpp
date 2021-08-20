@@ -5597,6 +5597,29 @@ bool CvGame::IsUnitedNationsActive()
 }
 
 //	--------------------------------------------------------------------------------
+bool CvGame::IsWorldCongressActive()
+{
+	if (!GC.getGame().isOption(GAMEOPTION_NO_LEAGUES))
+	{
+#ifndef AUI_LEAGUES_FIX_POSSIBLE_DEALLOCATION_CRASH
+		if (GetGameLeagues()->GetNumActiveLeagues() > 0)
+#endif
+		{
+			CvLeague* pLeague = GetGameLeagues()->GetActiveLeague();
+			if (pLeague != NULL)
+			{
+				if (!pLeague->IsUnitedNations())
+				{
+					return true;
+				}
+			}
+		}
+	}
+
+	return false;
+}
+
+//	--------------------------------------------------------------------------------
 /// United Nations diplo victory countdown
 int CvGame::GetUnitedNationsCountdown() const
 {
