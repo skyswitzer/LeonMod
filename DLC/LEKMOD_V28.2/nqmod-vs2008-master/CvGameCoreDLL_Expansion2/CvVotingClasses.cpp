@@ -4109,29 +4109,17 @@ bool CvLeague::IsLuxuryHappinessBanned(ResourceTypes eResource)
 	return false;
 }
 
-#if defined(AUI_CONSTIFY) || defined(AUI_TECH_FIX_TEAMER_RESEARCH_COSTS)
-int CvLeague::GetResearchMod(TechTypes eTech) const
-#else
 int CvLeague::GetResearchMod(TechTypes eTech)
-#endif
 {
-	int iValue = 0;
-
-	int iKnownByMemberMod = 0;
-#if defined(AUI_CONSTIFY) || defined(AUI_TECH_FIX_TEAMER_RESEARCH_COSTS)
-	for (ActiveResolutionList::const_iterator it = m_vActiveResolutions.begin(); it != m_vActiveResolutions.end(); ++it)
-#elif defined(AUI_ITERATOR_POSTFIX_INCREMENT_OPTIMIZATIONS)
-	for (ActiveResolutionList::iterator it = m_vActiveResolutions.begin(); it != m_vActiveResolutions.end(); ++it)
-#else
+	int allResolutionModifiers = 0;
 	for (ActiveResolutionList::iterator it = m_vActiveResolutions.begin(); it != m_vActiveResolutions.end(); it++)
-#endif
 	{
 		if (it->GetEffects()->iMemberDiscoveredTechMod != 0)
 		{
-			iKnownByMemberMod += it->GetEffects()->iMemberDiscoveredTechMod;
+			allResolutionModifiers += it->GetEffects()->iMemberDiscoveredTechMod;
 		}
 	}
-	if (iKnownByMemberMod != 0)
+	if (allResolutionModifiers != 0)
 	{
 		// Does any member have this tech?
 		for (uint i = 0; i < m_vMembers.size(); i++)
@@ -4139,13 +4127,12 @@ int CvLeague::GetResearchMod(TechTypes eTech)
 			PlayerTypes eMember = m_vMembers[i].ePlayer;
 			if (GET_TEAM(GET_PLAYER(eMember).getTeam()).GetTeamTechs()->HasTech(eTech))
 			{
-				iValue += iKnownByMemberMod;
-				break;
+				return allResolutionModifiers;
 			}
 		}
 	}
 
-	return iValue;
+	return 0;
 }
 
 int CvLeague::GetFeatureYieldChange(FeatureTypes eFeature, YieldTypes eYield)
@@ -7622,53 +7609,17 @@ bool CvGameLeagues::IsLuxuryHappinessBanned(PlayerTypes ePlayer, ResourceTypes e
 	return false;
 }
 
-#ifdef AUI_TECH_FIX_TEAMER_RESEARCH_COSTS
-int CvGameLeagues::GetResearchMod(TeamTypes eTeam, TechTypes eTech) const
-{
-	int iValue = 0;
-#ifdef AUI_LEAGUES_FIX_POSSIBLE_DEALLOCATION_CRASH
-	const CvLeague* it = GetActiveLeague();
-	if (it)
-#else
-	for (LeagueList::const_iterator it = m_vActiveLeagues.begin(); it != m_vActiveLeagues.end(); ++it)
-#endif
-	{
-		for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
-		{
-			PlayerTypes ePlayer = (PlayerTypes)iI;
-			if (GET_PLAYER(ePlayer).getTeam() == eTeam && it->IsMember(ePlayer))
-			{
-				iValue += it->GetResearchMod(eTech);
-				break;
-			}
-		}
-	}
-	return iValue;
-}
-#endif
-
 int CvGameLeagues::GetResearchMod(PlayerTypes ePlayer, TechTypes eTech)
 {
-	int iValue = 0;
-#ifdef AUI_LEAGUES_FIX_POSSIBLE_DEALLOCATION_CRASH
-	CvLeague* it = GetActiveLeague();
-	if (it)
-#elif defined(AUI_ITERATOR_POSTFIX_INCREMENT_OPTIMIZATIONS)
-	for (LeagueList::iterator it = m_vActiveLeagues.begin(); it != m_vActiveLeagues.end(); ++it)
-#else
+	int allLeagueMods = 0;
 	for (LeagueList::iterator it = m_vActiveLeagues.begin(); it != m_vActiveLeagues.end(); it++)
-#endif
 	{
 		if (it->IsMember(ePlayer))
 		{
-			int iLeagueMod = it->GetResearchMod(eTech);
-			if (iLeagueMod != 0)
-			{
-				iValue += iLeagueMod;
-			}
+			allLeagueMods += it->GetResearchMod(eTech);
 		}
 	}
-	return iValue;
+	return allLeagueMods;
 }
 
 int CvGameLeagues::GetFeatureYieldChange(PlayerTypes ePlayer, FeatureTypes eFeature, YieldTypes eYield)

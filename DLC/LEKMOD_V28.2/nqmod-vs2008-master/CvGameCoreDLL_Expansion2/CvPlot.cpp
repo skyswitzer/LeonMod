@@ -11316,7 +11316,7 @@ bool CvPlot::MustPayMaintenanceHere(PlayerTypes ePlayer) const
 void CvPlot::AddArchaeologicalRecord(GreatWorkArtifactClass eType, PlayerTypes ePlayer1, PlayerTypes ePlayer2)
 {
 	// Make sure the new record is more significant
-	if (!GC.getGame().IsArchaeologyTriggered() && eType > m_kArchaeologyData.m_eArtifactType)
+	if (eType > m_kArchaeologyData.m_eArtifactType)
 	{
 		if (ePlayer1 != NO_PLAYER)
 		{
@@ -11332,7 +11332,7 @@ void CvPlot::AddArchaeologicalRecord(GreatWorkArtifactClass eType, PlayerTypes e
 void CvPlot::AddArchaeologicalRecord(GreatWorkArtifactClass eType, EraTypes eEra, PlayerTypes ePlayer1, PlayerTypes ePlayer2)
 {
 	// Make sure the new record is more significant
-	if (!GC.getGame().IsArchaeologyTriggered() && eType > m_kArchaeologyData.m_eArtifactType)
+	if (eType > m_kArchaeologyData.m_eArtifactType)
 	{
 		if (ePlayer1 != NO_PLAYER)
 		{

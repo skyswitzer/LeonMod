@@ -9469,9 +9469,6 @@ int CvPlayer::calculateUnitSupply() const
 //	--------------------------------------------------------------------------------
 int CvPlayer::calculateResearchModifier(TechTypes eTech)
 {
-#ifdef AUI_TECH_FIX_TEAMER_RESEARCH_COSTS
-	return GET_TEAM(getTeam()).calculateResearchModifier(eTech);
-#else
 	int iModifier = 100;
 
 	if(NO_TECH == eTech)
@@ -9479,40 +9476,33 @@ int CvPlayer::calculateResearchModifier(TechTypes eTech)
 		return iModifier;
 	}
 
-#ifdef AUI_TECH_TOGGLEABLE_ALREADY_KNOWN_TECH_COST_DISCOUNT
+	// default of 1, can be in the range [0, +INF]
+	const int leagueModifier = max(0, 1 + GC.getGame().GetGameLeagues()->GetResearchMod(GetID(), eTech));
 	if (!GC.getGame().isOption("GAMEOPTION_NO_TECH_COST_TOTAL_KNOWN_TEAM_MODIFIER"))
 	{
-#endif
-	int iLeaguesMod = GC.getGame().GetGameLeagues()->GetResearchMod(GetID(), eTech);
-	int iKnownCount = 0;
-	int iPossibleKnownCount = 0;
-	for(int iI = 0; iI < MAX_CIV_TEAMS; iI++)
-	{
-		CvTeam& kLoopTeam = GET_TEAM((TeamTypes)iI);
-		if(kLoopTeam.isAlive() && !kLoopTeam.isMinorCiv())
+		int iKnownCount = 0;
+		int iPossibleKnownCount = 0;
+		for(int iI = 0; iI < MAX_CIV_TEAMS; iI++)
 		{
-			if(GET_TEAM(getTeam()).isHasMet((TeamTypes)iI))
+			CvTeam& kLoopTeam = GET_TEAM((TeamTypes)iI);
+			if(kLoopTeam.isAlive() && !kLoopTeam.isMinorCiv())
 			{
-				if(kLoopTeam.GetTeamTechs()->HasTech(eTech))
+				if(GET_TEAM(getTeam()).isHasMet((TeamTypes)iI))
 				{
-					iKnownCount++;
+					if(kLoopTeam.GetTeamTechs()->HasTech(eTech))
+					{
+						iKnownCount++;
+					}
 				}
+				iPossibleKnownCount++;
 			}
-			iPossibleKnownCount++;
 		}
+		if(iPossibleKnownCount > 0)
+		{
+			const float percentCivsThatKnow = (float)iKnownCount / (float)iPossibleKnownCount;
+			iModifier +=  leagueModifier * percentCivsThatKnow * GC.getTECH_COST_TOTAL_KNOWN_TEAM_MODIFIER();
+		}	
 	}
-	if(iPossibleKnownCount > 0)
-	{
-		if (iLeaguesMod == 1)
-		{	
-			iModifier += ((GC.getTECH_COST_TOTAL_KNOWN_TEAM_MODIFIER() * iKnownCount) * 2 ) / iPossibleKnownCount;
-		}
-		else
-			iModifier += (GC.getTECH_COST_TOTAL_KNOWN_TEAM_MODIFIER() * iKnownCount) / iPossibleKnownCount;
-	}	
-#ifdef AUI_TECH_TOGGLEABLE_ALREADY_KNOWN_TECH_COST_DISCOUNT
-	}
-#endif
 
 	int iPossiblePaths = 0;
 	int iUnknownPaths = 0;
@@ -9524,7 +9514,6 @@ int CvPlayer::calculateResearchModifier(TechTypes eTech)
 			{
 				iUnknownPaths++;
 			}
-
 			iPossiblePaths++;
 		}
 	}
@@ -9532,15 +9521,10 @@ int CvPlayer::calculateResearchModifier(TechTypes eTech)
 	iModifier += (iPossiblePaths - iUnknownPaths) * GC.getTECH_COST_KNOWN_PREREQ_MODIFIER();
 
 	// Leagues mod
-	int iLeaguesMod = GC.getGame().GetGameLeagues()->GetResearchMod(GetID(), eTech);
-	if (iLeaguesMod != 0)
-	{
-		iModifier *= 100 + iLeaguesMod;
-		iModifier /= 100;
-	}
+	iModifier *= 100 + leagueModifier;
+	iModifier /= 100;
 
 	return iModifier;
-#endif
 }
 
 //	--------------------------------------------------------------------------------
