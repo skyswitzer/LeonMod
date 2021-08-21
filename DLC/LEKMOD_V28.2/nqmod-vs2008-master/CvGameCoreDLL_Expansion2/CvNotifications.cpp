@@ -405,11 +405,12 @@ int CvNotifications::AddToLog(const char* strMessage)
 /// Adds a new notification to the list
 int CvNotifications::Add(NotificationTypes eNotificationType, const char* strMessage, const char* strSummary, int iX, int iY, int iGameDataIndex, int iExtraGameData, bool logOnly)
 {
+	if (m_ePlayer == NO_PLAYER)
+		return -1;
+
 	// if the player is not human, do not record
 	if(!GET_PLAYER(m_ePlayer).isHuman())
-	{
 		return -1;
-	}
 
 	// If we're in debug mode, don't do anything
 	if(GC.getGame().isDebugMode())
