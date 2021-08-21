@@ -81,6 +81,35 @@ class CvUnit
 	friend class CvUnitCombat;
 
 public:
+	// Uses a non linear damage ratio.
+	// 
+	// original:
+	// https://www.wolframalpha.com/input/?i=w%3Dfloor%2830*r%29+z%3Dfloor%2830%2Fr%29+where+r%3D%28%28%28%28%28%281450%2F800%29%2B3%29%2F4%29%5E4%29%2B1%29%2F2%29
+	float static adjustedDamageRatio(float usStrength, float themStrength)
+	{
+		// cant handle values below 1 for strength
+		usStrength = max(1.0f, usStrength);
+		themStrength = max(1.0f, themStrength);
+
+		double r = usStrength / themStrength;
+		if (themStrength > usStrength) // flip it temporarily to gaurantee a value >1
+			r = 1.0 / r;
+
+		const float newRatio = (pow(((r + 3.0) / 4.0), 4) + 1.0) / 2.0; // original equation
+
+		// if ratio was 1.4, it would become 1.3 because (0.4 * -0.25 = -0.1)
+		const float ratioAdjustMod = -0.25f;
+		float reducedRatio = (newRatio - 1.0f) * (1.0f + ratioAdjustMod) + 1.0f;
+
+		if (themStrength > usStrength) // flip it back
+			reducedRatio = 1.0 / reducedRatio;
+
+		return reducedRatio;
+	}
+
+	int GetRangeWithMovement() const;
+	void GetMovablePlotListOpt(vector<CvPlot*>& plotData, CvPlot* plotTarget, bool exitOnFound);
+	bool canEverRangeStrikeAtFromPlot(int iX, int iY, CvPlot* pSourcePlot) const;
 
 	int GetRangeWithMovement() const;
 	void GetMovablePlotListOpt(vector<CvPlot*>& plotData, CvPlot* plotTarget, bool exitOnFound);

@@ -3532,17 +3532,6 @@ bool CvUnit::IsAngerFreeUnit() const
 
 	return false;
 }
-// Uses a non linear damage ratio.
-// 
-// original:
-// https://www.wolframalpha.com/input/?i=w%3Dfloor%2830*r%29+z%3Dfloor%2830%2Fr%29+where+r%3D%28%28%28%28%28%281450%2F800%29%2B3%29%2F4%29%5E4%29%2B1%29%2F2%29
-float adjustedDamageRatio(double r)
-{
-	float ratioAdjust = -0.25f;
-	float newRatio = (pow(((r + 3.0) / 4.0), 4) + 1.0) / 2.0;
-	newRatio = (newRatio - 1.0f) * (1.0f + ratioAdjust) + 1.0f;
-	return newRatio;
-}
 
 //	---------------------------------------------------------------------------
 int CvUnit::getCombatDamage(int iStrength, int iOpponentStrength, int iCurrentDamage, bool bIncludeRand, bool bAttackerIsCity, bool bDefenderIsCity) const
@@ -3617,14 +3606,8 @@ int CvUnit::getCombatDamage(int iStrength, int iOpponentStrength, int iCurrentDa
 	// 17.5 = (((((40 / 6) + 3) / 4) ^ 4) + 1 / 2
 
 	// In case our strength is less than the other guy's, we'll do things in reverse then make the ratio 1 over the result (we need a # above 1.0)
-	double r = (double(iStrength) / iOpponentStrength);
-	if(iOpponentStrength > iStrength)
-		r = 1.0 / r;
-	double fStrengthRatio = adjustedDamageRatio(r);
-	if(iOpponentStrength > iStrength)
-		fStrengthRatio = 1.0 / fStrengthRatio;
 
-
+	const double fStrengthRatio = CvUnit::adjustedDamageRatio(iStrength, iOpponentStrength);
 	iDamage = int(iDamage * fStrengthRatio);
 
 	// Modify damage for when a city "attacks" a unit
@@ -12942,24 +12925,9 @@ int CvUnit::GetAirCombatDamage(const CvUnit* pDefender, CvCity* pCity, bool bInc
 	iAttackerDamage = MAX(1, MIN(iAttackerDamage, GC.getMAX_HIT_POINTS() * 100)) * iAttackerDamageRatio / GetMaxHitPoints();
 #endif
 
-	double fStrengthRatio = ((iDefenderStrength > 0)?(double(iAttackerStrength) / iDefenderStrength):double(iAttackerStrength));
-
-	// In case our strength is less than the other guy's, we'll do things in reverse then make the ratio 1 over the result
-	if(iDefenderStrength > iAttackerStrength)
-	{
-		fStrengthRatio = (double(iDefenderStrength) / iAttackerStrength);
-	}
-
-	fStrengthRatio = (fStrengthRatio + 3) / 4;
-	fStrengthRatio = pow(fStrengthRatio, 4.0);
-	fStrengthRatio = (fStrengthRatio + 1) / 2;
-
-	if(iDefenderStrength > iAttackerStrength)
-	{
-		fStrengthRatio = 1 / fStrengthRatio;
-	}
-
+	double fStrengthRatio = CvUnit::adjustedDamageRatio(iAttackerStrength, iDefenderStrength);
 	double fAttackerDamage = (double)iAttackerDamage * fStrengthRatio;
+
 	// Protect against it overflowing an int
 	if(fAttackerDamage > INT_MAX)
 		iAttackerDamage = INT_MAX;
@@ -13073,24 +13041,9 @@ int CvUnit::GetRangeCombatDamage(const CvUnit* pDefender, CvCity* pCity, bool bI
 	iAttackerDamage = MAX(1, MIN(iAttackerDamage, GC.getMAX_HIT_POINTS() * 100)) * iAttackerDamageRatio / GetMaxHitPoints();
 #endif
 
-	double fStrengthRatio = (iDefenderStrength > 0)?(double(iAttackerStrength) / iDefenderStrength):double(iAttackerStrength);
-
-	// In case our strength is less than the other guy's, we'll do things in reverse then make the ratio 1 over the result
-	if(iDefenderStrength > iAttackerStrength)
-	{
-		fStrengthRatio = (double(iDefenderStrength) / iAttackerStrength);
-	}
-
-	fStrengthRatio = (fStrengthRatio + 3) / 4;
-	fStrengthRatio = pow(fStrengthRatio, 4.0);
-	fStrengthRatio = (fStrengthRatio + 1) / 2;
-
-	if(iDefenderStrength > iAttackerStrength)
-	{
-		fStrengthRatio = 1 / fStrengthRatio;
-	}
-
+	double fStrengthRatio = CvUnit::adjustedDamageRatio(iAttackerStrength, iDefenderStrength);
 	double fAttackerDamage = (double)iAttackerDamage * fStrengthRatio;
+
 	// Protect against it overflowing an int
 	if(fAttackerDamage > INT_MAX)
 		iAttackerDamage = INT_MAX;
@@ -13161,23 +13114,7 @@ int CvUnit::GetAirStrikeDefenseDamage(const CvUnit* pAttacker, bool bIncludeRand
 	iDefenderDamage = MAX(1, MIN(iDefenderDamage, GC.getMAX_HIT_POINTS() * 100)) * iDefenderDamageRatio / GetMaxHitPoints();
 #endif
 
-	double fStrengthRatio = (double(iDefenderStrength) / iAttackerStrength);
-
-	// In case our strength is less than the other guy's, we'll do things in reverse then make the ratio 1 over the result
-	if(iAttackerStrength > iDefenderStrength)
-	{
-		fStrengthRatio = (double(iAttackerStrength) / iDefenderStrength);
-	}
-
-	fStrengthRatio = (fStrengthRatio + 3) / 4;
-	fStrengthRatio = pow(fStrengthRatio, 4.0);
-	fStrengthRatio = (fStrengthRatio + 1) / 2;
-
-	if(iAttackerStrength > iDefenderStrength)
-	{
-		fStrengthRatio = 1 / fStrengthRatio;
-	}
-
+	double fStrengthRatio = CvUnit::adjustedDamageRatio(iDefenderStrength, iAttackerStrength);
 	iDefenderDamage = int(iDefenderDamage * fStrengthRatio);
 
 	// Bring it back out of hundreds
@@ -13382,23 +13319,7 @@ int CvUnit::GetInterceptionDamage(const CvUnit* pAttacker, bool bIncludeRand) co
 	iInterceptorDamage = MAX(1, MIN(iInterceptorDamage, GC.getMAX_HIT_POINTS() * 100)) * iInterceptorDamageRatio / GetMaxHitPoints();
 #endif
 
-	double fStrengthRatio = (double(iInterceptorStrength) / iAttackerStrength);
-
-	// In case our strength is less than the other guy's, we'll do things in reverse then make the ratio 1 over the result
-	if(iAttackerStrength > iInterceptorStrength)
-	{
-		fStrengthRatio = (double(iAttackerStrength) / iInterceptorStrength);
-	}
-
-	fStrengthRatio = (fStrengthRatio + 3) / 4;
-	fStrengthRatio = pow(fStrengthRatio, 4.0);
-	fStrengthRatio = (fStrengthRatio + 1) / 2;
-
-	if(iAttackerStrength > iInterceptorStrength)
-	{
-		fStrengthRatio = 1 / fStrengthRatio;
-	}
-
+	double fStrengthRatio = CvUnit::adjustedDamageRatio(iInterceptorStrength, iAttackerStrength);
 	iInterceptorDamage = int(iInterceptorDamage * fStrengthRatio);
 
 	// Mod to interception damage
