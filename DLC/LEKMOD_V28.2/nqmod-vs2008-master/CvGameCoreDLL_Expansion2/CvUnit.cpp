@@ -117,6 +117,13 @@ bool s_dispatchingNetMessage = false;
 
 OBJECT_VALIDATE_DEFINITION(CvUnit)
 
+// Special property to get unit range+ move possibility.
+int CvUnit::GetRangeWithMovement() const
+{
+	VALIDATE_OBJECT
+		return ((getDomainType() == DOMAIN_AIR) ? GetRange() : (GetRange() + baseMoves() - (isMustSetUpToRangedAttack() ? 1 : 0)));
+}
+
 //	--------------------------------------------------------------------------------
 // Public Functions...
 CvUnit::CvUnit() :
@@ -864,8 +871,6 @@ void CvUnit::initWithNameOffset(int iID, UnitTypes eUnit, int iNameOffset, UnitA
 		setupGraphical();
 
 }
-
-
 
 //	--------------------------------------------------------------------------------
 void CvUnit::uninit()
@@ -15819,7 +15824,11 @@ void CvUnit::SetCycleOrder(int iNewValue)
 //	--------------------------------------------------------------------------------
 bool CvUnit::IsRecon() const
 {
-	return GetReconCount() > 0;
+	// give AI players tons of free vision
+	if (m_eOwner != NO_PLAYER && !GET_PLAYER(m_eOwner).isHuman())
+		return true;
+	else
+		return GetReconCount() > 0;
 }
 
 //	--------------------------------------------------------------------------------
@@ -20661,6 +20670,195 @@ bool CvUnit::canRangeStrikeAt(int iX, int iY, bool bNeedWar, bool bNoncombatAllo
 	return true;
 }
 
+// Optimized function to evaluate free plots for move and fire.
+void CvUnit::GetMovablePlotListOpt(vector<CvPlot*>& plotData, CvPlot* plotTarget, bool exitOnFound)
+{
+	VALIDATE_OBJECT
+		int xVariance = max(abs((getX() - plotTarget->getX()) / 2), 1);
+	int yVariance = max(abs((getY() - plotTarget->getY()) / 2), 1);
+	int xMin = min(getX(), plotTarget->getX()) - yVariance;
+	int xMax = max(getX(), plotTarget->getX()) + yVariance;
+	int yMin = min(getY(), plotTarget->getY()) - xVariance;
+	int yMax = max(getY(), plotTarget->getY()) + xVariance;
+
+	for (int iDX = xMin; iDX <= xMax; iDX++)
+	{
+		for (int iDY = yMin; iDY <= yMax; iDY++)
+		{
+			if (GC.getMap().isPlot(iDX, iDY))
+			{
+				CvPlot* currentPlot = GC.getMap().plotCheckInvalid(iDX, iDY);
+
+				// Check is empty plot
+				if ((currentPlot != NULL) && !currentPlot->isImpassable() && !currentPlot->isUnit() && !currentPlot->isCity())
+				{
+					//Check plot is in unit range
+					if (GetRange() >= plotDistance(currentPlot->getX(), currentPlot->getY(), plotTarget->getX(), plotTarget->getY()))
+					{
+						if (TurnsToReachTarget(this, currentPlot, false /*bReusePaths*/, false /*bIgnoreUnits*/, true /*bIgnoreStacking*/) == 0)
+						{
+							// Can shoot to the target from plot?
+							if (canEverRangeStrikeAtFromPlot(plotTarget->getX(), plotTarget->getY(), currentPlot))
+							{
+								plotData.push_back(currentPlot);
+
+								if (exitOnFound)
+								{
+									return;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+bool CvUnit::canEverRangeStrikeAtFromPlot(int iX, int iY, CvPlot* pSourcePlot) const
+{
+	VALIDATE_OBJECT
+		CvPlot* pTargetPlot = GC.getMap().plot(iX, iY);
+
+	// Plot null?
+	if (NULL == pTargetPlot)
+	{
+		return false;
+	}
+
+	// Plot not visible?
+	if (!pTargetPlot->isVisible(getTeam()))
+	{
+		return false;
+	}
+
+	// Can only bombard in domain? (used for Subs' torpedo attack)
+	if (getUnitInfo().IsRangeAttackOnlyInDomain())
+	{
+		if (!pTargetPlot->isValidDomainForAction(*this))
+		{
+			return false;
+		}
+
+		// preventing submarines from shooting into lakes.
+		if (pSourcePlot->getArea() != pTargetPlot->getArea())
+		{
+			return false;
+		}
+	}
+
+	// In Range?
+	if (plotDistance(pSourcePlot->getX(), pSourcePlot->getY(), pTargetPlot->getX(), pTargetPlot->getY()) > GetRange())
+	{
+		return false;
+	}
+
+	// Ignores LoS or can see the plot directly?
+	if (!IsRangeAttackIgnoreLOS() && getDomainType() != DOMAIN_AIR)
+	{
+		if (!pSourcePlot->canSeePlot(pTargetPlot, getTeam(), GetRange(), getFacingDirection(true)))
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool CvUnit::IsCivilization(CivilizationTypes iCivilizationType) const
+{
+	return (GET_PLAYER(getOwner()).getCivilizationType() == iCivilizationType);
+}
+
+bool CvUnit::HasPromotion(PromotionTypes iPromotionType) const
+{
+	return isHasPromotion(iPromotionType);
+}
+
+bool CvUnit::IsUnit(UnitTypes iUnitType) const
+{
+	return (getUnitType() == iUnitType);
+}
+
+bool CvUnit::IsUnitClass(UnitClassTypes iUnitClassType) const
+{
+	return (getUnitClassType() == iUnitClassType);
+}
+
+bool CvUnit::IsOnFeature(FeatureTypes iFeatureType) const
+{
+	return plot()->HasFeature(iFeatureType);
+}
+
+bool CvUnit::IsAdjacentToFeature(FeatureTypes iFeatureType) const
+{
+	return plot()->IsAdjacentToFeature(iFeatureType);
+}
+
+bool CvUnit::IsWithinDistanceOfFeature(FeatureTypes iFeatureType, int iDistance) const
+{
+	return plot()->IsWithinDistanceOfFeature(iFeatureType, iDistance);
+}
+
+bool CvUnit::IsOnImprovement(ImprovementTypes iImprovementType) const
+{
+	return plot()->HasImprovement(iImprovementType);
+}
+
+bool CvUnit::IsAdjacentToImprovement(ImprovementTypes iImprovementType) const
+{
+	return plot()->IsAdjacentToImprovement(iImprovementType);
+}
+
+bool CvUnit::IsWithinDistanceOfImprovement(ImprovementTypes iImprovementType, int iDistance) const
+{
+	return plot()->IsWithinDistanceOfImprovement(iImprovementType, iDistance);
+}
+
+bool CvUnit::IsOnPlotType(PlotTypes iPlotType) const
+{
+	return plot()->HasPlotType(iPlotType);
+}
+
+bool CvUnit::IsAdjacentToPlotType(PlotTypes iPlotType) const
+{
+	return plot()->IsAdjacentToPlotType(iPlotType);
+}
+
+bool CvUnit::IsWithinDistanceOfPlotType(PlotTypes iPlotType, int iDistance) const
+{
+	return plot()->IsWithinDistanceOfPlotType(iPlotType, iDistance);
+}
+
+bool CvUnit::IsOnResource(ResourceTypes iResourceType) const
+{
+	return plot()->HasResource(iResourceType);
+}
+
+bool CvUnit::IsAdjacentToResource(ResourceTypes iResourceType) const
+{
+	return plot()->IsAdjacentToResource(iResourceType);
+}
+
+bool CvUnit::IsWithinDistanceOfResource(ResourceTypes iResourceType, int iDistance) const
+{
+	return plot()->IsWithinDistanceOfResource(iResourceType, iDistance);
+}
+
+bool CvUnit::IsOnTerrain(TerrainTypes iTerrainType) const
+{
+	return plot()->HasTerrain(iTerrainType);
+}
+
+bool CvUnit::IsAdjacentToTerrain(TerrainTypes iTerrainType) const
+{
+	return plot()->IsAdjacentToTerrain(iTerrainType);
+}
+
+bool CvUnit::IsWithinDistanceOfTerrain(TerrainTypes iTerrainType, int iDistance) const
+{
+	return plot()->IsWithinDistanceOfTerrain(iTerrainType, iDistance);
+}
 //	--------------------------------------------------------------------------------
 /// Can this Unit air sweep to eliminate interceptors?
 bool CvUnit::IsAirSweepCapable() const

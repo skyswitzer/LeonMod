@@ -20,6 +20,56 @@
 // must be included after all other headers
 #include "LintFree.h"
 
+int CvMilitaryAI::GetMaxPossibleInterceptions(CvPlot* pTargetPlot) const
+{
+	int iRtnValue = 0;
+
+	// Loop through all the players
+	for (int iI = 0; iI < MAX_PLAYERS; iI++)
+	{
+		CvPlayer& kPlayer = GET_PLAYER((PlayerTypes)iI);
+
+		if (kPlayer.isAlive() && kPlayer.GetID() != m_pPlayer->GetID())
+		{
+			if (atWar(kPlayer.getTeam(), m_pPlayer->getTeam()))
+			{
+				// Loop through their units looking for intercept capable units
+				int iLoopUnit = 0;
+
+				for (CvUnit* pLoopUnit = kPlayer.firstUnit(&iLoopUnit); pLoopUnit != NULL; pLoopUnit = kPlayer.nextUnit(&iLoopUnit))
+				{
+					// Must be able to intercept
+					if (!pLoopUnit->isDelayedDeath() && pLoopUnit->canAirDefend() && !pLoopUnit->isInCombat())
+					{
+						// Must still be able to intercept this turn.
+						if (!pLoopUnit->isOutOfInterceptions())
+						{
+							// Must either be a non-air Unit, or an air Unit that hasn't moved this turn
+							if ((pLoopUnit->getDomainType() != DOMAIN_AIR) || !(pLoopUnit->hasMoved()))
+							{
+								// Must either be a non-air Unit or an air Unit on intercept
+								if ((pLoopUnit->getDomainType() != DOMAIN_AIR) || (pLoopUnit->GetActivityType() == ACTIVITY_INTERCEPT))
+								{
+									// Test range
+									if (plotDistance(pLoopUnit->getX(), pLoopUnit->getY(), pTargetPlot->getX(), pTargetPlot->getY()) <= pLoopUnit->getUnitInfo().GetAirInterceptRange())
+									{
+										if (pLoopUnit->currInterceptionProbability() > 0)
+										{
+											iRtnValue++;
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return iRtnValue;
+}
+
 CvMilitaryAIStrategyXMLEntry::CvMilitaryAIStrategyXMLEntry(void):
 	m_piPlayerFlavorValue(NULL),
 	m_piCityFlavorValue(NULL),

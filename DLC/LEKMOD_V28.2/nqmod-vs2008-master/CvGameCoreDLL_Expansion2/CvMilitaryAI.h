@@ -160,6 +160,8 @@ enum CityAttackApproaches
 class CvMilitaryAI
 {
 public:
+	int GetMaxPossibleInterceptions(CvPlot* pCenterPlot) const;
+
 	CvMilitaryAI(void);
 	~CvMilitaryAI(void);
 	void Init(CvMilitaryAIStrategyXMLEntries* pAIStrategies, CvPlayer* pPlayer, CvDiplomacyAI* pDiplomacyAI);

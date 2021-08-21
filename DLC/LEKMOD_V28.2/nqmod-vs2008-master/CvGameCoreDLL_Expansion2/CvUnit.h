@@ -82,6 +82,10 @@ class CvUnit
 
 public:
 
+	int GetRangeWithMovement() const;
+	void GetMovablePlotListOpt(vector<CvPlot*>& plotData, CvPlot* plotTarget, bool exitOnFound);
+	bool canEverRangeStrikeAtFromPlot(int iX, int iY, CvPlot* pSourcePlot) const;
+
 	CvUnit();
 	~CvUnit();
 
@@ -1325,6 +1329,26 @@ public:
 
 	std::string debugDump(const FAutoVariableBase&) const;
 	std::string stackTraceRemark(const FAutoVariableBase&) const;
+
+	bool IsCivilization(CivilizationTypes iCivilizationType) const;
+	bool HasPromotion(PromotionTypes iPromotionType) const;
+	bool IsUnit(UnitTypes iUnitType) const;
+	bool IsUnitClass(UnitClassTypes iUnitClassType) const;
+	bool IsOnFeature(FeatureTypes iFeatureType) const;
+	bool IsAdjacentToFeature(FeatureTypes iFeatureType) const;
+	bool IsWithinDistanceOfFeature(FeatureTypes iFeatureType, int iDistance) const;
+	bool IsOnImprovement(ImprovementTypes iImprovementType) const;
+	bool IsAdjacentToImprovement(ImprovementTypes iImprovementType) const;
+	bool IsWithinDistanceOfImprovement(ImprovementTypes iImprovementType, int iDistance) const;
+	bool IsOnPlotType(PlotTypes iPlotType) const;
+	bool IsAdjacentToPlotType(PlotTypes iPlotType) const;
+	bool IsWithinDistanceOfPlotType(PlotTypes iPlotType, int iDistance) const;
+	bool IsOnResource(ResourceTypes iResourceType) const;
+	bool IsAdjacentToResource(ResourceTypes iResourceType) const;
+	bool IsWithinDistanceOfResource(ResourceTypes iResourceType, int iDistance) const;
+	bool IsOnTerrain(TerrainTypes iTerrainType) const;
+	bool IsAdjacentToTerrain(TerrainTypes iTerrainType) const;
+	bool IsWithinDistanceOfTerrain(TerrainTypes iTerrainType, int iDistance) const;
 
 #ifdef AUI_SCOPE_FIXES
 #ifdef AUI_UNIT_FIX_NO_RETREAT_ON_CIVILIAN_GUARD

@@ -85,6 +85,32 @@ class CvPlot
 {
 
 public:
+	bool isIce() const
+	{
+		return getFeatureType() == FEATURE_ICE;
+	};
+	bool IsCivilization(CivilizationTypes iCivilizationType) const;
+	bool HasFeature(FeatureTypes iFeatureType) const;
+	bool HasAnyNaturalWonder() const;
+	bool HasNaturalWonder(FeatureTypes iFeatureType) const;
+	bool HasResource(ResourceTypes iResourceType) const;
+	bool HasRoute(RouteTypes iRouteType) const;
+	bool HasTerrain(TerrainTypes iTerrainType) const;
+	bool IsFeatureLake() const;
+	bool IsFeatureRiver() const;
+	bool HasImprovement(ImprovementTypes iImprovementType) const;
+	bool HasPlotType(PlotTypes iPlotType) const;
+	bool IsAdjacentToFeature(FeatureTypes iFeatureType) const;
+	bool IsWithinDistanceOfFeature(FeatureTypes iFeatureType, int iDistance) const;
+	bool IsAdjacentToImprovement(ImprovementTypes iImprovementType) const;
+	bool IsWithinDistanceOfImprovement(ImprovementTypes iImprovementType, int iDistance) const;
+	bool IsAdjacentToPlotType(PlotTypes iPlotType) const;
+	bool IsWithinDistanceOfPlotType(PlotTypes iPlotType, int iDistance) const;
+	bool IsAdjacentToResource(ResourceTypes iResourceType) const;
+	bool IsWithinDistanceOfResource(ResourceTypes iResourceType, int iDistance) const;
+	bool IsAdjacentToTerrain(TerrainTypes iTerrainType) const;
+	bool IsWithinDistanceOfTerrain(TerrainTypes iTerrainType, int iDistance) const;
+
 	CvPlot();
 	~CvPlot();
 
@@ -120,6 +146,7 @@ public:
 	bool isAdjacentToLand_Cached() const { return m_bIsAdjacentToLand; }
 	bool isShallowWater() const;
 	bool isAdjacentToShallowWater() const;
+	bool isAdjacentToIce() const;
 	bool isCoastalLand(int iMinWaterSize = -1) const;
 	int GetSizeLargestAdjacentWater() const;
 
@@ -146,8 +173,9 @@ public:
 	bool shouldProcessDisplacementPlot(int dx, int dy, int range, DirectionTypes eFacingDirection) const;
 	void updateSight(bool bIncrement);
 	void updateSeeFromSight(bool bIncrement);
+	bool HasDig();
 
-	bool canHaveResource(ResourceTypes eResource, bool bIgnoreLatitude = false) const;
+	bool canHaveResource(ResourceTypes eResource, bool bIgnoreLatitude = false, bool bIgnoreCiv = false) const;
 	bool canHaveImprovement(ImprovementTypes eImprovement, TeamTypes eTeam = NO_TEAM, bool bOnlyTestVisible = false) const;
 
 	bool canBuild(BuildTypes eBuild, PlayerTypes ePlayer = NO_PLAYER, bool bTestVisible = false, bool bTestPlotOwner = true) const;

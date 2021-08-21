@@ -969,6 +969,249 @@ bool CvPlot::isAdjacentToShallowWater() const
 	return false;
 }
 
+bool CvPlot::IsCivilization(CivilizationTypes iCivilizationType) const
+{
+	return (GET_PLAYER(getOwner()).getCivilizationType() == iCivilizationType);
+}
+
+bool CvPlot::HasFeature(FeatureTypes iFeatureType) const
+{
+	if (iFeatureType == (FeatureTypes)GC.getInfoTypeForString("FEATURE_LAKE")) {
+		return IsFeatureLake();
+	}
+	else if (iFeatureType == (FeatureTypes)GC.getInfoTypeForString("FEATURE_RIVER")) {
+		return IsFeatureRiver();
+	}
+
+	return (getFeatureType() == iFeatureType);
+}
+
+bool CvPlot::IsFeatureLake() const
+{
+	return isLake();
+}
+
+bool CvPlot::IsFeatureRiver() const
+{
+	return isRiver();
+}
+
+bool CvPlot::HasAnyNaturalWonder() const
+{
+	return IsNaturalWonder();
+}
+
+bool CvPlot::HasNaturalWonder(FeatureTypes iFeatureType) const
+{
+	return HasFeature(iFeatureType);
+}
+
+bool CvPlot::HasImprovement(ImprovementTypes iImprovementType) const
+{
+	return (getImprovementType() == iImprovementType);
+}
+
+bool CvPlot::HasPlotType(PlotTypes iPlotType) const
+{
+	return (getPlotType() == iPlotType);
+}
+
+bool CvPlot::HasResource(ResourceTypes iResourceType) const
+{
+	return (getResourceType() == iResourceType);
+}
+
+bool CvPlot::HasRoute(RouteTypes iRouteType) const
+{
+	return (getRouteType() == iRouteType);
+}
+
+bool CvPlot::HasTerrain(TerrainTypes iTerrainType) const
+{
+	return (getTerrainType() == iTerrainType);
+}
+
+bool CvPlot::IsAdjacentToFeature(FeatureTypes iFeatureType) const
+{
+	int iX = getX(); int iY = getY();
+
+	for (int iDirection = 0; iDirection < NUM_DIRECTION_TYPES; iDirection++) {
+		CvPlot* pLoopPlot = plotDirection(iX, iY, (DirectionTypes)iDirection);
+
+		if (pLoopPlot != NULL && pLoopPlot->HasFeature(iFeatureType)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool CvPlot::IsWithinDistanceOfFeature(FeatureTypes iFeatureType, int iDistance) const
+{
+	int iX = getX(); int iY = getY();
+
+	for (int i = -iDistance; i <= iDistance; ++i) {
+		for (int j = -iDistance; j <= iDistance; ++j) {
+			CvPlot* pLoopPlot = ::plotXYWithRangeCheck(iX, iY, i, j, iDistance);
+
+			if (pLoopPlot != NULL && pLoopPlot->HasFeature(iFeatureType)) {
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+bool CvPlot::IsAdjacentToImprovement(ImprovementTypes iImprovementType) const
+{
+	int iX = getX(); int iY = getY();
+
+	for (int iDirection = 0; iDirection < NUM_DIRECTION_TYPES; iDirection++) {
+		CvPlot* pLoopPlot = plotDirection(iX, iY, (DirectionTypes)iDirection);
+
+		if (pLoopPlot != NULL && pLoopPlot->HasImprovement(iImprovementType)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool CvPlot::IsWithinDistanceOfImprovement(ImprovementTypes iImprovementType, int iDistance) const
+{
+	int iX = getX(); int iY = getY();
+
+	for (int i = -iDistance; i <= iDistance; ++i) {
+		for (int j = -iDistance; j <= iDistance; ++j) {
+			CvPlot* pLoopPlot = ::plotXYWithRangeCheck(iX, iY, i, j, iDistance);
+
+			if (pLoopPlot != NULL && pLoopPlot->HasImprovement(iImprovementType)) {
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+bool CvPlot::IsAdjacentToPlotType(PlotTypes iPlotType) const
+{
+	int iX = getX(); int iY = getY();
+
+	for (int iDirection = 0; iDirection < NUM_DIRECTION_TYPES; iDirection++) {
+		CvPlot* pLoopPlot = plotDirection(iX, iY, (DirectionTypes)iDirection);
+
+		if (pLoopPlot != NULL && pLoopPlot->HasPlotType(iPlotType)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool CvPlot::IsWithinDistanceOfPlotType(PlotTypes iPlotType, int iDistance) const
+{
+	int iX = getX(); int iY = getY();
+
+	for (int i = -iDistance; i <= iDistance; ++i) {
+		for (int j = -iDistance; j <= iDistance; ++j) {
+			CvPlot* pLoopPlot = ::plotXYWithRangeCheck(iX, iY, i, j, iDistance);
+
+			if (pLoopPlot != NULL && pLoopPlot->HasPlotType(iPlotType)) {
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+bool CvPlot::IsAdjacentToResource(ResourceTypes iResourceType) const
+{
+	int iX = getX(); int iY = getY();
+
+	for (int iDirection = 0; iDirection < NUM_DIRECTION_TYPES; iDirection++) {
+		CvPlot* pLoopPlot = plotDirection(iX, iY, (DirectionTypes)iDirection);
+
+		if (pLoopPlot != NULL && pLoopPlot->HasResource(iResourceType)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool CvPlot::IsWithinDistanceOfResource(ResourceTypes iResourceType, int iDistance) const
+{
+	int iX = getX(); int iY = getY();
+
+	for (int i = -iDistance; i <= iDistance; ++i) {
+		for (int j = -iDistance; j <= iDistance; ++j) {
+			CvPlot* pLoopPlot = ::plotXYWithRangeCheck(iX, iY, i, j, iDistance);
+
+			if (pLoopPlot != NULL && pLoopPlot->HasResource(iResourceType)) {
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+bool CvPlot::IsAdjacentToTerrain(TerrainTypes iTerrainType) const
+{
+	int iX = getX(); int iY = getY();
+
+	for (int iDirection = 0; iDirection < NUM_DIRECTION_TYPES; iDirection++) {
+		CvPlot* pLoopPlot = plotDirection(iX, iY, (DirectionTypes)iDirection);
+
+		if (pLoopPlot != NULL && pLoopPlot->HasTerrain(iTerrainType)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool CvPlot::IsWithinDistanceOfTerrain(TerrainTypes iTerrainType, int iDistance) const
+{
+	int iX = getX(); int iY = getY();
+
+	for (int i = -iDistance; i <= iDistance; ++i) {
+		for (int j = -iDistance; j <= iDistance; ++j) {
+			CvPlot* pLoopPlot = ::plotXYWithRangeCheck(iX, iY, i, j, iDistance);
+
+			if (pLoopPlot != NULL && pLoopPlot->HasTerrain(iTerrainType)) {
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+//	--------------------------------------------------------------------------------
+bool CvPlot::isAdjacentToIce() const
+{
+	CvPlot* pAdjacentPlot;
+	int iI;
+
+	for (iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+	{
+		pAdjacentPlot = plotDirection(getX(), getY(), ((DirectionTypes)iI));
+
+		if (pAdjacentPlot != NULL)
+		{
+			if (pAdjacentPlot->isIce())
+			{
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
 
 //	--------------------------------------------------------------------------------
 bool CvPlot::isCoastalLand(int iMinWaterSize) const
@@ -1945,109 +2188,111 @@ void CvPlot::updateSeeFromSight(bool bIncrement)
 
 
 //	--------------------------------------------------------------------------------
-bool CvPlot::canHaveResource(ResourceTypes eResource, bool bIgnoreLatitude) const
+bool CvPlot::canHaveResource(ResourceTypes eResource, bool bIgnoreLatitude, bool bIgnoreCiv) const
 {
 	CvAssertMsg(getTerrainType() != NO_TERRAIN, "TerrainType is not assigned a valid value");
 
-	if(eResource == NO_RESOURCE)
+	if (eResource == NO_RESOURCE)
 	{
 		return true;
 	}
 
-	if(getResourceType() != NO_RESOURCE)
+	if (getResourceType() != NO_RESOURCE)
 	{
 		return false;
 	}
 
-	if(isMountain())
+	if (isMountain())
 	{
 		return false;
 	}
 
 	CvResourceInfo& thisResourceInfo = *GC.getResourceInfo(eResource);
-	if(getFeatureType() != NO_FEATURE)
+	if (getFeatureType() != NO_FEATURE)
 	{
-		if(!(thisResourceInfo.isFeature(getFeatureType())))
+		if (!(thisResourceInfo.isFeature(getFeatureType())))
 		{
 			return false;
 		}
 
-		if(!(thisResourceInfo.isFeatureTerrain(getTerrainType())))
+		if (!(thisResourceInfo.isFeatureTerrain(getTerrainType())))
 		{
 			return false;
 		}
 	}
 	else
 	{
-		if(!(thisResourceInfo.isTerrain(getTerrainType())))
+		if (!(thisResourceInfo.isTerrain(getTerrainType())))
 		{
 			return false;
 		}
 	}
 
-	if(isHills())
+	if (isHills())
 	{
-		if(!(thisResourceInfo.isHills()))
+		if (!(thisResourceInfo.isHills()))
 		{
 			return false;
 		}
 	}
-	else if(isFlatlands())
+	else if (isFlatlands())
 	{
-		if(!(thisResourceInfo.isFlatlands()))
-		{
-			return false;
-		}
-	}
-
-	if(thisResourceInfo.isNoRiverSide())
-	{
-		if(isRiverSide())
+		if (!(thisResourceInfo.isFlatlands()))
 		{
 			return false;
 		}
 	}
 
-	if(thisResourceInfo.getMinAreaSize() != -1)
+	if (thisResourceInfo.isNoRiverSide())
 	{
-		if(area()->getNumTiles() < thisResourceInfo.getMinAreaSize())
+		if (isRiverSide())
 		{
 			return false;
 		}
 	}
 
-	if(thisResourceInfo.isOnlyMinorCivs())
+	if (thisResourceInfo.getMinAreaSize() != -1)
+	{
+		if (area()->getNumTiles() < thisResourceInfo.getMinAreaSize())
+		{
+			return false;
+		}
+	}
+
+	if (!bIgnoreCiv && thisResourceInfo.isOnlyMinorCivs())
+
 	{
 		return false;
 	}
 
-	if (thisResourceInfo.GetRequiredCivilization() != NO_CIVILIZATION)
+	if (!bIgnoreCiv && thisResourceInfo.GetRequiredCivilization() != NO_CIVILIZATION)
+
 	{
 		return false;
 	}
 
-	if(!bIgnoreLatitude)
+	if (!bIgnoreLatitude)
 	{
-		if(getLatitude() > thisResourceInfo.getMaxLatitude())
+		if (getLatitude() > thisResourceInfo.getMaxLatitude())
 		{
 			return false;
 		}
 
-		if(getLatitude() < thisResourceInfo.getMinLatitude())
+		if (getLatitude() < thisResourceInfo.getMinLatitude())
 		{
 			return false;
 		}
 	}
 
-	if(!isPotentialCityWork())
+	if (!isPotentialCityWork())
 	{
 		return false;
 	}
 
-	TerrainTypes eShallowWater = (TerrainTypes) GC.getSHALLOW_WATER_TERRAIN();
-	if(getTerrainType() == eShallowWater)
+	TerrainTypes eShallowWater = (TerrainTypes)GC.getSHALLOW_WATER_TERRAIN();
+	if (getTerrainType() == eShallowWater)
 	{
-		if(!isAdjacentToLand())
+		if (!isAdjacentToLand())
 		{
 			return false;
 		}
@@ -2056,7 +2301,6 @@ bool CvPlot::canHaveResource(ResourceTypes eResource, bool bIgnoreLatitude) cons
 
 	return true;
 }
-
 
 //	--------------------------------------------------------------------------------
 bool CvPlot::canHaveImprovement(ImprovementTypes eImprovement, TeamTypes eTeam, bool) const

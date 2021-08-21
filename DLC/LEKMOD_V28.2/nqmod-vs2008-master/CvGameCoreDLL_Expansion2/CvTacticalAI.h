@@ -883,6 +883,7 @@ private:
 	void PlotDefensiveAirlifts();
 	void PlotEscortEmbarkedMoves();
 	void ReviewUnassignedUnits();
+	void PlotNavalEscortOption();
 
 	// Operational AI support functions
 	void PlotSingleHexOperationMoves(CvAIEscortedOperation* pOperation);
@@ -897,6 +898,7 @@ private:
 	bool ScoreFormationPlots(CvArmyAI* pArmy, CvPlot* pForwardTarget, CvPlot *pCurrentCOM, int iNumUnits);
 	void ExecuteNavalFormationMoves(CvArmyAI* pArmy, CvPlot* pTurnTarget);
 	bool PlotEscortNavalOperationMoves(CvArmyAI* pArmy);
+	void PlotEscortNavalInvasion(CvAINavalEscortedOperation* pOperation);
 	void ExecuteFleetMoveToTarget(CvArmyAI* pArmy, CvPlot* pTarget);
 
 	// Routines to process and sort targets
@@ -938,8 +940,12 @@ private:
 	void ExecutePriorityAttacksOnUnitTarget(CvTacticalTarget& kTarget);
 	void ExecuteWithdrawMoves();
 	void ExecuteEscortEmbarkedMoves();
+	void ExecuteEscortEmbarkedOptionMoves(CvPlot* pTargetPlot);
 
 	// Internal low-level utility routines
+	CvPlot* GetBestRepositionPlot(UnitHandle unitH, CvPlot* plotTarget);
+	void GetBestPlot(CvPlot*& outputPlot, vector<CvPlot*> plotsToCheck);
+	bool ContainsPlot(vector<CvPlot*> plotData, CvPlot* plotXy);
 	void TurnOffMove(TacticalAIMoveTypes eType);
 	bool FindUnitsForThisMove(TacticalAIMoveTypes eMove, CvPlot* pTargetPlot, int iNumTurnsAway=0, bool bRangedOnly=false);
 	bool FindUnitsWithinStrikingDistance(CvPlot *pTargetPlot, int iNumTurnsAway, int iPreferredDamageLevel, bool bNoRangedUnits=false, bool bNavalOnly=false, bool bMustMoveThrough=false, bool bIncludeBlockedUnits=false, bool bWillPillage=false, bool bTargetUndefended=false);
@@ -948,6 +954,10 @@ private:
 	bool FindClosestUnit(CvPlot* pTargetPlot, int iNumTurnsAway, bool bMustHaveHalfHP, bool bMustBeRangedUnit=false, int iRangeRequired=2, bool bNeedsIgnoreLOS=false, bool bMustBeMeleeUnit=false, bool bIgnoreUnits=false, CvPlot* pRangedAttackTarget=NULL);
 	bool FindClosestOperationUnit(CvPlot* pTargetPlot, bool bSafeForRanged, bool bMustBeRangedUnit);
 	bool FindClosestNavalOperationUnit(CvPlot* pTargetPlot, bool bEscortedUnits);
+public:
+		int SamePlotFound(vector<CvPlot*> plotData, CvPlot* plotXy);
+private:
+	bool FindAirUnitsToAirSweep(CvPlot* pTarget);
 	int ComputeTotalExpectedDamage(CvTacticalTarget* target, CvPlot* pTargetPlot);
 	int ComputeTotalExpectedBombardDamage(UnitHandle pTarget);
 #ifdef AUI_CONSTIFY
@@ -996,6 +1006,7 @@ private:
 	CvPlayer* m_pPlayer;
 	CvTacticalAnalysisMap* m_pMap;
 	list<int> m_CurrentTurnUnits;
+	std::vector<CvTacticalUnit> m_CurrentAirUnits;
 	std::vector<CvTacticalUnit> m_CurrentMoveUnits;
 	std::vector<CvTacticalUnit> m_CurrentMoveHighPriorityUnits;
 	std::vector<CvTacticalCity> m_CurrentMoveCities;
