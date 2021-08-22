@@ -1,62 +1,13 @@
 
-fix double log goody huts
-reduce 25% the ratio after the normal calculation
+gatling and machine gun range
 
-
-
-
-
-
-
-Center of progress description
-XCOM teleportation too good
 Aircraft rebase range display
 Aircraft rebase extra dist damage
 Aircraft retreat
-Multiple nuke types
 Space ship part Wonder op, capital should take 4 turns at minimum to complete one
-Give ai much better vision
 
-redo branches so main is v2
-
-consider more of leons old changes
-
-airport description
-city state war should not prevent allyship
-gatling gun
-ironclad should mention its double move
-fix ironclad move (just 5 moves)
-atoll enable improvement
 urbanization happiness
 future tech military advantage?
-
 national wonder, defensive building
 
 
-Restrict civs to:
-	Iroquois
-	Shoshone
-	Aztec
-	Inca
-	Maya
-
-	England
-	Rome
-	Russia
-	Spain
-	Songhai
-
-	Zulu
-	Kongo
-	Egypt
-	Babylon
-	Arabia
-
-	India
-	Japan
-	China
-	Mongolian
-	Indonesia
-
-
-the the the
