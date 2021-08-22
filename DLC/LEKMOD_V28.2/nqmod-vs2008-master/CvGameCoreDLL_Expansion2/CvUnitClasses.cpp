@@ -523,7 +523,7 @@ int CvUnitEntry::GetRange() const
 /// Air interception range
 int CvUnitEntry::GetAirInterceptRange() const
 {
-	return m_iAirInterceptRange;
+	return m_iRange; // m_iAirInterceptRange;
 }
 
 /// How many air units does this count as?

@@ -1145,7 +1145,7 @@ void CvUnitCombat::ResolveRangedUnitVsCombat(const CvCombatInfo& kCombatInfo, ui
 #endif
 					if(pCity->getOwner() == GC.getGame().getActivePlayer())
 					{
-						strBuffer = GetLocalizedText("TXT_KEY_MISC_YOUR_CITY_ATTACKED_BY_AIR", pCity->getNameKey(), pkAttacker->getNameKey(), iDamage);
+						strBuffer = GetLocalizedText("TXT_KEY_MISC_YOUR_ATTACKED_BY_THEM_AIR", pCity->getNameKey(), pkAttacker->getNameKey(), iDamage);
 						//red icon over attacking unit
 						GC.messagePlayer(uiParentEventID, pCity->getOwner(), false, GC.getEVENT_MESSAGE_TIME(), strBuffer/*, "AS2D_COMBAT", MESSAGE_TYPE_INFO, pkAttacker->m_pUnitInfo->GetButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pkAttacker->getX(), pkAttacker->getY(), true, true*/);
 					}
@@ -1536,25 +1536,32 @@ void CvUnitCombat::GenerateAirCombatInfo(CvUnit& kAttacker, CvUnit* pkDefender, 
 	pkCombatInfo->setUnit(BATTLE_UNIT_DEFENDER, pkDefender);
 	pkCombatInfo->setPlot(&plot);
 
+
 	//////////////////////////////////////////////////////////////////////
-
-	// Any interception to be done?
-	CvUnit* pInterceptor = kAttacker.GetBestInterceptor(plot, pkDefender);
-	int iInterceptionDamage = 0;
-
-	// 0 evasion means it cannot be intercepted
-	if(kAttacker.evasionProbability() != 0 && pInterceptor != NULL)
+	float attackReduction = 1; // we will deal this much less damage than we otherwise would have due to interception
+	int iInterceptionDamage = 0; // how much damage does the attacker take from the interception
+	
 	{
-		pkCombatInfo->setUnit(BATTLE_UNIT_INTERCEPTOR, pInterceptor);
-		int evasion = kAttacker.evasionProbability();
-		int intercept = pInterceptor->currInterceptionProbability();
-		// Does the attacker evade?
-		if(intercept != 0 && GC.getGame().getJonRandNum(intercept + evasion, "Evasion Rand") < intercept)
+		CvUnit* pInterceptor = kAttacker.GetBestInterceptor(plot, pkDefender);
+		bool attackerIsInterceptable = kAttacker.evasionProbability() > 0;
+		bool interceptorExists = pInterceptor != NULL;
+
+		if (interceptorExists && attackerIsInterceptable)
 		{
+			pkCombatInfo->setUnit(BATTLE_UNIT_INTERCEPTOR, pInterceptor);
 			iInterceptionDamage = pInterceptor->GetInterceptionDamage(&kAttacker);
+			pkCombatInfo->setDamageInflicted(BATTLE_UNIT_INTERCEPTOR, iInterceptionDamage);		// Damage inflicted this round
+
+			const int evasion = kAttacker.evasionProbability();
+			const int interception = pInterceptor->currInterceptionProbability();
+			if (evasion > 0 && interception > 0)
+			{
+				float total = evasion + interception;
+				attackReduction = evasion / total;
+			}
 		}
-		pkCombatInfo->setDamageInflicted(BATTLE_UNIT_INTERCEPTOR, iInterceptionDamage);		// Damage inflicted this round
 	}
+
 
 	//////////////////////////////////////////////////////////////////////
 
@@ -1651,6 +1658,9 @@ void CvUnitCombat::GenerateAirCombatInfo(CvUnit& kAttacker, CvUnit* pkDefender, 
 			}
 		}
 	}
+
+	iAttackerDamageInflicted *= attackReduction;
+
 	//////////////////////////////////////////////////////////////////////
 
 	pkCombatInfo->setFinalDamage(BATTLE_UNIT_ATTACKER, iDefenderTotalDamageInflicted);				// Total damage to the unit
@@ -1703,6 +1713,160 @@ void CvUnitCombat::GenerateAirCombatInfo(CvUnit& kAttacker, CvUnit* pkDefender, 
 	GC.GetEngineUserInterface()->setDirty(UnitInfo_DIRTY_BIT, true);
 }
 
+
+
+//void handleMessages(
+//	int uiParentEventID,
+//
+//	PlayerTypes attackPlayer,
+//	string attackPlayerName,
+//	string attackUnitName,
+//	int attackDamage,
+//	bool attackDied,
+//
+//	PlayerTypes defendPlayer,
+//	string defendPlayerName,
+//	string defendUnitName,
+//	int defendDamage,
+//	bool defendDied,
+//
+//	PlayerTypes interceptPlayer,
+//	string interceptPlayerName,
+//	string interceptUnitName,
+//	int interceptDamage
+//)
+//{
+//	CvString strAttacker;
+//	CvString strDefender;
+//
+//
+//	if (pkTargetPlot)
+//	{
+//		if (!pkTargetPlot->isCity())
+//		{
+//			// Target was a Unit
+//			CvUnit* pkDefender = kCombatInfo.getUnit(BATTLE_UNIT_DEFENDER);
+//			CvAssert_Debug(pkDefender != NULL);
+//
+//			if (pkDefender)
+//			{
+//				if (pkAttacker)
+//				{
+//					// Update experience
+//					pkDefender->changeExperience(
+//						kCombatInfo.getExperience(BATTLE_UNIT_DEFENDER),
+//						kCombatInfo.getMaxExperienceAllowed(BATTLE_UNIT_DEFENDER),
+//						true,
+//						kCombatInfo.getInBorders(BATTLE_UNIT_DEFENDER),
+//						kCombatInfo.getUpdateGlobal(BATTLE_UNIT_DEFENDER));
+//
+//					// Attacker died
+//					if (attackDied)
+//					{
+//						strAttacker = GetLocalizedText("TXT_KEY_MISC_YOU_UNIT_DIED_ATTACKING", attackUnitName, defendUnitName, iAttackerDamageInflicted);
+//						strDefender = GetLocalizedText("TXT_KEY_MISC_YOU_KILLED_ENEMY_UNIT", defendUnitName, iAttackerDamageInflicted, 0, attackUnitName, pkAttacker->getVisualCivAdjective(pkDefender->getTeam()));
+//
+//						ApplyPostCombatTraitEffects(pkDefender, pkAttacker);
+//					}
+//					// Defender died
+//					else if (defendDied)
+//					{
+//						CvPlayerAI& kAttackerOwner = GET_PLAYER(pkAttacker->getOwner());
+//						kAttackerOwner.GetPlayerAchievements().KilledUnitWithUnit(pkAttacker, pkDefender);
+//
+//						strAttacker = GetLocalizedText("TXT_KEY_MISC_YOU_ATTACK_BY_AIR_AND_DEATH", attackUnitName, defendUnitName);
+//						strDefender = GetLocalizedText("TXT_KEY_MISC_YOU_ARE_ATTACKED_BY_AIR_AND_DEATH", defendUnitName, attackUnitName);
+//
+//						// special death notification
+//						CvNotifications* pNotifications = GET_PLAYER(pkDefender->getOwner()).GetNotifications();
+//						if (pNotifications)
+//						{
+//							Localization::String strSummary = Localization::Lookup("TXT_KEY_UNIT_LOST");
+//							pNotifications->Add(NOTIFICATION_UNIT_DIED, strBuffer, strSummary.toUTF8(), pkDefender->getX(), pkDefender->getY(), (int)pkDefender->getUnitType(), pkDefender->getOwner());
+//						}
+//
+//						ApplyPostCombatTraitEffects(pkAttacker, pkDefender);
+//					}
+//					else // Nobody died
+//					{
+//						strAttacker = GetLocalizedText("TXT_KEY_MISC_YOU_ATTACK_BY_AIR", attackUnitName, defendUnitName, iDefenderDamageInflicted);
+//						strDefender = GetLocalizedText("TXT_KEY_MISC_YOU_ARE_ATTACKED_BY_AIR", defendUnitName, attackUnitName, iAttackerDamageInflicted);
+//					}
+//				}
+//
+//
+//				if (interceptDamage > 0) // handle interception
+//				{
+//					CvString strInterceptor = GetLocalizedText("TXT_KEY_MISC_ENEMY_AIR_UNIT_INTERCEPTED", interceptUnitName, attackPlayerName, attackUnitName, interceptDamage);
+//					GC.messagePlayer(uiParentEventID, interceptPlayer, true, GC.getEVENT_MESSAGE_TIME(), strInterceptor);
+//
+//					CvString strInterceptee = GetLocalizedText("TXT_KEY_MISC_FRIENDLY_AIR_UNIT_INTERCEPTED", attackUnitName, interceptPlayerName, interceptUnitName, interceptDamage);
+//					GC.messagePlayer(uiParentEventID, attackPlayer, true, GC.getEVENT_MESSAGE_TIME(), strBuffer);
+//				}
+//
+//				GC.messagePlayer(uiParentEventID, attackPlayer, true, GC.getEVENT_MESSAGE_TIME(), strAttacker);
+//				GC.messagePlayer(uiParentEventID, pkDefender->getOwner(), true, GC.getEVENT_MESSAGE_TIME(), strDefender);
+//
+//				//set damage but don't update entity damage visibility
+//				//pkDefender->changeDamage(iDamage, pkAttacker->getOwner());
+//
+//				pkDefender->setCombatUnit(NULL);
+//				if (!CvUnitMission::IsHeadMission(pkDefender, CvTypes::getMISSION_WAIT_FOR()))		// If the top mission was not a 'wait for', then clear it.
+//					pkDefender->ClearMissionQueue();
+//			}
+//			else
+//			{
+//				bTargetDied = true;
+//			}
+//		}
+//		else
+//		{
+//			// Target was a City
+//			CvCity* pCity = pkTargetPlot->getPlotCity();
+//			CvAssert_Debug(pCity != NULL);
+//
+//			if (pCity)
+//			{
+//				pCity->clearCombat();
+//				if (pkAttacker)
+//				{
+//					pCity->changeDamage(iAttackerDamageInflicted);
+//					pkAttacker->changeDamage(iDefenderDamageInflicted, pCity->getOwner());
+//
+//					//		iUnitDamage = std::max(pCity->getDamage(), pCity->getDamage() + iDamage);
+//
+//					if (pkAttacker->IsDead())
+//					{
+//						if (iActivePlayerID == pkAttacker->getOwner())
+//						{
+//							strBuffer = GetLocalizedText("TXT_KEY_MISC_YOU_UNIT_DIED_ATTACKING_CITY", pkAttacker->getNameKey(), pCity->getNameKey(), iAttackerDamageInflicted);
+//							GC.messagePlayer(uiParentEventID, pkAttacker->getOwner(), true, GC.getEVENT_MESSAGE_TIME(), strBuffer/*, GC.getEraInfo(GC.getGame().getCurrentEra())->getAudioUnitDefeatScript(), MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pkTargetPlot->getX(), pkTargetPlot->getY()*/);
+//						}
+//					}
+//
+//					if (pCity->getOwner() == iActivePlayerID)
+//					{
+//						strBuffer = GetLocalizedText("TXT_KEY_MISC_YOUR_ATTACKED_BY_THEM_AIR", pCity->getNameKey(), pkAttacker->getNameKey(), iDefenderDamageInflicted);
+//						//red icon over attacking unit
+//						GC.messagePlayer(uiParentEventID, pCity->getOwner(), false, GC.getEVENT_MESSAGE_TIME(), strBuffer);
+//					}
+//				}
+//			}
+//			else
+//			{
+//				bTargetDied = true;
+//			}
+//		}
+//	}
+//	else
+//	{
+//		bTargetDied = true;
+//	}
+//}
+
+
+
+
 //	ResolveAirUnitVsCombat
 //	Function: ResolveRangedUnitVsCombat
 //	Resolve air combat where the attacker is a unit.  This will handle
@@ -1710,260 +1874,200 @@ void CvUnitCombat::GenerateAirCombatInfo(CvUnit& kAttacker, CvUnit* pkDefender, 
 //	---------------------------------------------------------------------------
 void CvUnitCombat::ResolveAirUnitVsCombat(const CvCombatInfo& kCombatInfo, uint uiParentEventID)
 {
+	CvUnit* attacker = kCombatInfo.getUnit(BATTLE_UNIT_ATTACKER);	
+	CvAssert_Debug(attacker); 
+	if (attacker == NULL) return; // If there's no valid attacker, then get out of here
+
+	PlayerTypes attackOwner = NO_PLAYER;
+	PlayerTypes defendOwner = NO_PLAYER;
+	CvString strAttacker = "";
+	CvString strDefender = "";
+	CvString strAttackerDied = "";
+	CvString strDefenderDied = "";
 	bool bTargetDied = false;
-	int iAttackerDamageInflicted = kCombatInfo.getDamageInflicted(BATTLE_UNIT_ATTACKER);
-	int iDefenderDamageInflicted = kCombatInfo.getDamageInflicted(BATTLE_UNIT_DEFENDER);
+	int totalDamageToDefender = kCombatInfo.getDamageInflicted(BATTLE_UNIT_ATTACKER);
+	int damageToAttackerBase = kCombatInfo.getDamageInflicted(BATTLE_UNIT_DEFENDER);
+	int totalDamageToAttacker = damageToAttackerBase;
 
-	CvUnit* pkAttacker = kCombatInfo.getUnit(BATTLE_UNIT_ATTACKER);
-
-	// If there's no valid attacker, then get out of here
-	CvAssert_Debug(pkAttacker);
+	attackOwner = attacker->getOwner();
 
 	// Interception?
-	int iInterceptionDamage = kCombatInfo.getDamageInflicted(BATTLE_UNIT_INTERCEPTOR);
-	if(iInterceptionDamage > 0)
-		iDefenderDamageInflicted += iInterceptionDamage;
-
-	CvUnit* pInterceptor = kCombatInfo.getUnit(BATTLE_UNIT_INTERCEPTOR);
-	CvAssert_Debug(pInterceptor);
-	if(pInterceptor)
+	CvUnit* interceptor = kCombatInfo.getUnit(BATTLE_UNIT_INTERCEPTOR);
+	if(interceptor)
 	{
-		pInterceptor->setMadeInterception(true);
-		pInterceptor->setCombatUnit(NULL);
-		pInterceptor->changeExperience(
+		int interceptDamage = kCombatInfo.getDamageInflicted(BATTLE_UNIT_INTERCEPTOR);
+		if (interceptDamage > 0)
+			totalDamageToAttacker += interceptDamage;
+
+		interceptor->setMadeInterception(true);
+		interceptor->setCombatUnit(NULL);
+		interceptor->changeExperience(
 			kCombatInfo.getExperience(BATTLE_UNIT_INTERCEPTOR),
 			kCombatInfo.getMaxExperienceAllowed(BATTLE_UNIT_INTERCEPTOR),
 			true,
 			kCombatInfo.getInBorders(BATTLE_UNIT_INTERCEPTOR),
 			kCombatInfo.getUpdateGlobal(BATTLE_UNIT_INTERCEPTOR));
+
+
+		if (interceptor && interceptDamage > 0) // handle interception
+		{
+			string message = "Your {1_UnitName} intercepted a {2_owner_adjective} {3_EnUName} and dealt {4_damage} damage to it.";
+			CvString strInterceptor = GetLocalizedText(message.c_str(), interceptor->getNameKey(), attacker->getVisualCivAdjective(attacker->getTeam()), attacker->getNameKey(), interceptDamage);
+			GC.messagePlayer(uiParentEventID, interceptor->getOwner(), true, GC.getEVENT_MESSAGE_TIME(), strInterceptor);
+
+			CvString strInterceptee = GetLocalizedText("Your {1_UnitName} was intercepted by a {2_owner_adjective} {3_EnUName} which dealt {4_damage} damage to it.", attacker->getNameKey(), interceptor->getVisualCivAdjective(interceptor->getTeam()), interceptor->getNameKey(), interceptDamage);
+			GC.messagePlayer(uiParentEventID, attacker->getOwner(), true, GC.getEVENT_MESSAGE_TIME(), strInterceptee);
+		}
 	}
 
 	CvPlot* pkTargetPlot = kCombatInfo.getPlot();
 	CvAssert_Debug(pkTargetPlot);
 
-	ICvUserInterface2* pkDLLInterface = GC.GetEngineUserInterface();
-	int iActivePlayerID = GC.getGame().getActivePlayer();
-	CvString strBuffer;
-
 	if(pkTargetPlot)
 	{
-		if(!pkTargetPlot->isCity())
+		if(pkTargetPlot->isCity()) // Target was City
 		{
-			// Target was a Unit
-			CvUnit* pkDefender = kCombatInfo.getUnit(BATTLE_UNIT_DEFENDER);
-			CvAssert_Debug(pkDefender != NULL);
+			CvCity* defenderCity = pkTargetPlot->getPlotCity();
+			CvAssert_Debug(defenderCity != NULL);
 
-			if(pkDefender)
+			if (defenderCity)
 			{
-				if(pkAttacker)
-				{
-					//One Hit
-					if(pkDefender->GetCurrHitPoints() == GC.getMAX_HIT_POINTS() && pkAttacker->isHuman() && !GC.getGame().isGameMultiPlayer())
-					{
-						gDLL->UnlockAchievement(ACHIEVEMENT_ONEHITKILL);
-					}
+				defendOwner = defenderCity->getOwner();
+				defenderCity->clearCombat();
 
-					pkAttacker->changeDamage(iDefenderDamageInflicted, pkDefender->getOwner());
-					pkDefender->changeDamage(iAttackerDamageInflicted, pkAttacker->getOwner());
+				defenderCity->changeDamage(totalDamageToDefender);
+				attacker->changeDamage(totalDamageToAttacker, defenderCity->getOwner());
 
-					// Update experience
-					pkDefender->changeExperience(
-					    kCombatInfo.getExperience(BATTLE_UNIT_DEFENDER),
-					    kCombatInfo.getMaxExperienceAllowed(BATTLE_UNIT_DEFENDER),
-					    true,
-					    kCombatInfo.getInBorders(BATTLE_UNIT_DEFENDER),
-					    kCombatInfo.getUpdateGlobal(BATTLE_UNIT_DEFENDER));
-
-					// Attacker died
-					if(pkAttacker->IsDead())
-					{
-						auto_ptr<ICvUnit1> pAttacker = GC.WrapUnitPointer(pkAttacker);
-						gDLL->GameplayUnitDestroyedInCombat(pAttacker.get());
-
-						CvPlayerAI& kDefenderOwner = GET_PLAYER(pkDefender->getOwner());
-						kDefenderOwner.GetPlayerAchievements().KilledUnitWithUnit(pkDefender, pkAttacker);
-
-						if(iActivePlayerID == pkAttacker->getOwner())
-						{
-							strBuffer = GetLocalizedText("TXT_KEY_MISC_YOU_UNIT_DIED_ATTACKING", pkAttacker->getNameKey(), pkDefender->getNameKey(), iAttackerDamageInflicted);
-							GC.messagePlayer(uiParentEventID, pkAttacker->getOwner(), true, GC.getEVENT_MESSAGE_TIME(), strBuffer/*, GC.getEraInfo(GC.getGame().getCurrentEra())->getAudioUnitDefeatScript(), MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pkTargetPlot->getX(), pkTargetPlot->getY()*/);
-						}
-						if(iActivePlayerID == pkDefender->getOwner())
-						{
-							if (iInterceptionDamage > 0 && pInterceptor)
-							{
-								strBuffer = GetLocalizedText("TXT_KEY_MISC_ENEMY_AIR_UNIT_DESTROYED", pInterceptor->getNameKey(), pkAttacker->getVisualCivAdjective(pkDefender->getTeam()), pkAttacker->getNameKey(), pkDefender->getNameKey());
-								GC.messagePlayer(uiParentEventID, pkDefender->getOwner(), true, GC.getEVENT_MESSAGE_TIME(), strBuffer/*, GC.getEraInfo(GC.getGame().getCurrentEra())->getAudioUnitVictoryScript(), MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pkTargetPlot->getX(), pkTargetPlot->getY()*/);
-							}
-							else
-							{
-								strBuffer = GetLocalizedText("TXT_KEY_MISC_YOU_KILLED_ENEMY_UNIT", pkDefender->getNameKey(), iAttackerDamageInflicted, 0, pkAttacker->getNameKey(), pkAttacker->getVisualCivAdjective(pkDefender->getTeam()));
-								GC.messagePlayer(uiParentEventID, pkDefender->getOwner(), true, GC.getEVENT_MESSAGE_TIME(), strBuffer/*, GC.getEraInfo(GC.getGame().getCurrentEra())->getAudioUnitVictoryScript(), MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pkTargetPlot->getX(), pkTargetPlot->getY()*/);
-							}
-						}
-
-						ApplyPostCombatTraitEffects(pkDefender, pkAttacker);
-					}
-					// Defender died
-					else if(pkDefender->IsDead())
-					{
-						CvPlayerAI& kAttackerOwner = GET_PLAYER(pkAttacker->getOwner());
-						kAttackerOwner.GetPlayerAchievements().KilledUnitWithUnit(pkAttacker, pkDefender);
-
-						if(iActivePlayerID == pkAttacker->getOwner())
-						{
-							strBuffer = GetLocalizedText("TXT_KEY_MISC_YOU_ATTACK_BY_AIR_AND_DEATH", pkAttacker->getNameKey(), pkDefender->getNameKey());
-							GC.messagePlayer(uiParentEventID, pkAttacker->getOwner(), true, GC.getEVENT_MESSAGE_TIME(), strBuffer/*, "AS2D_COMBAT", MESSAGE_TYPE_INFO, pkDefender->getUnitInfo().GetButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pkTargetPlot->getX(), pkTargetPlot->getY()*/);
-						}
-						if(iActivePlayerID == pkDefender->getOwner())
-						{
-							strBuffer = GetLocalizedText("TXT_KEY_MISC_YOU_ARE_ATTACKED_BY_AIR_AND_DEATH", pkDefender->getNameKey(), pkAttacker->getNameKey());
-							GC.messagePlayer(uiParentEventID, pkDefender->getOwner(), true, GC.getEVENT_MESSAGE_TIME(), strBuffer/*, "AS2D_COMBAT", MESSAGE_TYPE_INFO, pkDefender->getUnitInfo().GetButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pkTargetPlot->getX(), pkTargetPlot->getY()*/);
-						}
-
-						CvNotifications* pNotifications = GET_PLAYER(pkDefender->getOwner()).GetNotifications();
-						if(pNotifications)
-						{
-							Localization::String strSummary = Localization::Lookup("TXT_KEY_UNIT_LOST");
-							pNotifications->Add(NOTIFICATION_UNIT_DIED, strBuffer, strSummary.toUTF8(), pkDefender->getX(), pkDefender->getY(), (int) pkDefender->getUnitType(), pkDefender->getOwner());
-						}
-
-						bTargetDied = true;
-
-						ApplyPostCombatTraitEffects(pkAttacker, pkDefender);
-					}
-					// Nobody died
-					else
-					{
-						if(iActivePlayerID == pkAttacker->getOwner())
-						{
-							strBuffer = GetLocalizedText("TXT_KEY_MISC_YOU_ATTACK_BY_AIR", pkAttacker->getNameKey(), pkDefender->getNameKey(), iDefenderDamageInflicted);
-							GC.messagePlayer(uiParentEventID, pkAttacker->getOwner(), true, GC.getEVENT_MESSAGE_TIME(), strBuffer/*, "AS2D_COMBAT", MESSAGE_TYPE_INFO, pkDefender->getUnitInfo().GetButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pkTargetPlot->getX(), pkTargetPlot->getY()*/);
-						}
-						if(iActivePlayerID == pkDefender->getOwner())
-						{
-							if (iInterceptionDamage > 0 && pInterceptor)
-							{
-								strBuffer = GetLocalizedText("TXT_KEY_MISC_ENEMY_AIR_UNIT_INTERCEPTED", pInterceptor->getNameKey(), pkAttacker->getVisualCivAdjective(pkDefender->getTeam()), pkAttacker->getNameKey(), iDefenderDamageInflicted, pkDefender->getNameKey());
-								GC.messagePlayer(uiParentEventID, pkDefender->getOwner(), true, GC.getEVENT_MESSAGE_TIME(), strBuffer/*, GC.getEraInfo(GC.getGame().getCurrentEra())->getAudioUnitVictoryScript(), MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pkTargetPlot->getX(), pkTargetPlot->getY()*/);
-							}
-							else
-							{
-								strBuffer = GetLocalizedText("TXT_KEY_MISC_YOU_ARE_ATTACKED_BY_AIR", pkDefender->getNameKey(), pkAttacker->getNameKey(), iAttackerDamageInflicted);
-								GC.messagePlayer(uiParentEventID, pkDefender->getOwner(), true, GC.getEVENT_MESSAGE_TIME(), strBuffer/*, "AS2D_COMBAT", MESSAGE_TYPE_INFO, pkDefender->getUnitInfo().GetButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pkTargetPlot->getX(), pkTargetPlot->getY()*/);
-							}
-						}
-					}
-				}
-
-				//set damage but don't update entity damage visibility
-				//pkDefender->changeDamage(iDamage, pkAttacker->getOwner());
-
-				pkDefender->setCombatUnit(NULL);
-				if(!CvUnitMission::IsHeadMission(pkDefender, CvTypes::getMISSION_WAIT_FOR()))		// If the top mission was not a 'wait for', then clear it.
-					pkDefender->ClearMissionQueue();
+				strAttacker = GetLocalizedText("Your {1_EnUName} took {2_Num} damage attacking the City of {3_CityName} which took {4_Num} damage!", attacker->getNameKey(), damageToAttackerBase, defenderCity->getNameKey(), totalDamageToDefender);
+				strDefender = GetLocalizedText("The City of {1_CityName} took {2_Num} damage from an enemy {3_EnUName} which took {4_Num} damage!", defenderCity->getNameKey(), totalDamageToDefender, attacker->getNameKey(), damageToAttackerBase);
+				if (attacker->IsDead())
+					strAttackerDied = GetLocalizedText("TXT_KEY_MISC_YOU_UNIT_DIED", attacker->getNameKey());
 			}
 			else
 				bTargetDied = true;
+			
 		}
-		else
+		else // Target was Unit
 		{
-			// Target was a City
-			CvCity* pCity = pkTargetPlot->getPlotCity();
-			CvAssert_Debug(pCity != NULL);
+			CvUnit* defender = kCombatInfo.getUnit(BATTLE_UNIT_DEFENDER);
+			CvAssert_Debug(defender != NULL);
 
-			if(pCity)
+			if (defender)
 			{
-				pCity->clearCombat();
-				if(pkAttacker)
+				defendOwner = defender->getOwner();
+
+				//One Hit
+				if (defender->GetCurrHitPoints() == GC.getMAX_HIT_POINTS() && attacker->isHuman() && !GC.getGame().isGameMultiPlayer())
 				{
-					pCity->changeDamage(iAttackerDamageInflicted);
-					pkAttacker->changeDamage(iDefenderDamageInflicted, pCity->getOwner());
-
-					//		iUnitDamage = std::max(pCity->getDamage(), pCity->getDamage() + iDamage);
-
-					if(pkAttacker->IsDead())
-					{
-						if(iActivePlayerID == pkAttacker->getOwner())
-						{
-							strBuffer = GetLocalizedText("TXT_KEY_MISC_YOU_UNIT_DIED_ATTACKING_CITY", pkAttacker->getNameKey(), pCity->getNameKey(), iAttackerDamageInflicted);
-							GC.messagePlayer(uiParentEventID, pkAttacker->getOwner(), true, GC.getEVENT_MESSAGE_TIME(), strBuffer/*, GC.getEraInfo(GC.getGame().getCurrentEra())->getAudioUnitDefeatScript(), MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pkTargetPlot->getX(), pkTargetPlot->getY()*/);
-						}
-					}
-
-					if(pCity->getOwner() == iActivePlayerID)
-					{
-						strBuffer = GetLocalizedText("TXT_KEY_MISC_YOUR_CITY_ATTACKED_BY_AIR", pCity->getNameKey(), pkAttacker->getNameKey(), iDefenderDamageInflicted);
-						//red icon over attacking unit
-						GC.messagePlayer(uiParentEventID, pCity->getOwner(), false, GC.getEVENT_MESSAGE_TIME(), strBuffer);
-					}
+					gDLL->UnlockAchievement(ACHIEVEMENT_ONEHITKILL);
 				}
+
+				attacker->changeDamage(totalDamageToAttacker, defender->getOwner());
+				defender->changeDamage(totalDamageToDefender, attacker->getOwner());
+
+				// Update experience
+				defender->changeExperience(
+					kCombatInfo.getExperience(BATTLE_UNIT_DEFENDER),
+					kCombatInfo.getMaxExperienceAllowed(BATTLE_UNIT_DEFENDER),
+					true,
+					kCombatInfo.getInBorders(BATTLE_UNIT_DEFENDER),
+					kCombatInfo.getUpdateGlobal(BATTLE_UNIT_DEFENDER));
+
+				// Attacker died
+				if (attacker->IsDead())
+				{
+					auto_ptr<ICvUnit1> pAttacker = GC.WrapUnitPointer(attacker);
+					gDLL->GameplayUnitDestroyedInCombat(pAttacker.get());
+					CvPlayerAI& kDefenderOwner = GET_PLAYER(defender->getOwner());
+					kDefenderOwner.GetPlayerAchievements().KilledUnitWithUnit(defender, attacker);
+					ApplyPostCombatTraitEffects(defender, attacker);
+				}
+				// Defender died
+				else if (defender->IsDead())
+				{
+					bTargetDied = true;
+					CvPlayerAI& kAttackerOwner = GET_PLAYER(attacker->getOwner());
+					kAttackerOwner.GetPlayerAchievements().KilledUnitWithUnit(attacker, defender);
+
+					// special death notification
+					CvNotifications* pNotifications = GET_PLAYER(defender->getOwner()).GetNotifications();
+					if (pNotifications)
+					{
+						Localization::String strSummary = Localization::Lookup("TXT_KEY_UNIT_LOST");
+						pNotifications->Add(NOTIFICATION_UNIT_DIED, strDefender, strSummary.toUTF8(), defender->getX(), defender->getY(), (int)defender->getUnitType(), defender->getOwner());
+					}
+
+					ApplyPostCombatTraitEffects(attacker, defender);
+				}
+				else // Nobody died
+				{
+
+				}
+
+				strAttacker = GetLocalizedText("Your {1_UnitName} took {2_Damage} damage attacking an enemy {3_EnUName} for {4_Damage} damage.", attacker->getNameKey(), damageToAttackerBase, defender->getNameKey(), totalDamageToDefender);
+				strDefender = GetLocalizedText("Your {1_UnitName} took {2_Num} damage from an enemy {3_EnUName} which took {4_Damage} damage!", defender->getNameKey(), totalDamageToDefender, attacker->getNameKey(), damageToAttackerBase);
+				if (attacker->IsDead())
+					strAttackerDied = GetLocalizedText("TXT_KEY_MISC_YOU_UNIT_DIED", attacker->getNameKey());
+				if (defender->IsDead())
+					strDefenderDied = GetLocalizedText("TXT_KEY_MISC_YOU_UNIT_DIED", defender->getNameKey());
+
+				defender->setCombatUnit(NULL);
+				if (!CvUnitMission::IsHeadMission(defender, CvTypes::getMISSION_WAIT_FOR())) // If the top mission was not a 'wait for', then clear it.
+					defender->ClearMissionQueue();
 			}
 			else
 				bTargetDied = true;
 		}
 	}
 	else
+	{
 		bTargetDied = true;
+	}
 
-	// Suicide Unit (e.g. Missiles)
-	if(pkAttacker)
+	
+	if(attacker->isSuicide())
 	{
-		if(pkAttacker->isSuicide())
+		attacker->setCombatUnit(NULL); // Must clear this if doing a delayed kill, should this be part of the kill method?
+		attacker->kill(true);
+	}
+	else
+	{
+		// Experience
+		if(totalDamageToDefender > 0)
 		{
-			pkAttacker->setCombatUnit(NULL);	// Must clear this if doing a delayed kill, should this be part of the kill method?
-			pkAttacker->kill(true);
+			attacker->changeExperience(kCombatInfo.getExperience(BATTLE_UNIT_ATTACKER),
+				                            kCombatInfo.getMaxExperienceAllowed(BATTLE_UNIT_ATTACKER),
+				                            true,
+				                            kCombatInfo.getInBorders(BATTLE_UNIT_ATTACKER),
+				                            kCombatInfo.getUpdateGlobal(BATTLE_UNIT_ATTACKER));
+			// Promotion time?
+			attacker->testPromotionReady();
 		}
-		else
+		// Clean up some stuff
+		attacker->setCombatUnit(NULL);
+		attacker->ClearMissionQueue(GetPostCombatDelay());
+		// Spend a move for this attack
+		attacker->changeMoves(-GC.getMOVE_DENOMINATOR());
+		// Can't move or attack again
+		if(!attacker->canMoveAfterAttacking() && attacker->isOutOfAttacks())
 		{
-			// Experience
-			if(iAttackerDamageInflicted > 0)
-			{
-				pkAttacker->changeExperience(kCombatInfo.getExperience(BATTLE_UNIT_ATTACKER),
-				                             kCombatInfo.getMaxExperienceAllowed(BATTLE_UNIT_ATTACKER),
-				                             true,
-				                             kCombatInfo.getInBorders(BATTLE_UNIT_ATTACKER),
-				                             kCombatInfo.getUpdateGlobal(BATTLE_UNIT_ATTACKER));
-
-#ifndef AUI_UNIT_TEST_PROMOTION_READY_MOVED
-				// Promotion time?
-				pkAttacker->testPromotionReady();
-#endif
-
-			}
-
-			// Clean up some stuff
-			pkAttacker->setCombatUnit(NULL);
-			pkAttacker->ClearMissionQueue(GetPostCombatDelay());
-
-			// Spend a move for this attack
-			pkAttacker->changeMoves(-GC.getMOVE_DENOMINATOR());
-
-			// Can't move or attack again
-#ifdef NQ_UNIT_TURN_ENDS_ON_FINAL_ATTACK
-			if(!pkAttacker->canMoveAfterAttacking() && pkAttacker->isOutOfAttacks())
-#else
-			if(!pkAttacker->canMoveAfterAttacking())
-#endif
-			{
-				pkAttacker->finishMoves();
-			}
+			attacker->finishMoves();
 		}
-
-		// Report that combat is over in case we want to queue another attack
-		GET_PLAYER(pkAttacker->getOwner()).GetTacticalAI()->CombatResolved(pkAttacker, bTargetDied);
 	}
 
-	if (pkAttacker && pInterceptor && iInterceptionDamage > 0)
-	{
-		strBuffer = GetLocalizedText("TXT_KEY_MISC_FRIENDLY_AIR_UNIT_INTERCEPTED", pkAttacker->getNameKey(), pkAttacker->getVisualCivAdjective(pInterceptor->getTeam()), pInterceptor->getNameKey(), iInterceptionDamage);
-		GC.messagePlayer(uiParentEventID, pkAttacker->getOwner(), true, GC.getEVENT_MESSAGE_TIME(), strBuffer);
-	}
-	if (pkAttacker && pInterceptor && iInterceptionDamage <= 0)
-	{
-		strBuffer = GetLocalizedText("TXT_KEY_MISC_FRIENDLY_AIR_UNIT_INTERCEPTED_EVADED", pkAttacker->getNameKey(), pkAttacker->getVisualCivAdjective(pInterceptor->getTeam()), pInterceptor->getNameKey());
-		GC.messagePlayer(uiParentEventID, pkAttacker->getOwner(), true, GC.getEVENT_MESSAGE_TIME(), strBuffer);
-	}
+	// Report that combat is over in case we want to queue another attack
+	GET_PLAYER(attacker->getOwner()).GetTacticalAI()->CombatResolved(attacker, bTargetDied);
+
+
+	if (strAttacker.length())
+		GC.messagePlayer(uiParentEventID, attackOwner, true, GC.getEVENT_MESSAGE_TIME(), strAttacker);
+	if (strAttackerDied.length() > 0)
+		GC.messagePlayer(uiParentEventID, attackOwner, true, GC.getEVENT_MESSAGE_TIME(), strAttackerDied);
+
+	if (strDefender.length() > 0)
+		GC.messagePlayer(uiParentEventID, defendOwner, true, GC.getEVENT_MESSAGE_TIME(), strDefender);
+	if (strDefenderDied.length() > 0)
+		GC.messagePlayer(uiParentEventID, defendOwner, true, GC.getEVENT_MESSAGE_TIME(), strDefenderDied);
 }
 
 //	---------------------------------------------------------------------------
@@ -1997,7 +2101,7 @@ void CvUnitCombat::GenerateAirSweepCombatInfo(CvUnit& kAttacker, CvUnit* pkDefen
 		int iInterceptionDamage = pkDefender->GetInterceptionDamage(&kAttacker);
 
 		// Reduce damage for performing a sweep
-		iInterceptionDamage *= /*75*/ GC.getAIR_SWEEP_INTERCEPTION_DAMAGE_MOD();
+		iInterceptionDamage *= /*40*/ GC.getAIR_SWEEP_INTERCEPTION_DAMAGE_MOD();
 		iInterceptionDamage /= 100;
 
 		iDefenderExperience = /*2*/ GC.getEXPERIENCE_DEFENDING_AIR_SWEEP_GROUND();

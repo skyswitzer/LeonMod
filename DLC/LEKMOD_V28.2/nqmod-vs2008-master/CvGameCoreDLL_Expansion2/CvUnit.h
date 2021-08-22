@@ -111,10 +111,6 @@ public:
 	void GetMovablePlotListOpt(vector<CvPlot*>& plotData, CvPlot* plotTarget, bool exitOnFound);
 	bool canEverRangeStrikeAtFromPlot(int iX, int iY, CvPlot* pSourcePlot) const;
 
-	int GetRangeWithMovement() const;
-	void GetMovablePlotListOpt(vector<CvPlot*>& plotData, CvPlot* plotTarget, bool exitOnFound);
-	bool canEverRangeStrikeAtFromPlot(int iX, int iY, CvPlot* pSourcePlot) const;
-
 	CvUnit();
 	~CvUnit();
 

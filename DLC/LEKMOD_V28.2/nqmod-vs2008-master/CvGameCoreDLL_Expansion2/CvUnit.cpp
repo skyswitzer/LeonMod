@@ -12855,95 +12855,46 @@ bool CvUnit::canAirDefend(const CvPlot* pPlot) const
 int CvUnit::GetAirCombatDamage(const CvUnit* pDefender, CvCity* pCity, bool bIncludeRand, int iAssumeExtraDamage) const
 {
 	VALIDATE_OBJECT
-
+	// find strengths
 	int iAttackerStrength = GetMaxRangedCombatStrength(pDefender, pCity, /*bAttacking*/ true, /*bForRangedAttack*/ true);
 	int iDefenderStrength;
-
-	// Unit is Defender
-	if(pCity == NULL)
 	{
-		// Use Ranged combat value for defender, UNLESS it's a boat
-		if(pDefender->GetMaxRangedCombatStrength(this, /*pCity*/ NULL, false, /*bForRangedAttack*/ false) > 0 && !pDefender->getDomainType() == DOMAIN_SEA)
+		if (pCity == NULL)
 		{
-			iDefenderStrength = pDefender->GetMaxRangedCombatStrength(this, /*pCity*/ NULL, false, /*bForRangedAttack*/ false);
+			// Use Ranged combat value for defender, UNLESS it's a boat
+			if (pDefender->GetMaxRangedCombatStrength(this, /*pCity*/ NULL, false, /*bForRangedAttack*/ false) > 0 && !pDefender->getDomainType() == DOMAIN_SEA)
+				iDefenderStrength = pDefender->GetMaxRangedCombatStrength(this, /*pCity*/ NULL, false, /*bForRangedAttack*/ false);
+			else
+				iDefenderStrength = pDefender->GetMaxDefenseStrength(pDefender->plot(), this, /*bFromRangedAttack*/ true);
 		}
 		else
-		{
-			iDefenderStrength = pDefender->GetMaxDefenseStrength(pDefender->plot(), this, /*bFromRangedAttack*/ true);
-		}
-	}
-	// City is Defender
-	else
-	{
-		iDefenderStrength = pCity->getStrengthValue();
+			iDefenderStrength = pCity->getStrengthValue();
 	}
 
-	// The roll will vary damage between 30 and 40 (out of 100) for two units of identical strength
 
-	// Note, 0 is valid - means we don't do anything
-	int iAttackerDamageRatio = GC.getMAX_HIT_POINTS() - getDamage() - iAssumeExtraDamage;
-	if(iAttackerDamageRatio < 0)
-		iAttackerDamageRatio = 0;
-
+	// find base damage
 	int iAttackerDamage = /*250*/ GC.getRANGE_ATTACK_SAME_STRENGTH_MIN_DAMAGE();
-#ifndef NQM_COMBAT_RNG_USE_BINOM_RNG_OPTION
-	iAttackerDamage *= iAttackerDamageRatio;
 	iAttackerDamage /= GC.getMAX_HIT_POINTS();
-#endif
 
-	int iAttackerRoll = 0;
-	if(bIncludeRand)
+
+	// add random damage
+	int randBonusDamage = 0;
 	{
-#ifdef NQM_COMBAT_RNG_USE_BINOM_RNG_OPTION
-		if (GC.getGame().isOption("GAMEOPTION_USE_BINOM_RNG_FOR_COMBAT_ROLLS"))
-		{
-			int iAverageDamage = iAttackerDamage + (GC.getRANGE_ATTACK_SAME_STRENGTH_POSSIBLE_EXTRA_DAMAGE() / 2);
-			int iSigma = GC.getRANGE_ATTACK_SAME_STRENGTH_POSSIBLE_EXTRA_DAMAGE() / 6;
-			int iMaxRoll = iSigma*iSigma * 4 + 1;
-			iAttackerRoll = iAverageDamage + GC.getGame().getJonRandNumBinom(iMaxRoll, "Unit Ranged Combat Damage") - (iMaxRoll / 2) - iAverageDamage;
-		}
-		else
-#endif
-		iAttackerRoll = /*300*/ GC.getGame().getJonRandNum(GC.getRANGE_ATTACK_SAME_STRENGTH_POSSIBLE_EXTRA_DAMAGE(), "Unit Ranged Combat Damage");
-#ifndef NQM_COMBAT_RNG_USE_BINOM_RNG_OPTION
-		iAttackerRoll *= iAttackerDamageRatio;
-		iAttackerRoll /= GC.getMAX_HIT_POINTS();
-#endif
+		int possibleBonusDamage = /*300*/ GC.getRANGE_ATTACK_SAME_STRENGTH_POSSIBLE_EXTRA_DAMAGE();
+		if (bIncludeRand) // find random damage
+			randBonusDamage = GC.getGame().getJonRandNum(possibleBonusDamage, "Unit Ranged Combat Damage") / 100;
+		else // find average bonus damage
+			randBonusDamage = possibleBonusDamage / 100.0f / 2.0f;
 	}
-	else
-	{
-		iAttackerRoll = /*300*/ GC.getRANGE_ATTACK_SAME_STRENGTH_POSSIBLE_EXTRA_DAMAGE();
-		iAttackerRoll -= 1;	// Subtract 1 here, because this is the amount normally "lost" when doing a rand roll
-#ifndef NQM_COMBAT_RNG_USE_BINOM_RNG_OPTION
-		iAttackerRoll *= iAttackerDamageRatio;
-		iAttackerRoll /= GC.getMAX_HIT_POINTS();
-#endif
-		iAttackerRoll /= 2;	// The divide by 2 is to provide the average damage
-	}
-	iAttackerDamage += iAttackerRoll;
-#ifdef NQM_COMBAT_RNG_USE_BINOM_RNG_OPTION
-	iAttackerDamage = MAX(1, MIN(iAttackerDamage, GC.getMAX_HIT_POINTS() * 100)) * iAttackerDamageRatio / GetMaxHitPoints();
-#endif
+	iAttackerDamage += randBonusDamage;
+
 
 	double fStrengthRatio = CvUnit::adjustedDamageRatio(iAttackerStrength, iDefenderStrength);
 	double fAttackerDamage = (double)iAttackerDamage * fStrengthRatio;
 
-	// Protect against it overflowing an int
-	if(fAttackerDamage > INT_MAX)
-		iAttackerDamage = INT_MAX;
-	else
-		iAttackerDamage = int(fAttackerDamage);
 
-	// Bring it back out of hundreds
-	iAttackerDamage /= 100;
-
-	iAttackerDamage = max(1,iAttackerDamage);
-
-	if (iAssumeExtraDamage > 0) // cap damage if intercepted
-	{
-		iAttackerDamage = 1;
-	}
-
+	iAttackerDamage = min(9999, iAttackerDamage); // dont deal more than 9999 damage
+	iAttackerDamage = max(1, iAttackerDamage); // deal at least 1 damage
 	return iAttackerDamage;
 }
 
@@ -13125,22 +13076,64 @@ int CvUnit::GetAirStrikeDefenseDamage(const CvUnit* pAttacker, bool bIncludeRand
 	return iDefenderDamage;
 }
 
+// return an intercept score for this unit
+// 0 if it cannot intercept
+int getInterception(int noIntercept, const CvPlot& interceptPlot, const CvUnit* interceptee, const CvUnit* possibleInterceptor, bool bLandInterceptorsOnly, bool bVisibleInterceptorsOnly)
+{
+	const float aircraftDamageFractionNoIntercept = 0.33f;
+	int interceptScore = noIntercept;
+	bool isAircraft = possibleInterceptor->getDomainType() == DOMAIN_AIR;
+	// Must be able to intercept
+	if (!possibleInterceptor->isDelayedDeath() && possibleInterceptor->canAirDefend() && !possibleInterceptor->isInCombat())
+	{
+		if (!possibleInterceptor->isOutOfInterceptions())
+		{
+			bool isAirUnitThatMoved = isAircraft && possibleInterceptor->hasMoved();
+			if (!isAirUnitThatMoved)
+			{
+				// removed check Must either be a non-air Unit or an air Unit on intercept
+				if (true)
+				{
+					// Check input booleans
+					if (!bLandInterceptorsOnly || possibleInterceptor->getDomainType() == DOMAIN_LAND)
+					{
+						if (!bVisibleInterceptorsOnly || possibleInterceptor->plot()->isVisible(interceptee->getTeam()))
+						{
+							int range = possibleInterceptor->getUnitInfo().GetAirInterceptRange();
+							// range check
+							if (range >= plotDistance(possibleInterceptor->getX(), possibleInterceptor->getY(), interceptPlot.getX(), interceptPlot.getY()))
+							{
+								float healthFraction = (float)possibleInterceptor->GetCurrHitPoints() / (float)possibleInterceptor->GetMaxHitPoints();
+								bool isBadlyDamagedAircraft = healthFraction <= aircraftDamageFractionNoIntercept && isAircraft;
+								if (!isBadlyDamagedAircraft) // dont allow badly damaged aircraft
+								{
+									interceptScore = possibleInterceptor->currInterceptionProbability();
+									interceptScore *= healthFraction;
+									interceptScore += max(1, 10000000 - range * 1000); // try to pick lowest range unit
+								}									
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	return interceptScore;
+}
+
+
+
 //	--------------------------------------------------------------------------------
 CvUnit* CvUnit::GetBestInterceptor(const CvPlot& interceptPlot, CvUnit* pkDefender /* = NULL */, bool bLandInterceptorsOnly /*false*/, bool bVisibleInterceptorsOnly /*false*/) const
 {
 	VALIDATE_OBJECT
-		CvUnit* pLoopUnit;
-	CvUnit* pBestUnit;
-	int iValue;
-	int iBestValue;
-	int iLoop;
-	int iI;
 
-	iBestValue = 0;
-	pBestUnit = NULL;
+	CvUnit* pBestUnit = NULL;;
+	const int noIntercept = 0; // 0 means no intercept ability
+	int previousBest = noIntercept;
 
 	// Loop through all players' Units (that we're at war with) to see if they can intercept
-	for(iI = 0; iI < MAX_PLAYERS; iI++)
+	for(int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
 		CvPlayerAI& kLoopPlayer = GET_PLAYER((PlayerTypes)iI);
 		if(kLoopPlayer.isAlive())
@@ -13148,41 +13141,14 @@ CvUnit* CvUnit::GetBestInterceptor(const CvPlot& interceptPlot, CvUnit* pkDefend
 			TeamTypes eLoopTeam = kLoopPlayer.getTeam();
 			if(isEnemy(eLoopTeam) && !isInvisible(eLoopTeam, false, false))
 			{
-				for(pLoopUnit = kLoopPlayer.firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = kLoopPlayer.nextUnit(&iLoop))
+				int unitIdx;
+				for(CvUnit* pLoopUnit = kLoopPlayer.firstUnit(&unitIdx); pLoopUnit != NULL; pLoopUnit = kLoopPlayer.nextUnit(&unitIdx))
 				{
-					// Must be able to intercept
-					if(pLoopUnit != pkDefender && !pLoopUnit->isDelayedDeath() && pLoopUnit->canAirDefend() && !pLoopUnit->isInCombat())
+					int loopValue = getInterception(noIntercept, interceptPlot, this, pLoopUnit, bLandInterceptorsOnly, bVisibleInterceptorsOnly);
+					if(loopValue > previousBest)
 					{
-						// Must not have already intercepted this turn
-						if(!pLoopUnit->isOutOfInterceptions())
-						{
-							// Must either be a non-air Unit, or an air Unit that hasn't moved this turn
-							if((pLoopUnit->getDomainType() != DOMAIN_AIR) || !(pLoopUnit->hasMoved()))
-							{
-								// Must either be a non-air Unit or an air Unit on intercept
-								if((pLoopUnit->getDomainType() != DOMAIN_AIR) || (pLoopUnit->GetActivityType() == ACTIVITY_INTERCEPT))
-								{
-									// Check input booleans
-									if (!bLandInterceptorsOnly || pLoopUnit->getDomainType() == DOMAIN_LAND)
-									{
-										if (!bVisibleInterceptorsOnly || pLoopUnit->plot()->isVisible(getTeam()))
-										{
-											// Test range
-											if(plotDistance(pLoopUnit->getX(), pLoopUnit->getY(), interceptPlot.getX(), interceptPlot.getY()) <= pLoopUnit->getUnitInfo().GetAirInterceptRange())
-											{
-												iValue = pLoopUnit->currInterceptionProbability();
-												iValue *= (float)pLoopUnit->GetCurrHitPoints() / (float)pLoopUnit->GetMaxHitPoints();
-												if(iValue > iBestValue)
-												{
-													iBestValue = iValue;
-													pBestUnit = pLoopUnit;
-												}
-											}
-										}
-									}
-								}
-							}
-						}
+						previousBest = loopValue;
+						pBestUnit = pLoopUnit;
 					}
 				}
 			}
@@ -13197,151 +13163,125 @@ int CvUnit::GetInterceptorCount(const CvPlot& interceptPlot, CvUnit* pkDefender 
 {
 	VALIDATE_OBJECT
 	
-	CvUnit* pLoopUnit;
-	int iReturnValue;
-	int iLoop;
-	int iI;
-
-	iReturnValue = 0;
+	CvUnit* pBestUnit = NULL;;
+	const int noIntercept = 0; // 0 means no intercept ability
+	int totalInterceptorCount = 0;
 
 	// Loop through all players' Units (that we're at war with) to see if they can intercept
-	for(iI = 0; iI < MAX_PLAYERS; iI++)
+	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
 		CvPlayerAI& kLoopPlayer = GET_PLAYER((PlayerTypes)iI);
-		if(kLoopPlayer.isAlive())
+		if (kLoopPlayer.isAlive())
 		{
 			TeamTypes eLoopTeam = kLoopPlayer.getTeam();
-			if(isEnemy(eLoopTeam) && !isInvisible(eLoopTeam, false, false))
+			if (isEnemy(eLoopTeam) && !isInvisible(eLoopTeam, false, false))
 			{
-				for(pLoopUnit = kLoopPlayer.firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = kLoopPlayer.nextUnit(&iLoop))
+				int unitIdx;
+				for (CvUnit* pLoopUnit = kLoopPlayer.firstUnit(&unitIdx); pLoopUnit != NULL; pLoopUnit = kLoopPlayer.nextUnit(&unitIdx))
 				{
-					// Must be able to intercept
-					if(pLoopUnit != pkDefender && !pLoopUnit->isDelayedDeath() && pLoopUnit->canAirDefend() && !pLoopUnit->isInCombat())
+					int loopValue = getInterception(noIntercept, interceptPlot, this, pLoopUnit, bLandInterceptorsOnly, bVisibleInterceptorsOnly);
+					if (loopValue != noIntercept)
 					{
-						// Must not have already intercepted this turn
-						if(!pLoopUnit->isOutOfInterceptions())
-						{
-							// Must either be a non-air Unit, or an air Unit that hasn't moved this turn
-							if((pLoopUnit->getDomainType() != DOMAIN_AIR) || !(pLoopUnit->hasMoved()))
-							{
-								// Must either be a non-air Unit or an air Unit on intercept
-								if((pLoopUnit->getDomainType() != DOMAIN_AIR) || (pLoopUnit->GetActivityType() == ACTIVITY_INTERCEPT))
-								{
-									// Check input booleans
-									if (!bLandInterceptorsOnly || pLoopUnit->getDomainType() == DOMAIN_LAND)
-									{
-										if (!bVisibleInterceptorsOnly || pLoopUnit->plot()->isVisible(getTeam()))
-										{
-											// Test range
-											if(plotDistance(pLoopUnit->getX(), pLoopUnit->getY(), interceptPlot.getX(), interceptPlot.getY()) <= pLoopUnit->getUnitInfo().GetAirInterceptRange())
-											{
-												if (pLoopUnit->currInterceptionProbability() > 0)
-												{
-													iReturnValue++;
-												}
-											}
-										}
-									}
-								}
-							}
-						}
+						totalInterceptorCount++;
 					}
 				}
 			}
 		}
 	}
 
-	return iReturnValue;
+	return totalInterceptorCount;
 }
 
 //	--------------------------------------------------------------------------------
 /// Amount of damage done by this unit when intercepting pAttacker
 int CvUnit::GetInterceptionDamage(const CvUnit* pAttacker, bool bIncludeRand) const
 {
-	int iAttackerStrength = pAttacker->GetMaxRangedCombatStrength(this, /*pCity*/ NULL, true, /*bForRangedAttack*/ false);
-
-	int iInterceptorStrength = 0;
-
-	// Use Ranged combat value for Interceptor, UNLESS it's a boat
-	if(GetMaxRangedCombatStrength(this, /*pCity*/ NULL, false, false) > 0 && !getDomainType() == DOMAIN_SEA)
-	{
-		iInterceptorStrength = GetMaxRangedCombatStrength(pAttacker, /*pCity*/ NULL, false, /*bForRangedAttack*/ false);
-	}
-	else
-	{
-		iInterceptorStrength = GetMaxDefenseStrength(plot(), pAttacker);
-	}
-
-	// Mod to interceptor strength
-	iInterceptorStrength *= (100 + GetInterceptionCombatModifier());
-	iInterceptorStrength /= 100;
-
-	// The roll will vary damage between 2 and 3 (out of 10) for two units of identical strength
-
-	int iInterceptorDamageRatio = GC.getMAX_HIT_POINTS() - getDamage();
-#ifdef NQM_COMBAT_RNG_USE_BINOM_RNG_OPTION
-	int iInterceptorDamage = /*400*/ GC.getINTERCEPTION_SAME_STRENGTH_MIN_DAMAGE();
-#else
-	int iInterceptorDamage = /*400*/ GC.getINTERCEPTION_SAME_STRENGTH_MIN_DAMAGE() * iInterceptorDamageRatio / GC.getMAX_HIT_POINTS();
-#endif
-
-	int iInterceptorRoll = 0;
-	if(bIncludeRand)
-	{
-#ifdef NQM_COMBAT_RNG_USE_BINOM_RNG_OPTION
-		if (GC.getGame().isOption("GAMEOPTION_USE_BINOM_RNG_FOR_COMBAT_ROLLS"))
-		{
-			int iAverageDamage = iInterceptorDamage + (GC.getINTERCEPTION_SAME_STRENGTH_POSSIBLE_EXTRA_DAMAGE() / 2);
-			int iSigma = GC.getINTERCEPTION_SAME_STRENGTH_POSSIBLE_EXTRA_DAMAGE() / 6;
-			int iMaxRoll = iSigma*iSigma * 4 + 1;
-			iInterceptorRoll = iAverageDamage + GC.getGame().getJonRandNumBinom(iMaxRoll, "Interception Combat Damage") - (iMaxRoll / 2) - iInterceptorDamage;
-		}
-		else
-#endif
-		iInterceptorRoll = /*300*/ GC.getGame().getJonRandNum(GC.getINTERCEPTION_SAME_STRENGTH_POSSIBLE_EXTRA_DAMAGE(), "Interception Combat Damage");
-#ifndef NQM_COMBAT_RNG_USE_BINOM_RNG_OPTION
-		iInterceptorRoll *= iInterceptorDamageRatio;
-		iInterceptorRoll /= GC.getMAX_HIT_POINTS();
-#endif
-	}
-	else
-	{
-		iInterceptorRoll = /*300*/ GC.getINTERCEPTION_SAME_STRENGTH_POSSIBLE_EXTRA_DAMAGE();
-		iInterceptorRoll -= 1;	// Subtract 1 here, because this is the amount normally "lost" when doing a rand roll
-#ifndef NQM_COMBAT_RNG_USE_BINOM_RNG_OPTION
-		iInterceptorRoll *= iInterceptorDamageRatio;
-		iInterceptorRoll /= GC.getMAX_HIT_POINTS();
-#endif
-		iInterceptorRoll /= 2;	// The divide by 2 is to provide the average damage
-	}
-	iInterceptorDamage += iInterceptorRoll;
-#ifdef NQM_COMBAT_RNG_USE_BINOM_RNG_OPTION
-	iInterceptorDamage = MAX(1, MIN(iInterceptorDamage, GC.getMAX_HIT_POINTS() * 100)) * iInterceptorDamageRatio / GetMaxHitPoints();
-#endif
-
-	double fStrengthRatio = CvUnit::adjustedDamageRatio(iInterceptorStrength, iAttackerStrength);
-	iInterceptorDamage = int(iInterceptorDamage * fStrengthRatio);
-
-	// Mod to interception damage
-#ifdef AUI_WARNING_FIXES
-	if (pAttacker)
-	{
-		iInterceptorDamage *= (100 + pAttacker->GetInterceptionDefenseDamageModifier());
-		iInterceptorDamage /= 100;
-	}
-#else
-	iInterceptorDamage *= (100 + pAttacker->GetInterceptionDefenseDamageModifier());
-	iInterceptorDamage /= 100;
-#endif
-	float interceptionDamageFraction = GC.getINTERCEPTION_DAMAGE_MULTIPLIER();
-	iInterceptorDamage *= interceptionDamageFraction;
-	// Bring it back out of hundreds
-	iInterceptorDamage /= 100;
-	
-	iInterceptorDamage = max(1,iInterceptorDamage);
-	iInterceptorDamage = min(99,iInterceptorDamage); // NQMP GJS: Clamp interception damage from 1 - 99
-
-	return iInterceptorDamage;
+	float damage = /*30*/ GC.getINTERCEPTION_SAME_STRENGTH_MIN_DAMAGE(); // base damage
+	float randomBonusDamage = GC.getGame().getJonRandNum(/*10*/GC.getINTERCEPTION_SAME_STRENGTH_POSSIBLE_EXTRA_DAMAGE(), "Interception Combat Damage");
+	return damage + randomBonusDamage;
+//
+//	int iAttackerStrength = pAttacker->GetMaxRangedCombatStrength(this, /*pCity*/ NULL, true, /*bForRangedAttack*/ false);
+//
+//	int iInterceptorStrength = 0;
+//
+//	// Use Ranged combat value for Interceptor, UNLESS it's a boat
+//	if(GetMaxRangedCombatStrength(this, /*pCity*/ NULL, false, false) > 0 && !getDomainType() == DOMAIN_SEA)
+//	{
+//		iInterceptorStrength = GetMaxRangedCombatStrength(pAttacker, /*pCity*/ NULL, false, /*bForRangedAttack*/ false);
+//	}
+//	else
+//	{
+//		iInterceptorStrength = GetMaxDefenseStrength(plot(), pAttacker);
+//	}
+//
+//	// Mod to interceptor strength
+//	iInterceptorStrength *= (100 + GetInterceptionCombatModifier());
+//	iInterceptorStrength /= 100;
+//
+//	// The roll will vary damage between 2 and 3 (out of 10) for two units of identical strength
+//
+//	int iInterceptorDamageRatio = GC.getMAX_HIT_POINTS() - getDamage();
+//#ifdef NQM_COMBAT_RNG_USE_BINOM_RNG_OPTION
+//	int iInterceptorDamage = /*400*/ GC.getINTERCEPTION_SAME_STRENGTH_MIN_DAMAGE();
+//#else
+//	int iInterceptorDamage = /*400*/ GC.getINTERCEPTION_SAME_STRENGTH_MIN_DAMAGE() * iInterceptorDamageRatio / GC.getMAX_HIT_POINTS();
+//#endif
+//
+//	int iInterceptorRoll = 0;
+//	if(bIncludeRand)
+//	{
+//#ifdef NQM_COMBAT_RNG_USE_BINOM_RNG_OPTION
+//		if (GC.getGame().isOption("GAMEOPTION_USE_BINOM_RNG_FOR_COMBAT_ROLLS"))
+//		{
+//			int iAverageDamage = iInterceptorDamage + (GC.getINTERCEPTION_SAME_STRENGTH_POSSIBLE_EXTRA_DAMAGE() / 2);
+//			int iSigma = GC.getINTERCEPTION_SAME_STRENGTH_POSSIBLE_EXTRA_DAMAGE() / 6;
+//			int iMaxRoll = iSigma*iSigma * 4 + 1;
+//			iInterceptorRoll = iAverageDamage + GC.getGame().getJonRandNumBinom(iMaxRoll, "Interception Combat Damage") - (iMaxRoll / 2) - iInterceptorDamage;
+//		}
+//		else
+//#endif
+//		iInterceptorRoll = /*300*/ GC.getGame().getJonRandNum(GC.getINTERCEPTION_SAME_STRENGTH_POSSIBLE_EXTRA_DAMAGE(), "Interception Combat Damage");
+//#ifndef NQM_COMBAT_RNG_USE_BINOM_RNG_OPTION
+//		iInterceptorRoll *= iInterceptorDamageRatio;
+//		iInterceptorRoll /= GC.getMAX_HIT_POINTS();
+//#endif
+//	}
+//	else
+//	{
+//		iInterceptorRoll = /*300*/ GC.getINTERCEPTION_SAME_STRENGTH_POSSIBLE_EXTRA_DAMAGE();
+//		iInterceptorRoll -= 1;	// Subtract 1 here, because this is the amount normally "lost" when doing a rand roll
+//#ifndef NQM_COMBAT_RNG_USE_BINOM_RNG_OPTION
+//		iInterceptorRoll *= iInterceptorDamageRatio;
+//		iInterceptorRoll /= GC.getMAX_HIT_POINTS();
+//#endif
+//		iInterceptorRoll /= 2;	// The divide by 2 is to provide the average damage
+//	}
+//	iInterceptorDamage += iInterceptorRoll;
+//#ifdef NQM_COMBAT_RNG_USE_BINOM_RNG_OPTION
+//	iInterceptorDamage = MAX(1, MIN(iInterceptorDamage, GC.getMAX_HIT_POINTS() * 100)) * iInterceptorDamageRatio / GetMaxHitPoints();
+//#endif
+//
+//	double fStrengthRatio = CvUnit::adjustedDamageRatio(iInterceptorStrength, iAttackerStrength);
+//	iInterceptorDamage = int(iInterceptorDamage * fStrengthRatio);
+//
+//	// Mod to interception damage
+//#ifdef AUI_WARNING_FIXES
+//	if (pAttacker)
+//	{
+//		iInterceptorDamage *= (100 + pAttacker->GetInterceptionDefenseDamageModifier());
+//		iInterceptorDamage /= 100;
+//	}
+//#else
+//	iInterceptorDamage *= (100 + pAttacker->GetInterceptionDefenseDamageModifier());
+//	iInterceptorDamage /= 100;
+//#endif
+//	float interceptionDamageFraction = GC.getINTERCEPTION_DAMAGE_MULTIPLIER();
+//	iInterceptorDamage *= interceptionDamageFraction;
+//	// Bring it back out of hundreds
+//	iInterceptorDamage /= 100;
+//	
+//	iInterceptorDamage = max(1,iInterceptorDamage);
+//	iInterceptorDamage = min(99,iInterceptorDamage); // NQMP GJS: Clamp interception damage from 1 - 99
 }
 
 //	--------------------------------------------------------------------------------
