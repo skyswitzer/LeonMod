@@ -62,6 +62,7 @@ public:
 	int  GetInterceptionDefenseDamageModifier() const;
 	int  GetAirSweepCombatModifier() const;
 	int  GetInterceptChanceChange() const;
+	int  GetMissileInterceptChance() const;
 	int  GetNumInterceptionChange() const;
 	int  GetEvasionChange() const;
 	int  GetCargoChange() const;
@@ -263,6 +264,7 @@ protected:
 	int m_iInterceptionDefenseDamageModifier;
 	int m_iAirSweepCombatModifier;
 	int m_iInterceptChanceChange;
+	int m_iMissileInterceptChance;
 	int m_iNumInterceptionChange;
 	int m_iEvasionChange;
 	int m_iCargoChange;

@@ -38,6 +38,7 @@ CvPromotionEntry::CvPromotionEntry():
 	m_iInterceptionDefenseDamageModifier(0),
 	m_iAirSweepCombatModifier(0),
 	m_iInterceptChanceChange(0),
+	m_iMissileInterceptChance(0),
 	m_iNumInterceptionChange(0),
 	m_iEvasionChange(0),
 	m_iCargoChange(0),
@@ -282,6 +283,7 @@ bool CvPromotionEntry::CacheResults(Database::Results& kResults, CvDatabaseUtili
 	m_iInterceptionDefenseDamageModifier = kResults.GetInt("InterceptionDefenseDamageModifier");
 	m_iAirSweepCombatModifier = kResults.GetInt("AirSweepCombatModifier");
 	m_iInterceptChanceChange = kResults.GetInt("InterceptChanceChange");
+	m_iMissileInterceptChance = kResults.GetInt("MissileInterceptChance");
 	m_iNumInterceptionChange = kResults.GetInt("NumInterceptionChange");
 	m_iEvasionChange = kResults.GetInt("EvasionChange");
 	m_iCargoChange = kResults.GetInt("CargoChange");
@@ -847,6 +849,12 @@ int CvPromotionEntry::GetAirSweepCombatModifier() const
 int CvPromotionEntry::GetInterceptChanceChange() const
 {
 	return m_iInterceptChanceChange;
+}
+
+/// Accessor: How much the intercept chance changes for an air unit
+int CvPromotionEntry::GetMissileInterceptChance() const
+{
+	return m_iMissileInterceptChance;
 }
 
 /// Accessor: Numbe rof extra interceptions that may be made on one turn

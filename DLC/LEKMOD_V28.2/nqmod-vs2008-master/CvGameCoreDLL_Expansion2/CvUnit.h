@@ -536,6 +536,7 @@ public:
 
 	int GetAirStrikeDefenseDamage(const CvUnit* pAttacker, bool bIncludeRand = true) const;
 
+	CvUnit* WasMissileIntercepted(const CvPlot& pPlot) const;
 	CvUnit* GetBestInterceptor(const CvPlot& pPlot, CvUnit* pkDefender = NULL, bool bLandInterceptorsOnly=false, bool bVisibleInterceptorsOnly=false) const;
 	int GetInterceptorCount(const CvPlot& pPlot, CvUnit* pkDefender = NULL, bool bLandInterceptorsOnly=false, bool bVisibleInterceptorsOnly=false) const;
 	int GetInterceptionDamage(const CvUnit* pAttacker, bool bIncludeRand = true) const;
@@ -856,6 +857,9 @@ public:
 
 	int getExtraIntercept() const;
 	void changeExtraIntercept(int iChange);
+
+	int getMissileIntercept() const;
+	void changeMissileIntercept(int iChange);
 
 	int getExtraEvasion() const;
 	void changeExtraEvasion(int iChange);
@@ -1474,6 +1478,7 @@ protected:
 	FAutoVariable<int, CvUnit> m_iExtraMoveDiscount;
 	FAutoVariable<int, CvUnit> m_iExtraRange;
 	FAutoVariable<int, CvUnit> m_iExtraIntercept;
+	FAutoVariable<int, CvUnit> m_iMissileIntercept;
 	FAutoVariable<int, CvUnit> m_iExtraEvasion;
 	FAutoVariable<int, CvUnit> m_iExtraFirstStrikes;
 	FAutoVariable<int, CvUnit> m_iExtraChanceFirstStrikes;

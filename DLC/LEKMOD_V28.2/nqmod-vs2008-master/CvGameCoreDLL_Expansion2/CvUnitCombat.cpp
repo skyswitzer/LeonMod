@@ -33,6 +33,24 @@ static int GetPostCombatDelay()
 	return CvPreGame::quickCombat()?POST_QUICK_COMBAT_DELAY:POST_COMBAT_DELAY;
 }
 
+CvUnit* getMissileInterceptor(CvUnit& kAttacker, CvPlot& plot)
+{
+	CvUnit* interceptor = NULL;
+
+	// todo check via upgrade
+	UnitTypes them = kAttacker.getUnitType();
+	UnitTypes missile = (UnitTypes)GC.getInfoTypeForString("UNIT_GUIDED_MISSILE");
+	UnitTypes nuke = (UnitTypes)GC.getInfoTypeForString("UNIT_NUCLEAR_MISSILE");
+	UnitTypes icbm = (UnitTypes)GC.getInfoTypeForString("UNIT_ICBM");
+	bool isMissile = (them == missile || them == nuke || them == icbm);
+
+	if (isMissile)
+	{
+		interceptor = kAttacker.WasMissileIntercepted(plot);
+	}
+	return interceptor;
+}
+
 //	---------------------------------------------------------------------------
 // Find a object in the combat member array
 static CvCombatMemberEntry* FindCombatMember(CvCombatMemberEntry* pkArray, int iMembers, IDInfo kMember, CvCombatMemberEntry::MEMBER_TYPE eType)
@@ -1538,9 +1556,8 @@ void CvUnitCombat::GenerateAirCombatInfo(CvUnit& kAttacker, CvUnit* pkDefender, 
 
 
 	//////////////////////////////////////////////////////////////////////
-	float attackReduction = 1; // we will deal this much less damage than we otherwise would have due to interception
+	float attackInterceptModifier = 1; // we will deal this much less damage than we otherwise would have due to interception
 	int iInterceptionDamage = 0; // how much damage does the attacker take from the interception
-	
 	{
 		CvUnit* pInterceptor = kAttacker.GetBestInterceptor(plot, pkDefender);
 		bool attackerIsInterceptable = kAttacker.evasionProbability() > 0;
@@ -1557,11 +1574,22 @@ void CvUnitCombat::GenerateAirCombatInfo(CvUnit& kAttacker, CvUnit* pkDefender, 
 			if (evasion > 0 && interception > 0)
 			{
 				float total = evasion + interception;
-				attackReduction = evasion / total;
+				attackInterceptModifier = evasion / total;
 			}
 		}
 	}
 
+	// non nuclear missile
+	{
+		CvUnit* interceptor = getMissileInterceptor(kAttacker, plot);
+		bool wasShotDown = interceptor != NULL;
+		if (wasShotDown)
+		{
+			attackInterceptModifier = 0;
+			pkCombatInfo->setUnit(BATTLE_UNIT_INTERCEPTOR, interceptor);
+			pkCombatInfo->setDamageInflicted(BATTLE_UNIT_INTERCEPTOR, kAttacker.GetMaxHitPoints());
+		}
+	}
 
 	//////////////////////////////////////////////////////////////////////
 
@@ -1659,7 +1687,7 @@ void CvUnitCombat::GenerateAirCombatInfo(CvUnit& kAttacker, CvUnit* pkDefender, 
 		}
 	}
 
-	iAttackerDamageInflicted *= attackReduction;
+	iAttackerDamageInflicted *= attackInterceptModifier;
 
 	//////////////////////////////////////////////////////////////////////
 
@@ -1893,13 +1921,14 @@ void CvUnitCombat::ResolveAirUnitVsCombat(const CvCombatInfo& kCombatInfo, uint 
 
 	// Interception?
 	CvUnit* interceptor = kCombatInfo.getUnit(BATTLE_UNIT_INTERCEPTOR);
-	if(interceptor)
+	if (interceptor)
 	{
 		int interceptDamage = kCombatInfo.getDamageInflicted(BATTLE_UNIT_INTERCEPTOR);
 		if (interceptDamage > 0)
 			totalDamageToAttacker += interceptDamage;
 
-		interceptor->setMadeInterception(true);
+		if (!attacker->isSuicide())
+			interceptor->setMadeInterception(true); // dont consume interceptions for suicide units
 		interceptor->setCombatUnit(NULL);
 		interceptor->changeExperience(
 			kCombatInfo.getExperience(BATTLE_UNIT_INTERCEPTOR),
@@ -1908,15 +1937,26 @@ void CvUnitCombat::ResolveAirUnitVsCombat(const CvCombatInfo& kCombatInfo, uint 
 			kCombatInfo.getInBorders(BATTLE_UNIT_INTERCEPTOR),
 			kCombatInfo.getUpdateGlobal(BATTLE_UNIT_INTERCEPTOR));
 
-
-		if (interceptor && interceptDamage > 0) // handle interception
+		if (interceptor)
 		{
-			string message = "Your {1_UnitName} intercepted a {2_owner_adjective} {3_EnUName} and dealt {4_damage} damage to it.";
-			CvString strInterceptor = GetLocalizedText(message.c_str(), interceptor->getNameKey(), attacker->getVisualCivAdjective(attacker->getTeam()), attacker->getNameKey(), interceptDamage);
-			GC.messagePlayer(uiParentEventID, interceptor->getOwner(), true, GC.getEVENT_MESSAGE_TIME(), strInterceptor);
+			if (interceptDamage == attacker->GetMaxHitPoints()) // interceptor totally shot down the attacker
+			{
+				string message = "Your {1_UnitName} shot down a {2_owner_adjective} {3_EnUName}";
+				CvString strInterceptor = GetLocalizedText(message.c_str(), interceptor->getNameKey(), attacker->getVisualCivAdjective(attacker->getTeam()), attacker->getNameKey());
+				GC.messagePlayer(uiParentEventID, interceptor->getOwner(), true, GC.getEVENT_MESSAGE_TIME(), strInterceptor);
 
-			CvString strInterceptee = GetLocalizedText("Your {1_UnitName} was intercepted by a {2_owner_adjective} {3_EnUName} which dealt {4_damage} damage to it.", attacker->getNameKey(), interceptor->getVisualCivAdjective(interceptor->getTeam()), interceptor->getNameKey(), interceptDamage);
-			GC.messagePlayer(uiParentEventID, attacker->getOwner(), true, GC.getEVENT_MESSAGE_TIME(), strInterceptee);
+				CvString strInterceptee = GetLocalizedText("Your {1_UnitName} was shot down by a {2_owner_adjective} {3_EnUName}.", attacker->getNameKey(), interceptor->getVisualCivAdjective(interceptor->getTeam()), interceptor->getNameKey());
+				GC.messagePlayer(uiParentEventID, attacker->getOwner(), true, GC.getEVENT_MESSAGE_TIME(), strInterceptee);
+			}
+			else if (interceptDamage > 0) // handle non total interception
+			{
+				string message = "Your {1_UnitName} intercepted a {2_owner_adjective} {3_EnUName} and dealt {4_damage} damage to it.";
+				CvString strInterceptor = GetLocalizedText(message.c_str(), interceptor->getNameKey(), attacker->getVisualCivAdjective(attacker->getTeam()), attacker->getNameKey(), interceptDamage);
+				GC.messagePlayer(uiParentEventID, interceptor->getOwner(), true, GC.getEVENT_MESSAGE_TIME(), strInterceptor);
+
+				CvString strInterceptee = GetLocalizedText("Your {1_UnitName} was intercepted by a {2_owner_adjective} {3_EnUName} which dealt {4_damage} damage to it.", attacker->getNameKey(), interceptor->getVisualCivAdjective(interceptor->getTeam()), interceptor->getNameKey(), interceptDamage);
+				GC.messagePlayer(uiParentEventID, attacker->getOwner(), true, GC.getEVENT_MESSAGE_TIME(), strInterceptee);
+			}
 		}
 	}
 
@@ -2006,9 +2046,9 @@ void CvUnitCombat::ResolveAirUnitVsCombat(const CvCombatInfo& kCombatInfo, uint 
 
 				strAttacker = GetLocalizedText("Your {1_UnitName} took {2_Damage} damage attacking an enemy {3_EnUName} for {4_Damage} damage.", attacker->getNameKey(), damageToAttackerBase, defender->getNameKey(), totalDamageToDefender);
 				strDefender = GetLocalizedText("Your {1_UnitName} took {2_Num} damage from an enemy {3_EnUName} which took {4_Damage} damage!", defender->getNameKey(), totalDamageToDefender, attacker->getNameKey(), damageToAttackerBase);
-				if (attacker->IsDead())
+				if (attacker->IsDead() && !attacker->isSuicide())
 					strAttackerDied = GetLocalizedText("TXT_KEY_MISC_YOU_UNIT_DIED", attacker->getNameKey());
-				if (defender->IsDead())
+				if (defender->IsDead() && !attacker->isSuicide())
 					strDefenderDied = GetLocalizedText("TXT_KEY_MISC_YOU_UNIT_DIED", defender->getNameKey());
 
 				defender->setCombatUnit(NULL);
@@ -2524,23 +2564,33 @@ void CvUnitCombat::GenerateNuclearCombatInfo(CvUnit& kAttacker, CvPlot& plot, Cv
 
 	pkCombatInfo->setAttackIsBombingMission(true);
 	pkCombatInfo->setDefenderRetaliates(false);
-	pkCombatInfo->setAttackNuclearLevel(kAttacker.GetNukeDamageLevel() + 1);
 
-	// Set all of the units in the blast radius to defenders and calculate their damage
+	CvUnit* interceptor = getMissileInterceptor(kAttacker, plot);
+	bool wasShotDown = interceptor != NULL;
 	int iDamageMembers = 0;
-	GenerateNuclearExplosionDamage(&plot, kAttacker.GetNukeDamageLevel(), &kAttacker, pkCombatInfo->getDamageMembers(), &iDamageMembers, pkCombatInfo->getMaxDamageMemberCount());
+	if (wasShotDown)
+	{
+		pkCombatInfo->setUnit(BATTLE_UNIT_INTERCEPTOR, interceptor);
+		pkCombatInfo->setDamageInflicted(BATTLE_UNIT_INTERCEPTOR, kAttacker.GetMaxHitPoints());
+	}
+	else
+	{
+		pkCombatInfo->setAttackNuclearLevel(kAttacker.GetNukeDamageLevel() + 1);
+		// Set all of the units in the blast radius to defenders and calculate their damage
+		GenerateNuclearExplosionDamage(&plot, kAttacker.GetNukeDamageLevel(), &kAttacker, pkCombatInfo->getDamageMembers(), &iDamageMembers, pkCombatInfo->getMaxDamageMemberCount());
+	}
 	pkCombatInfo->setDamageMemberCount(iDamageMembers);
 
 	GC.GetEngineUserInterface()->setDirty(UnitInfo_DIRTY_BIT, true);
 }
 
 //	-------------------------------------------------------------------------------------
-uint CvUnitCombat::ApplyNuclearExplosionDamage(CvPlot* pkTargetPlot, int iDamageLevel, CvUnit* /* pkAttacker = NULL*/)
+uint CvUnitCombat::ApplyNuclearExplosionDamage(uint uiParentEventID, CvPlot* pkTargetPlot, int iDamageLevel, CvUnit* /* pkAttacker = NULL*/)
 {
 	CvCombatMemberEntry kDamageMembers[MAX_NUKE_DAMAGE_MEMBERS];
 	int iDamageMembers = 0;
 	GenerateNuclearExplosionDamage(pkTargetPlot, iDamageLevel, NULL, &kDamageMembers[0], &iDamageMembers, MAX_NUKE_DAMAGE_MEMBERS);
-	return ApplyNuclearExplosionDamage(&kDamageMembers[0], iDamageMembers, NULL, pkTargetPlot, iDamageLevel);
+	return ApplyNuclearExplosionDamage(uiParentEventID, &kDamageMembers[0], iDamageMembers, NULL, pkTargetPlot, iDamageLevel);
 }
 
 // find how much population to remove from this city
@@ -2587,10 +2637,18 @@ int getNukeCityHitpointDamage(CvCity* nukedCity, int dist)
 }
 
 //	-------------------------------------------------------------------------------------
-uint CvUnitCombat::ApplyNuclearExplosionDamage(const CvCombatMemberEntry* pkDamageArray, int iDamageMembers, CvUnit* pkAttacker, CvPlot* pkTargetPlot, int iDamageLevel)
+uint CvUnitCombat::ApplyNuclearExplosionDamage(uint uiParentEventID, const CvCombatMemberEntry* pkDamageArray, int iDamageMembers, CvUnit* pkAttacker, CvPlot* pkTargetPlot, int iDamageLevel)
 {
+	CvString attackerName = pkAttacker->getVisualCivAdjective(pkAttacker->getTeam());
+
 	uint uiOpposingDamageCount = 0;
 	PlayerTypes eAttackerOwner = pkAttacker?pkAttacker->getOwner():NO_PLAYER;
+
+	{
+		string message = "Your {1_UnitName} has struck its target.";
+		CvString messageFull = GetLocalizedText(message.c_str(), pkAttacker->getNameKey());
+		GC.messagePlayer(uiParentEventID, pkAttacker->getOwner(), true, GC.getEVENT_MESSAGE_TIME(), messageFull);
+	}
 
 	// Do all the units first
 	for(int i = 0; i < iDamageMembers; ++i)
@@ -2601,6 +2659,12 @@ uint CvUnitCombat::ApplyNuclearExplosionDamage(const CvCombatMemberEntry* pkDama
 			CvUnit* pkUnit = GET_PLAYER(kEntry.GetPlayer()).getUnit(kEntry.GetUnitID());
 			if(pkUnit)
 			{
+				{
+					string message = "Your {1_UnitName} took {2_damage} damage from a {3_civ} nuclear weapon.";
+					CvString messageFull = GetLocalizedText(message.c_str(), pkUnit->getNameKey(), kEntry.GetDamage(), attackerName);
+					GC.messagePlayer(uiParentEventID, pkUnit->getOwner(), true, GC.getEVENT_MESSAGE_TIME(), messageFull);
+				}
+
 				// Apply the damage
 				pkUnit->setCombatUnit(NULL);
 				pkUnit->ClearMissionQueue();
@@ -2702,14 +2766,26 @@ uint CvUnitCombat::ApplyNuclearExplosionDamage(const CvCombatMemberEntry* pkDama
 			CvCity* pkCity = GET_PLAYER(kEntry.GetPlayer()).getCity(kEntry.GetCityID());
 			if(pkCity)
 			{
+				int damage = kEntry.GetFinalDamage();
+				{
+					string message = "The City of {1_UnitName} was hit by a {2_attacker} nuclear weapon and took {3_damage} damage!";
+					CvString messageFull = GetLocalizedText(message.c_str(), pkCity->getNameKey(), attackerName, damage);
+					GC.messagePlayer(uiParentEventID, pkAttacker->getOwner(), true, GC.getEVENT_MESSAGE_TIME(), messageFull);
+				}
+
 				int dist = hexDistance(pkCity->plot()->getX() - pkTargetPlot->getX(), pkCity->plot()->getY() - pkTargetPlot->getY());
 				pkCity->setCombatUnit(NULL);
 
 				if(eAttackerOwner == NO_PLAYER || pkCity->getOwner() != eAttackerOwner)
 					uiOpposingDamageCount++;
 
-				if(kEntry.GetFinalDamage() >= pkCity->GetMaxHitPoints() && !pkCity->IsOriginalCapital())
+				if(damage >= pkCity->GetMaxHitPoints() && !pkCity->IsOriginalCapital())
 				{
+					{
+						string message = "{1_city} was completely destroyed in the nuclear attack!";
+						CvString messageFull = GetLocalizedText(message.c_str(), pkCity->getNameKey());
+						GC.messagePlayer(uiParentEventID, pkCity->getOwner(), true, GC.getEVENT_MESSAGE_TIME(), messageFull);
+					}
 					auto_ptr<ICvCity1> pkDllCity(new CvDllCity(pkCity));
 					gDLL->GameplayCitySetDamage(pkDllCity.get(), 0, pkCity->getDamage()); // to stop the fires
 					gDLL->GameplayCityDestroyed(pkDllCity.get(), NO_PLAYER);
@@ -2727,9 +2803,15 @@ uint CvUnitCombat::ApplyNuclearExplosionDamage(const CvCombatMemberEntry* pkDama
 				{
 					int popToRemove = getNukePopulationDamage(pkCity, dist);
 					pkCity->changePopulation(-popToRemove);
+					if (popToRemove > 0)
+					{
+						string message = "{1_city} lost {2_pop} million inhabitants in the nuclear attack!";
+						CvString messageFull = GetLocalizedText(message.c_str(), pkCity->getNameKey(), popToRemove);
+						GC.messagePlayer(uiParentEventID, pkCity->getOwner(), true, GC.getEVENT_MESSAGE_TIME(), messageFull);
+					}
 
 					// Add damage to the city
-					pkCity->setDamage(kEntry.GetFinalDamage());
+					pkCity->setDamage(damage);
 
 #ifdef AUI_WARNING_FIXES
 					if (pkAttacker)
@@ -2886,68 +2968,76 @@ void CvUnitCombat::ResolveNuclearCombat(const CvCombatInfo& kCombatInfo, uint ui
 
 	CvString strBuffer;
 
-	GC.getGame().changeNukesExploded(1);
 
 	if(pkAttacker)
 	{
-		// Make sure we are disconnected from any unit transporting the attacker (i.e. its a missile)
-		pkAttacker->setTransportUnit(NULL);
-
-		if(pkTargetPlot)
+		CvUnit* interceptor = kCombatInfo.getUnit(BATTLE_UNIT_INTERCEPTOR);
+		bool wasShotDown = interceptor != NULL;
+		if (wasShotDown)
 		{
-			if(ApplyNuclearExplosionDamage(kCombatInfo.getDamageMembers(), kCombatInfo.getDamageMemberCount(), pkAttacker, pkTargetPlot, kCombatInfo.getAttackNuclearLevel() - 1) > 0)
-			{
-				if(pkAttacker->getOwner() == GC.getGame().getActivePlayer())
-				{
-					// Must damage someone to get the achievement.
-					gDLL->UnlockAchievement(ACHIEVEMENT_DROP_NUKE);
-
-					if(GC.getGame().getGameTurnYear() == 2012)
-					{
-						CvPlayerAI& kPlayer = GET_PLAYER(GC.getGame().getActivePlayer());
-						if(strncmp(kPlayer.getCivilizationTypeKey(), "CIVILIZATION_MAYA", 32) == 0)
-						{
-							gDLL->UnlockAchievement(ACHIEVEMENT_XP1_36);
-						}
-
-					}
-
-				}
-			}
-		}
-
-		// Suicide Unit (currently all nuclear attackers are)
-		if(pkAttacker->isSuicide())
-		{
-			pkAttacker->setCombatUnit(NULL);	// Must clear this if doing a delayed kill, should this be part of the kill method?
-			pkAttacker->setAttackPlot(NULL, false);
-			pkAttacker->kill(true);
+			// dead code
+			// the interception code switches the combat to non nuclear, so it resolves in the standard air resolver function
 		}
 		else
 		{
-			CvAssertMsg(pkAttacker->isSuicide(), "A nuke unit that is not a one time use?");
+			// Make sure we are disconnected from any unit transporting the attacker (i.e. its a missile)
+			pkAttacker->setTransportUnit(NULL);
 
-			// Clean up some stuff
-			pkAttacker->setCombatUnit(NULL);
-			pkAttacker->ClearMissionQueue(GetPostCombatDelay());
-			pkAttacker->SetAutomateType(NO_AUTOMATE); // kick unit out of automation
-
-			// Spend a move for this attack
-			pkAttacker->changeMoves(-GC.getMOVE_DENOMINATOR());
-
-			// Can't move or attack again
-#ifdef NQ_UNIT_TURN_ENDS_ON_FINAL_ATTACK
-			if(!pkAttacker->canMoveAfterAttacking() && pkAttacker->isOutOfAttacks())
-#else
-			if(!pkAttacker->canMoveAfterAttacking())
-#endif
+			if (pkTargetPlot)
 			{
-				pkAttacker->finishMoves();
-			}
-		}
+				GC.getGame().changeNukesExploded(1);
+				if (ApplyNuclearExplosionDamage(uiParentEventID, kCombatInfo.getDamageMembers(), kCombatInfo.getDamageMemberCount(), pkAttacker, pkTargetPlot, kCombatInfo.getAttackNuclearLevel() - 1) > 0)
+				{
+					if (pkAttacker->getOwner() == GC.getGame().getActivePlayer())
+					{
+						// Must damage someone to get the achievement.
+						gDLL->UnlockAchievement(ACHIEVEMENT_DROP_NUKE);
 
-		// Report that combat is over in case we want to queue another attack
-		GET_PLAYER(pkAttacker->getOwner()).GetTacticalAI()->CombatResolved(pkAttacker, true);
+						if (GC.getGame().getGameTurnYear() == 2012)
+						{
+							CvPlayerAI& kPlayer = GET_PLAYER(GC.getGame().getActivePlayer());
+							if (strncmp(kPlayer.getCivilizationTypeKey(), "CIVILIZATION_MAYA", 32) == 0)
+							{
+								gDLL->UnlockAchievement(ACHIEVEMENT_XP1_36);
+							}
+						}
+					}
+				}
+			}
+
+			// Suicide Unit (currently all nuclear attackers are)
+			if (pkAttacker->isSuicide())
+			{
+				pkAttacker->setCombatUnit(NULL);	// Must clear this if doing a delayed kill, should this be part of the kill method?
+				pkAttacker->setAttackPlot(NULL, false);
+				pkAttacker->kill(true);
+			}
+			else
+			{
+				CvAssertMsg(pkAttacker->isSuicide(), "A nuke unit that is not a one time use?");
+
+				// Clean up some stuff
+				pkAttacker->setCombatUnit(NULL);
+				pkAttacker->ClearMissionQueue(GetPostCombatDelay());
+				pkAttacker->SetAutomateType(NO_AUTOMATE); // kick unit out of automation
+
+				// Spend a move for this attack
+				pkAttacker->changeMoves(-GC.getMOVE_DENOMINATOR());
+
+				// Can't move or attack again
+#ifdef NQ_UNIT_TURN_ENDS_ON_FINAL_ATTACK
+				if (!pkAttacker->canMoveAfterAttacking() && pkAttacker->isOutOfAttacks())
+#else
+				if (!pkAttacker->canMoveAfterAttacking())
+#endif
+				{
+					pkAttacker->finishMoves();
+				}
+			}
+
+			// Report that combat is over in case we want to queue another attack
+			GET_PLAYER(pkAttacker->getOwner()).GetTacticalAI()->CombatResolved(pkAttacker, true);
+		}
 	}
 }
 
@@ -2981,7 +3071,7 @@ void CvUnitCombat::ResolveCombat(const CvCombatInfo& kInfo, uint uiParentEventID
 		gDLL->GameplayUnitVisibility(pDllUnit.get(), !pDefenderSupport->isInvisible(eActiveTeam, false));
 	}
 	// Nuclear Mission
-	if(kInfo.getAttackIsNuclear())
+	if(kInfo.getAttackIsNuclear()) //  && kInfo.getUnit(BATTLE_UNIT_INTERCEPTOR) != NULL
 	{
 		ResolveNuclearCombat(kInfo, uiParentEventID);
 	}

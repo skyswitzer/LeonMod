@@ -173,6 +173,7 @@ CvUnit::CvUnit() :
 	, m_iExtraMoveDiscount("CvUnit::m_iExtraMoveDiscount", m_syncArchive)
 	, m_iExtraRange("CvUnit::m_iExtraRange", m_syncArchive)
 	, m_iExtraIntercept("CvUnit::m_iExtraIntercept", m_syncArchive)
+	, m_iMissileIntercept("CvUnit::m_iMissileIntercept", m_syncArchive)
 	, m_iExtraEvasion("CvUnit::m_iExtraEvasion", m_syncArchive)
 	, m_iExtraFirstStrikes("CvUnit::m_iExtraFirstStrikes", m_syncArchive)
 	, m_iExtraChanceFirstStrikes("CvUnit::m_iExtraChanceFirstStrikes", m_syncArchive)
@@ -945,6 +946,7 @@ void CvUnit::reset(int iID, UnitTypes eUnit, PlayerTypes eOwner, bool bConstruct
 	m_iExtraMoveDiscount = 0;
 	m_iExtraRange = 0;
 	m_iExtraIntercept = 0;
+	m_iMissileIntercept = 0;
 	m_iExtraEvasion = 0;
 	m_iExtraFirstStrikes = 0;
 	m_iExtraChanceFirstStrikes = 0;
@@ -12892,7 +12894,6 @@ int CvUnit::GetAirCombatDamage(const CvUnit* pDefender, CvCity* pCity, bool bInc
 	double fStrengthRatio = CvUnit::adjustedDamageRatio(iAttackerStrength, iDefenderStrength);
 	double fAttackerDamage = (double)iAttackerDamage * fStrengthRatio;
 
-
 	iAttackerDamage = min(9999, iAttackerDamage); // dont deal more than 9999 damage
 	iAttackerDamage = max(1, iAttackerDamage); // deal at least 1 damage
 	return iAttackerDamage;
@@ -13076,6 +13077,12 @@ int CvUnit::GetAirStrikeDefenseDamage(const CvUnit* pAttacker, bool bIncludeRand
 	return iDefenderDamage;
 }
 
+bool isWithinRange(const CvUnit* possibleInterceptor, const CvPlot& interceptPlot)
+{
+	int range = possibleInterceptor->getUnitInfo().GetAirInterceptRange();
+	return range >= plotDistance(possibleInterceptor->getX(), possibleInterceptor->getY(), interceptPlot.getX(), interceptPlot.getY());
+}
+
 // return an intercept score for this unit
 // 0 if it cannot intercept
 int getInterception(int noIntercept, const CvPlot& interceptPlot, const CvUnit* interceptee, const CvUnit* possibleInterceptor, bool bLandInterceptorsOnly, bool bVisibleInterceptorsOnly)
@@ -13099,14 +13106,13 @@ int getInterception(int noIntercept, const CvPlot& interceptPlot, const CvUnit* 
 					{
 						if (!bVisibleInterceptorsOnly || possibleInterceptor->plot()->isVisible(interceptee->getTeam()))
 						{
-							int range = possibleInterceptor->getUnitInfo().GetAirInterceptRange();
-							// range check
-							if (range >= plotDistance(possibleInterceptor->getX(), possibleInterceptor->getY(), interceptPlot.getX(), interceptPlot.getY()))
+							if (isWithinRange(possibleInterceptor, interceptPlot))
 							{
 								float healthFraction = (float)possibleInterceptor->GetCurrHitPoints() / (float)possibleInterceptor->GetMaxHitPoints();
 								bool isBadlyDamagedAircraft = healthFraction <= aircraftDamageFractionNoIntercept && isAircraft;
 								if (!isBadlyDamagedAircraft) // dont allow badly damaged aircraft
 								{
+									int range = possibleInterceptor->getUnitInfo().GetAirInterceptRange();
 									interceptScore = possibleInterceptor->currInterceptionProbability();
 									interceptScore *= healthFraction;
 									interceptScore += max(1, 10000000 - range * 1000); // try to pick lowest range unit
@@ -13121,7 +13127,41 @@ int getInterception(int noIntercept, const CvPlot& interceptPlot, const CvUnit* 
 	return interceptScore;
 }
 
+//	--------------------------------------------------------------------------------
+CvUnit* CvUnit::WasMissileIntercepted(const CvPlot& interceptPlot) const
+{
+	VALIDATE_OBJECT
 
+	// find the first unit to intercept
+	for (int iI = 0; iI < MAX_PLAYERS; iI++)
+	{
+		CvPlayerAI& kLoopPlayer = GET_PLAYER((PlayerTypes)iI);
+		if (kLoopPlayer.isAlive())
+		{
+			TeamTypes eLoopTeam = kLoopPlayer.getTeam();
+			if (isEnemy(eLoopTeam))
+			{
+				int unitIdx;
+				for (CvUnit* pLoopUnit = kLoopPlayer.firstUnit(&unitIdx); pLoopUnit != NULL; pLoopUnit = kLoopPlayer.nextUnit(&unitIdx))
+				{
+					if (isWithinRange(pLoopUnit, interceptPlot))
+					{
+						int interceptOdds = pLoopUnit->getMissileIntercept();
+						if (interceptOdds > 0)
+						{
+							int roll = GC.getGame().getJonRandNum(100 + 1, "Missile Intercept");
+							if (roll <= interceptOdds)
+							{
+								return pLoopUnit;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	return NULL;
+}
 
 //	--------------------------------------------------------------------------------
 CvUnit* CvUnit::GetBestInterceptor(const CvPlot& interceptPlot, CvUnit* pkDefender /* = NULL */, bool bLandInterceptorsOnly /*false*/, bool bVisibleInterceptorsOnly /*false*/) const
@@ -16902,7 +16942,23 @@ int CvUnit::getExtraIntercept() const
 void CvUnit::changeExtraIntercept(int iChange)
 {
 	VALIDATE_OBJECT
-	m_iExtraIntercept += iChange;
+		m_iExtraIntercept += iChange;
+}
+
+
+//	--------------------------------------------------------------------------------
+int CvUnit::getMissileIntercept() const
+{
+	VALIDATE_OBJECT
+		return m_iMissileIntercept;
+}
+
+
+//	--------------------------------------------------------------------------------
+void CvUnit::changeMissileIntercept(int iChange)
+{
+	VALIDATE_OBJECT
+		m_iMissileIntercept += iChange;
 }
 
 
@@ -19710,6 +19766,7 @@ void CvUnit::setHasPromotion(PromotionTypes eIndex, bool bNewValue)
 		ChangeInterceptionDefenseDamageModifier(thisPromotion.GetInterceptionDefenseDamageModifier() * iChange);
 		ChangeAirSweepCombatModifier(thisPromotion.GetAirSweepCombatModifier() * iChange);
 		changeExtraIntercept(thisPromotion.GetInterceptChanceChange() * iChange);
+		changeMissileIntercept(thisPromotion.GetMissileInterceptChance() * iChange);
 		changeExtraEvasion(thisPromotion.GetEvasionChange() * iChange);
 		changeExtraEnemyHeal(thisPromotion.GetEnemyHealChange() * iChange);
 		changeExtraNeutralHeal(thisPromotion.GetNeutralHealChange() * iChange);

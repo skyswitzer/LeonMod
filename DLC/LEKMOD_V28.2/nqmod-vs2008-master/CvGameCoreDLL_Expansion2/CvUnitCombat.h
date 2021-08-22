@@ -49,7 +49,7 @@ public:
 
 	//	Return a ranged unit that will defend the supplied location against the attacker at the specified location.
 	static CvUnit*		GetFireSupportUnit(PlayerTypes eDefender, int iDefendX, int iDefendY, int iAttackX, int iAttackY);
-	static uint			ApplyNuclearExplosionDamage(CvPlot* pkTargetPlot, int iDamageLevel, CvUnit* pkAttacker = NULL);
+	static uint			ApplyNuclearExplosionDamage(uint uiParentEventID, CvPlot* pkTargetPlot, int iDamageLevel, CvUnit* pkAttacker = NULL);
 
 protected:
 	static void ResolveRangedUnitVsCombat(const CvCombatInfo& kInfo, uint uiParentEventID);
@@ -61,7 +61,7 @@ protected:
 	static void ResolveNuclearCombat(const CvCombatInfo& kCombatInfo, uint uiParentEventID);
 
 	static void GenerateNuclearExplosionDamage(CvPlot* pkTargetPlot, int iDamageLevel, CvUnit* pkAttacker, CvCombatMemberEntry* pkDamageArray, int* piDamageMembers, int iMaxDamageMembers);
-	static uint ApplyNuclearExplosionDamage(const CvCombatMemberEntry* pkDamageArray, int iDamageMembers, CvUnit* pkAttacker, CvPlot* pkTargetPlot, int iDamageLevel);
+	static uint ApplyNuclearExplosionDamage(uint uiParentEventID, const CvCombatMemberEntry* pkDamageArray, int iDamageMembers, CvUnit* pkAttacker, CvPlot* pkTargetPlot, int iDamageLevel);
 
 	static void ApplyPostCombatTraitEffects(CvUnit* pkWinner, CvUnit* pkLoser);
 	static void ApplyPostCityCombatEffects(CvUnit* pkAttacker, CvCity* pkDefender, int iAttackerDamageInflicted);

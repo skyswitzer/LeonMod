@@ -15702,7 +15702,7 @@ void CvCity::doMeltdown()
 						m_pCityBuildings->SetNumRealBuilding(((BuildingTypes)iI), 0);
 					}
 
-					CvUnitCombat::ApplyNuclearExplosionDamage(plot(), 1);
+					CvUnitCombat::ApplyNuclearExplosionDamage(0, plot(), 1);
 
 					if(getOwner() == GC.getGame().getActivePlayer())
 					{
