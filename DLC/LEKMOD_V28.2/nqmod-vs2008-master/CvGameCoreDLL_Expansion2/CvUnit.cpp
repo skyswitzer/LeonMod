@@ -13084,8 +13084,9 @@ bool isWithinRange(const CvUnit* possibleInterceptor, const CvPlot& interceptPlo
 }
 
 // return an intercept score for this unit
+// this should control which unit we choose to intercept with
 // 0 if it cannot intercept
-int getInterception(int noIntercept, const CvPlot& interceptPlot, const CvUnit* interceptee, const CvUnit* possibleInterceptor, bool bLandInterceptorsOnly, bool bVisibleInterceptorsOnly)
+int getInterceptionScore(int noIntercept, const CvPlot& interceptPlot, const CvUnit* interceptee, const CvUnit* possibleInterceptor, bool bLandInterceptorsOnly, bool bVisibleInterceptorsOnly)
 {
 	const float aircraftDamageFractionNoIntercept = 0.33f;
 	int interceptScore = noIntercept;
@@ -13184,7 +13185,7 @@ CvUnit* CvUnit::GetBestInterceptor(const CvPlot& interceptPlot, CvUnit* pkDefend
 				int unitIdx;
 				for(CvUnit* pLoopUnit = kLoopPlayer.firstUnit(&unitIdx); pLoopUnit != NULL; pLoopUnit = kLoopPlayer.nextUnit(&unitIdx))
 				{
-					int loopValue = getInterception(noIntercept, interceptPlot, this, pLoopUnit, bLandInterceptorsOnly, bVisibleInterceptorsOnly);
+					int loopValue = getInterceptionScore(noIntercept, interceptPlot, this, pLoopUnit, bLandInterceptorsOnly, bVisibleInterceptorsOnly);
 					if(loopValue > previousBest)
 					{
 						previousBest = loopValue;
@@ -13219,7 +13220,7 @@ int CvUnit::GetInterceptorCount(const CvPlot& interceptPlot, CvUnit* pkDefender 
 				int unitIdx;
 				for (CvUnit* pLoopUnit = kLoopPlayer.firstUnit(&unitIdx); pLoopUnit != NULL; pLoopUnit = kLoopPlayer.nextUnit(&unitIdx))
 				{
-					int loopValue = getInterception(noIntercept, interceptPlot, this, pLoopUnit, bLandInterceptorsOnly, bVisibleInterceptorsOnly);
+					int loopValue = getInterceptionScore(noIntercept, interceptPlot, this, pLoopUnit, bLandInterceptorsOnly, bVisibleInterceptorsOnly);
 					if (loopValue != noIntercept)
 					{
 						totalInterceptorCount++;
@@ -14042,7 +14043,8 @@ int CvUnit::getNoRevealMapCount() const
 int CvUnit::maxInterceptionProbability() const
 {
 	VALIDATE_OBJECT
-	return std::max(0, getExtraIntercept());
+	float modifier = (100.0f + GetInterceptionCombatModifier()) / 100.0f;
+	return std::max(0.0f, modifier * getExtraIntercept());
 }
 
 
@@ -19613,12 +19615,7 @@ bool CvUnit::isPromotionValid(PromotionTypes ePromotion) const
 	// Max Interception
 	if(promotionInfo->GetInterceptChanceChange() > 0)
 	{
-#ifdef AUI_UNIT_FIX_ALLOW_COMBO_AIR_COMBAT_PROMOTIONS
-		if (maxInterceptionProbability() >= GC.getMAX_INTERCEPTION_PROBABILITY())
-#else
-		if(promotionInfo->GetInterceptChanceChange() + maxInterceptionProbability() > GC.getMAX_INTERCEPTION_PROBABILITY())
-#endif
-			return false;
+		return true;
 	}
 
 	// Max evasion

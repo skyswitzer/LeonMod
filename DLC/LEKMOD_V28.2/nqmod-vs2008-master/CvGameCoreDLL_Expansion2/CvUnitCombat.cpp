@@ -2176,6 +2176,8 @@ void CvUnitCombat::GenerateAirSweepCombatInfo(CvUnit& kAttacker, CvUnit* pkDefen
 	else
 	{
 		iDefenderStrength = pkDefender->GetMaxRangedCombatStrength(&kAttacker, /*pCity*/ NULL, false, false);
+		iDefenderStrength *= (100 + pkDefender->GetAirSweepCombatModifier());
+		iDefenderStrength /= 100;
 
 		int iAttackerDamageInflicted = kAttacker.getCombatDamage(iAttackerStrength, iDefenderStrength, kAttacker.getDamage(), /*bIncludeRand*/ true, /*bAttackerIsCity*/ false, /*bDefenderIsCity*/ false);
 		int iDefenderDamageInflicted = pkDefender->getCombatDamage(iDefenderStrength, iAttackerStrength, pkDefender->getDamage(), /*bIncludeRand*/ true, /*bAttackerIsCity*/ false, /*bDefenderIsCity*/ false);
@@ -2805,7 +2807,7 @@ uint CvUnitCombat::ApplyNuclearExplosionDamage(uint uiParentEventID, const CvCom
 					pkCity->changePopulation(-popToRemove);
 					if (popToRemove > 0)
 					{
-						string message = "{1_city} lost {2_pop} million inhabitants in the nuclear attack!";
+						string message = "{1_city} lost {2_pop} [ICON_CITIZEN] million inhabitants in the nuclear attack!";
 						CvString messageFull = GetLocalizedText(message.c_str(), pkCity->getNameKey(), popToRemove);
 						GC.messagePlayer(uiParentEventID, pkCity->getOwner(), true, GC.getEVENT_MESSAGE_TIME(), messageFull);
 					}
