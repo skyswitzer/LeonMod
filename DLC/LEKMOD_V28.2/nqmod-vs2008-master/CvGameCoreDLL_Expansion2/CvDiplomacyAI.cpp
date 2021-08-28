@@ -3696,18 +3696,19 @@ bool nearDominationVictory(CvPlayer& them)
 
 	return isNear;
 }
+bool isNearVictory(CvPlayer& them)
+{
+	return nearCultureVictory(them) ||
+		nearScienceVictory(them) ||
+		nearDiplomaticVictory(them) ||
+		nearDominationVictory(them);
+}
 ////////////////////////////////////
 // if someone is about to win, go crazy
 ////////////////////////////////////
 void applyNearVictory(CvDiplomacyAI& us, CvPlayer& them, FStaticVector<int, 128, true, c_eCiv5GameplayDLL>& viApproachWeights)
-{
-	bool isNearVictory = 
-		nearCultureVictory(them) ||
-		nearScienceVictory(them) ||
-		nearDiplomaticVictory(them) ||
-		nearDominationVictory(them);
-	
-	if (isNearVictory)
+{	
+	if (isNearVictory(them))
 	{
 		viApproachWeights[MAJOR_CIV_APPROACH_WAR] += 900;
 	}
@@ -6220,6 +6221,7 @@ void CvDiplomacyAI::DoMakeWarOnPlayer(PlayerTypes eTargetPlayer)
 					// If we're at least 85% of the way to our objective, let loose the dogs of war!
 					if(IsMusteringForAttack(eTargetPlayer) || (pOperation != NULL && pOperation->PercentFromMusterPointToTarget() >= 85))	// If we're "mustering" it means we have a Sneak Attack Operation that's in position to attack
 					{
+						// If our Sneak Attack is read then actually initiate the DoW
 						bDeclareWar = true;
 						SetMusteringForAttack(eTargetPlayer, false);
 					}
@@ -6237,12 +6239,13 @@ void CvDiplomacyAI::DoMakeWarOnPlayer(PlayerTypes eTargetPlayer)
 				SetMusteringForAttack(eTargetPlayer, false);
 			}
 		}
+	}
 
-		// If our Sneak Attack is read then actually initiate the DoW
-		if(bDeclareWar)
-		{
-			DeclareWar(eTargetPlayer);
-		}
+	bDeclareWar = bDeclareWar || isNearVictory(GET_PLAYER(eTargetPlayer));
+
+	if (bDeclareWar)
+	{
+		DeclareWar(eTargetPlayer);
 	}
 }
 
