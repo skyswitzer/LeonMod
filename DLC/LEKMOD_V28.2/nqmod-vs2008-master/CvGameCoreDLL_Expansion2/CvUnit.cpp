@@ -11538,6 +11538,11 @@ bool CvUnit::canCoexistWithEnemyUnit(TeamTypes eTeam) const
 int CvUnit::getMustSetUpToRangedAttackCount() const
 {
 	VALIDATE_OBJECT
+
+	// ai never have to do ranged setup
+	if (!GET_PLAYER(getOwner()).isHuman())
+		return 0;
+
 	return m_iMustSetUpToRangedAttackCount;
 }
 
