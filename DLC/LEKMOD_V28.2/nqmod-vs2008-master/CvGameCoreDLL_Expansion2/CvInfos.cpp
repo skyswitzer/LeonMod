@@ -2508,6 +2508,7 @@ CvVictoryInfo::CvVictoryInfo() :
 	m_iNumCultureCities(0),
 	m_iTotalCultureRatio(0),
 	m_iVictoryDelayTurns(0),
+	m_iPointsAwarded(0),
 	m_bWinsGame(false),
 	m_bEndScore(false),
 	m_bConquest(false),
@@ -2559,6 +2560,11 @@ int CvVictoryInfo::getTotalCultureRatio() const
 int CvVictoryInfo::getVictoryDelayTurns() const
 {
 	return m_iVictoryDelayTurns;
+}
+//------------------------------------------------------------------------------
+int CvVictoryInfo::getPointsAwarded() const
+{
+	return m_iPointsAwarded;
 }
 //------------------------------------------------------------------------------
 bool CvVictoryInfo::IsWinsGame() const
@@ -2613,7 +2619,7 @@ const char* CvVictoryInfo::getMovie() const
 //------------------------------------------------------------------------------
 int CvVictoryInfo::GetVictoryPointAward(int i) const
 {
-	return m_piVictoryPointAwards[i];
+	return m_iPointsAwarded / i;
 }
 //------------------------------------------------------------------------------
 bool CvVictoryInfo::CacheResults(Database::Results& kResults, CvDatabaseUtility& kUtility)
@@ -2637,6 +2643,7 @@ bool CvVictoryInfo::CacheResults(Database::Results& kResults, CvDatabaseUtility&
 	m_iNumCultureCities = kResults.GetInt("NumCultureCities");
 	m_iTotalCultureRatio = kResults.GetInt("TotalCultureRatio");
 	m_iVictoryDelayTurns = kResults.GetInt("VictoryDelayTurns");
+	m_iPointsAwarded = kResults.GetInt("PointsAwarded");
 
 	m_strMovie = kResults.GetText("VictoryMovie");
 

@@ -7144,10 +7144,12 @@ void CvGame::DoPlaceTeamInVictoryCompetition(VictoryTypes eNewVictory, TeamTypes
 			if(getTeamVictoryRank(eNewVictory, iSlotLoop) == NO_TEAM)
 			{
 				setTeamVictoryRank(eNewVictory, iSlotLoop, eTeam);
-				int iNumPoints = pkVictoryInfo->GetVictoryPointAward(iSlotLoop);
+				int iNumPoints = pkVictoryInfo->GetVictoryPointAward(1 + iSlotLoop);
+				GET_TEAM(eTeam).changeVictoryPoints(iNumPoints);
 				kTeam.changeVictoryPoints(iNumPoints);
 				kTeam.setVictoryAchieved(eNewVictory, true);
 
+				// send messages to players
 				Localization::String youWonInfo = Localization::Lookup("TXT_KEY_NOTIFICATION_VICTORY_RACE_WON_YOU");
 				Localization::String youWonSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_VICTORY_RACE_WON_YOU");
 				Localization::String someoneWonInfo = Localization::Lookup("TXT_KEY_NOTIFICATION_VICTORY_RACE_WON_SOMEBODY");
@@ -9730,7 +9732,9 @@ void CvGame::testVictory()
 
 		if(bEndGame)
 		{
-			VictoryTypes eScoreVictory = NO_VICTORY;
+			std::vector<int> winnerData;
+			int winningTeam = NO_TEAM;
+			VictoryTypes scoreVictoryType = NO_VICTORY;
 			for(iVictoryLoop = 0; iVictoryLoop < GC.getNumVictoryInfos(); iVictoryLoop++)
 			{
 				VictoryTypes eVictory = static_cast<VictoryTypes>(iVictoryLoop);
@@ -9739,7 +9743,7 @@ void CvGame::testVictory()
 				{
 					if(pkVictoryInfo->isEndScore())
 					{
-						eScoreVictory = eVictory;
+						scoreVictoryType = eVictory;
 						break;
 					}
 				}
@@ -9748,31 +9752,25 @@ void CvGame::testVictory()
 			aaiGameWinners.clear();
 
 			// Find out who is in the lead with VPs
-			int iBestVPNum = 0;
-			int iVPs;
-			for(iTeamLoop = 0; iTeamLoop < MAX_CIV_TEAMS; iTeamLoop++)
-			{
-				iVPs = GET_TEAM((TeamTypes) iTeamLoop).GetScore();
+			int maxPoints = 0;
+			for (iTeamLoop = 0; iTeamLoop < MAX_CIV_TEAMS; iTeamLoop++)
+				maxPoints += GET_TEAM((TeamTypes)iTeamLoop).GetScore();
 
-				if(iVPs > iBestVPNum)
+			const int rand = 1 + GC.rand(maxPoints - 1, "winner"); // range [1, maxPoints]
+			int sumPoints = 0;
+			for (iTeamLoop = 0; iTeamLoop < MAX_CIV_TEAMS; iTeamLoop++)
+			{
+				sumPoints += GET_TEAM((TeamTypes)iTeamLoop).GetScore();
+				if (rand <= sumPoints)
 				{
-					iBestVPNum = iVPs;
+					winningTeam = iTeamLoop;
+					break;
 				}
 			}
 
-			// Now that we know what the highest is, see if any players are tied
-			for(iTeamLoop = 0; iTeamLoop < MAX_CIV_TEAMS; iTeamLoop++)
-			{
-				iVPs = GET_TEAM((TeamTypes) iTeamLoop).GetScore();
-
-				if(iVPs == iBestVPNum)
-				{
-					std::vector<int> aWinner;
-					aWinner.push_back(iTeamLoop);
-					aWinner.push_back(eScoreVictory);
-					aaiGameWinners.push_back(aWinner);
-				}
-			}
+			winnerData.push_back(winningTeam);
+			winnerData.push_back(scoreVictoryType);
+			aaiGameWinners.push_back(winnerData);
 		}
 	}
 

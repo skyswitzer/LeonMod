@@ -711,6 +711,7 @@ public:
 	int getNumCultureCities() const;
 	int getTotalCultureRatio() const;
 	int getVictoryDelayTurns() const;
+	int getPointsAwarded() const;
 
 	bool IsWinsGame() const;
 	bool isTargetScore() const;
@@ -737,6 +738,7 @@ protected:
 	int m_iNumCultureCities;
 	int m_iTotalCultureRatio;
 	int m_iVictoryDelayTurns;
+	int m_iPointsAwarded;
 
 	bool m_bWinsGame;
 	bool m_bTargetScore;

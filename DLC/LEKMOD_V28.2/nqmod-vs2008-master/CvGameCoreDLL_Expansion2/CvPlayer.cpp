@@ -5532,6 +5532,9 @@ int CvPlayer::GetScore(bool bFinal, bool bWinner) const
 		iScore /= iGameProgressPercent;
 	}
 
+	// include team victory points
+	iScore += GET_TEAM(getTeam()).getVictoryPoints();
+
 	return iScore;
 }
 

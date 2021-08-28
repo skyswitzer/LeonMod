@@ -7556,7 +7556,7 @@ PlayerTypes CvGameLeagues::GetDiplomaticVictor() const
 
 void CvGameLeagues::SetDiplomaticVictor(PlayerTypes ePlayer)
 {
-	// There can be only one
+	// There can be only one!
 	CvAssertMsg(m_eDiplomaticVictor == NO_PLAYER, "Player voted Diplomatic Victor when there already was one. Please send Anton your save file and version.");
 	if (m_eDiplomaticVictor == NO_PLAYER)
 	{
