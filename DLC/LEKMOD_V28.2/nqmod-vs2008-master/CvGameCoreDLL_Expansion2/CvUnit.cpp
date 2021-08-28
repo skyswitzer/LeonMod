@@ -11539,10 +11539,6 @@ int CvUnit::getMustSetUpToRangedAttackCount() const
 {
 	VALIDATE_OBJECT
 
-	// ai never have to do ranged setup
-	if (!GET_PLAYER(getOwner()).isHuman())
-		return 0;
-
 	return m_iMustSetUpToRangedAttackCount;
 }
 
@@ -11550,6 +11546,11 @@ int CvUnit::getMustSetUpToRangedAttackCount() const
 bool CvUnit::isMustSetUpToRangedAttack() const
 {
 	VALIDATE_OBJECT
+
+	// ai never have to do ranged setup
+	if (!GET_PLAYER(getOwner()).isHuman())
+		return false;
+
 	return getMustSetUpToRangedAttackCount() > 0;
 }
 
