@@ -192,7 +192,7 @@ int CvUnitMovement::GetCostsForMove(const CvUnit* pUnit, const CvPlot* pFromPlot
 	}
 	else if (pToPlot->isCity()) //case with route is already handled above
 	{
-		return iMoveDenominator;
+		iRegularCost = iMoveDenominator;
 	}
 #if defined(MOD_CARGO_SHIPS)
 	else if (pUnit->isCargo() && pUnit->getDomainType() == DOMAIN_LAND &&
@@ -290,6 +290,14 @@ int CvUnitMovement::GetCostsForMove(const CvUnit* pUnit, const CvPlot* pFromPlot
 		if (bSlowDown)
 		{
 			iRegularCost += iMoveDenominator;
+		}
+	}
+
+	if (pUnit->getDomainType() == DOMAIN_SEA)
+	{
+		if (!pToPlot->IsTerrainCoast()) // ship not in coast costs 2 move
+		{
+			iRegularCost = iMoveDenominator * 2;
 		}
 	}
 

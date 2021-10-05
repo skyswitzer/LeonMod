@@ -4381,6 +4381,50 @@ bool CvPlot::isFriendlyCityOrPassableImprovement(PlayerTypes ePlayer, const CvUn
 	return isCityOrPassableImprovement(ePlayer, true, pUnit);
 }
 
+//	--------------------------------------------------------------------------------
+/// Is this enemy controlled territory? Near enemy unit, or in unopen borders.
+bool IsEnemyControlled(const CvPlot* plot, PlayerTypes ePlayer)
+{
+	// No friendly territory for barbs!
+	if (ePlayer == NO_PLAYER || GET_PLAYER(ePlayer).isBarbarian())
+		return false;
+
+	TeamTypes eTeam = GET_PLAYER(ePlayer).getTeam();
+	TeamTypes ePlotOwner = plot->getTeam();
+
+	bool bIsFriendlyBorders = false;
+	if (ePlotOwner != NO_TEAM) // noteam is not explicitly friendly (BUT NOT ENEMY EITHER!)
+	{
+		if (GET_TEAM(ePlotOwner).IsAllowsOpenBordersToTeam(eTeam)) // open borders
+			bIsFriendlyBorders = true;
+		else if (ePlotOwner == eTeam) // our territory
+			bIsFriendlyBorders = true;
+		else if (!GET_PLAYER(ePlayer).isMinorCiv())
+		{
+			if (GET_TEAM(ePlotOwner).isMinorCiv())
+			{
+				PlayerTypes eCityState = GET_TEAM(ePlotOwner).getLeaderID();
+				if (GET_PLAYER(eCityState).GetMinorCivAI()->IsPlayerHasOpenBorders(ePlayer))
+				{
+					bIsFriendlyBorders = true;
+				}
+			}
+		}
+	}
+
+	// friendly city
+	CvCity* city = plot->getPlotCity();
+	if (bIsFriendlyBorders && city != NULL)
+		return false;
+
+	// enemy too close
+	bool bAnyNearbyEnemyUnits = plot->isEnemyUnit(ePlayer, true, false) || plot->GetAdjacentEnemyUnits(eTeam, DomainTypes::DOMAIN_LAND).size() != 0;
+	if (bAnyNearbyEnemyUnits)
+		return true;
+
+	return false;
+}
+
 bool CvPlot::isCityOrPassableImprovement(PlayerTypes ePlayer, bool bMustBeFriendly, const CvUnit* pUnit) const
 {
 	ImprovementTypes eImprovement = getImprovementType();
@@ -4397,7 +4441,7 @@ bool CvPlot::isCityOrPassableImprovement(PlayerTypes ePlayer, bool bMustBeFriend
 		return true;
 
 	// In friendly lands (ours, an allied CS or a major with open borders)
-	if (IsFriendlyTerritory(ePlayer))
+	if (!IsEnemyControlled(this, ePlayer))
 	{
 #if defined(MOD_EVENTS_MINORS_INTERACTION)
 		if (isCity() && MOD_EVENTS_MINORS_INTERACTION && GET_PLAYER(getOwner()).isMinorCiv())
@@ -4831,8 +4875,11 @@ bool CvPlot::isEnemyUnit(PlayerTypes ePlayer, bool bCombat, bool bCheckVisibilit
 			const CvUnit* pLoopUnit = GetPlayerUnit(*pUnitNode);
 			pUnitNode = m_units.next(pUnitNode);
 
-			if(pLoopUnit && !pLoopUnit->isInvisible(eTeam, false) && !pLoopUnit->IsDead())
+			if(pLoopUnit && !pLoopUnit->IsDead())
 			{
+				if (bCheckVisibility && pLoopUnit->isInvisible(eTeam, false))
+					continue;
+
 				if (bCombat != pLoopUnit->IsCanDefend())
 					continue;
 

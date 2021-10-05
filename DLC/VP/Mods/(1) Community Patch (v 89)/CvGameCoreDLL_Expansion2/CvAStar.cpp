@@ -3102,7 +3102,7 @@ int TradeRouteWaterValid(const CvAStarNode* parent, const CvAStarNode* node, con
 		return TRUE;
 
 	//check passable improvements
-	if(pNewPlot->isCityOrPassableImprovement(pCacheData->GetPlayer(),false) && pNewPlot->isAdjacentToShallowWater() )
+	if(pNewPlot->isCityOrPassableImprovement(pCacheData->GetPlayer(),false))
 		return TRUE;
 
 	return FALSE;
