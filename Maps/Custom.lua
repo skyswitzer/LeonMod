@@ -623,6 +623,19 @@ function GetMapScriptInfo()
 				DefaultValue = 4,
 				SortPriority = -55,
 			},
+
+			{
+				Name = "Mountains",	-- add setting for rivers (9)
+				Values = {
+					"Few",
+					"Average",
+					"Many",
+					"Tons",
+				},
+
+				DefaultValue = 2,
+				SortPriority = -120,
+			},
 		},
 	};
 end
@@ -712,8 +725,8 @@ function GeneratePlotTypes()
 		sea_level_low = sea,
 		sea_level_normal = 75,
 		sea_level_high = 85,
-		extra_mountains = 5, -- at 0, very few mountains, at 40, ~15% of all land is mountains
-		adjust_plates = 2, -- overlapping plates form mountains 0 forms giant mountain regions
+		extra_mountains = 3 * (Map.GetCustomOption(21)-1), -- at 0, very few mountains, at 40, ~15% of all land is mountains
+		adjust_plates = 1.65, -- overlapping plates form mountains 0 forms giant mountain regions
 		-- 1.5 pushes them apart a lot
 		tectonic_islands = false, -- should we form islands where plates overlap?
 		has_center_rift = false,
@@ -859,7 +872,7 @@ function GenerateTerrain()
 	local DesertPercent = 28;
 
 	-- Get Temperature setting input by user.
-	local temp = Map.GetCustomOption(2)
+	local temp = Map.GetCustomOption(2);
 	if temp == 4 then
 		temp = 1 + Map.Rand(3, "Random Temperature - Lua");
 	end
