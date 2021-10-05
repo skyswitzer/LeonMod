@@ -1,0 +1,73 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Mod id="0f1eab20-b84e-4277-a3cc-f772b952be54" version="1">
+
+  <Properties>
+    <Name>(7a) Promotion Icons for VP</Name>
+    <Stability>Beta</Stability>   
+    <Teaser>(v 1) Promotion icons designed for Vox Populi</Teaser>
+    <Description>Version 1[NEWLINE]Promotion Icons for VP (v 1) is the updated version of VP Promotion Icons 1.9 (VPPI) it replaces. Make sure to delete all versions of VPPI in your MOD folder[NEWLINE][NEWLINE][COLOR_PROJECT_TEXT]. 230+ new icons replace triangles and duplicates[NEWLINE]. Enhanced 16x16 format for compatibility with Promotion Flags EUI (v 1.1)[NEWLINE]. + 64 Extra Promotion Icons you can use in your modmods:[ENDCOLOR] Extra Promo Icons.png[NEWLINE][COLOR_PROJECT_TEXT]. Informations and Credits: [ENDCOLOR]Promotion Icons for VP.txt</Description>
+    <Authors>Asterix Rage on civfanatics.com</Authors>
+
+    <HideSetupGame>0</HideSetupGame>
+    <Homepage></Homepage>
+    <AffectsSavedGames>0</AffectsSavedGames>
+    <SupportsSinglePlayer>1</SupportsSinglePlayer>
+    <SupportsMultiplayer>1</SupportsMultiplayer>
+    <SupportsHotSeat>1</SupportsHotSeat>
+    <SupportsMac>1</SupportsMac>
+    <ReloadAudioSystem>0</ReloadAudioSystem>
+    <ReloadLandmarkSystem>0</ReloadLandmarkSystem>
+    <ReloadStrategicViewSystem>0</ReloadStrategicViewSystem>
+    <ReloadUnitSystem>0</ReloadUnitSystem>
+  </Properties>
+  
+  <Dependencies>
+    <Mod id="8411a7a8-dad3-4622-a18e-fcc18324c799" minversion="13" maxversion="999" title="(2) Community Balance Overhaul" />
+  </Dependencies>
+  
+  <References>
+  </References>
+  <Blocks/>
+  
+  <Files>
+    <File md5="00000000000000000000000000000000" import="1">dds/promoVP_00_016.dds</File>
+    <File md5="00000000000000000000000000000000" import="1">dds/promoVP_00_032.dds</File>
+    <File md5="00000000000000000000000000000000" import="1">dds/promoVP_00_045.dds</File>
+    <File md5="00000000000000000000000000000000" import="1">dds/promoVP_00_064.dds</File>
+    <File md5="00000000000000000000000000000000" import="1">dds/promoVP_00_256.dds</File>
+    
+    <File md5="00000000000000000000000000000000" import="1">dds/promoVP_01_016.dds</File>
+    <File md5="00000000000000000000000000000000" import="1">dds/promoVP_01_032.dds</File>
+    <File md5="00000000000000000000000000000000" import="1">dds/promoVP_01_045.dds</File>
+    <File md5="00000000000000000000000000000000" import="1">dds/promoVP_01_064.dds</File>
+    <File md5="00000000000000000000000000000000" import="1">dds/promoVP_01_256.dds</File>
+    
+    <File md5="00000000000000000000000000000000" import="1">dds/promoVP_02_016.dds</File>
+    <File md5="00000000000000000000000000000000" import="1">dds/promoVP_02_032.dds</File>
+    <File md5="00000000000000000000000000000000" import="1">dds/promoVP_02_045.dds</File>
+    <File md5="00000000000000000000000000000000" import="1">dds/promoVP_02_064.dds</File>
+    <File md5="00000000000000000000000000000000" import="1">dds/promoVP_02_256.dds</File>
+    
+    <File md5="00000000000000000000000000000000" import="1">dds/promoVP_03_016.dds</File>
+    <File md5="00000000000000000000000000000000" import="1">dds/promoVP_03_032.dds</File>
+    <File md5="00000000000000000000000000000000" import="1">dds/promoVP_03_045.dds</File>
+    <File md5="00000000000000000000000000000000" import="1">dds/promoVP_03_064.dds</File>
+    <File md5="00000000000000000000000000000000" import="1">dds/promoVP_03_256.dds</File>
+    
+    <File md5="00000000000000000000000000000000" import="1">dds/extraPromo_016.dds</File>
+    <File md5="00000000000000000000000000000000" import="1">dds/extraPromo_032.dds</File>
+    <File md5="00000000000000000000000000000000" import="1">dds/extraPromo_045.dds</File>
+    <File md5="00000000000000000000000000000000" import="1">dds/extraPromo_064.dds</File>
+    <File md5="00000000000000000000000000000000" import="1">dds/extraPromo_256.dds</File>
+    
+    <File md5="00000000000000000000000000000000" import="0">sql/promoIcons_Atlas.sql</File>
+    <File md5="00000000000000000000000000000000" import="0">sql/promoIcons_Update_Main.sql</File>
+    
+  </Files>
+  <Actions>
+    <OnModActivated>
+      <UpdateDatabase>sql/promoIcons_Atlas.sql</UpdateDatabase>
+      <UpdateDatabase>sql/promoIcons_Update_Main.sql</UpdateDatabase>
+    </OnModActivated>
+  </Actions>
+</Mod>
