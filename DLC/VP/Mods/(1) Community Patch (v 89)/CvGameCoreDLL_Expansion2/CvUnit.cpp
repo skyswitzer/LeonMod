@@ -9328,6 +9328,21 @@ bool CvUnit::canPlunderTradeRoute(const CvPlot* pPlot, bool bOnlyTestVisibility)
 				return false;
 			}
 		}
+
+		// there must not be adjacent units that you are at war with		
+		for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+		{
+			const CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), (DirectionTypes)iI);
+			if (pAdjacentPlot != NULL)
+			{
+				TeamTypes otherTeam = pAdjacentPlot->getTeam();
+				if (GET_TEAM(GET_PLAYER(m_eOwner).getTeam()).isAtWar(otherTeam))
+				{
+					return false;
+				}
+			}
+		}
+
 		return true;
 	}
 	else
