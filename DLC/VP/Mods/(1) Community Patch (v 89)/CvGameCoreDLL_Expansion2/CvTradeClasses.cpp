@@ -5070,8 +5070,9 @@ bool CvPlayerTrade::PlunderTradeRoute(int iTradeConnectionID)
 	DomainTypes eDomain = pTradeConnection->m_eDomain;
 	PlayerTypes eOwningPlayer = pTradeConnection->m_eOriginOwner;
 	PlayerTypes eDestPlayer = pTradeConnection->m_eDestOwner;
-	TeamTypes eOwningTeam = GET_PLAYER(eOwningPlayer).getTeam();
-	TeamTypes eDestTeam = GET_PLAYER(eDestPlayer).getTeam();
+	auto& rOwningPlayer = GET_PLAYER(eDestPlayer);
+	TeamTypes eOwningTeam = rOwningPlayer.getTeam();
+	TeamTypes eDestTeam = rOwningPlayer.getTeam();
 	CvPlot* pPlunderPlot = GC.getMap().plot(pTradeConnection->m_aPlotList[pTradeConnection->m_iTradeUnitLocationIndex].m_iX, pTradeConnection->m_aPlotList[pTradeConnection->m_iTradeUnitLocationIndex].m_iY);
 	int iDomainModifier = GetTradeConnectionDomainValueModifierTimes100(*pTradeConnection, YIELD_GOLD);
 
@@ -5147,6 +5148,7 @@ bool CvPlayerTrade::PlunderTradeRoute(int iTradeConnectionID)
 	iPlunderGoldValue /= 100;
 #endif
 	m_pPlayer->GetTreasury()->ChangeGold(iPlunderGoldValue);
+	rOwningPlayer.GetTreasury()->ChangeGold(iPlunderGoldValue);
 
 	// do the floating popup
 	if (GC.getGame().getActivePlayer() == m_pPlayer->GetID())
@@ -5156,20 +5158,13 @@ bool CvPlayerTrade::PlunderTradeRoute(int iTradeConnectionID)
 		SHOW_PLOT_POPUP(pPlunderPlot, m_pPlayer->GetID(), text);
 
 		CvString strBuffer;
-#if defined(MOD_BUGFIX_UNITCLASS_NOT_UNIT)
+		CvString strBufferThem;
+
 		strBuffer = GetLocalizedText("TXT_KEY_MISC_PLUNDERED_GOLD_FROM_IMP", iPlunderGoldValue, GC.getUnitInfo(GetTradeUnit(eDomain, m_pPlayer))->GetDescriptionKey());
-#else
-		if (eDomain == DOMAIN_LAND)
-		{
-			strBuffer = GetLocalizedText("TXT_KEY_MISC_PLUNDERED_GOLD_FROM_IMP", iPlunderGoldValue, "TXT_KEY_UNIT_CARAVAN");
-		}
-		else
-		{
-			strBuffer = GetLocalizedText("TXT_KEY_MISC_PLUNDERED_GOLD_FROM_IMP", iPlunderGoldValue, "TXT_KEY_UNIT_CARGO_SHIP");
-		}
-#endif
-		
+		strBufferThem = GetLocalizedText("TXT_KEY_MISC_PLUNDERED_GOLD_FROM_YOU", iPlunderGoldValue, GC.getUnitInfo(GetTradeUnit(eDomain, m_pPlayer))->GetDescriptionKey());
+
 		DLLUI->AddMessage(0, m_pPlayer->GetID(), true, GC.getEVENT_MESSAGE_TIME(), strBuffer);
+		DLLUI->AddMessage(0, rOwningPlayer.GetID(), true, GC.getEVENT_MESSAGE_TIME(), strBufferThem);
 	}
 
 	// barbarians get a bonus unit out of the deal!
