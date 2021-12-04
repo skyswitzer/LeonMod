@@ -397,9 +397,19 @@ int CvNotifications::AddByName(const char* pszNotificationName, const char* strM
 	return -1;
 }
 
-/// Adds a new notification to the list
-int CvNotifications::Add(NotificationTypes eNotificationType, const char* strMessage, const char* strSummary, int iX, int iY, int iGameDataIndex, int iExtraGameData)
+
+/// Adds a new notification to the log
+int CvNotifications::AddToLog(const char* strMessage)
 {
+	return Add(NOTIFICATION_GENERIC, strMessage, "summary", -1, -1, -1, -1, true);
+}
+
+/// Adds a new notification to the list
+int CvNotifications::Add(NotificationTypes eNotificationType, const char* strMessage, const char* strSummary, int iX, int iY, int iGameDataIndex, int iExtraGameData, bool logOnly)
+{
+	if (m_ePlayer == NO_PLAYER)
+		return -1;
+
 	// if the player is not human, do not record
 	if(!GET_PLAYER(m_ePlayer).isHuman())
 	{
@@ -423,7 +433,7 @@ int CvNotifications::Add(NotificationTypes eNotificationType, const char* strMes
 	newNotification.m_iTurn = GC.getGame().getGameTurn();
 	newNotification.m_iLookupIndex = m_iCurrentLookupIndex;
 	newNotification.m_bNeedsBroadcast = true;
-	newNotification.m_bDismissed = false;
+	newNotification.m_bDismissed = logOnly;
 	newNotification.m_bWaitExtraTurn = false;
 
 #if defined(MOD_ACTIVE_DIPLOMACY)
@@ -461,7 +471,8 @@ int CvNotifications::Add(NotificationTypes eNotificationType, const char* strMes
 		// The 'active' player is only set to a human and during the AI turn, the 'active' player is the last human to do their turn.
 		if(newNotification.m_ePlayerID == GC.getGame().getActivePlayer() && (!CvPreGame::isHotSeatGame() || GET_PLAYER(GC.getGame().getActivePlayer()).isTurnActive()))
 		{
-			GC.GetEngineUserInterface()->AddNotification(newNotification.m_iLookupIndex, newNotification.m_eNotificationType, newNotification.m_strMessage.c_str(), newNotification.m_strSummary.c_str(), newNotification.m_iGameDataIndex, newNotification.m_iExtraGameData, m_ePlayer, iX, iY);
+			if (!logOnly)
+				GC.GetEngineUserInterface()->AddNotification(newNotification.m_iLookupIndex, newNotification.m_eNotificationType, newNotification.m_strMessage.c_str(), newNotification.m_strSummary.c_str(), newNotification.m_iGameDataIndex, newNotification.m_iExtraGameData, m_ePlayer, iX, iY);
 
 #if defined(MOD_UI_CITY_EXPANSION)
 			// Don't show effect with production notification or city tile acquisition

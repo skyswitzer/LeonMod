@@ -519,7 +519,7 @@ void CvPlot::doImprovement()
 											strBuffer = GetLocalizedText("TXT_KEY_MISC_DISCOVERED_NEW_RESOURCE", thisResourceInfo->GetTextKey(), pCity->getNameKey());
 										}
 
-										GC.GetEngineUserInterface()->AddCityMessage(0, pCity->GetIDInfo(), getOwner(), false, GC.getEVENT_MESSAGE_TIME(), strBuffer/*, "AS2D_DISCOVERRESOURCE", MESSAGE_TYPE_MINOR_EVENT, thisResourceInfo.GetButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"), getX(), getY(), true, true*/);
+										GC.messageCity(0, pCity->GetIDInfo(), getOwner(), false, GC.getEVENT_MESSAGE_TIME(), strBuffer/*, "AS2D_DISCOVERRESOURCE", MESSAGE_TYPE_MINOR_EVENT, thisResourceInfo.GetButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"), getX(), getY(), true, true*/);
 									}
 								}
 
@@ -4418,7 +4418,7 @@ bool IsEnemyControlled(const CvPlot* plot, PlayerTypes ePlayer)
 		return false;
 
 	// enemy too close
-	bool bAnyNearbyEnemyUnits = plot->isEnemyUnit(ePlayer, true, false) || plot->GetAdjacentEnemyUnits(eTeam, DomainTypes::DOMAIN_LAND).size() != 0;
+	bool bAnyNearbyEnemyUnits = plot->isEnemyUnit(ePlayer, true, false) || plot->GetAdjacentEnemyUnits(eTeam, DOMAIN_LAND).size() != 0;
 	if (bAnyNearbyEnemyUnits)
 		return true;
 
@@ -12321,7 +12321,7 @@ bool CvPlot::changeBuildProgress(BuildTypes eBuild, int iChange, PlayerTypes ePl
 												if(pCity != NULL)
 												{
 													strBuffer = GetLocalizedText("TXT_KEY_MISC_DISCOVERED_NEW_RESOURCE", thisResourceInfo->GetTextKey(), pCity->getNameKey());
-													GC.GetEngineUserInterface()->AddCityMessage(0, pCity->GetIDInfo(), getOwner(), false, GC.getEVENT_MESSAGE_TIME(), strBuffer);
+													GC.messageCity(0, pCity->GetIDInfo(), getOwner(), false, GC.getEVENT_MESSAGE_TIME(), strBuffer);
 												}
 											}
 											break;
@@ -12461,7 +12461,7 @@ bool CvPlot::changeBuildProgress(BuildTypes eBuild, int iChange, PlayerTypes ePl
 						if(pCity->getOwner() == GC.getGame().getActivePlayer())
 						{
 							strBuffer = GetLocalizedText("TXT_KEY_MISC_CLEARING_FEATURE_RESOURCE", GC.getFeatureInfo(getFeatureType())->GetTextKey(), iProduction, pCity->getNameKey());
-							GC.GetEngineUserInterface()->AddCityMessage(0, pCity->GetIDInfo(), pCity->getOwner(), false, GC.getEVENT_MESSAGE_TIME(), strBuffer);
+							GC.messageCity(0, pCity->GetIDInfo(), pCity->getOwner(), false, GC.getEVENT_MESSAGE_TIME(), strBuffer);
 						}
 					}
 

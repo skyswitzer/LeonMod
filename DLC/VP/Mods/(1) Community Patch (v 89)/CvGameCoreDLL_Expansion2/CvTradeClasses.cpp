@@ -5070,7 +5070,7 @@ bool CvPlayerTrade::PlunderTradeRoute(int iTradeConnectionID)
 	DomainTypes eDomain = pTradeConnection->m_eDomain;
 	PlayerTypes eOwningPlayer = pTradeConnection->m_eOriginOwner;
 	PlayerTypes eDestPlayer = pTradeConnection->m_eDestOwner;
-	auto& rOwningPlayer = GET_PLAYER(eDestPlayer);
+	CvPlayerAI& rOwningPlayer = GET_PLAYER(eDestPlayer);
 	TeamTypes eOwningTeam = rOwningPlayer.getTeam();
 	TeamTypes eDestTeam = rOwningPlayer.getTeam();
 	CvPlot* pPlunderPlot = GC.getMap().plot(pTradeConnection->m_aPlotList[pTradeConnection->m_iTradeUnitLocationIndex].m_iX, pTradeConnection->m_aPlotList[pTradeConnection->m_iTradeUnitLocationIndex].m_iY);
@@ -5163,8 +5163,8 @@ bool CvPlayerTrade::PlunderTradeRoute(int iTradeConnectionID)
 		strBuffer = GetLocalizedText("TXT_KEY_MISC_PLUNDERED_GOLD_FROM_IMP", iPlunderGoldValue, GC.getUnitInfo(GetTradeUnit(eDomain, m_pPlayer))->GetDescriptionKey());
 		strBufferThem = GetLocalizedText("TXT_KEY_MISC_PLUNDERED_GOLD_FROM_YOU", iPlunderGoldValue, GC.getUnitInfo(GetTradeUnit(eDomain, m_pPlayer))->GetDescriptionKey());
 
-		DLLUI->AddMessage(0, m_pPlayer->GetID(), true, GC.getEVENT_MESSAGE_TIME(), strBuffer);
-		DLLUI->AddMessage(0, rOwningPlayer.GetID(), true, GC.getEVENT_MESSAGE_TIME(), strBufferThem);
+		GC.messagePlayer(0, m_pPlayer->GetID(), true, GC.getEVENT_MESSAGE_TIME(), strBuffer);
+		GC.messagePlayer(0, rOwningPlayer.GetID(), true, GC.getEVENT_MESSAGE_TIME(), strBufferThem);
 	}
 
 	// barbarians get a bonus unit out of the deal!

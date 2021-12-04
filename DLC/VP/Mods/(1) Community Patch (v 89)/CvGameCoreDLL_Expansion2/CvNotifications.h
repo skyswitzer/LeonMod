@@ -47,7 +47,11 @@ public:
 	void EndOfTurnCleanup(void);  // removing notifications at the end turns
 
 	int  AddByName(const char* szNotificationName, const char* strMessage, const char* strSummary, int iX, int iY, int iGameDataIndex, int iExtraGameData=-1);
-	int  Add(NotificationTypes eNotificationType, const char* strMessage, const char* strSummary, int iX, int iY, int iGameDataIndex, int iExtraGameData=-1);
+	/// Adds a new notification to the log and shows a popup to the player
+	int Add(NotificationTypes eNotificationType, const char* strMessage, const char* strSummary, int iX, int iY, int iGameDataIndex, int iExtraGameData = -1, bool logOnly = false);
+	/// Adds a new notification to the log only
+	int AddToLog(const char* strMessage);
+	
 	void Activate(int iLookupIndex);
 	void Dismiss(int iLookupIndex, bool bUserInvoked);
 	bool MayUserDismiss(int iLookupIndex);  // may the user dismiss this notification using the user interface without completing its action
