@@ -1898,7 +1898,7 @@ void CvGameCorporations::FoundCorporation(PlayerTypes ePlayer, CorporationTypes 
 			strSummary = Localization::Lookup("TXT_KEY_CORPORATION_FOUNDED_SUMMARY");
 			if(pNotification)
 			{
-				pNotification->Add(NOTIFICATION_GENERIC, strMessage.toUTF8(), strSummary.toUTF8(), -1, -1, -1, ePlayer);
+				pNotification->Add(NOTIFICATION_GENERIC, strMessage.toUTF8(), strSummary.toUTF8(), pHeadquarters->getX(), pHeadquarters->getY(), -1, ePlayer);
 			}
 		}
 		// Someone else founded the Corporation

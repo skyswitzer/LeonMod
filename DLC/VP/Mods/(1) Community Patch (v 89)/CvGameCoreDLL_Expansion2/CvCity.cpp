@@ -3285,7 +3285,7 @@ void CvCity::doTurn()
 						strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_TRADE_ROUTE_ESTABLISHED");
 						strMessage << getNameKey();
 						strMessage << pPlayerCapital->getNameKey();
-						pNotifications->Add(NOTIFICATION_TRADE_ROUTE, strMessage.toUTF8(), strSummary.toUTF8(), -1, -1, -1);
+						pNotifications->Add(NOTIFICATION_TRADE_ROUTE, strMessage.toUTF8(), strSummary.toUTF8(), getX(), getY(), -1);
 					}
 					else // lost connection this turn
 					{
@@ -3293,7 +3293,7 @@ void CvCity::doTurn()
 						strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_TRADE_ROUTE_BROKEN");
 						strMessage << getNameKey();
 						strMessage << pPlayerCapital->getNameKey();
-						pNotifications->Add(NOTIFICATION_TRADE_ROUTE_BROKEN, strMessage.toUTF8(), strSummary.toUTF8(), -1, -1, -1);
+						pNotifications->Add(NOTIFICATION_TRADE_ROUTE_BROKEN, strMessage.toUTF8(), strSummary.toUTF8(), getX(), getY(), -1);
 					}
 				}
 			}

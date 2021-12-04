@@ -883,6 +883,18 @@ bool CvNotifications::IsNotificationDismissed(int iZeroBasedIndex)
 
 void CvNotifications::Activate(Notification& notification)
 {
+	if (notification.m_bDismissed && notification.m_iX != -1 && notification.m_iY != -1)
+	{
+		CvPlot* pPlot = GC.getMap().plot(notification.m_iX, notification.m_iY);
+		if (pPlot)
+		{
+			auto_ptr<ICvPlot1> pDllPlot = GC.WrapPlotPointer(pPlot);
+
+			GC.GetEngineUserInterface()->lookAt(pDllPlot.get(), CAMERALOOKAT_NORMAL);
+			gDLL->GameplayDoFX(pDllPlot.get());
+		}
+	}
+
 	GC.GetEngineUserInterface()->ActivateNotification(notification.m_iLookupIndex, notification.m_eNotificationType, notification.m_strMessage, notification.m_iX, notification.m_iY, notification.m_iGameDataIndex, notification.m_iExtraGameData, m_ePlayer);
 
 	gDLL->GameplayMinimapNotification(notification.m_iX, notification.m_iY, notification.m_iLookupIndex+1);	// The index is used to uniquely identify each flashing dot on the minimap. We're adding 1 since the selected unit is always 0. It ain't pretty, but it'll work
@@ -1029,18 +1041,24 @@ void CvNotifications::Activate(Notification& notification)
 	case NOTIFICATION_UNIT_PROMOTION:
 	{
 		CvUnit* pUnit = GET_PLAYER(m_ePlayer).getUnit(notification.m_iExtraGameData);
-		if(pUnit)
-		{
-			CvPlot* pPlot = pUnit->plot();
-			if(pPlot)
-			{
-				auto_ptr<ICvPlot1> pDllPlot = GC.WrapPlotPointer(pPlot);
-				auto_ptr<ICvUnit1> pDllUnit = GC.WrapUnitPointer(pUnit);
+		CvPlot* pPlot = NULL;
 
-				GC.GetEngineUserInterface()->lookAt(pDllPlot.get(), CAMERALOOKAT_NORMAL);
+		if (pUnit)
+			pPlot = pUnit->plot();
+		else if (notification.m_iX != -1 && notification.m_iY != -1)
+			pPlot = GC.getMap().plot(notification.m_iX, notification.m_iY);
+		
+		if(pPlot)
+		{
+			auto_ptr<ICvPlot1> pDllPlot = GC.WrapPlotPointer(pPlot);
+			if (pUnit)
+			{
+				auto_ptr<ICvUnit1> pDllUnit = GC.WrapUnitPointer(pUnit);
 				GC.GetEngineUserInterface()->selectUnit(pDllUnit.get(), false);
-				gDLL->GameplayDoFX(pDllPlot.get());
 			}
+
+			GC.GetEngineUserInterface()->lookAt(pDllPlot.get(), CAMERALOOKAT_NORMAL);
+			gDLL->GameplayDoFX(pDllPlot.get());
 		}
 	}
 	break;

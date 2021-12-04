@@ -621,7 +621,7 @@ void CvPlayerEspionage::ProcessSpy(uint uiSpyIndex)
 							strNotification << m_pPlayer->getCivilizationInfo().getSpyNames(pSpy->m_iName);
 #endif
 							strNotification << GET_PLAYER(eCityOwner).getCivilizationInfo().getShortDescriptionKey();
-							pNotifications->Add(NOTIFICATION_SPY_CANT_STEAL_TECH, strNotification.toUTF8(), strSummary.toUTF8(), -1, -1, -1);
+							pNotifications->Add(NOTIFICATION_SPY_CANT_STEAL_TECH, strNotification.toUTF8(), strSummary.toUTF8(), pCityEspionage->m_pCity->getX(), pCityEspionage->m_pCity->getY(), -1);
 						}
 					}
 					int iRate = CalcPerTurn(SPY_STATE_SURVEILLANCE, pCity, uiSpyIndex);
@@ -786,7 +786,7 @@ void CvPlayerEspionage::ProcessSpy(uint uiSpyIndex)
 				strNotification << m_pPlayer->getCivilizationInfo().getSpyNames(pSpy->m_iName);
 #endif
 				strNotification << GET_PLAYER(eCityOwner).getCivilizationInfo().getShortDescriptionKey();
-				pNotifications->Add(NOTIFICATION_SPY_CANT_STEAL_TECH, strNotification.toUTF8(), strSummary.toUTF8(), -1, -1, -1);
+				pNotifications->Add(NOTIFICATION_SPY_CANT_STEAL_TECH, strNotification.toUTF8(), strSummary.toUTF8(), pCityEspionage->m_pCity->getX(), pCityEspionage->m_pCity->getY(), -1);
 			}
 		}
 #if defined(MOD_BALANCE_CORE_SPIES)
@@ -924,7 +924,7 @@ void CvPlayerEspionage::ProcessSpy(uint uiSpyIndex)
 #endif
 					strNotification << GET_PLAYER(eCityOwner).getCivilizationInfo().getShortDescriptionKey();
 					strNotification << pCity->getNameKey();
-					pNotifications->Add(NOTIFICATION_SPY_WAS_KILLED, strNotification.toUTF8(), strSummary.toUTF8(), -1, -1, -1);
+					pNotifications->Add(NOTIFICATION_SPY_WAS_KILLED, strNotification.toUTF8(), strSummary.toUTF8(), pCityEspionage->m_pCity->getX(), pCityEspionage->m_pCity->getY(), -1);
 
 				}
 
@@ -1035,7 +1035,7 @@ void CvPlayerEspionage::ProcessSpy(uint uiSpyIndex)
 #endif
 						strNotification << pCity->getNameKey();
 						strNotification << GET_PLAYER(eCityOwner).getCivilizationInfo().getShortDescriptionKey();
-						pNotifications->Add(NOTIFICATION_SPY_STOLE_TECH, strNotification.toUTF8(), strSummary.toUTF8(), -1, -1, eCityOwner);
+						pNotifications->Add(NOTIFICATION_SPY_STOLE_TECH, strNotification.toUTF8(), strSummary.toUTF8(), pCityEspionage->m_pCity->getX(), pCityEspionage->m_pCity->getY(), eCityOwner);
 					}
 
 					m_pPlayer->doInstantYield(INSTANT_YIELD_TYPE_SPY_ATTACK, false, NO_GREATPERSON, NO_BUILDING, 1);
@@ -1215,7 +1215,7 @@ void CvPlayerEspionage::ProcessSpy(uint uiSpyIndex)
 					strNotification << m_pPlayer->getCivilizationInfo().getSpyNames(pSpy->m_iName);
 #endif
 					strNotification << GET_PLAYER(eCityOwner).getCivilizationInfo().getShortDescriptionKey();
-					pNotifications->Add(NOTIFICATION_SPY_CANT_STEAL_TECH, strNotification.toUTF8(), strSummary.toUTF8(), -1, -1, -1);
+					pNotifications->Add(NOTIFICATION_SPY_CANT_STEAL_TECH, strNotification.toUTF8(), strSummary.toUTF8(), pCityEspionage->m_pCity->getX(), pCityEspionage->m_pCity->getY(), -1);
 				}
 			}
 #if defined(MOD_BALANCE_CORE_SPIES)
@@ -1336,7 +1336,7 @@ void CvPlayerEspionage::ProcessSpy(uint uiSpyIndex)
 #endif
 						strNotification << GET_PLAYER(eCityOwner).getCivilizationInfo().getShortDescriptionKey();
 						strNotification << pCity->getNameKey();
-						pNotifications->Add(NOTIFICATION_SPY_WAS_KILLED, strNotification.toUTF8(), strSummary.toUTF8(), -1, -1, -1);
+						pNotifications->Add(NOTIFICATION_SPY_WAS_KILLED, strNotification.toUTF8(), strSummary.toUTF8(), pCityEspionage->m_pCity->getX(), pCityEspionage->m_pCity->getY(), -1);
 
 					}
 
@@ -1447,7 +1447,7 @@ void CvPlayerEspionage::ProcessSpy(uint uiSpyIndex)
 #endif
 							strNotification << pCity->getNameKey();
 							strNotification << GET_PLAYER(eCityOwner).getCivilizationInfo().getShortDescriptionKey();
-							pNotifications->Add(NOTIFICATION_SPY_PROMOTION, strNotification.toUTF8(), strSummary.toUTF8(), -1, -1, 0);
+							pNotifications->Add(NOTIFICATION_SPY_PROMOTION, strNotification.toUTF8(), strSummary.toUTF8(), pCityEspionage->m_pCity->getX(), pCityEspionage->m_pCity->getY(), 0);
 						}
 						m_pPlayer->GetEspionageAI()->StealGreatWork();
 					}
@@ -1590,7 +1590,7 @@ void CvPlayerEspionage::ProcessSpy(uint uiSpyIndex)
 #else
 				strNotification << m_pPlayer->getCivilizationInfo().getSpyNames(pSpy->m_iName);
 #endif
-				pNotifications->Add(NOTIFICATION_SPY_REPLACEMENT, strNotification.toUTF8(), strSummary.toUTF8(), -1, -1, -1);
+				pNotifications->Add(NOTIFICATION_SPY_REPLACEMENT, strNotification.toUTF8(), strSummary.toUTF8(), pCityEspionage->m_pCity->getX(), pCityEspionage->m_pCity->getY(), -1);
 			}
 
 			if(GC.getLogging())
@@ -6563,7 +6563,7 @@ void CvPlayerEspionage::ProcessSpyMessages()
 					strNotification = Localization::Lookup("TXT_KEY_NOTIFICATION_TECH_STOLEN_SPY_DETECTED_WO_TECH");
 				}
 				strNotification << pCity->getNameKey();
-				pNotifications->Add(NOTIFICATION_TECH_STOLEN_SPY_DETECTED, strNotification.toUTF8(), strSummary.toUTF8(), -1, -1, -1);
+				pNotifications->Add(NOTIFICATION_TECH_STOLEN_SPY_DETECTED, strNotification.toUTF8(), strSummary.toUTF8(), pCityEspionage->m_pCity->getX(), pCityEspionage->m_pCity->getY(), -1);
 			}
 			break;
 			case SPY_RESULT_IDENTIFIED:
@@ -6583,7 +6583,7 @@ void CvPlayerEspionage::ProcessSpyMessages()
 				}
 				strNotification << GET_PLAYER(m_aSpyNotificationMessages[ui].m_eAttackingPlayer).getCivilizationInfo().getAdjectiveKey();
 				strNotification << pCity->getNameKey();
-				pNotifications->Add(NOTIFICATION_TECH_STOLEN_SPY_IDENTIFIED, strNotification.toUTF8(), strSummary.toUTF8(), -1, -1, m_aSpyNotificationMessages[ui].m_eAttackingPlayer);
+				pNotifications->Add(NOTIFICATION_TECH_STOLEN_SPY_IDENTIFIED, strNotification.toUTF8(), strSummary.toUTF8(), pCityEspionage->m_pCity->getX(), pCityEspionage->m_pCity->getY(), m_aSpyNotificationMessages[ui].m_eAttackingPlayer);
 			}
 			break;
 			case SPY_RESULT_KILLED:
@@ -6610,7 +6610,7 @@ void CvPlayerEspionage::ProcessSpyMessages()
 					strNotification << GET_PLAYER(m_aSpyNotificationMessages[ui].m_eAttackingPlayer).getCivilizationAdjectiveKey();
 					strNotification << pCity->getNameKey();
 
-					pNotifications->Add(NOTIFICATION_SPY_KILLED_A_SPY, strNotification.toUTF8(), strSummary.toUTF8(), -1, -1, m_aSpyNotificationMessages[ui].m_eAttackingPlayer);
+					pNotifications->Add(NOTIFICATION_SPY_KILLED_A_SPY, strNotification.toUTF8(), strSummary.toUTF8(), pCityEspionage->m_pCity->getX(), pCityEspionage->m_pCity->getY(), m_aSpyNotificationMessages[ui].m_eAttackingPlayer);
 				
 #if !defined(NO_ACHIEVEMENTS)
 					//Achievements
@@ -6652,7 +6652,7 @@ void CvPlayerEspionage::ProcessSpyMessages()
 				}
 				strNotification << pTechEntry->GetDescriptionKey();
 				strNotification << pCity->getNameKey();
-				pNotifications->Add(NOTIFICATION_TECH_STOLEN_SPY_DETECTED, strNotification.toUTF8(), strSummary.toUTF8(), -1, -1, -1);
+				pNotifications->Add(NOTIFICATION_TECH_STOLEN_SPY_DETECTED, strNotification.toUTF8(), strSummary.toUTF8(), pCityEspionage->m_pCity->getX(), pCityEspionage->m_pCity->getY(), -1);
 			}
 			break;
 			case SPY_RESULT_IDENTIFIED:
@@ -6673,7 +6673,7 @@ void CvPlayerEspionage::ProcessSpyMessages()
 				strNotification << GET_PLAYER(m_aSpyNotificationMessages[ui].m_eAttackingPlayer).getCivilizationInfo().getAdjectiveKey();
 				strNotification << pTechEntry->GetDescriptionKey();
 				strNotification << pCity->getNameKey();
-				pNotifications->Add(NOTIFICATION_TECH_STOLEN_SPY_IDENTIFIED, strNotification.toUTF8(), strSummary.toUTF8(), -1, -1, m_aSpyNotificationMessages[ui].m_eAttackingPlayer);
+				pNotifications->Add(NOTIFICATION_TECH_STOLEN_SPY_IDENTIFIED, strNotification.toUTF8(), strSummary.toUTF8(), pCityEspionage->m_pCity->getX(), pCityEspionage->m_pCity->getY(), m_aSpyNotificationMessages[ui].m_eAttackingPlayer);
 
 				pEspionageAI->m_aiNumSpiesCaught[m_aSpyNotificationMessages[ui].m_eAttackingPlayer]++;
 				pEspionageAI->m_aiTurnLastSpyCaught[m_aSpyNotificationMessages[ui].m_eAttackingPlayer] = GC.getGame().getGameTurn();
@@ -6712,7 +6712,7 @@ void CvPlayerEspionage::ProcessSpyMessages()
 				}
 				strNotification << GC.getGame().GetGameCulture()->GetGreatWorkName(iGWIndex);
 				strNotification << pCity->getNameKey();
-				pNotifications->Add(NOTIFICATION_TECH_STOLEN_SPY_DETECTED, strNotification.toUTF8(), strSummary.toUTF8(), -1, -1, -1);
+				pNotifications->Add(NOTIFICATION_TECH_STOLEN_SPY_DETECTED, strNotification.toUTF8(), strSummary.toUTF8(), pCityEspionage->m_pCity->getX(), pCityEspionage->m_pCity->getY(), -1);
 			}
 			break;
 			case SPY_RESULT_IDENTIFIED:
@@ -6733,7 +6733,7 @@ void CvPlayerEspionage::ProcessSpyMessages()
 				strNotification << GET_PLAYER(m_aSpyNotificationMessages[ui].m_eAttackingPlayer).getCivilizationInfo().getAdjectiveKey();
 				strNotification << GC.getGame().GetGameCulture()->GetGreatWorkName(iGWIndex);
 				strNotification << pCity->getNameKey();
-				pNotifications->Add(NOTIFICATION_TECH_STOLEN_SPY_IDENTIFIED, strNotification.toUTF8(), strSummary.toUTF8(), -1, -1, m_aSpyNotificationMessages[ui].m_eAttackingPlayer);
+				pNotifications->Add(NOTIFICATION_TECH_STOLEN_SPY_IDENTIFIED, strNotification.toUTF8(), strSummary.toUTF8(), pCityEspionage->m_pCity->getX(), pCityEspionage->m_pCity->getY(), m_aSpyNotificationMessages[ui].m_eAttackingPlayer);
 
 				pEspionageAI->m_aiNumSpiesCaught[m_aSpyNotificationMessages[ui].m_eAttackingPlayer]++;
 				pEspionageAI->m_aiTurnLastSpyCaught[m_aSpyNotificationMessages[ui].m_eAttackingPlayer] = GC.getGame().getGameTurn();

@@ -588,10 +588,11 @@ void CvUnitCombat::ResolveMeleeCombat(const CvCombatInfo& kCombatInfo, uint uiPa
 			{
 				strBuffer = GetLocalizedText("TXT_KEY_MISC_YOU_UNIT_WAS_DESTROYED", pkDefender->getNameKey(), pkAttacker->getNameKey(), pkAttacker->getVisualCivAdjective(pkDefender->getTeam()), iDefenderDamageInflicted);
 			}
-			if(iActivePlayerID == pkDefender->getOwner())
-			{
-				GC.messagePlayer(uiParentEventID, pkDefender->getOwner(), true, GC.getEVENT_MESSAGE_TIME(), strBuffer/*,GC.getEraInfo(GC.getGame().getCurrentEra())->getAudioUnitDefeatScript(), MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pkTargetPlot->getX(), pkTargetPlot->getY()*/);
-			}
+			// already a notification below
+			//if(iActivePlayerID == pkDefender->getOwner())
+			//{
+			//	GC.messagePlayer(uiParentEventID, pkDefender->getOwner(), true, GC.getEVENT_MESSAGE_TIME(), strBuffer/*,GC.getEraInfo(GC.getGame().getCurrentEra())->getAudioUnitDefeatScript(), MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pkTargetPlot->getX(), pkTargetPlot->getY()*/);
+			//}
 			CvNotifications* pNotification = GET_PLAYER(pkDefender->getOwner()).GetNotifications();
 			if(pNotification)
 			{
@@ -1114,6 +1115,7 @@ void CvUnitCombat::ResolveRangedUnitVsCombat(const CvCombatInfo& kCombatInfo, ui
 	CvAssert_Debug(pkTargetPlot);
 
 	CvString strBuffer;
+	Localization::String strSummary;
 
 	if(pkTargetPlot)
 	{
@@ -1167,15 +1169,8 @@ void CvUnitCombat::ResolveRangedUnitVsCombat(const CvCombatInfo& kCombatInfo, ui
 							strBuffer = GetLocalizedText("TXT_KEY_MISC_YOU_ATTACK_BY_AIR_AND_DEATH", pkAttacker->getNameKey(), pkDefender->getNameKey());
 							GC.messagePlayer(uiParentEventID, pkAttacker->getOwner(), true, GC.getEVENT_MESSAGE_TIME(), strBuffer/*, "AS2D_COMBAT", MESSAGE_TYPE_INFO, pkDefender->getUnitInfo().GetButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pkTargetPlot->getX(), pkTargetPlot->getY()*/);
 						}
-
+						strSummary = Localization::Lookup("TXT_KEY_UNIT_LOST");
 						strBuffer = GetLocalizedText("TXT_KEY_MISC_YOU_ARE_ATTACKED_BY_AIR_AND_DEATH", pkDefender->getNameKey(), pkAttacker->getNameKey());
-						CvNotifications* pNotifications = GET_PLAYER(pkDefender->getOwner()).GetNotifications();
-						if(pNotifications)
-						{
-							Localization::String strSummary = Localization::Lookup("TXT_KEY_UNIT_LOST");
-							pNotifications->Add(NOTIFICATION_UNIT_DIED, strBuffer, strSummary.toUTF8(), pkDefender->getX(), pkDefender->getY(), (int) pkDefender->getUnitType(), pkDefender->getOwner());
-						}
-
 						bTargetDied = true;
 
 #if !defined(NO_ACHIEVEMENTS)
@@ -1210,7 +1205,10 @@ void CvUnitCombat::ResolveRangedUnitVsCombat(const CvCombatInfo& kCombatInfo, ui
 							strBuffer = GetLocalizedText("TXT_KEY_MISC_YOU_ATTACK_BY_AIR", pkAttacker->getNameKey(), pkDefender->getNameKey(), iDamage);
 							GC.messagePlayer(uiParentEventID, pkAttacker->getOwner(), true, GC.getEVENT_MESSAGE_TIME(), strBuffer/*, "AS2D_COMBAT", MESSAGE_TYPE_INFO, pkDefender->getUnitInfo().GetButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pkTargetPlot->getX(), pkTargetPlot->getY()*/);
 						}
+						strSummary = Localization::Lookup("TXT_KEY_UNIT_WAS_ATTACKED");
 						strBuffer = GetLocalizedText("TXT_KEY_MISC_YOU_ARE_ATTACKED_BY_AIR", pkDefender->getNameKey(), pkAttacker->getNameKey(), iDamage);
+						bTargetDied = false;
+
 #if defined(MOD_BALANCE_CORE)
 						if(pkDefender->IsFortified() || (pkDefender->GetActivityType() == ACTIVITY_HEAL))
 						{
@@ -1248,11 +1246,16 @@ void CvUnitCombat::ResolveRangedUnitVsCombat(const CvCombatInfo& kCombatInfo, ui
 #endif
 					}
 
-					//red icon over attacking unit
-					if(pkDefender->getOwner() == GC.getGame().getActivePlayer())
+					CvNotifications* pNotifications = GET_PLAYER(pkDefender->getOwner()).GetNotifications();
+					if (pNotifications)
 					{
-						GC.messagePlayer(uiParentEventID, pkDefender->getOwner(), false, GC.getEVENT_MESSAGE_TIME(), strBuffer/*, "AS2D_COMBAT", MESSAGE_TYPE_INFO, pkAttacker->m_pUnitInfo->GetButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pkAttacker->getX(), pkAttacker->getY(), true, true*/);
+						pNotifications->Add(NOTIFICATION_UNIT_DIED, strBuffer, strSummary.toUTF8(), pkDefender->getX(), pkDefender->getY(), (int)pkDefender->getUnitType(), pkDefender->getOwner());
 					}
+					//red icon over attacking unit
+					//if(pkDefender->getOwner() == GC.getGame().getActivePlayer())
+					//{
+					//	GC.messagePlayer(uiParentEventID, pkDefender->getOwner(), false, GC.getEVENT_MESSAGE_TIME(), strBuffer/*, "AS2D_COMBAT", MESSAGE_TYPE_INFO, pkAttacker->m_pUnitInfo->GetButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pkAttacker->getX(), pkAttacker->getY(), true, true*/);
+					//}
 					//white icon over defending unit
 					//GC.messagePlayer(uiParentEventID, pkDefender->getOwner(), false, 0, ""/*, "AS2D_COMBAT", MESSAGE_TYPE_DISPLAY_ONLY, pkDefender->getUnitInfo().GetButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"), pkDefender->getX(), pkDefender->getY(), true, true*/);
 
@@ -4621,10 +4624,11 @@ void CvUnitCombat::ApplyExtraUnitDamage(CvUnit* pkAttacker, const CvCombatInfo &
 					{
 						strBuffer = GetLocalizedText("TXT_KEY_MISC_YOU_UNIT_WAS_DESTROYED", pkUnit->getNameKey(), pkAttacker->getNameKey(), pkAttacker->getVisualCivAdjective(pkUnit->getTeam()), kEntry.GetDamage());
 					}
-					if(iActivePlayerID == pkUnit->getOwner())
-					{
-						GC.messagePlayer(uiParentEventID, pkUnit->getOwner(), true, GC.getEVENT_MESSAGE_TIME(), strBuffer/*,GC.getEraInfo(GC.getGame().getCurrentEra())->getAudioUnitDefeatScript(), MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pkTargetPlot->getX(), pkTargetPlot->getY()*/);
-					}
+					// already added as a notification
+					//if(iActivePlayerID == pkUnit->getOwner())
+					//{
+					//	GC.messagePlayer(uiParentEventID, pkUnit->getOwner(), true, GC.getEVENT_MESSAGE_TIME(), strBuffer/*,GC.getEraInfo(GC.getGame().getCurrentEra())->getAudioUnitDefeatScript(), MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pkTargetPlot->getX(), pkTargetPlot->getY()*/);
+					//}
 					CvNotifications* pNotification = GET_PLAYER(pkUnit->getOwner()).GetNotifications();
 					if(pNotification)
 					{

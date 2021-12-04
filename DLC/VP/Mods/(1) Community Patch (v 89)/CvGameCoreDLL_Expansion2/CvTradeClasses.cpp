@@ -5311,7 +5311,7 @@ bool CvPlayerTrade::PlunderTradeRoute(int iTradeConnectionID)
 					strMessage << pDestCity->getNameKey();
 				}
 
-				pNotifications->Add(NOTIFICATION_TRADE_ROUTE_BROKEN, strMessage.toUTF8(), strSummary.toUTF8(), -1, -1, -1);
+				pNotifications->Add(NOTIFICATION_TRADE_ROUTE_BROKEN, strMessage.toUTF8(), strSummary.toUTF8(), pPlunderPlot->getX(), pUnit->getY(), -1);
 			}
 		}
 	}
