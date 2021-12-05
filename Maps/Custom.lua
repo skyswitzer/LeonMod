@@ -289,7 +289,7 @@ function GetMapScriptInfo()
 					"92", --30
 				},
 
-				DefaultValue = 13,
+				DefaultValue = 10,
 				SortPriority = -160,
 			},
 
@@ -433,7 +433,7 @@ function GetMapScriptInfo()
 					"128 (Huge)",
 				},
 
-				DefaultValue = 23,
+				DefaultValue = 34,
 				SortPriority = -89,
 			},
 
@@ -473,7 +473,7 @@ function GetMapScriptInfo()
 					"80 (Huge)",
 				},
 
-				DefaultValue = 20,
+				DefaultValue = 30,
 				SortPriority = -88,
 			},
 
@@ -503,7 +503,7 @@ function GetMapScriptInfo()
 					"No",
 				},
 
-				DefaultValue = 1,
+				DefaultValue = 2,
 				SortPriority = -85,
 			},
 
@@ -528,7 +528,7 @@ function GetMapScriptInfo()
 					"No",
 				},
 
-				DefaultValue = 1,
+				DefaultValue = 2,
 				SortPriority = -70,
 			},
 
@@ -587,7 +587,7 @@ function GetMapScriptInfo()
 					"29",
 				},
 
-				DefaultValue = 11,
+				DefaultValue = 4,
 				SortPriority = -60,
 			},
 
@@ -616,11 +616,11 @@ function GetMapScriptInfo()
 					"(0.90^Size)%",
 					"(0.91^Size)%",
 					"(0.92^Size)%",
-					"(0.93^Size)%",
+					"(0.93^Size)%", -- 11
 					"(0.99^Size)%",
 				},
 
-				DefaultValue = 4,
+				DefaultValue = 11,
 				SortPriority = -55,
 			},
 
