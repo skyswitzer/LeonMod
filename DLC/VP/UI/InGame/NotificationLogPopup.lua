@@ -59,7 +59,8 @@ function AddNotificationButton( id, description, turn, dismissed )
 	controlTable.NotificationTurnText:SetText(Locale.ConvertTextKey("TXT_KEY_TP_TURN_COUNTER", turn));
     controlTable.Button:SetVoid1( id ); -- indicates type
     controlTable.Button:SetVoid2( void );
-    controlTable.Button:SetDisabled( dismissed );
+    -- comment below line to allow clicking on dismissed status notifications
+    --controlTable.Button:SetDisabled( dismissed );
     
     controlTable.TextStack:CalculateSize();
     controlTable.TextStack:ReprocessAnchoring();
