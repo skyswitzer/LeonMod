@@ -296,6 +296,11 @@ public:
 
 	bool isFriendlyCity(const CvUnit& kUnit, bool bIgnored) const;
 	bool isFriendlyCityOrPassableImprovement(PlayerTypes ePlayer, const CvUnit* pUnit = NULL) const;
+	bool IsEnemyControlledTerritory(PlayerTypes ePlayer) const;
+	bool IsEnemyControlledZoc(PlayerTypes ePlayer) const;
+
+	/* true if this plot has a passable improvement AND this player can use it */
+	bool HasPassableImprovement(PlayerTypes ePlayer) const;
 	bool isCityOrPassableImprovement(PlayerTypes ePlayer, bool bMustBeFriendly, const CvUnit* pUnit = NULL) const;
 	bool IsFriendlyTerritory(PlayerTypes ePlayer) const;
 
@@ -964,7 +969,7 @@ public:
 #if defined(MOD_BALANCE_CORE)
 	bool IsEnemyCityAdjacent(TeamTypes eMyTeam, const CvCity* pSpecifyCity) const;
 	int GetNumEnemyUnitsAdjacent(TeamTypes eMyTeam, DomainTypes eDomain, const CvUnit* pUnitToExclude = NULL, bool bCountRanged = true) const;
-	vector<CvUnit*> GetAdjacentEnemyUnits(TeamTypes eMyTeam, DomainTypes eDomain) const;
+	vector<CvUnit*> GetAdjacentEnemyMilitaryUnits(TeamTypes eMyTeam, DomainTypes eDomain) const;
 	int GetAdjacentEnemyPower(PlayerTypes ePlayer) const;
 
 	int GetNumFriendlyUnitsAdjacent(TeamTypes eMyTeam, DomainTypes eDomain, const CvUnit* pUnitToExclude = NULL, bool bCountRanged = true) const;

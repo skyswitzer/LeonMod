@@ -4383,54 +4383,72 @@ bool CvPlot::isFriendlyCityOrPassableImprovement(PlayerTypes ePlayer, const CvUn
 
 //	--------------------------------------------------------------------------------
 /// Is this enemy controlled territory? Near enemy unit, or in unopen borders.
-bool IsEnemyControlled(const CvPlot* plot, PlayerTypes ePlayer)
+bool CvPlot::IsEnemyControlledTerritory(PlayerTypes ePlayer) const
 {
-	// No friendly territory for barbs!
-	if (ePlayer == NO_PLAYER || GET_PLAYER(ePlayer).isBarbarian())
-		return false;
+	const CvPlot* plot = this;
+	if (ePlayer == NO_PLAYER) return true; // NO_PLAYER is not allowed to use these
 
 	TeamTypes eTeam = GET_PLAYER(ePlayer).getTeam();
 	TeamTypes ePlotOwner = plot->getTeam();
 
-	bool bIsFriendlyBorders = false;
+	// if it has an owner, make sure it is open borders to us
 	if (ePlotOwner != NO_TEAM) // noteam is not explicitly friendly (BUT NOT ENEMY EITHER!)
 	{
+		// another player owns this, so assume they are hostile
+		bool bIsEnemyBorders = true; 
 		if (GET_TEAM(ePlotOwner).IsAllowsOpenBordersToTeam(eTeam)) // open borders
-			bIsFriendlyBorders = true;
+			bIsEnemyBorders = false;
 		else if (ePlotOwner == eTeam) // our territory
-			bIsFriendlyBorders = true;
-		else if (!GET_PLAYER(ePlayer).isMinorCiv())
+			bIsEnemyBorders = false;
+		else if (!GET_PLAYER(ePlayer).isMinorCiv()) // if we are a minor civ, we wont have open borders with another minor...
 		{
-			if (GET_TEAM(ePlotOwner).isMinorCiv())
+			if (GET_TEAM(ePlotOwner).isMinorCiv()) // if the owner is a minor civ, check if they give us open borders
 			{
 				PlayerTypes eCityState = GET_TEAM(ePlotOwner).getLeaderID();
 				if (GET_PLAYER(eCityState).GetMinorCivAI()->IsPlayerHasOpenBorders(ePlayer))
 				{
-					bIsFriendlyBorders = true;
+					bIsEnemyBorders = false;
 				}
 			}
 		}
+		if (bIsEnemyBorders) // enemy borders are NEVER passable
+			return true;
+
+		// friendly open border city is NEVER enemy controlled
+		CvCity* city = plot->getPlotCity();
+		if (city != NULL)
+			return false;
 	}
-
-	// friendly city
-	CvCity* city = plot->getPlotCity();
-	if (bIsFriendlyBorders && city != NULL)
-		return false;
-
-	// enemy too close
-	bool bAnyNearbyEnemyUnits = plot->isEnemyUnit(ePlayer, true, false) || plot->GetAdjacentEnemyUnits(eTeam, DOMAIN_LAND).size() != 0;
-	if (bAnyNearbyEnemyUnits)
-		return true;
+	// else plot is not owned by anyone or still needs enemy unit check
 
 	return false;
 }
 
-bool CvPlot::isCityOrPassableImprovement(PlayerTypes ePlayer, bool bMustBeFriendly, const CvUnit* pUnit) const
+bool CvPlot::IsEnemyControlledZoc(PlayerTypes ePlayer) const
+{
+	const CvPlot* plot = this;
+	if (ePlayer == NO_PLAYER) return true; // NO_PLAYER is not allowed to use these
+
+	TeamTypes eTeam = GET_PLAYER(ePlayer).getTeam();
+	// enemy unit (civilian or military) on tile
+	bool isEnemyInWay = plot->isEnemyUnit(ePlayer, false, false) || plot->isEnemyUnit(ePlayer, true, false);
+	// enemy military LAND unit adjacent
+	bool isEnemyLandAdjacent = plot->GetAdjacentEnemyMilitaryUnits(eTeam, DOMAIN_LAND).size() != 0;
+	return (isEnemyInWay || isEnemyLandAdjacent);
+}
+
+bool CvPlot::HasPassableImprovement(PlayerTypes ePlayer) const
 {
 	ImprovementTypes eImprovement = getImprovementType();
 	CvImprovementEntry* pkImprovementInfo = GC.getImprovementInfo(eImprovement);
-	bool bIsPassableImprovement = MOD_GLOBAL_PASSABLE_FORTS && pkImprovementInfo != NULL && pkImprovementInfo->IsMakesPassable() && !IsImprovementPillaged();
-	bool bIsCityOrPassable = isCity() || bIsPassableImprovement;
+	const bool hasImprovement = MOD_GLOBAL_PASSABLE_FORTS&& pkImprovementInfo != NULL && pkImprovementInfo->IsMakesPassable() && !IsImprovementPillaged();
+
+	return hasImprovement && !IsEnemyControlledTerritory(ePlayer);
+}
+
+bool CvPlot::isCityOrPassableImprovement(PlayerTypes ePlayer, bool bMustBeFriendly, const CvUnit* pUnit) const
+{
+	bool bIsCityOrPassable = isCity() || HasPassableImprovement(ePlayer);
 
 	// Not a city or a fort
 	if (!bIsCityOrPassable)
@@ -4441,32 +4459,27 @@ bool CvPlot::isCityOrPassableImprovement(PlayerTypes ePlayer, bool bMustBeFriend
 		return true;
 
 	// In friendly lands (ours, an allied CS or a major with open borders)
-	if (!IsEnemyControlled(this, ePlayer))
-	{
 #if defined(MOD_EVENTS_MINORS_INTERACTION)
-		if (isCity() && MOD_EVENTS_MINORS_INTERACTION && GET_PLAYER(getOwner()).isMinorCiv())
+	if (isCity() && MOD_EVENTS_MINORS_INTERACTION && GET_PLAYER(getOwner()).isMinorCiv())
+	{
+		CvCity* pPlotCity = getPlotCity();
+		if (pUnit) 
 		{
-			CvCity* pPlotCity = getPlotCity();
-			if (pUnit) 
+			if (GAMEEVENTINVOKE_TESTALL(GAMEEVENT_UnitCanTransitMinorCity, ePlayer, pUnit->GetID(), pPlotCity->getOwner(), pPlotCity->GetID(), getX(), getY()) == GAMEEVENTRETURN_FALSE) 
 			{
-				if (GAMEEVENTINVOKE_TESTALL(GAMEEVENT_UnitCanTransitMinorCity, ePlayer, pUnit->GetID(), pPlotCity->getOwner(), pPlotCity->GetID(), getX(), getY()) == GAMEEVENTRETURN_FALSE) 
-				{
-					return false;
-				}
-			} 
-			else 
+				return false;
+			}
+		} 
+		else 
+		{
+			if (GAMEEVENTINVOKE_TESTALL(GAMEEVENT_PlayerCanTransitMinorCity, ePlayer, pPlotCity->getOwner(), pPlotCity->GetID(), getX(), getY()) == GAMEEVENTRETURN_FALSE) 
 			{
-				if (GAMEEVENTINVOKE_TESTALL(GAMEEVENT_PlayerCanTransitMinorCity, ePlayer, pPlotCity->getOwner(), pPlotCity->GetID(), getX(), getY()) == GAMEEVENTRETURN_FALSE) 
-				{
-					return false;
-				}
+				return false;
 			}
 		}
-#endif
-		return true;
 	}
-
-	return false;
+#endif
+	return true;
 }
 
 //	--------------------------------------------------------------------------------
@@ -15355,7 +15368,7 @@ bool CvPlot::IsEnemyCityAdjacent(TeamTypes eMyTeam, const CvCity* pSpecifyCity) 
 	return false;
 }
 
-vector<CvUnit*> CvPlot::GetAdjacentEnemyUnits(TeamTypes eMyTeam, DomainTypes eDomain) const
+vector<CvUnit*> CvPlot::GetAdjacentEnemyMilitaryUnits(TeamTypes eMyTeam, DomainTypes eDomain) const
 {
 	vector<CvUnit*> result;
 	CvPlot** aPlotsToCheck = GC.getMap().getNeighborsShuffled(this);

@@ -5107,6 +5107,7 @@ bool CvUnit::canMoveInto(const CvPlot& plot, int iMoveFlags) const
 {
 	VALIDATE_OBJECT
 	TeamTypes ePlotTeam;
+	const bool isPlotDestination = (iMoveFlags & CvUnit::MOVEFLAG_DESTINATION);
 
 	// do not check this, the current plot may well be invalid!
 	/*
@@ -5131,9 +5132,9 @@ bool CvUnit::canMoveInto(const CvPlot& plot, int iMoveFlags) const
 
 	// Added in Civ 5: Destination plots can't allow stacked Units of the same type
 #if defined(MOD_GLOBAL_BREAK_CIVILIAN_RESTRICTIONS)
-	if((iMoveFlags & CvUnit::MOVEFLAG_DESTINATION) && (!MOD_GLOBAL_BREAK_CIVILIAN_RESTRICTIONS || !IsCivilianUnit()))
+	if(isPlotDestination && (!MOD_GLOBAL_BREAK_CIVILIAN_RESTRICTIONS || !IsCivilianUnit()))
 #else
-	if(iMoveFlags & CvUnit::MOVEFLAG_DESTINATION)
+	if(isPlotDestination)
 #endif
 	{
 		// Don't let another player's unit inside someone's city
@@ -5215,12 +5216,28 @@ bool CvUnit::canMoveInto(const CvPlot& plot, int iMoveFlags) const
 #if defined(MOD_BALANCE_CORE)
 	else
 	{
-		if (!IsCivilianUnit() && plot.isCity() && plot.getOwner() != getOwner())
+		if (!IsCivilianUnit() && isPlotDestination && plot.isCity() && plot.getOwner() != getOwner())
 		{
 			return false;
 		}
 	}
 #endif
+	const PlayerTypes ourPlayer = getOwner();
+
+	// it has an improvement
+	const bool hasImprovement =
+	(
+		getDomainType() == DOMAIN_SEA && // this is a sea unit
+		!plot.isWater() && // the target plot isn't watter
+		plot.HasPassableImprovement(ourPlayer) // but it is passable!
+	);
+	if (hasImprovement)
+	{
+		// but it's blocked!
+		const bool isBlocked = plot.IsEnemyControlledZoc(ourPlayer);
+		if (isBlocked)
+			return false;
+	}
 
 	if(getDomainType() == DOMAIN_AIR)
 	{
