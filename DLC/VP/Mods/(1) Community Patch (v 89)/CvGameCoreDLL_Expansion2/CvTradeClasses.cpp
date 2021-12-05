@@ -5148,7 +5148,7 @@ bool CvPlayerTrade::PlunderTradeRoute(int iTradeConnectionID)
 	iPlunderGoldValue /= 100;
 #endif
 	m_pPlayer->GetTreasury()->ChangeGold(iPlunderGoldValue);
-	rOwningPlayer.GetTreasury()->ChangeGold(iPlunderGoldValue);
+	// rOwningPlayer.GetTreasury()->ChangeGold(iPlunderGoldValue); // subtract money from loser
 
 	// do the floating popup
 	if (GC.getGame().getActivePlayer() == m_pPlayer->GetID())
