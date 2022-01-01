@@ -1,7 +1,12 @@
-# Lekmod
+# LeonMod
 
 
+# VP Info:
+* Install mods via latest installer https://forums.civfanatics.com/threads/community-patch-how-to-install.528034/
+* Create modpack via https://civ-5-cbp.fandom.com/wiki/Creating_a_Modpack
 
+Installers:
+* 1.3.4: https://drive.google.com/file/d/1AJm5e5xuBfBmFstDD_MAD2MnRzs5TOaH/view
 
 
 ### Want to contribute?
