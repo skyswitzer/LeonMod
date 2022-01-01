@@ -811,7 +811,7 @@ local NewInterfaceModeChangeHandler =
 	[InterfaceModeTypes.INTERFACEMODE_RANGE_ATTACK] = BeginRangedAttack,
 	[InterfaceModeTypes.INTERFACEMODE_CITY_RANGE_ATTACK] = BeginRangedAttack,
 	[InterfaceModeTypes.INTERFACEMODE_AIRSTRIKE] = BeginAirAttack,
-	--[InterfaceModeTypes.INTERFACEMODE_AIR_SWEEP] = nil,
+	[InterfaceModeTypes.INTERFACEMODE_AIR_SWEEP] = BeginAirAttack,
 	[InterfaceModeTypes.INTERFACEMODE_REBASE] = ShowRebaseRangeIndicator,
 	[InterfaceModeTypes.INTERFACEMODE_PLACE_UNIT] = nil, -- this actually has some special case code with it in CityBannerManager and/or CityView
 	[InterfaceModeTypes.INTERFACEMODE_EMBARK] = HighlightEmbarkPlots,
@@ -937,7 +937,7 @@ function OnUpdateSelection( isSelected )
 		aWorkerSuggestHighlightPlots = player:GetRecommendedWorkerPlots();
 
 		-- Player can disable tile recommendations
-		if (not OptionsManager.IsNoTileRecommendations()) then
+		if (aFounderSuggestHighlightPlots ~= nil and not OptionsManager.IsNoTileRecommendations()) then
 			for i, v in ipairs(aWorkerSuggestHighlightPlots) do
 				if (v.plot ~= nil) then
 					local hexID = ToHexFromGrid( Vector2( v.plot:GetX(), v.plot:GetY() ) );
@@ -1269,6 +1269,7 @@ for addin in Modding.GetActivatedModEntryPoints("InGameUIAddin") do
 end
 ContextPtr:LoadNewContext("EventChoicePopupCity")
 ContextPtr:LoadNewContext("CityEventPopup")
+ContextPtr:LoadNewContext("EspionageChoicePopup")
 ContextPtr:LoadNewContext("EventPopup")
 ContextPtr:LoadNewContext("EventChoicePopup")
 ContextPtr:LoadNewContext("EventOverview")
