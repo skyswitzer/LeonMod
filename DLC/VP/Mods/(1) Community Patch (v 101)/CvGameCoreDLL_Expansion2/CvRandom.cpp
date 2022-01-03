@@ -216,5 +216,6 @@ void CvRandom::CopyFrom(const CvRandom& rhs)
 	m_ulCallCount = rhs.m_ulCallCount;
 	m_ulResetCount = rhs.m_ulResetCount;
 	m_bSynchronous = rhs.m_bSynchronous;
+	m_notRandom = rhs.m_notRandom;
 	m_name = rhs.m_name + "(Copy)";
 }
