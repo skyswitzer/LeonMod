@@ -21,7 +21,7 @@ public:
 	CvRandom(const std::string& name);
 	virtual ~CvRandom();
 
-	void init(unsigned long long ulSeed);
+	void init(unsigned long long ulSeed, bool notRandom = true);
 	void uninit();
 	void reset(unsigned long long ulSeed = 0);
 
@@ -47,6 +47,7 @@ public:
 
 protected:
 	unsigned long long m_ullRandomSeed;
+	bool m_notRandom;
 
 	// for OOS checks/debugging
 	std::string m_name;

@@ -26,6 +26,7 @@ CvRandom::CvRandom(const std::string& name) :
 	, m_ulCallCount(0)
 	, m_ulResetCount(0)
 	, m_bSynchronous(true)
+	, m_notRandom(true)
 {
 	reset();
 }
@@ -57,8 +58,9 @@ CvRandom::~CvRandom()
 }
 
 
-void CvRandom::init(unsigned long long ullSeed)
+void CvRandom::init(unsigned long long ullSeed, bool notRandom)
 {
+	m_notRandom = notRandom;
 	//--------------------------------
 	// Init saved data
 	reset(ullSeed);
@@ -85,6 +87,9 @@ void CvRandom::reset(unsigned long long ullSeed)
 
 unsigned long CvRandom::get(unsigned long ulNum, const char* pszLog)
 {
+	if (m_notRandom)
+		return ulNum / 2; // hack to always return middle value
+
 	if(!gDLL->IsGameCoreThread() && gDLL->IsGameCoreExecuting() && m_bSynchronous)
 	{
 		OutputDebugString("Warning: GUI is accessing the synchronous random number generator while the game core is running.");

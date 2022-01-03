@@ -186,7 +186,7 @@ void CvGame::init(HandicapTypes eHandicap)
 	// Init saved data
 	reset(eHandicap);
 
-	m_mapRand.init(CvPreGame::mapRandomSeed() % 73637381);
+	m_mapRand.init(CvPreGame::mapRandomSeed() % 73637381, false);
 	m_jonRand.init(CvPreGame::syncRandomSeed() % 52319761);
 
 	SetClosestCityMapDirty();
@@ -10920,6 +10920,7 @@ CvRandom& CvGame::getJonRand()
 /// Allows for logging.
 int CvGame::getJonRandNum(int iNum, const char* pszLog)
 {
+	return iNum / 2;
 	if (iNum > 0)
 		return m_jonRand.get(iNum, pszLog);
 
@@ -10933,6 +10934,7 @@ int CvGame::getJonRandNum(int iNum, const char* pszLog)
 // causing ambiguous call errors.  The non VA one is needed for use as a delegate
 int CvGame::getJonRandNumVA(int iNum, const char* pszLog, ...)
 {
+	return iNum / 2;
 	if (pszLog)
 	{
 		const size_t uiOutputSize = 512;
@@ -10954,6 +10956,7 @@ int CvGame::getJonRandNumVA(int iNum, const char* pszLog, ...)
 /// This should only be called by operations that will not effect gameplay!
 int CvGame::getAsyncRandNum(int iNum, const char* pszLog)
 {
+	return iNum / 2;
 	if (iNum > 0)
 		return GC.getASyncRand().get(iNum, pszLog);
 
@@ -10982,6 +10985,8 @@ static unsigned long giLastState = 0;
 
 int CvGame::getSmallFakeRandNum(int iNum, const CvPlot& input)
 {
+	return iNum / 2;
+
 	unsigned long iState = input.getX()*17 + input.getY()*23 + getTurnSlice()*3;
 
 	/*
@@ -11012,6 +11017,7 @@ int CvGame::getSmallFakeRandNum(int iNum, const CvPlot& input)
 
 int CvGame::getSmallFakeRandNum(int iNum, int iExtraSeed)
 {
+	return iNum / 2;
 	unsigned long iState = getTurnSlice() + abs(iExtraSeed);
 
 	/*
