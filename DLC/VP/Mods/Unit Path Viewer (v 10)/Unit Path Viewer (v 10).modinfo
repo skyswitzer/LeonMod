@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Mod id="a08b75c3-729e-4aa8-a458-8f44b0d70777" version="10">
+  <Properties>
+    <Name>Unit Path Viewer</Name>
+    <Teaser>by [COLOR_PLAYER_BARBARIAN_ICON]Black.Cobra[ENDCOLOR] a.k.a. [COLOR_PLAYER_BARBARIAN_ICON]Logharn[ENDCOLOR][NEWLINE]MOD that shows the unit route, their E.T.A. and something more!![NEWLINE][COLOR_PLAYER_LIGHT_ORANGE_TEXT]* IF YOU LIKE IT, RATE IT! IF YOU DISLIKE... Well... Rate it anyway, but at least leave a comment![ENDCOLOR]</Teaser>
+    <Description>[COLOR_LIGHT_GREY]This MOD will let you see the path chosen by units when moved through right click or using the "Move to" order on the map.[NEWLINE]This MOD also tries to avoid the psychic behaviour that units have when on their last plot, too far to be seen, is present another unit that blocks their movement, forcing players to manually choose a new destination. The workaround I've adopted is to check backwards all stored plots to find the first available and automatically redirect the unit there, if possible.[NEWLINE]Selecting an automated worker an arrow will be spawned pointing to its destination tile.[NEWLINE]Instead for workers to which has been given a "Route to" mission, there are two kind of "Path Highlighting", read instructions below for more information.[NEWLINE]Last but not least, pressing an hotkey will show all destinations of military units at once![ENDCOLOR][NEWLINE][NEWLINE][COLOR_GREEN][ICON_BULLET]Instructions:[ENDCOLOR][NEWLINE][COLOR_PLAYER_ORANGE_TEXT]Unit Movement Path[ENDCOLOR][NEWLINE][COLOR_LIGHT_GREY]Move your unit as usual, when you'll select it again you'll see its route to destination.[ENDCOLOR][NEWLINE][NEWLINE][COLOR_PLAYER_ORANGE_TEXT]Automated Workers[ENDCOLOR][NEWLINE][COLOR_LIGHT_GREY]If they haven't reached their destination an arrow will be shown, last plot will be highlighted in red.[ENDCOLOR][NEWLINE][NEWLINE][COLOR_PLAYER_ORANGE_TEXT]"Route to" Workers[ENDCOLOR][NEWLINE][COLOR_PLAYER_LIGHT_ORANGE_TEXT]FIRST METHOD[ENDCOLOR] ** RECOMMENDED **[NEWLINE][COLOR_LIGHT_GREY]Give to a worker the "Route to" mission, then, when selected, an arrow will be spawned like for automated workers, but last plot will be highlighted in green.[ENDCOLOR][NEWLINE][NEWLINE][COLOR_PLAYER_LIGHT_ORANGE_TEXT]SECOND METHOD[ENDCOLOR] (Must be done in two turns)[NEWLINE][COLOR_PLAYER_LIGHT_ORANGE_TEXT]First Turn:[ENDCOLOR][COLOR_LIGHT_GREY] give the "Route to" order and then select again your worker. Now right click or give the "Move to" order on the green highlighted hex.[ENDCOLOR][NEWLINE][COLOR_PLAYER_LIGHT_ORANGE_TEXT]Second Turn:[ENDCOLOR][COLOR_LIGHT_GREY] select your worker, the "Movement Path" will be shown. Now give for one last time the "Route to" order targeting the red plot.[NEWLINE]If everything has been done correctly, when the worker is selected, the whole "Movement Path" will be highlighted in green. This method is more or less only an eye candy, since movement follows different rules respect route building. For instance if you are going to build a coastal road, your unit could embark to reach its destination, but the building process will follow land plots. At any rate I like to use this method for inland routes.[ENDCOLOR][NEWLINE][NEWLINE][COLOR_PLAYER_ORANGE_TEXT]Estimated Turn of Arrival (E.T.A.)[ENDCOLOR][NEWLINE][COLOR_LIGHT_GREY]Clicking on the flag of a moving unit will make appear a pop up telling you in how many turns will reach its destination.[ENDCOLOR][NEWLINE][NEWLINE][COLOR_PLAYER_ORANGE_TEXT]Hotkeys[ENDCOLOR][NEWLINE][COLOR_PLAYER_LIGHT_ORANGE_TEXT]CTRL + SHIFT[ENDCOLOR] &gt;&gt;&gt; [COLOR_LIGHT_GREY]Will highlight in orange all plots where moved military units stand (if their plot isn't already a destination for another), in red all plots which are the destination of a single unit, in fuchsia all plots that are the destination of two or more units and from every destination highlighted tile will appear a pop up telling you the unit name and its E.T.A.[NEWLINE]Also moving the cursor over a red or orange highlighted tile, while having CTRL + SHIFT still pressed, the path of that unit will be shown and all other previously colored hexes will be highlighted in white. I'll let to you discover what happens when going over a fuchsia plot.[ENDCOLOR][NEWLINE][NEWLINE][COLOR_GREEN][ICON_BULLET]Issues and bugs:[ENDCOLOR][NEWLINE][COLOR_LIGHT_GREY]Please report any bug you can find.[NEWLINE]Units recalculate their path on the fly, based on revealed terrain or other units in range, so could happen that they aren't on the highlighted path at the end of the turn. This happens frequently when travelling through FoW, but difference is usually of one hex and seldom two.[ENDCOLOR][NEWLINE][NEWLINE][COLOR_GREEN][ICON_BULLET]Issues with other MODS:[ENDCOLOR][NEWLINE][COLOR_LIGHT_GREY]At the moment none that I'm aware of...[ENDCOLOR][NEWLINE][NEWLINE][COLOR_GREEN][ICON_BULLET]Special thanks and disclaimer:[ENDCOLOR][NEWLINE][COLOR_LIGHT_GREY]You can use and manipulate the code of my MOD freely, only put me aware of it or give me credit.[NEWLINE]Thanks to anyone who will use my MOD and will provide useful suggestions.[NEWLINE]Special thanks to [ENDCOLOR][COLOR_PLAYER_MIDDLE_CYAN_TEXT]Pazyryk[ENDCOLOR][COLOR_LIGHT_GREY] for his great work on "Table Saver Loader Script".[NEWLINE]Special thanks to [ENDCOLOR][COLOR_PLAYER_MIDDLE_CYAN_TEXT]Jaii der Herr[ENDCOLOR][COLOR_LIGHT_GREY] for updating the MOD and making it fully compatible with "Brave New World" expansion.[ENDCOLOR][NEWLINE][COLOR_LIGHT_GREY]Thanks to [ENDCOLOR][COLOR_PLAYER_MIDDLE_CYAN_TEXT]Kikevs[ENDCOLOR][COLOR_LIGHT_GREY] for suggesting to implement path highlighting for worker's command "Route to".[ENDCOLOR][NEWLINE][COLOR_LIGHT_GREY]Thanks to [ENDCOLOR][COLOR_PLAYER_MIDDLE_CYAN_TEXT]Reign[ENDCOLOR][COLOR_LIGHT_GREY] for suggesting to implement E.T.A. and something to show all unit destinations at once.[NEWLINE][COLOR_LIGHT_GREY]Thanks to [ENDCOLOR][COLOR_PLAYER_MIDDLE_CYAN_TEXT]Dennis(DK)[ENDCOLOR][COLOR_LIGHT_GREY] that brought to my attention the possibility to add in-game instructions.[ENDCOLOR][NEWLINE][NEWLINE][COLOR_GREEN][ICON_BULLET]Version history:[ENDCOLOR][NEWLINE][COLOR_PLAYER_ORANGE_TEXT]v. 10[ENDCOLOR][NEWLINE][COLOR_LIGHT_GREY]Small update after a long time.[NEWLINE]Added an option file, located under[ENDCOLOR] "(YOUR DOCUMENTS FOLDER)\My Games\Sid Meier's Civilization 5\MODS\Unit Path Viewer (v 10)"[COLOR_LIGHT_GREY], in which you can change the colors of highlighted hexes. The file is named[ENDCOLOR] "UnitPath_Options.lua" [COLOR_LIGHT_GREY]and you can open it with any text editor, I suggest you use Notepad++.[NEWLINE]Instructions are inside the file.[ENDCOLOR][NEWLINE][NEWLINE][COLOR_PLAYER_ORANGE_TEXT]v. 9[ENDCOLOR][NEWLINE][COLOR_LIGHT_GREY]Added support for Multiplayer and Hot Seat.[NEWLINE][ENDCOLOR][COLOR_PLAYER_MIDDLE_CYAN_TEXT]Jaii der Herr[ENDCOLOR][COLOR_LIGHT_GREY]: changed how End Turn blocking types are handled making the MOD compatible with any game version (Vanilla, GK, BNW, future...)[ENDCOLOR][NEWLINE][NEWLINE][COLOR_PLAYER_ORANGE_TEXT]Older versions[ENDCOLOR][NEWLINE][COLOR_LIGHT_GREY]Consult the change notes section on the MOD page.[ENDCOLOR]</Description>
+    <Authors>[COLOR_PLAYER_BARBARIAN_ICON]Black.Cobra[ENDCOLOR] a.k.a. [COLOR_PLAYER_BARBARIAN_ICON]Logharn[ENDCOLOR]</Authors>
+    <SpecialThanks>[COLOR_PLAYER_MIDDLE_CYAN_TEXT]Pazyryk[ENDCOLOR] and [COLOR_PLAYER_MIDDLE_CYAN_TEXT]Jaii der Herr[ENDCOLOR]</SpecialThanks>
+    <HideSetupGame>0</HideSetupGame>
+    <AffectsSavedGames>1</AffectsSavedGames>
+    <MinCompatibleSaveVersion>0</MinCompatibleSaveVersion>
+    <SupportsSinglePlayer>1</SupportsSinglePlayer>
+    <SupportsMultiplayer>1</SupportsMultiplayer>
+    <SupportsHotSeat>1</SupportsHotSeat>
+    <SupportsMac>1</SupportsMac>
+    <ReloadAudioSystem>0</ReloadAudioSystem>
+    <ReloadLandmarkSystem>0</ReloadLandmarkSystem>
+    <ReloadStrategicViewSystem>0</ReloadStrategicViewSystem>
+    <ReloadUnitSystem>0</ReloadUnitSystem>
+  </Properties>
+  <Dependencies />
+  <References />
+  <Blocks />
+  <Files>
+    <File md5="17C41BB58CBA4501966437863F58766E" import="1">External_Functions/TableSaverLoader.lua</File>
+    <File md5="556D46C3164E9E3605F66B6F731B533A" import="1">Logharn_Functions/UnitPath_Support.lua</File>
+    <File md5="FBF8F7F31679B96095FB1EB182B8091B" import="1">Main_UnitPath.lua</File>
+    <File md5="6FF98DEE47AA5AA51067349E3154C2E9" import="1">UnitPath_Options.lua</File>
+  </Files>
+  <EntryPoints>
+    <EntryPoint type="InGameUIAddin" file="Main_UnitPath.lua">
+      <Name>MainUnitPath</Name>
+      <Description>Main Unit Path Lua Script</Description>
+    </EntryPoint>
+    <EntryPoint type="InGameUIAddin" file="External_Functions/TableSaverLoader.lua">
+      <Name>TableSaverLoader</Name>
+      <Description>Table Saver Loader by Pazyryk</Description>
+    </EntryPoint>
+    <EntryPoint type="InGameUIAddin" file="Logharn_Functions/UnitPath_Support.lua">
+      <Name>SupportFunctions</Name>
+      <Description>Support Functions for Main Unit Path Script</Description>
+    </EntryPoint>
+    <EntryPoint type="InGameUIAddin" file="UnitPath_Options.lua">
+      <Name>Options</Name>
+      <Description>Customizable Options</Description>
+    </EntryPoint>
+  </EntryPoints>
+</Mod>
