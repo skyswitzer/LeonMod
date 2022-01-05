@@ -32,6 +32,7 @@
 
 # main menu background and music
 !/DLC/**/*OpeningMenu_Exp2.wav
+!/DLC/LEKMOD_V28.2/**
 !/DLC/LEKMOD_V28.2/civilzationvatlas-vanilla.dds
 !/UI/FrontEnd/FrontEnd.lua
 
