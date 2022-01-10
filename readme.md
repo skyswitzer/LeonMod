@@ -1,4 +1,10 @@
-# LeonMod
+# LeonMod Description
+This mod changes a bunch of things, from largest to smallest:
+* Interception Rework - With the previous interception mechanics, 
+* Tourism Influence Combat Mechanics - Unlike every other victory condition (Domination, Science, )
+
+
+
 
 
 # VP Info:
