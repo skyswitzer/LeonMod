@@ -3506,15 +3506,17 @@ bool CvMinorCivAI::IsValidQuestForPlayer(PlayerTypes ePlayer, MinorCivQuestTypes
 			return false;
 
 		// Cannot already have a route
-		if (GET_PLAYER(ePlayer).IsCapitalConnectedToPlayer(GetPlayer()->GetID()))
-			return false;
+		// ALLOW ALREADY HAVE ROUTE
+		//if (GET_PLAYER(ePlayer).IsCapitalConnectedToPlayer(GetPlayer()->GetID()))
+		//	return false;
 
 		// Can't have completed this Quest already
-		if(IsRouteConnectionEstablished(ePlayer))
-			return false;
+		// ALLOW ALREADY COMPLETED PREVIOUSLY
+		//if(IsRouteConnectionEstablished(ePlayer))
+		//	return false;
 
 		// Must have a city close to the minor in the same Area
-		const int iMaxRouteDistance = 8; //antonjs: todo: xml
+		const int iMaxRouteDistance = 15; //antonjs: todo: xml
 		CvPlot* pMinorsPlot = pMinorsCapital->plot();
 		if(pMinorsPlot == NULL)
 			return false;
@@ -3753,8 +3755,9 @@ bool CvMinorCivAI::IsValidQuestForPlayer(PlayerTypes ePlayer, MinorCivQuestTypes
 			return false;
 
 		// This player must not already be connected
-		if(GC.getGame().GetGameTrade()->IsPlayerConnectedToPlayer(ePlayer, GetPlayer()->GetID()))
-			return false;
+		// ALLOW TRADE ROUTE IF ALREADY TRADING
+		//if(GC.getGame().GetGameTrade()->IsPlayerConnectedToPlayer(ePlayer, GetPlayer()->GetID()))
+		//	return false;
 
 		// This player must be able to build a trade route either by land or sea
 		if(!GC.getGame().GetGameTrade()->CanCreateTradeRoute(ePlayer,GetPlayer()->GetID(), DOMAIN_LAND) &&
