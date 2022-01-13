@@ -93,9 +93,14 @@ int CvMinorCivQuest::GetEndTurn() const
 		iLength = GC.getMINOR_QUEST_STANDARD_CONTEST_LENGTH();
 	}
 
-	else if(m_eType == MINOR_CIV_QUEST_CONTEST_TECHS)
+	else if (m_eType == MINOR_CIV_QUEST_CONTEST_TECHS)
 	{
 		iLength = GC.getMINOR_QUEST_STANDARD_CONTEST_LENGTH();
+	}
+
+	else if (m_eType == MINOR_CIV_QUEST_UNREST)
+	{
+		iLength = (1.5f * GC.getMINOR_QUEST_STANDARD_CONTEST_LENGTH());
 	}
 
 	else if(m_eType == MINOR_CIV_QUEST_INVEST)
@@ -209,6 +214,9 @@ int CvMinorCivQuest::GetInfluenceReward() const
 	case MINOR_CIV_QUEST_CONTEST_TECHS:
 		iReward = /*40*/ GC.getMINOR_QUEST_FRIENDSHIP_CONTEST_TECHS();
 		break;
+	case MINOR_CIV_QUEST_UNREST:
+		iReward = /*40*/ GC.getMINOR_QUEST_FRIENDSHIP_CONTEST_TECHS();
+		break;
 	case MINOR_CIV_QUEST_INVEST:
 		// Reward is indirect; increased gains from gold gifts
 		iReward = /*0*/ GC.getMINOR_QUEST_FRIENDSHIP_INVEST();
@@ -231,6 +239,46 @@ int CvMinorCivQuest::GetInfluenceReward() const
 	}
 
 	return iReward;
+}
+
+int getAStrengthNearAllBCities(PlayerTypes a, PlayerTypes b)
+{
+	int allStrength = 0;
+	const int iRange = 3;
+	CvPlayerAI& bPlayer = GET_PLAYER(b);
+
+	// each city of player b
+	int iLoop = 0;
+	for (CvCity* pLoopCity = bPlayer.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = bPlayer.nextCity(&iLoop))
+	{
+		// each plot nearby
+		for (int iDX = -(iRange); iDX <= iRange; iDX++)
+		{
+			for (int iDY = -(iRange); iDY <= iRange; iDY++)
+			{
+				const CvPlot* cityPlot = pLoopCity->plot();
+				const CvPlot* pLoopPlot = plotXYWithRangeCheck(cityPlot->getX(), cityPlot->getY(), iDX, iDY, iRange);
+				if (pLoopPlot != NULL) // plot within range
+				{
+					const CvUnit* pLoopUnit;
+					const IDInfo* pUnitNode = pLoopPlot->headUnitNode();
+
+					// each unit in the plot
+					while (pUnitNode != NULL)
+					{
+						pLoopUnit = GetPlayerUnit(*pUnitNode);
+						if (pLoopUnit && pLoopUnit->IsCombatUnit())
+						{
+							if (pLoopUnit->getOwner() == a) // unit is A's unit
+								allStrength += pLoopUnit->GetBaseCombatStrengthConsideringDamage();
+						}
+						pUnitNode = pLoopPlot->nextUnitNode(pUnitNode);
+					}
+				}
+			}
+		}
+	}
+	return allStrength;
 }
 
 // Assumes that only one contest of a particular Type is active from this minor at any given time.
@@ -262,11 +310,16 @@ int CvMinorCivQuest::GetContestValueForPlayer(PlayerTypes ePlayer)
 		int iEndFaith = GET_PLAYER(ePlayer).GetFaithEverGenerated();
 		iValue = iEndFaith - iStartFaith;
 	}
-	else if(eType == MINOR_CIV_QUEST_CONTEST_TECHS)
+	else if (eType == MINOR_CIV_QUEST_CONTEST_TECHS)
 	{
 		int iStartTechs = pMinor->GetMinorCivAI()->GetQuestData1(ePlayer, eType);
 		int iEndTechs = GET_TEAM(GET_PLAYER(ePlayer).getTeam()).GetTeamTechs()->GetNumTechsKnown();
 		iValue = iEndTechs - iStartTechs;
+	}
+	else if (eType == MINOR_CIV_QUEST_UNREST)
+	{
+		const int strength = getAStrengthNearAllBCities(ePlayer, pMinor->GetID());
+		iValue = strength;
 	}
 
 	return iValue;
@@ -279,7 +332,8 @@ int CvMinorCivQuest::GetContestValueForLeader()
 
 	if(eType == MINOR_CIV_QUEST_CONTEST_CULTURE ||
 	        eType == MINOR_CIV_QUEST_CONTEST_FAITH ||
-	        eType == MINOR_CIV_QUEST_CONTEST_TECHS)
+		eType == MINOR_CIV_QUEST_CONTEST_TECHS ||
+		eType == MINOR_CIV_QUEST_UNREST)
 	{
 		// What is the largest value a participant has for this contest?
 		for(int iPlayerLoop = 0; iPlayerLoop < MAX_MAJOR_CIVS; iPlayerLoop++)
@@ -306,7 +360,8 @@ CivsList CvMinorCivQuest::GetContestLeaders()
 
 	if(eType == MINOR_CIV_QUEST_CONTEST_CULTURE ||
 	        eType == MINOR_CIV_QUEST_CONTEST_FAITH ||
-	        eType == MINOR_CIV_QUEST_CONTEST_TECHS)
+		eType == MINOR_CIV_QUEST_CONTEST_TECHS ||
+		eType == MINOR_CIV_QUEST_UNREST)
 	{
 		for(int iPlayerLoop = 0; iPlayerLoop < MAX_MAJOR_CIVS; iPlayerLoop++)
 		{
@@ -338,9 +393,13 @@ bool CvMinorCivQuest::IsContestLeader(PlayerTypes ePlayer)
 	if(!pMinor->GetMinorCivAI()->IsActiveQuestForPlayer(ePlayer, eType))
 		return false;
 
-	if(eType == MINOR_CIV_QUEST_CONTEST_CULTURE ||
-	        eType == MINOR_CIV_QUEST_CONTEST_FAITH ||
-	        eType == MINOR_CIV_QUEST_CONTEST_TECHS)
+	if
+	(
+		eType == MINOR_CIV_QUEST_CONTEST_CULTURE ||
+	    eType == MINOR_CIV_QUEST_CONTEST_FAITH ||
+	    eType == MINOR_CIV_QUEST_CONTEST_TECHS ||
+		eType == MINOR_CIV_QUEST_UNREST
+	)
 	{
 		CivsList veTiedForLead = GetContestLeaders();
 		for(uint ui = 0; ui < veTiedForLead.size(); ui++)
@@ -502,11 +561,18 @@ bool CvMinorCivQuest::IsComplete()
 			if(IsContestLeader(GetPlayerAssignedTo()))
 				return true;
 	}
-	else if(m_eType == MINOR_CIV_QUEST_CONTEST_TECHS)
+	else if (m_eType == MINOR_CIV_QUEST_CONTEST_TECHS)
 	{
 		// Is it time to compare the score?
-		if(GetEndTurn() == GC.getGame().getGameTurn())
-			if(IsContestLeader(GetPlayerAssignedTo()))
+		if (GetEndTurn() == GC.getGame().getGameTurn())
+			if (IsContestLeader(GetPlayerAssignedTo()))
+				return true;
+	}
+	else if (m_eType == MINOR_CIV_QUEST_UNREST)
+	{
+		// Is it time to compare the score?
+		if (GetEndTurn() == GC.getGame().getGameTurn())
+			if (IsContestLeader(GetPlayerAssignedTo()))
 				return true;
 	}
 	else if(m_eType == MINOR_CIV_QUEST_INVEST)
@@ -725,9 +791,16 @@ bool CvMinorCivQuest::IsExpired()
 	}
 
 	// Contest Techs
-	else if(m_eType == MINOR_CIV_QUEST_CONTEST_TECHS)
+	else if (m_eType == MINOR_CIV_QUEST_CONTEST_TECHS)
 	{
-		if(GC.getGame().getGameTurn() == GetEndTurn() && !IsComplete())
+		if (GC.getGame().getGameTurn() == GetEndTurn() && !IsComplete())
+			return true;
+	}
+
+	// Contest Unrest
+	else if (m_eType == MINOR_CIV_QUEST_UNREST)
+	{
+		if (GC.getGame().getGameTurn() == GetEndTurn() && !IsComplete())
 			return true;
 	}
 
@@ -1016,7 +1089,7 @@ void CvMinorCivQuest::DoStartQuest(int iStartTurn)
 		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_CONTEST_FAITH");
 	}
 	// Techs contest
-	else if(m_eType == MINOR_CIV_QUEST_CONTEST_TECHS)
+	else if (m_eType == MINOR_CIV_QUEST_CONTEST_TECHS)
 	{
 		int iStartingTechs = GET_TEAM(pAssignedPlayer->getTeam()).GetTeamTechs()->GetNumTechsKnown();
 
@@ -1029,6 +1102,21 @@ void CvMinorCivQuest::DoStartQuest(int iStartTurn)
 		strMessage << iTurnsRemaining;
 		strMessage << iTurnsDuration;
 		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_CONTEST_TECHS");
+	}
+	// Techs contest
+	else if (m_eType == MINOR_CIV_QUEST_UNREST)
+	{
+		int iMilitaryStrength = 0;
+
+		m_iData1 = iMilitaryStrength;
+
+		int iTurnsRemaining = GetEndTurn() - GC.getGame().getGameTurn();
+		int iTurnsDuration = GetEndTurn() - GetStartTurn();
+
+		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_UNREST");
+		strMessage << iTurnsRemaining;
+		strMessage << iTurnsDuration;
+		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_UNREST");
 	}
 	// Invest
 	else if(m_eType == MINOR_CIV_QUEST_INVEST)
@@ -1360,11 +1448,19 @@ bool CvMinorCivQuest::DoFinishQuest()
 	}
 
 	// Techs contest
-	else if(m_eType == MINOR_CIV_QUEST_CONTEST_TECHS)
+	else if (m_eType == MINOR_CIV_QUEST_CONTEST_TECHS)
 	{
-		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_COMPLETE_CONTEST_TECHS");
-		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_COMPLETE_CONTEST_TECHS");
-		veNamesToShow = GetContestLeaders();
+	strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_COMPLETE_CONTEST_TECHS");
+	strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_COMPLETE_CONTEST_TECHS");
+	veNamesToShow = GetContestLeaders();
+	}
+
+	// Techs contest
+	else if (m_eType == MINOR_CIV_QUEST_UNREST)
+	{
+	strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_COMPLETE_UNREST");
+	strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_COMPLETE_UNREST");
+	veNamesToShow = GetContestLeaders();
 	}
 
 	// Invest
@@ -1538,10 +1634,18 @@ bool CvMinorCivQuest::DoCancelQuest()
 		}
 
 		// Contest Techs
-		else if(m_eType == MINOR_CIV_QUEST_CONTEST_TECHS)
+		else if (m_eType == MINOR_CIV_QUEST_CONTEST_TECHS)
 		{
 			strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_ENDED_CONTEST_TECHS");
 			strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_ENDED_CONTEST_TECHS");
+			veNamesToShow = GetContestLeaders();
+		}
+
+		// Contest Unrest
+		else if (m_eType == MINOR_CIV_QUEST_UNREST)
+		{
+			strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_ENDED_UNREST");
+			strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_ENDED_UNREST");
 			veNamesToShow = GetContestLeaders();
 		}
 
@@ -2835,7 +2939,6 @@ bool CvMinorCivAI::IsProxyWarActiveForMajor(PlayerTypes eMajor)
 	return false;
 }
 
-
 // ******************************
 // ***** Quests *****
 // ******************************
@@ -2876,6 +2979,10 @@ void CvMinorCivAI::DoTurnQuests()
 	// ********************
 	int iFirstTurnForPersonalQuests = GetFirstPossibleTurnForPersonalQuests();
 
+	// do military strength
+	PlayerTypes eMilitaryWinner = NO_PLAYER;
+	int highestStrength = 0;
+
 	PlayerTypes ePlayer;
 	for(int iPlayerLoop = 0; iPlayerLoop < MAX_MAJOR_CIVS; iPlayerLoop++)
 	{
@@ -2883,6 +2990,18 @@ void CvMinorCivAI::DoTurnQuests()
 
 		if(IsHasMetPlayer(ePlayer))
 		{
+			// do military strength
+			const int tempStrength = getAStrengthNearAllBCities(ePlayer, m_pPlayer->GetID());
+			if (tempStrength > highestStrength)
+			{
+				highestStrength = tempStrength;
+				eMilitaryWinner = ePlayer;
+			}
+			else if (tempStrength == highestStrength)
+			{
+				eMilitaryWinner = NO_PLAYER;
+			}
+
 			// Increment turns since last quest
 			if(GetQuestCountdownForPlayer(ePlayer) > 0)
 			{
@@ -2903,6 +3022,12 @@ void CvMinorCivAI::DoTurnQuests()
 				}
 			}
 		}
+	}
+
+	// do military strength
+	if (eMilitaryWinner != NO_PLAYER)
+	{
+		ChangeFriendshipWithMajor(eMilitaryWinner, 27);
 	}
 }
 
@@ -3662,7 +3787,11 @@ bool CvMinorCivAI::IsValidQuestForPlayer(PlayerTypes ePlayer, MinorCivQuestTypes
 	{
 	}
 	// CONTEST TECHS
-	else if(eQuest == MINOR_CIV_QUEST_CONTEST_TECHS)
+	else if (eQuest == MINOR_CIV_QUEST_CONTEST_TECHS)
+	{
+	}
+	// CONTEST UNREST
+	else if (eQuest == MINOR_CIV_QUEST_UNREST)
 	{
 	}
 	// Invest
@@ -3824,7 +3953,11 @@ bool CvMinorCivAI::IsValidQuestCopyForPlayer(PlayerTypes ePlayer, CvMinorCivQues
 	{
 	}
 	// CONTEST TECHS
-	else if(eQuestType == MINOR_CIV_QUEST_CONTEST_TECHS)
+	else if (eQuestType == MINOR_CIV_QUEST_CONTEST_TECHS)
+	{
+	}
+	// CONTEST UNREST
+	else if (eQuestType == MINOR_CIV_QUEST_UNREST)
 	{
 	}
 	// Invest
@@ -3859,9 +3992,12 @@ bool CvMinorCivAI::IsGlobalQuest(MinorCivQuestTypes eQuest) const
 	if(eQuest == MINOR_CIV_QUEST_CONTEST_TECHS)
 		return true;
 
-	if(eQuest == MINOR_CIV_QUEST_INVEST)
+	if (eQuest == MINOR_CIV_QUEST_INVEST)
 		return true;
 
+	if (eQuest == MINOR_CIV_QUEST_UNREST)
+		return true;
+	
 	return false;
 }
 
@@ -4158,13 +4294,21 @@ int CvMinorCivAI::GetPersonalityQuestBias(MinorCivQuestTypes eQuest)
 		}
 	}
 	// CONTEST TECHS
-	else if(eQuest == MINOR_CIV_QUEST_CONTEST_TECHS)
+	else if (eQuest == MINOR_CIV_QUEST_CONTEST_TECHS)
 	{
-		if(eTrait == MINOR_CIV_TRAIT_RELIGIOUS)
+		if (eTrait == MINOR_CIV_TRAIT_RELIGIOUS)
 		{
 			iCount += 50; //antonjs: todo: XML
 			iCount /= 100;
 		}
+	}
+
+	// CONTEST UNREST
+	else if (eQuest == MINOR_CIV_QUEST_UNREST)
+	{
+		// always prefer
+		iCount += 600;
+		iCount /= 100;
 	}
 
 	// KILL A CAMP
