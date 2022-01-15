@@ -392,6 +392,13 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, 
 	pPlot->setPlotCity(this);
 	pPlot->SetCityPurchaseID(m_iID);
 
+	// add city recon vision
+	const int cityReconBase = 4;
+	const int cityReconEraBonus = GET_PLAYER(getOwner()).GetCurrentEra();
+	const int cityReconVision = cityReconBase + max(0, (cityReconEraBonus / 2));
+	pPlot->changeReconCount(1);
+	pPlot->changeAdjacentSight(getTeam(), cityReconVision, true, NO_INVISIBLE, NO_DIRECTION, false);
+
 	int iRange = 1;
 #ifdef AUI_HEXSPACE_DX_LOOPS
 	int iMaxDX, iDX;
@@ -808,6 +815,10 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, 
 void CvCity::uninit()
 {
 	VALIDATE_OBJECT
+
+	// remove recon vision
+	CvPlot* pPlot = plot();
+	pPlot->changeReconCount(-1);
 
 	if(m_aaiBuildingSpecialistUpgradeProgresses)
 	{
@@ -17638,14 +17649,15 @@ int CvCity::GetMaxHitPoints() const
 	int total = GC.getMAX_CITY_HIT_POINTS() + GetExtraHitPoints();
 
 	// give AI some extra city hitpoints cents they dumm
+	// but do not assume it is a bonus!
 	int extraAiHitpoints = 0;
-	if (!this->isHuman())
+	if (!this->isHuman() && !GET_PLAYER(this->getOwner()).isMinorCiv()) // minor civs don't get AI city bonus
 	{
-		float percentage = GC.turnsToPercentage(10.0f, 75.0f);
+		//float percentage = GC.turnsToPercentage(10.0f, 75.0f);
 
 		extraAiHitpoints = GC.getMAX_CITY_HIT_POINTS_AI_BONUS();
 		extraAiHitpoints /= 100;
-		extraAiHitpoints *= percentage;
+		//extraAiHitpoints *= percentage;
 	}
 
 	return total + extraAiHitpoints;
