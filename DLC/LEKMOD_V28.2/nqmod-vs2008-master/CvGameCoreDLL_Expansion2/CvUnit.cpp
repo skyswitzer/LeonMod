@@ -15445,11 +15445,11 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 
 						CvBarbarians::DoBarbCampCleared(pNewPlot, getOwner());
 
-						kPlayer.GetTreasury()->ChangeGold(iNumGold);
 
 						// Set who last cleared the camp here
 						pNewPlot->SetPlayerThatClearedBarbCampHere(getOwner());
 
+						const int originalGold = iNumGold;
 						if(getOwner() < MAX_MAJOR_CIVS)
 						{
 #ifdef NQ_CLEARING_CAMPS_GIVES_INFLUENCE_NEARBY
@@ -15465,9 +15465,16 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 									continue;
 
 								CvMinorCivAI* pMinorCivAI = minorPlayer.GetMinorCivAI();
-								pMinorCivAI->DoTestActiveQuestsForPlayer(getOwner(), /*bTestComplete*/ true, /*bTestObsolete*/ false, MINOR_CIV_QUEST_KILL_CAMP);
+
+								// clearing barb camp near city state gives more rewards
+								CvCity* capital = minorPlayer.getCapitalCity();
+								if (5 >= plotDistance(capital->getX(), capital->getY(), pNewPlot->getX(), pNewPlot->getY()))
+								{
+									iNumGold += originalGold / 2.0f;
+								}
 							}
 						}
+						kPlayer.GetTreasury()->ChangeGold(iNumGold);
 
 						// If it's the active player then show the popup
 						if(getOwner() == GC.getGame().getActivePlayer())

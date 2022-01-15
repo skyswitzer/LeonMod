@@ -1531,7 +1531,7 @@ void CvTeam::DoNowAtWarOrPeace(TeamTypes eTeam, bool bWar)
 						// ePlayer = current position of iterator over every major civ in the game on this team
 						// eMinor = current position of iterator over every city state in the game
 
-						bool bFriendshipPreventsWar = false;
+						bool preventMinorFromJoiningWar = false;
 						PlayerTypes eTargetPlayer;
 						for (int iTargetTeamCivLoop = 0; iTargetTeamCivLoop < MAX_MAJOR_CIVS; iTargetTeamCivLoop++)
 						{
@@ -1541,12 +1541,14 @@ void CvTeam::DoNowAtWarOrPeace(TeamTypes eTeam, bool bWar)
 							{
 								if (GET_PLAYER(eTargetPlayer).IsNoMinorDOWIfFriends() && GET_PLAYER(eMinor).GetMinorCivAI()->IsFriends(eTargetPlayer))
 								{
-									bFriendshipPreventsWar = true;
+									// because we are friends
+									preventMinorFromJoiningWar = true;
 								}
 							}
 						}
 
-						if (!bFriendshipPreventsWar)
+						preventMinorFromJoiningWar = true; // always prevent minor wars
+						if (!preventMinorFromJoiningWar)
 						{
 							// Match war state
 							GET_TEAM(GET_PLAYER(eMinor).getTeam()).DoDeclareWar(eTeam, /*bDefensivePact*/ false, /*bMinorAllyPact*/ true);

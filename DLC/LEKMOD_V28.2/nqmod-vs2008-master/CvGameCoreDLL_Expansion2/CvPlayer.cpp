@@ -5555,6 +5555,18 @@ int CvPlayer::GetScoreFromCities() const
 	iScore *= GC.getGame().GetMapScoreMod();
 	iScore /= 100;
 
+	// get score from owning major civ capitals
+	const int scorePerCapitalOwned = 150;
+	int iLoop = 0;
+	for (const CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
+	{
+		bool isOriginalOwnerAMajorCiv = !GET_PLAYER(pLoopCity->getOriginalOwner()).isMinorCiv();
+		if (isOriginalOwnerAMajorCiv && pLoopCity->IsOriginalCapital())
+		{
+			iScore += scorePerCapitalOwned;
+		}
+	}
+
 	return iScore;
 }
 
@@ -6967,35 +6979,28 @@ void CvPlayer::doGoody(CvPlot* pPlot, CvUnit* pUnit)
 			// Any valid Goodies?
 			if(avValidGoodies.size() > 0)
 			{
-#ifdef AUI_PLAYER_FIX_GOODY_HUT_PICKER
-				if (pUnit && GC.getGame().getActivePlayer() == GetID() && pUnit->isHasPromotion((PromotionTypes)GC.getPROMOTION_GOODY_HUT_PICKER()))
-				{
-#else
-				if (pUnit && pUnit->isHasPromotion((PromotionTypes)GC.getPROMOTION_GOODY_HUT_PICKER()))
-				{
-					if(GC.getGame().getActivePlayer() == GetID())
-#endif
-					{
-						CvPopupInfo kPopupInfo(BUTTONPOPUP_CHOOSE_GOODY_HUT_REWARD, GetID(), pUnit->GetID());
-						GC.GetEngineUserInterface()->AddPopup(kPopupInfo);
-						// We are adding a popup that the player must make a choice in, make sure they are not in the end-turn phase.
-						CancelActivePlayerEndTurn();
-					}
-				}
-				else
+				// remove goody hut picker because it's not working
+				//if (pUnit && GC.getGame().getActivePlayer() == GetID() && pUnit->isHasPromotion((PromotionTypes)GC.getPROMOTION_GOODY_HUT_PICKER()))
+				//{
+				//	CvPopupInfo kPopupInfo(BUTTONPOPUP_CHOOSE_GOODY_HUT_REWARD, GetID(), pUnit->GetID());
+				//	GC.GetEngineUserInterface()->AddPopup(kPopupInfo);
+				//	// We are adding a popup that the player must make a choice in, make sure they are not in the end-turn phase.
+				//	CancelActivePlayerEndTurn();
+				//}
+				//else
 				{
 					const int numPossibleGoodyHuts = DB.Count("GoodyHuts");
 
-					if (m_iNumGoodyHutsPopped == 0)
+					if (m_iNumGoodyHutsPopped == 0) // default the first goody hut
 					{
 						m_nextGoodyType = getGoodyHut(m_iNumGoodyHutsPopped, numPossibleGoodyHuts);
 					}
 
-					// get the alternate goody
+					// get the alternate goody (the next one)
 					eGoody = getGoodyHut(m_iNumGoodyHutsPopped + 1, numPossibleGoodyHuts);
 
-					int probabilityOfExpectedReward = 60;
-					int randValue = (1 + GC.getGame().getJonRandNum(100, "Random Goody"));
+					const int probabilityOfExpectedReward = 60;
+					const int randValue = (1 + GC.getGame().getJonRandNum(100, "Random Goody"));
 					if (randValue < probabilityOfExpectedReward) // randomly possibly choose the alternate goody (or not)
 					{
 						GoodyTypes temp = m_nextGoodyType;

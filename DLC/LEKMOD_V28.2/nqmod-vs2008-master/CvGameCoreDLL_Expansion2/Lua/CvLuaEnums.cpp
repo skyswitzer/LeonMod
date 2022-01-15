@@ -826,7 +826,7 @@ int CvLuaEnums::pRegister(lua_State* L)
 	EnumStart(L, "MinorCivQuestTypes");
 	RegisterEnum(NO_MINOR_CIV_QUEST_TYPE);
 	RegisterEnum(MINOR_CIV_QUEST_ROUTE);
-	RegisterEnum(MINOR_CIV_QUEST_KILL_CAMP);
+	RegisterEnum(MINOR_CIV_QUEST_UNREST);
 	RegisterEnum(MINOR_CIV_QUEST_CONNECT_RESOURCE);
 	RegisterEnum(MINOR_CIV_QUEST_CONSTRUCT_WONDER);
 	RegisterEnum(MINOR_CIV_QUEST_GREAT_PERSON);
