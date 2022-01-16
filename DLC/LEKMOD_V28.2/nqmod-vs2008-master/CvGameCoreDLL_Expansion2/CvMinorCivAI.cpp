@@ -9225,6 +9225,7 @@ int CvMinorCivAI::GetFriendshipFromGoldGift(PlayerTypes eMajor, int iGold)
 	{
 		iFriendship *= (100 + iFriendshipMod);
 		iFriendship /= 100;
+		iFriendship *= !GET_PLAYER(eMajor).isHuman() ? 1.5 : 0.5; // non humans get 50% more friendship from gold gifts
 	}
 
 	// Game Speed Mod
