@@ -29,9 +29,9 @@ const int scoreFromUnrestWinner = 200;
 // score per turn for being an ally
 const int scorePerAllyTurn = 100;
 // influence gained per turn for having the most local military
-const int baseMilitaryInfluence = 2;
+const int baseMilitaryInfluence = 5;
 // influence gained per turn for having the most local military
-const int baseTradeInfluence = 2;
+const int baseTradeInfluence = 5;
 
 // Default Constructor
 CvMinorCivQuest::CvMinorCivQuest()
