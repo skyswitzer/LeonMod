@@ -809,7 +809,7 @@ public:
 	// Flavor recipient required function
 	void FlavorUpdate();
 
-	CvPlayer* GetPlayer();
+	CvPlayer* GetPlayer() const;
 
 	// Accessor functions
 	bool HasPolicy(PolicyTypes eIndex) const;
@@ -839,7 +839,7 @@ public:
 
 	// Policy Branch Stuff
 	void DoUnlockPolicyBranch(PolicyBranchTypes eBranchType);
-	bool CanUnlockPolicyBranch(PolicyBranchTypes eBranchType);
+	bool CanUnlockPolicyBranch(PolicyBranchTypes eBranchType) const;
 
 	bool IsPolicyBranchUnlocked(PolicyBranchTypes eBranchType) const;
 	void SetPolicyBranchUnlocked(PolicyBranchTypes eBranchType, bool bNewValue, bool bRevolution);

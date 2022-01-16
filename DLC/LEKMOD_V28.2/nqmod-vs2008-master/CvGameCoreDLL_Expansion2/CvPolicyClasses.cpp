@@ -2809,7 +2809,7 @@ void CvPlayerPolicies::FlavorUpdate()
 }
 
 /// Accessor: Player object
-CvPlayer* CvPlayerPolicies::GetPlayer()
+CvPlayer* CvPlayerPolicies::GetPlayer() const
 {
 	return m_pPlayer;
 }
@@ -3626,7 +3626,12 @@ bool CvPlayerPolicies::CanAdoptPolicy(PolicyTypes eIndex, bool bIgnoreCost) cons
 		return false;
 	}
 
-	if(!IsPolicyBranchUnlocked(eBranch))
+	// don't require unlocks
+	//if(!IsPolicyBranchUnlocked(eBranch))
+	//{
+	//	return false;
+	//}
+	if (!CanUnlockPolicyBranch(eBranch))
 	{
 		return false;
 	}
@@ -3655,54 +3660,47 @@ bool CvPlayerPolicies::CanAdoptPolicy(PolicyTypes eIndex, bool bIgnoreCost) cons
 		}
 	}
 
+	// NEVER PREREQUISITE!
 	// Other Policies as Prereqs
+	//bool bFoundPossible = false;
+	//bool bFoundValid = false;
+	//for(int iI = 0; iI < GC.getNUM_OR_TECH_PREREQS(); iI++)
+	//{
+	//	PolicyTypes ePrereq = (PolicyTypes)pkPolicyEntry->GetPrereqOrPolicies(iI);
+	//	if(ePrereq != NO_POLICY)
+	//	{
+	//		bFoundPossible = true;
 
-	bool bFoundPossible = false;
-	bool bFoundValid = false;
+	//		if(HasPolicy(ePrereq))
+	//		{
+	//			bFoundValid = true;
+	//			break;
+	//		}
+	//	}
+	//}
+	//if(bFoundPossible && !bFoundValid)
+	//{
+	//	return false;
+	//}
+	//for(int iI = 0; iI < GC.getNUM_AND_TECH_PREREQS(); iI++)
+	//{
+	//	const PolicyTypes ePrereq = static_cast<PolicyTypes>(pkPolicyEntry->GetPrereqAndPolicies(iI));
 
-	for(int iI = 0; iI < GC.getNUM_OR_TECH_PREREQS(); iI++)
-	{
-		PolicyTypes ePrereq = (PolicyTypes)pkPolicyEntry->GetPrereqOrPolicies(iI);
-		if(ePrereq != NO_POLICY)
-		{
-			bFoundPossible = true;
+	//	if(ePrereq == NO_POLICY)
+	//		continue;
 
-			if(HasPolicy(ePrereq))
-			{
-				bFoundValid = true;
-				break;
-			}
-		}
-	}
-
-	if(bFoundPossible && !bFoundValid)
-	{
-		return false;
-	}
-
-	for(int iI = 0; iI < GC.getNUM_AND_TECH_PREREQS(); iI++)
-	{
-		const PolicyTypes ePrereq = static_cast<PolicyTypes>(pkPolicyEntry->GetPrereqAndPolicies(iI));
-
-		if(ePrereq == NO_POLICY)
-			continue;
-
-		CvPolicyEntry* pkPrereqPolicyInfo = GC.getPolicyInfo(ePrereq);
-		if(pkPrereqPolicyInfo)
-		{
-			if(!HasPolicy(ePrereq))
-			{
-				return false;
-			}
-		}
-	}
+	//	CvPolicyEntry* pkPrereqPolicyInfo = GC.getPolicyInfo(ePrereq);
+	//	if(pkPrereqPolicyInfo)
+	//	{
+	//		if(!HasPolicy(ePrereq))
+	//		{
+	//			return false;
+	//		}
+	//	}
+	//}
 
 	// Disabled by another Policy?
-#ifdef AUI_WARNING_FIXES
 	for (uint iPolicyLoop = 0; iPolicyLoop < GetPolicies()->GetNumPolicies(); iPolicyLoop++)
-#else
-	for(int iPolicyLoop = 0; iPolicyLoop < GetPolicies()->GetNumPolicies(); iPolicyLoop++)
-#endif
 	{
 		const PolicyTypes eDisablePolicy =static_cast<PolicyTypes>(iPolicyLoop);
 
@@ -3818,7 +3816,7 @@ void CvPlayerPolicies::DoUnlockPolicyBranch(PolicyBranchTypes eBranchType)
 }
 
 /// can the player unlock eBranchType right now?
-bool CvPlayerPolicies::CanUnlockPolicyBranch(PolicyBranchTypes eBranchType)
+bool CvPlayerPolicies::CanUnlockPolicyBranch(PolicyBranchTypes eBranchType) const
 {
 	// Must have enough culture to spend a buy opening a new branch
 	if(GetPlayer()->getJONSCulture() < GetPlayer()->getNextPolicyCost())
@@ -3830,12 +3828,12 @@ bool CvPlayerPolicies::CanUnlockPolicyBranch(PolicyBranchTypes eBranchType)
 	CvPolicyBranchEntry* pkBranchEntry = m_pPolicies->GetPolicyBranchEntry(eBranchType);
 	if(pkBranchEntry)
 	{
-		// Ideology branches unlocked through a direct call to SetPolicyBranchUnlocked()
+		// Is Ideology? NO call SetPolicyBranchUnlocked()
 		if (pkBranchEntry->IsPurchaseByLevel())
 		{
 			return false;
 		}
-
+		// requires Religion?
 		if (pkBranchEntry->IsLockedWithoutReligion())
 		{
 			if (GC.getGame().isOption(GAMEOPTION_NO_RELIGION))
@@ -3843,10 +3841,8 @@ bool CvPlayerPolicies::CanUnlockPolicyBranch(PolicyBranchTypes eBranchType)
 				return false;
 			}
 		}
-
+		// Era?
 		EraTypes ePrereqEra = (EraTypes) pkBranchEntry->GetEraPrereq();
-
-		// Must be in the proper Era
 		if(ePrereqEra != NO_ERA)
 		{
 			if(GET_TEAM(GetPlayer()->getTeam()).GetCurrentEra() < ePrereqEra)
@@ -4150,23 +4146,25 @@ void CvPlayerPolicies::SetPolicyBranchBlocked(PolicyBranchTypes eBranchType, boo
 /// Accessor: is eBranchType blocked because of branch choices?
 bool CvPlayerPolicies::IsPolicyBranchBlocked(PolicyBranchTypes eBranchType) const
 {
-	CvAssertMsg(eBranchType >= 0, "eIndex is expected to be non-negative (invalid Index)");
-	CvAssertMsg(eBranchType < m_pPolicies->GetNumPolicyBranches(), "eIndex is expected to be within maximum bounds (invalid Index)");
-	return m_pabPolicyBranchBlocked[eBranchType];
+	return false;
+	//CvAssertMsg(eBranchType >= 0, "eIndex is expected to be non-negative (invalid Index)");
+	//CvAssertMsg(eBranchType < m_pPolicies->GetNumPolicyBranches(), "eIndex is expected to be within maximum bounds (invalid Index)");
+	//return m_pabPolicyBranchBlocked[eBranchType];
 }
 
 /// Accessor: is eType blocked because of  choices?
 bool CvPlayerPolicies::IsPolicyBlocked(PolicyTypes eType) const
 {
-	CvAssertMsg(eType >= 0, "eIndex is expected to be non-negative (invalid Index)");
-	CvAssertMsg(eType < m_pPolicies->GetNumPolicies(), "eIndex is expected to be within maximum bounds (invalid Index)");
+	return false;
+	//CvAssertMsg(eType >= 0, "eIndex is expected to be non-negative (invalid Index)");
+	//CvAssertMsg(eType < m_pPolicies->GetNumPolicies(), "eIndex is expected to be within maximum bounds (invalid Index)");
 
-	// Get the policy branch we have to check.
-	PolicyBranchTypes eBranch = m_paePolicyBlockedBranchCheck[eType];
-	if (eBranch == NO_POLICY_BRANCH_TYPE)
-		return false;	// Policy has no branch
+	//// Get the policy branch we have to check.
+	//PolicyBranchTypes eBranch = m_paePolicyBlockedBranchCheck[eType];
+	//if (eBranch == NO_POLICY_BRANCH_TYPE)
+	//	return false;	// Policy has no branch
 
-	return IsPolicyBranchBlocked(eBranch);
+	//return IsPolicyBranchBlocked(eBranch);
 }
 
 /// Implement a switch of ideologies
