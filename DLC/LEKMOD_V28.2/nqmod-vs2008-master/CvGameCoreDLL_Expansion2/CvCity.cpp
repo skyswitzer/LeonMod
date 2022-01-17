@@ -392,13 +392,6 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, 
 	pPlot->setPlotCity(this);
 	pPlot->SetCityPurchaseID(m_iID);
 
-	// add city recon vision
-	const int cityReconBase = 4;
-	const int cityReconEraBonus = GET_PLAYER(getOwner()).GetCurrentEra();
-	const int cityReconVision = cityReconBase + max(0, (cityReconEraBonus / 2));
-	pPlot->changeReconCount(1);
-	pPlot->changeAdjacentSight(getTeam(), cityReconVision, true, NO_INVISIBLE, NO_DIRECTION, false);
-
 	int iRange = 1;
 #ifdef AUI_HEXSPACE_DX_LOOPS
 	int iMaxDX, iDX;
@@ -815,10 +808,6 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, 
 void CvCity::uninit()
 {
 	VALIDATE_OBJECT
-
-	// remove recon vision
-	CvPlot* pPlot = plot();
-	pPlot->changeReconCount(-1);
 
 	if(m_aaiBuildingSpecialistUpgradeProgresses)
 	{
@@ -1842,6 +1831,17 @@ void CvCity::doTurn()
 	VALIDATE_OBJECT
 	CvPlot* pLoopPlot;
 	int iI;
+
+	// add city recon vision
+	const EraTypes era = GET_PLAYER(getOwner()).GetCurrentEra();
+	int visionRadius;
+	switch (era)
+	{
+		case 0:  visionRadius = 3; break; // ancient
+		case 1:  visionRadius = 4; break; // classical
+		default: visionRadius = 5; break;
+	}
+	plot()->changeAdjacentSight(getTeam(), visionRadius, true, NO_INVISIBLE, NO_DIRECTION, false);
 
 	if(getDamage() > 0)
 	{
