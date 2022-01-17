@@ -7619,6 +7619,16 @@ bool CvPlayer::canConstruct(BuildingTypes eBuilding, bool bContinue, bool bTestV
 		}
 	}
 
+	// disable building based on policy
+	PolicyBranchTypes eBranch = (PolicyBranchTypes)pBuildingInfo.GetPolicyBranchTypeDisable();
+	if (eBranch != NO_POLICY_BRANCH_TYPE)
+	{
+		if (GetPlayerPolicies()->IsPolicyBranchUnlocked(eBranch))
+		{
+			return false;
+		}
+	}
+
 	if(!(currentTeam.GetTeamTechs()->HasTech((TechTypes)(pBuildingInfo.GetPrereqAndTech()))))
 	{
 		return false;

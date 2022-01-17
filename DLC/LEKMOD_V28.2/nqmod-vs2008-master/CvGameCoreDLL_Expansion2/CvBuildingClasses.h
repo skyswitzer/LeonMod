@@ -101,6 +101,7 @@ public:
 	int GetPrereqAndTech() const;
 	int GetEra() const;
 	int GetPolicyBranchType() const;
+	int GetPolicyBranchTypeDisable() const;
 	int GetSpecialistType() const;
 	int GetSpecialistCount() const;
 	int GetSpecialistExtraCulture() const;
@@ -341,6 +342,7 @@ private:
 	int m_iReplacementBuildingClass;
 	int m_iPrereqAndTech;
 	int m_iPolicyBranchType;
+	int m_iPolicyBranchTypeDisable;
 	int m_iSpecialistType;
 	int m_iSpecialistCount;
 	int m_iSpecialistExtraCulture;
