@@ -3631,10 +3631,6 @@ bool CvPlayerPolicies::CanAdoptPolicy(PolicyTypes eIndex, bool bIgnoreCost) cons
 	//{
 	//	return false;
 	//}
-	if (!CanUnlockPolicyBranch(eBranch))
-	{
-		return false;
-	}
 
 	// Is it from a branch with Levels?
 	CvPolicyBranchEntry* pkPolicyBranchInfo = GC.getPolicyBranchInfo(eBranch);
@@ -3644,6 +3640,7 @@ bool CvPlayerPolicies::CanAdoptPolicy(PolicyTypes eIndex, bool bIgnoreCost) cons
 	}
 	else
 	{
+		// if it is an ideology policy
 		if (pkPolicyBranchInfo->IsPurchaseByLevel())
 		{
 			// If below level 1, can't have as many of this level as of the previous one
@@ -3656,6 +3653,14 @@ bool CvPlayerPolicies::CanAdoptPolicy(PolicyTypes eIndex, bool bIgnoreCost) cons
 				{
 					return false;
 				}
+			}
+		}
+		else // if is non ideology policy
+		{
+			// if we could unlock it, we should be allowed to get it
+			if (!CanUnlockPolicyBranch(eBranch))
+			{
+				return false;
 			}
 		}
 	}

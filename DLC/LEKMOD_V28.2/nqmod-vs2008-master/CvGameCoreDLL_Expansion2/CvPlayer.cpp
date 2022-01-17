@@ -13532,7 +13532,8 @@ void CvPlayer::doAdoptPolicy(PolicyTypes ePolicy)
 
 	// Branch unlocked
 	PolicyBranchTypes ePolicyBranch = (PolicyBranchTypes) pkPolicyInfo->GetPolicyBranchType();
-	GetPlayerPolicies()->SetPolicyBranchUnlocked(ePolicyBranch, true, false);
+	// do not "unlock" a branch just because you got a policy from it!
+	// GetPlayerPolicies()->SetPolicyBranchUnlocked(ePolicyBranch, true, false);
 
 	GC.GetEngineUserInterface()->setDirty(GameData_DIRTY_BIT, true);
 
