@@ -287,7 +287,6 @@ void CvLuaUnit::PushMethods(lua_State* L, int t)
 	Method(DomainModifier);
 	Method(GetStrategicResourceCombatPenalty);
 	Method(GetUnhappinessCombatPenalty);
-	Method(GetTourismCombatPenalty);
 	Method(AirSweepCombatMod);
 	Method(CapitalDefenseModifier);
 	Method(CapitalDefenseFalloff);
@@ -2915,14 +2914,6 @@ int CvLuaUnit::lGetUnhappinessCombatPenalty(lua_State* L)
 	CvUnit* pkUnit = GetInstance(L);
 
 	const int iResult = pkUnit->GetUnhappinessCombatPenalty();
-	lua_pushinteger(L, iResult);
-	return 1;
-}
-int CvLuaUnit::lGetTourismCombatPenalty(lua_State* L)
-{
-	CvUnit* pkUnit = GetInstance(L);
-	PlayerTypes eOtherPlayerId = (PlayerTypes)lua_tointeger(L, 2);
-	const int iResult = pkUnit->GetTourismCombatPenalty(eOtherPlayerId);
 	lua_pushinteger(L, iResult);
 	return 1;
 }

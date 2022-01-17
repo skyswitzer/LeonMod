@@ -512,7 +512,6 @@ public:
 
 	int GetStrategicResourceCombatPenalty() const;
 	int GetUnhappinessCombatPenalty() const;
-	int GetTourismCombatPenalty(const PlayerTypes eOtherPlayerId) const;
 
 	void SetBaseCombatStrength(int iCombat);
 	int GetBaseCombatStrength(bool bIgnoreEmbarked = false) const;

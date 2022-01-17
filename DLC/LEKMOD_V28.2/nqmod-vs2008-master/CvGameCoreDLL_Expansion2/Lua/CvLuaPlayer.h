@@ -426,6 +426,7 @@ protected:
 	static int lGetStrikeTurns(lua_State* L);
 	static int lGetGoldenAgeModifier(lua_State* L);
 	static int lGetGoldenAgeTourismModifier(lua_State* L);
+	static int lGetTourismCombatPenalty(lua_State* L);
 	static int lGetGoldenAgeGreatWriterRateModifier(lua_State* L);
 	static int lGetGoldenAgeGreatArtistRateModifier(lua_State* L);
 	static int lGetGoldenAgeGreatMusicianRateModifier(lua_State* L);

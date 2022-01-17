@@ -11716,27 +11716,6 @@ int CvUnit::GetUnhappinessCombatPenalty() const
 }
 
 //	--------------------------------------------------------------------------------
-int CvUnit::GetTourismCombatPenalty(const PlayerTypes eOtherPlayerId) const
-{
-	int iRetVal = 0;
-	PlayerTypes eUsPlayerId = getOwner();
-
-	CvPlayer& usPlayer = GET_PLAYER(eUsPlayerId);
-	CvPlayer& themPlayer = GET_PLAYER(eOtherPlayerId);
-
-	int ourInfluence = usPlayer.GetCulture()->GetInfluencePercent(themPlayer.GetID());
-	int theirInfluence = themPlayer.GetCulture()->GetInfluencePercent(usPlayer.GetID());
-
-	if (theirInfluence > ourInfluence)
-	{
-		int maxBonus = (int)GC.getTOURISM_COMBAT_MAX();
-		float influenceDivisor = GC.getTOURISM_COMBAT_DIVISOR();
-		iRetVal = -1 * min(maxBonus, (int)((theirInfluence - ourInfluence) / influenceDivisor));
-	}
-	return iRetVal;
-}
-
-//	--------------------------------------------------------------------------------
 void CvUnit::SetBaseCombatStrength(int iCombat)
 {
 	VALIDATE_OBJECT
@@ -11800,7 +11779,7 @@ int CvUnit::GetGenericMaxStrengthModifier(const CvUnit* pOtherUnit, const CvPlot
 	// Tourism
 	if (pOtherUnit != NULL)
 	{
-		iModifier += GetTourismCombatPenalty(pOtherUnit->getOwner());
+		iModifier += GET_PLAYER(getOwner()).GetTourismCombatPenalty(pOtherUnit->getOwner());
 	}
 
 	// Over our strategic resource limit?
@@ -12499,7 +12478,7 @@ int CvUnit::GetMaxRangedCombatStrength(const CvUnit* pOtherUnit, const CvCity* p
 	// Tourism
 	if(pOtherUnit != NULL)
 	{
-		iModifier += GetTourismCombatPenalty(pOtherUnit->getOwner());
+		iModifier += GET_PLAYER(getOwner()).GetTourismCombatPenalty(pOtherUnit->getOwner());
 	}
 
 	// Over our strategic resource limit?

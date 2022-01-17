@@ -444,7 +444,8 @@ void CvLuaPlayer::PushMethods(lua_State* L, int t)
 	Method(ChangeNumUnitGoldenAges);
 	Method(GetStrikeTurns);
 	Method(GetGoldenAgeModifier);
-    Method(GetGoldenAgeTourismModifier);
+	Method(GetGoldenAgeTourismModifier);
+	Method(GetTourismCombatPenalty);
     Method(GetGoldenAgeGreatWriterRateModifier);
     Method(GetGoldenAgeGreatArtistRateModifier);
     Method(GetGoldenAgeGreatMusicianRateModifier);
@@ -5376,6 +5377,14 @@ int CvLuaPlayer::lGetGoldenAgeTourismModifier(lua_State* L)
 {
 	CvPlayerAI* pkPlayer = GetInstance(L);
 	const int iResult = pkPlayer->GetPlayerTraits()->GetGoldenAgeTourismModifier();
+	lua_pushinteger(L, iResult);
+	return 1;
+}
+int CvLuaPlayer::lGetTourismCombatPenalty(lua_State* L)
+{
+	CvPlayerAI* pkPlayer = GetInstance(L);
+	PlayerTypes eOtherPlayerId = (PlayerTypes)lua_tointeger(L, 2);
+	const int iResult = pkPlayer->GetTourismCombatPenalty(eOtherPlayerId);
 	lua_pushinteger(L, iResult);
 	return 1;
 }
