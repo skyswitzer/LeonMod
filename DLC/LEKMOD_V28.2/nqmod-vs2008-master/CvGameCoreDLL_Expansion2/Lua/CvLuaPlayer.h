@@ -582,6 +582,7 @@ protected:
 	static int lGetTurnsSinceThreatenedByBarbarians(lua_State* L); // DEPRECATED, use lGetTurnsSinceThreatenedAnnouncement instead
 	static int lGetTurnsSinceThreatenedAnnouncement(lua_State* L);
 	static int lGetFriendshipFromGoldGift(lua_State* L);
+	static int lGetCappedGoldGift(lua_State* L);
 #ifdef NQ_BELIEF_TOGGLE_ALLOW_FAITH_GIFTS_TO_MINORS
 	static int lGetFriendshipFromFaithGift(lua_State* L);
 	static int lIsSameReligionAsMajor(lua_State* L);

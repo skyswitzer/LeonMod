@@ -12552,7 +12552,8 @@ int CvDiplomacyAI::weightFriendshipNeeded(
 	const int ourFriendship = pMinorCivAI->GetEffectiveFriendshipWithMajor(eID);
 	const int smallGiftFriendship = pMinorCivAI->GetFriendshipFromGoldGift(eID, iSmallGiftGold);
 	const int playerGold = GetPlayer()->GetTreasury()->GetGold();
-	
+
+	int numSmallGiftsNeeded = 0;
 	// already allies
 	if (pMinorCivAI->IsAllies(eID))
 	{
@@ -12560,14 +12561,12 @@ int CvDiplomacyAI::weightFriendshipNeeded(
 		if (pMinorCivAI->IsCloseToNotBeingAllies(eID))
 		{
 			weight += /*250*/ GC.getMC_GIFT_WEIGHT_ALMOST_NOT_ALLIES();
-			float numSmallGiftsNeeded = 1;
-			return numSmallGiftsNeeded;
+			numSmallGiftsNeeded = 1;
 		}
 		else // not about to lose
 		{
 			weight = 0;
-			float numSmallGiftsNeeded = 0;
-			return numSmallGiftsNeeded;
+			numSmallGiftsNeeded = 0;
 		}
 	}
 	// we aren't allies
@@ -12588,29 +12587,39 @@ int CvDiplomacyAI::weightFriendshipNeeded(
 				majorRival = them;
 			}
 		}
-		// how many small gifts are needed
-		const float friendshipNeeded = max(smallGiftFriendship, friendshipToBeatHighest - ourFriendship);
-		const int numSmallGiftsNeeded = ceil((float)friendshipNeeded / (float)smallGiftFriendship);
 
-		// weight based on gift needed
-		const float basePassWeight = GC.getMC_SMALL_GIFT_WEIGHT_PASS_OTHER_PLAYER(); // 30
-		weight += basePassWeight - (numSmallGiftsNeeded - 1) * basePassWeight / 2.0f; // 2500 gold > 10 gifts > 30-135 > -105 weight
+		if (friendshipToBeatHighest < GC.getMINOR_CIV_MAX_GOLD_FRIENDSHIP())
+		{
+			// how many small gifts are needed to beat the highest player
+			const float friendshipNeeded = max(smallGiftFriendship, friendshipToBeatHighest - ourFriendship);
+			numSmallGiftsNeeded = ceil((float)friendshipNeeded / (float)smallGiftFriendship);
 
-		// do we have enough gold?
-		const int goldNeeded = numSmallGiftsNeeded * iSmallGiftGold;
-		if (playerGold < goldNeeded)
-		{
-			weight += -GC.getMC_SMALL_GIFT_WEIGHT_PASS_OTHER_PLAYER(); // don't have enough gold
+			// weight based on gift needed
+			const float basePassWeight = GC.getMC_SMALL_GIFT_WEIGHT_PASS_OTHER_PLAYER(); // 30
+			weight += basePassWeight - (numSmallGiftsNeeded - 1) * basePassWeight / 2.0f; // 2500 gold > 10 gifts > 30-135 > -105 weight
+
+			// do we have enough gold?
+			const int goldNeeded = numSmallGiftsNeeded * iSmallGiftGold;
+			if (playerGold < goldNeeded)
+			{
+				weight += -GC.getMC_SMALL_GIFT_WEIGHT_PASS_OTHER_PLAYER(); // don't have enough gold
+			}
+			else // we have enough gold
+			{
+				weight += 10;
+				// try to buy up winner
+				if (nearDiplomaticVictory(GET_PLAYER(majorRival)))
+					weight += 500;
+			}
 		}
-		else // we have enough gold
+		else // we can't beat someone with gold who has more influence than the gold max
 		{
-			weight += 10;
-			// try to buy up winner
-			if (nearDiplomaticVictory(GET_PLAYER(majorRival)))
-				weight += 500;
+			weight = 0;
+			numSmallGiftsNeeded = 0;
 		}
-		return numSmallGiftsNeeded;
 	}
+
+	return numSmallGiftsNeeded;
 }
 //--------------------------------------------------------------------------------------------------------
 bool CvDiplomacyAI::considerGivingGift(

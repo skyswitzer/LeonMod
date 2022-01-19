@@ -513,6 +513,8 @@ public:
 
 	void DoGoldGiftFromMajor(PlayerTypes ePlayer, int iGold);
 	int GetFriendshipFromGoldGift(PlayerTypes eMajor, int iGold);
+	// Returns the amount of gold we can spend on a gift, and prevents giving beyond max gold threshold
+	int GetCappedGoldGift(PlayerTypes eMajor, int iMaxGold);
 #ifdef NQ_BELIEF_TOGGLE_ALLOW_FAITH_GIFTS_TO_MINORS
 	void DoFaithGiftFromMajor(PlayerTypes ePlayer, int iFaith);
 	int GetFriendshipFromFaithGift(PlayerTypes eMajor, int iFaith);

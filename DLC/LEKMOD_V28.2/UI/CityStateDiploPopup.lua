@@ -797,6 +797,7 @@ Controls.FindOnMapButton:RegisterCallback( Mouse.eLClick, OnFindOnMapButtonClick
 local iGoldGiftLarge = GameDefines["MINOR_GOLD_GIFT_LARGE"];
 local iGoldGiftMedium = GameDefines["MINOR_GOLD_GIFT_MEDIUM"];
 local iGoldGiftSmall = GameDefines["MINOR_GOLD_GIFT_SMALL"];
+local maxFriendshipFromGold = GameDefines["MINOR_CIV_MAX_GOLD_FRIENDSHIP"];
 
 function PopulateGiftChoices()
 	
@@ -820,8 +821,10 @@ function PopulateGiftChoices()
 
 	-- Small Gold
 	local iNumGoldPlayerHas = pActivePlayer:GetGold();
-	
-	iGold = iGoldGiftSmall;
+	local goldGiftAmount = 0;
+
+	goldGiftAmount = pPlayer:GetCappedGoldGift(iActivePlayer, iGoldGiftSmall);
+	iGold = goldGiftAmount;
 	iLowestGold = iGold;
 	iFriendshipAmount = pPlayer:GetFriendshipFromGoldGift(iActivePlayer, iGold);
 	local buttonText = Locale.ConvertTextKey("TXT_KEY_POPUP_MINOR_GOLD_GIFT_AMOUNT", iGold, iFriendshipAmount);
@@ -829,10 +832,10 @@ function PopulateGiftChoices()
 	if (bRefusesBribes) then
 		buttonText = "[COLOR_WARNING_TEXT]" .. Locale.ConvertTextKey("TXT_KEY_POPUP_MINOR_REFUSES_BRIBES") .. "[ENDCOLOR]";
 		Controls.SmallGiftAnim:SetHide(true);
-	elseif (iNumGoldPlayerHas < iGold) then
+	elseif ((iNumGoldPlayerHas < iGold) or (iFriendshipAmount < 2)) then
 	--if (iNumGoldPlayerHas < iGold) then
 	-- end NQ_NUM_TURNS_BEFORE_MINOR_ALLIES_REFUSE_BRIBES_FROM_TRAIT
-		buttonText = "[COLOR_WARNING_TEXT]" .. buttonText .. "[ENDCOLOR]";
+		 buttonText = "[COLOR_WARNING_TEXT]" .. "You cannot give [ICON_GOLD] Gold gifts beyond " .. maxFriendshipFromGold .. " [ICON_INFLUENCE] " .. " Influence." .. "[ENDCOLOR]";
 		Controls.SmallGiftAnim:SetHide(true);
 	else
 		Controls.SmallGiftAnim:SetHide(false);

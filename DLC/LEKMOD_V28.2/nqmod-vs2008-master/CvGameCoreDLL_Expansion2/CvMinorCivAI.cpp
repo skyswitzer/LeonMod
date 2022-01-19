@@ -25,7 +25,7 @@
 //======================================================================================================
 
 // score awarded upon winning the unrest contest
-const int scoreFromUnrestWinner = 200;
+const int scoreFromUnrestWinner = 40;
 // score per turn for being an ally
 const int scorePerAllyTurn = 100;
 // influence gained per turn for having the most local military
@@ -9178,20 +9178,27 @@ void CvMinorCivAI::DoGoldGiftFromMajor(PlayerTypes ePlayer, int iGold)
 		}
 	}
 #endif
-	if(GET_PLAYER(ePlayer).GetTreasury()->GetGold() >= iGold)
+
+	// dont allow purchases beyond a certain level
+	iGold = GetCappedGoldGift(ePlayer, iGold);
+	if (iGold > 0)
 	{
-		int iFriendshipChange = GetFriendshipFromGoldGift(ePlayer, iGold);
-		if(iFriendshipChange > 0)
-			GET_PLAYER(ePlayer).GetTreasury()->LogExpenditure(GetPlayer()->GetMinorCivAI()->GetNamesListAsString(0), iGold,4);
+		const bool canAfford = GET_PLAYER(ePlayer).GetTreasury()->GetGold() >= iGold;
+		if (canAfford)
+		{
+			int iFriendshipChange = GetFriendshipFromGoldGift(ePlayer, iGold);
+			if (iFriendshipChange > 0)
+				GET_PLAYER(ePlayer).GetTreasury()->LogExpenditure(GetPlayer()->GetMinorCivAI()->GetNamesListAsString(0), iGold, 4);
 
-		GET_PLAYER(ePlayer).GetTreasury()->ChangeGold(-iGold);
-		
-		ChangeNumGoldGifted(ePlayer, iGold);
-		
-		ChangeFriendshipWithMajor(ePlayer, iFriendshipChange);
+			GET_PLAYER(ePlayer).GetTreasury()->ChangeGold(-iGold);
 
-		// In case we had a Gold Gift quest active, complete it now
-		DoTestActiveQuestsForPlayer(ePlayer, /*bTestComplete*/ true, /*bTestObsolete*/ false, MINOR_CIV_QUEST_GIVE_GOLD);
+			ChangeNumGoldGifted(ePlayer, iGold);
+
+			ChangeFriendshipWithMajor(ePlayer, iFriendshipChange);
+
+			// In case we had a Gold Gift quest active, complete it now
+			DoTestActiveQuestsForPlayer(ePlayer, /*bTestComplete*/ true, /*bTestObsolete*/ false, MINOR_CIV_QUEST_GIVE_GOLD);
+		}
 	}
 
 	GC.GetEngineUserInterface()->setDirty(GameData_DIRTY_BIT, true);
@@ -9241,7 +9248,7 @@ int CvMinorCivAI::GetFriendshipFromGoldGift(PlayerTypes eMajor, int iGold)
 	}
 
 	// Friendship gained should always be positive
-	iFriendship = max(iFriendship, /*5*/ GC.getMINOR_CIV_GOLD_GIFT_MINIMUM_FRIENDSHIP_REWARD());
+	iFriendship = max(iFriendship, 0); // /*5*/ GC.getMINOR_CIV_GOLD_GIFT_MINIMUM_FRIENDSHIP_REWARD()
 
 	// Round the number so it's pretty
 	int iVisibleDivisor = /*5*/ GC.getMINOR_CIV_GOLD_GIFT_VISIBLE_DIVISOR();
@@ -9249,6 +9256,17 @@ int CvMinorCivAI::GetFriendshipFromGoldGift(PlayerTypes eMajor, int iGold)
 	iFriendship *= iVisibleDivisor;
 
 	return iFriendship;
+}
+
+int CvMinorCivAI::GetCappedGoldGift(PlayerTypes eMajor, int iMaxGoldToGive)
+{
+	const float friendshipFromGift = GetFriendshipFromGoldGift(eMajor, iMaxGoldToGive);	
+	const float remainingAllowed = (float)GC.getMINOR_CIV_MAX_GOLD_FRIENDSHIP() - (GetEffectiveFriendshipWithMajorTimes100(eMajor) / 100.0f);
+	if (friendshipFromGift <= 0 || remainingAllowed <= 0)
+		return 0;
+
+	const float fractionAllowed = min(1.0f, remainingAllowed / friendshipFromGift);
+	return (int)(fractionAllowed * iMaxGoldToGive) + 1;
 }
 
 #ifdef NQ_BELIEF_TOGGLE_ALLOW_FAITH_GIFTS_TO_MINORS
