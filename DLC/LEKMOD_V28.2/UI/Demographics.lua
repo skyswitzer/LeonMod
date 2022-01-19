@@ -53,6 +53,10 @@ function GetBest( table, iPlayer )
        end
     end
     
+    if (highestID ~= iPlayer) then 
+        highestID = 40;
+    end
+
     return { highest, highestID };
 end
 
@@ -88,6 +92,10 @@ function GetWorst( table, iPlayer )
                 lowestID = i;
             end
        end
+    end
+    
+    if (lowestID ~= iPlayer) then 
+        lowestID = 40;
     end
     
     return { lowest, lowestID };
