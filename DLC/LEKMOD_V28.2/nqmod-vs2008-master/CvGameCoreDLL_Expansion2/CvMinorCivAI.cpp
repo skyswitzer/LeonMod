@@ -5556,8 +5556,9 @@ int CvMinorCivAI::GetEffectiveFriendshipWithMajorTimes100(PlayerTypes ePlayer)
 	if(ePlayer < 0 || ePlayer >= MAX_MAJOR_CIVS) return 0; // as defined during Reset()
 
 	// Are we at war?
-	if(IsAtWarWithPlayersTeam(ePlayer))
-		return (100 * /*-60*/GC.getMINOR_FRIENDSHIP_AT_WAR());
+	// this shouldn't matter, just always display the real friendship value
+	//if(IsAtWarWithPlayersTeam(ePlayer))
+	//	return (100 * /*-60*/GC.getMINOR_FRIENDSHIP_AT_WAR());
 
 	return GetBaseFriendshipWithMajorTimes100(ePlayer);
 }
@@ -9266,7 +9267,7 @@ int CvMinorCivAI::GetCappedGoldGift(PlayerTypes eMajor, int iMaxGoldToGive)
 		return 0;
 
 	const float fractionAllowed = min(1.0f, remainingAllowed / friendshipFromGift);
-	return (int)(fractionAllowed * iMaxGoldToGive) + 1;
+	return ceil(fractionAllowed * iMaxGoldToGive) + 1;
 }
 
 #ifdef NQ_BELIEF_TOGGLE_ALLOW_FAITH_GIFTS_TO_MINORS
