@@ -5503,7 +5503,8 @@ int CvCity::GetPurchaseCost(BuildingTypes eBuilding)
 	iCost /= iDivisor;
 	iCost *= iDivisor;
 
-	return iCost;
+	// this is now an "invest" cost, so do half
+	return iCost / 2;
 }
 
 //	--------------------------------------------------------------------------------
@@ -14591,6 +14592,11 @@ bool CvCity::IsCanPurchase(bool bTestPurchaseCost, bool bTestTrainable, UnitType
 		// Building
 		else if(eBuildingType != NO_BUILDING)
 		{
+			// dont allow investment in buildings beyond 45% complete
+			const float percentDone = float(m_pCityBuildings->GetBuildingProductionTimes100(eBuildingType)) / float(getProductionNeeded(eBuildingType) * 100);
+			if (percentDone > 0.45)
+				return false;
+
 			if(!canConstruct(eBuildingType, false, !bTestTrainable))
 			{
 				bool bAlreadyUnderConstruction = canConstruct(eBuildingType, true, !bTestTrainable) && getFirstBuildingOrder(eBuildingType) != -1;
@@ -14859,7 +14865,9 @@ void CvCity::Purchase(UnitTypes eUnitType, BuildingTypes eBuildingType, ProjectT
 		}
 		else if(eBuildingType >= 0)
 		{
-			bResult = CreateBuilding(eBuildingType);
+			// invest (not buy) in buildings
+			const int halfTotalProdT100 = getProductionNeeded(eBuildingType) * 100 / 2;
+			m_pCityBuildings->SetBuildingProductionTimes100(eBuildingType, halfTotalProdT100);
 
 			ICvEngineScriptSystem1* pkScriptSystem = gDLL->GetScriptSystem();
 			if (pkScriptSystem) 
