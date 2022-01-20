@@ -823,7 +823,7 @@ function PopulateGiftChoices()
 	local iNumGoldPlayerHas = pActivePlayer:GetGold();
 	local goldGiftAmount = 0;
 
-	goldGiftAmount = pPlayer:GetCappedGoldGift(iActivePlayer, iGoldGiftSmall);
+	goldGiftAmount = pPlayer:GetCappedGoldGift(iActivePlayer, math.min(iNumGoldPlayerHas, iGoldGiftSmall));
 	iGold = goldGiftAmount;
 	iLowestGold = iGold;
 	iFriendshipAmount = pPlayer:GetFriendshipFromGoldGift(iActivePlayer, iGold);
@@ -832,7 +832,10 @@ function PopulateGiftChoices()
 	if (bRefusesBribes) then
 		buttonText = "[COLOR_WARNING_TEXT]" .. Locale.ConvertTextKey("TXT_KEY_POPUP_MINOR_REFUSES_BRIBES") .. "[ENDCOLOR]";
 		Controls.SmallGiftAnim:SetHide(true);
-	elseif ((iNumGoldPlayerHas < iGold) or (iFriendshipAmount < 2)) then
+	elseif (iNumGoldPlayerHas < iGold) then
+		 buttonText = "[COLOR_WARNING_TEXT]" .. "You need at least " .. iGold .. " [ICON_GOLD] Gold.[ENDCOLOR]";
+		Controls.SmallGiftAnim:SetHide(true);
+	elseif (iFriendshipAmount < 1) then
 	--if (iNumGoldPlayerHas < iGold) then
 	-- end NQ_NUM_TURNS_BEFORE_MINOR_ALLIES_REFUSE_BRIBES_FROM_TRAIT
 		 buttonText = "[COLOR_WARNING_TEXT]" .. "You cannot give [ICON_GOLD] Gold gifts beyond " .. maxFriendshipFromGold .. " [ICON_INFLUENCE] " .. " Influence." .. "[ENDCOLOR]";
@@ -905,9 +908,9 @@ function OnSmallGold ()
 	local iActivePlayer = Game.GetActivePlayer();
 	local pActivePlayer = Players[iActivePlayer];
 	local iNumGoldPlayerHas = pActivePlayer:GetGold();
-	
-	if (iNumGoldPlayerHas >= iGoldGiftSmall) then
-		Game.DoMinorGoldGift(g_iMinorCivID, iGoldGiftSmall);
+	local goldToGift = math.min(iNumGoldPlayerHas, iGoldGiftSmall);
+	if (iNumGoldPlayerHas >= goldToGift) then
+		Game.DoMinorGoldGift(g_iMinorCivID, goldToGift);
 		m_iLastAction = kiGiftedGold;
 		OnCloseGive();
 	end
