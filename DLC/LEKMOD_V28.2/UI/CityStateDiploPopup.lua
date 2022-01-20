@@ -842,45 +842,7 @@ function PopulateGiftChoices()
 	end
 	Controls.SmallGift:SetText(buttonText);
 	SetButtonSize(Controls.SmallGift, Controls.SmallGiftButton, Controls.SmallGiftAnim, Controls.SmallGiftButtonHL);
-	
-	-- Medium Gold
-	iGold = iGoldGiftMedium;
-	iFriendshipAmount = pPlayer:GetFriendshipFromGoldGift(iActivePlayer, iGold);
-	local buttonText = Locale.ConvertTextKey("TXT_KEY_POPUP_MINOR_GOLD_GIFT_AMOUNT", iGold, iFriendshipAmount);
-	-- begin NQ_NUM_TURNS_BEFORE_MINOR_ALLIES_REFUSE_BRIBES_FROM_TRAIT
-	if (bRefusesBribes) then
-		buttonText = "";
-		Controls.SmallGiftAnim:SetHide(true);
-	elseif (iNumGoldPlayerHas < iGold) then
-	--if (iNumGoldPlayerHas < iGold) then
-	-- end NQ_NUM_TURNS_BEFORE_MINOR_ALLIES_REFUSE_BRIBES_FROM_TRAIT
-		buttonText = "[COLOR_WARNING_TEXT]" .. buttonText .. "[ENDCOLOR]";
-		Controls.MediumGiftAnim:SetHide(true);
-	else
-		Controls.MediumGiftAnim:SetHide(false);
-	end
-	Controls.MediumGift:SetText(buttonText);
-	SetButtonSize(Controls.MediumGift, Controls.MediumGiftButton, Controls.MediumGiftAnim, Controls.MediumGiftButtonHL);
-	
-	-- Large Gold
-	iGold = iGoldGiftLarge;
-	iFriendshipAmount = pPlayer:GetFriendshipFromGoldGift(iActivePlayer, iGold);
-	local buttonText = Locale.ConvertTextKey("TXT_KEY_POPUP_MINOR_GOLD_GIFT_AMOUNT", iGold, iFriendshipAmount);
-	-- begin NQ_NUM_TURNS_BEFORE_MINOR_ALLIES_REFUSE_BRIBES_FROM_TRAIT
-	if (bRefusesBribes) then
-		buttonText = "";
-		Controls.SmallGiftAnim:SetHide(true);
-	elseif (iNumGoldPlayerHas < iGold) then
-	--if (iNumGoldPlayerHas < iGold) then
-	-- end NQ_NUM_TURNS_BEFORE_MINOR_ALLIES_REFUSE_BRIBES_FROM_TRAIT
-		buttonText = "[COLOR_WARNING_TEXT]" .. buttonText .. "[ENDCOLOR]";
-		Controls.LargeGiftAnim:SetHide(true);
-	else
-		Controls.LargeGiftAnim:SetHide(false);
-	end
-	Controls.LargeGift:SetText(buttonText);
-	SetButtonSize(Controls.LargeGift, Controls.LargeGiftButton, Controls.LargeGiftAnim, Controls.LargeGiftButtonHL);
-	
+		
 	
 	-- Unit
 	local iInfluence = pPlayer:GetFriendshipFromUnitGift(iActivePlayer, false, true);
@@ -931,17 +893,6 @@ function PopulateGiftChoices()
 	end
 	Controls.SmallGiftButton:SetToolTipString(strSmallGiftButtonTT);
 
-	local strMediumGiftButtonTT = strInfoTT;
-	if (iNumGoldPlayerHas < iGoldGiftMedium) then
-		strMediumGiftButtonTT = "[COLOR_NEGATIVE_TEXT]" .. Locale.ConvertTextKey("TXT_KEY_POPUP_MINOR_NOT_ENOUGH_GOLD") .. "[ENDCOLOR][NEWLINE][NEWLINE]" .. strMediumGiftButtonTT;
-	end
-	Controls.MediumGiftButton:SetToolTipString(strMediumGiftButtonTT);
-
-	local strLargeGiftButtonTT = strInfoTT;
-	if (iNumGoldPlayerHas < iGoldGiftLarge) then
-		strLargeGiftButtonTT = "[COLOR_NEGATIVE_TEXT]" .. Locale.ConvertTextKey("TXT_KEY_POPUP_MINOR_NOT_ENOUGH_GOLD") .. "[ENDCOLOR][NEWLINE][NEWLINE]" .. strLargeGiftButtonTT;
-	end
-	Controls.LargeGiftButton:SetToolTipString(strLargeGiftButtonTT);
 	-- end NQ_FIX_CITY_STATE_GIFT_TOOLTIPS
 	
 	UpdateButtonStack();
@@ -963,31 +914,6 @@ function OnSmallGold ()
 end
 Controls.SmallGiftButton:RegisterCallback( Mouse.eLClick, OnSmallGold );
 
-function OnMediumGold ()
-	local iActivePlayer = Game.GetActivePlayer();
-	local pActivePlayer = Players[iActivePlayer];
-	local iNumGoldPlayerHas = pActivePlayer:GetGold();
-	
-	if (iNumGoldPlayerHas >= iGoldGiftMedium) then
-		Game.DoMinorGoldGift(g_iMinorCivID, iGoldGiftMedium);
-		m_iLastAction = kiGiftedGold;
-		OnCloseGive();
-	end
-end
-Controls.MediumGiftButton:RegisterCallback( Mouse.eLClick, OnMediumGold );
-
-function OnBigGold ()
-	local iActivePlayer = Game.GetActivePlayer();
-	local pActivePlayer = Players[iActivePlayer];
-	local iNumGoldPlayerHas = pActivePlayer:GetGold();
-	
-	if (iNumGoldPlayerHas >= iGoldGiftLarge) then
-		Game.DoMinorGoldGift(g_iMinorCivID, iGoldGiftLarge);
-		m_iLastAction = kiGiftedGold;
-		OnCloseGive();
-	end
-end
-Controls.LargeGiftButton:RegisterCallback( Mouse.eLClick, OnBigGold );
 ----------------------------------------------------------------
 -- Gift Unit
 ----------------------------------------------------------------
