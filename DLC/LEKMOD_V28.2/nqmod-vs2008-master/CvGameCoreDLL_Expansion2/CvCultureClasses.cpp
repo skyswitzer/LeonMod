@@ -3204,6 +3204,9 @@ int CvPlayerCulture::GetTourismModifierWith(PlayerTypes ePlayer) const
 		iMultiplier += GetTourismModifierSharedReligion();
 	}
 
+	// adjust for number of cities
+	iMultiplier += GetTourismModifierCityCount(ePlayer);
+
 	return iMultiplier;
 }
 
@@ -3346,7 +3349,25 @@ CvString CvPlayerCulture::GetTourismModifierWithTooltip(PlayerTypes ePlayer) con
 		szRtnValue += "[COLOR_NEGATIVE_TEXT]" + GetLocalizedText("TXT_KEY_CO_PLAYER_TOURISM_DIFFERENT_IDEOLOGIES", GC.getTOURISM_MODIFIER_DIFFERENT_IDEOLOGIES()) + "[ENDCOLOR]";
 	}
 
+	// adjust for number of cities
+	const int cityMod = GetTourismModifierCityCount(ePlayer);
+	if (cityMod > 0)
+		szRtnValue += "[COLOR_POSITIVE_TEXT]+" + cityMod + std::string("% Bonus for their large number of cities[NEWLINE][ENDCOLOR]");
+	else if (cityMod == 0)
+		szRtnValue += "[COLOR_GREY]No city count modifier[NEWLINE][ENDCOLOR]";
+	else if (cityMod < 0)
+		szRtnValue += "[COLOR_NEGATIVE_TEXT]" + cityMod + std::string("% Penalty for their small number of cities[NEWLINE][ENDCOLOR]");
+
 	return szRtnValue;
+}
+
+int CvPlayerCulture::GetTourismModifierCityCount(PlayerTypes targetPlayer) const
+{
+	const float expectedNumCities = 7;
+	int iMultiplier = 0;
+	const float addedFraction = (1.0f - ((float)GET_PLAYER(targetPlayer).getNumCities() / expectedNumCities));
+	iMultiplier += addedFraction * 100;
+	return iMultiplier;
 }
 
 /// Tourism modifier (base plus policy boost) - shared religion

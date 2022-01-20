@@ -269,6 +269,8 @@ public:
 #endif
 	int GetTourismModifierWith(PlayerTypes ePlayer) const;
 	CvString GetTourismModifierWithTooltip(PlayerTypes ePlayer) const;
+	// adjust for number of cities
+	int GetTourismModifierCityCount(PlayerTypes ePlayer) const;
 	int GetTourismModifierSharedReligion() const;
 	int GetTourismModifierTradeRoute() const;
 	int GetTourismModifierOpenBorders() const;
