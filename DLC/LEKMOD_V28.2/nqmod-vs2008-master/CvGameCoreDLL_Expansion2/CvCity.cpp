@@ -2797,6 +2797,12 @@ bool CvCity::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool b
 		return false;
 	}
 
+	// city states cannot build military units
+	const bool isCivilian = (pkUnitEntry->GetCombat() != 0);
+	const bool isMinorCiv = GET_PLAYER(this->getOwner()).isMinorCiv();
+	if (!isCivilian && isMinorCiv)
+		return false;
+
 	if(!(GET_PLAYER(getOwner()).canTrain(eUnit, bContinue, bTestVisible, bIgnoreCost, false, toolTipSink)))
 	{
 		return false;

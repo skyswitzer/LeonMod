@@ -4314,8 +4314,8 @@ bool CvUnit::CanDistanceGift(PlayerTypes eToPlayer) const
 		if (eScoutClass != NO_UNITCLASS && eScoutClass == getUnitClassType())
 			return false;
 
-		// No non-combat units
-		if(!IsCombatUnit() && !canAirAttack())
+		// No combat units for city states
+		if(IsCombatUnit() && !canAirAttack())
 		{
 			CvPlayer& kPlayer = GET_PLAYER(m_eOwner);
 
