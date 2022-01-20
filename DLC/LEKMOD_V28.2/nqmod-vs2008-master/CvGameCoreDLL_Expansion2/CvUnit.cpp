@@ -6,6 +6,7 @@
 	All rights reserved. 
 	------------------------------------------------------------------------------------------------------- */
 
+#include <string> 
 #include "CvGameCoreDLLPCH.h"
 #include "CvUnit.h"
 #include "CvArea.h"
@@ -15414,42 +15415,55 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 						iNumGold *= GC.getGameSpeedInfo(GC.getGame().getGameSpeedType())->getGoldPercent();
 						iNumGold /= 100;
 
-						// Normal way to handle it
-						if(getOwner() == GC.getGame().getActivePlayer())
-						{
-							GC.messageUnit(0, GetIDInfo(), getOwner(), true, GC.getEVENT_MESSAGE_TIME(), GetLocalizedText("TXT_KEY_MISC_DESTROYED_BARBARIAN_CAMP", iNumGold));
-						}
-
 						pNewPlot->setImprovementType(NO_IMPROVEMENT);
 
 						CvBarbarians::DoBarbCampCleared(pNewPlot, getOwner());
 
-
 						// Set who last cleared the camp here
 						pNewPlot->SetPlayerThatClearedBarbCampHere(getOwner());
 
-						const int originalGold = iNumGold;
-						if(getOwner() < MAX_MAJOR_CIVS)
+						// give extra city state gold
+						const int cityEncampmentDistance = 5;
+						float extraGoldPercent = 0;
+						if (getOwner() < MAX_MAJOR_CIVS)
 						{
 #ifdef NQ_CLEARING_CAMPS_GIVES_INFLUENCE_NEARBY
 #endif
 							// Completes a quest for anyone?
 							PlayerTypes eMinor;
-							for(int iMinorLoop = MAX_MAJOR_CIVS; iMinorLoop < MAX_CIV_PLAYERS; iMinorLoop++)
+							for (int iMinorLoop = MAX_MAJOR_CIVS; iMinorLoop < MAX_CIV_PLAYERS; iMinorLoop++)
 							{
-								eMinor = (PlayerTypes) iMinorLoop;
+								eMinor = (PlayerTypes)iMinorLoop;
 								CvPlayer& minorPlayer = GET_PLAYER(eMinor);
 
-								if(!minorPlayer.isAlive())
+								if (!minorPlayer.isAlive())
 									continue;
 
 								CvMinorCivAI* pMinorCivAI = minorPlayer.GetMinorCivAI();
 
 								// clearing barb camp near city state gives more rewards
 								CvCity* capital = minorPlayer.getCapitalCity();
-								if (5 >= plotDistance(capital->getX(), capital->getY(), pNewPlot->getX(), pNewPlot->getY()))
+								if (cityEncampmentDistance >= plotDistance(capital->getX(), capital->getY(), pNewPlot->getX(), pNewPlot->getY()))
 								{
-									iNumGold += originalGold / 2.0f;
+									extraGoldPercent += 0.5f;
+								}
+							}
+
+							iNumGold *= 1 + extraGoldPercent;
+
+							// message the player about gold reward
+							if (getOwner() == GC.getGame().getActivePlayer())
+							{
+								GC.messageUnit(0, GetIDInfo(), getOwner(), true, GC.getEVENT_MESSAGE_TIME(), GetLocalizedText("TXT_KEY_MISC_DESTROYED_BARBARIAN_CAMP", iNumGold));
+								if (extraGoldPercent != 0)
+								{
+									stringstream message;
+									message << "Killing the Encampment within ";
+									message << int(cityEncampmentDistance);
+									message << " tiles of city states yielded [COLOR_POSITIVE_TEXT]+";
+									message << int(extraGoldPercent * 100);
+									message << "%[ENDCOLOR] [ICON_GOLD]!";
+									GC.messageUnit(0, GetIDInfo(), getOwner(), true, GC.getEVENT_MESSAGE_TIME(), message.str().c_str());
 								}
 							}
 						}
