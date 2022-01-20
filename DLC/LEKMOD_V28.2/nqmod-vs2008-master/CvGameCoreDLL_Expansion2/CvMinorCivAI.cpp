@@ -28,6 +28,8 @@
 const int scoreFromUnrestWinner = 40;
 // score per turn for being an ally
 const int scorePerAllyTurn = 100;
+// minimum military influence needed to gain influence
+const int minMilitaryStrength = 15;
 // influence gained per turn for having the most local military
 const int baseMilitaryInfluence = 5;
 // influence gained per turn for having the most local military
@@ -5362,7 +5364,7 @@ void CvMinorCivAI::DoFriendship()
 
 	// find military winner
 	PlayerTypes eMilitaryWinner = NO_PLAYER;
-	int highestStrength = 0;
+	int highestStrength = minMilitaryStrength;
 	for (int iPlayerLoop = 0; iPlayerLoop < MAX_MAJOR_CIVS; iPlayerLoop++)
 	{
 		ePlayer = (PlayerTypes)iPlayerLoop;
@@ -9212,7 +9214,7 @@ int CvMinorCivAI::GetFriendshipFromGoldGift(PlayerTypes eMajor, int iGold)
 	// The more Gold you spend the more Friendship you get!
 	iGold = (int) pow((double) iGold, (double) /*1.01*/ GC.getGOLD_GIFT_FRIENDSHIP_EXPONENT());
 	// The higher this divisor the less Friendship is gained
-	int iFriendship = int(iGold / /*9.8*/ GC.getGOLD_GIFT_FRIENDSHIP_DIVISOR());
+	float iFriendship = iGold;
 
 	// Game progress factor based on how far into the game we are
 	double fGameProgressFactor = float(GC.getGame().getElapsedGameTurns()) / GC.getGame().getEstimateEndTurn();
@@ -9222,9 +9224,10 @@ int CvMinorCivAI::GetFriendshipFromGoldGift(PlayerTypes eMajor, int iGold)
 	fGameProgressFactor *= /*2*/ GC.getMINOR_CIV_GOLD_GIFT_GAME_MULTIPLIER();
 	fGameProgressFactor /= /*3*/ GC.getMINOR_CIV_GOLD_GIFT_GAME_DIVISOR();
 	fGameProgressFactor = 1 - fGameProgressFactor;
+	fGameProgressFactor = max(0.2, fGameProgressFactor);
 
-	iFriendship = (int)(iFriendship * fGameProgressFactor);
-
+	// prevent bad progress factors
+	iFriendship *= fGameProgressFactor;
 
 	// Mod (Policies, etc.)
 	int iFriendshipMod = GET_PLAYER(eMajor).getMinorGoldFriendshipMod();
@@ -9233,7 +9236,7 @@ int CvMinorCivAI::GetFriendshipFromGoldGift(PlayerTypes eMajor, int iGold)
 	{
 		iFriendship *= (100 + iFriendshipMod);
 		iFriendship /= 100;
-		iFriendship *= !GET_PLAYER(eMajor).isHuman() ? 1.5 : 0.5; // non humans get 50% more friendship from gold gifts
+		iFriendship *= !GET_PLAYER(eMajor).isHuman() ? 1.5 : 1.0; // non humans get 50% more friendship from gold gifts
 	}
 
 	// Game Speed Mod
@@ -9248,15 +9251,12 @@ int CvMinorCivAI::GetFriendshipFromGoldGift(PlayerTypes eMajor, int iGold)
 		iFriendship /= 100;
 	}
 
-	// Friendship gained should always be positive
-	iFriendship = max(iFriendship, 0); // /*5*/ GC.getMINOR_CIV_GOLD_GIFT_MINIMUM_FRIENDSHIP_REWARD()
-
 	// Round the number so it's pretty
 	int iVisibleDivisor = /*5*/ GC.getMINOR_CIV_GOLD_GIFT_VISIBLE_DIVISOR();
 	iFriendship /= iVisibleDivisor;
 	iFriendship *= iVisibleDivisor;
 
-	return iFriendship;
+	return iFriendship / GC.getGOLD_GIFT_FRIENDSHIP_DIVISOR();
 }
 
 int CvMinorCivAI::GetCappedGoldGift(PlayerTypes eMajor, int iMaxGoldToGive)
@@ -9267,7 +9267,7 @@ int CvMinorCivAI::GetCappedGoldGift(PlayerTypes eMajor, int iMaxGoldToGive)
 		return 0;
 
 	const float fractionAllowed = min(1.0f, remainingAllowed / friendshipFromGift);
-	return ceil(fractionAllowed * iMaxGoldToGive) + 1;
+	return ceil(fractionAllowed * iMaxGoldToGive);
 }
 
 #ifdef NQ_BELIEF_TOGGLE_ALLOW_FAITH_GIFTS_TO_MINORS
