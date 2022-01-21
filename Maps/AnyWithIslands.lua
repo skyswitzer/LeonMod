@@ -493,7 +493,7 @@ function GeneratePlotTypes()
 	local sea = Map.GetCustomOption(4)
 	local maxX = Map.GetCustomOption(11)*2+28; -- get map x size
 	local maxY = Map.GetCustomOption(12)*2+18; -- get map y size
-	local islandSizeMin = 2;
+	local islandSizeMin = 6; -- actually effectively 5 (-1) because unknown black magic
 	local islandSizeMax = Map.GetCustomOption(18)*2-1;
 	local islandChance = Map.GetCustomOption(17)*2; -- chance in 1000 that an island will start generating (Standard size does 4000 checks)
 	local polesIslandChance = islandChance / 2; -- chance in 1000 that an island will start generating in polar region
