@@ -5527,7 +5527,7 @@ int CvMinorCivAI::GetFriendshipChangePerTurnTimes100(PlayerTypes ePlayer)
 
 		if (hasTradeRoute)
 		{
-			iShift += baseTradeInfluence; // base influence for trade
+			iShift += baseTradeInfluence * 100; // base influence for trade
 			iShift += kPlayer.GetPlayerPolicies()->GetNumericModifier(POLICYMOD_PROTECTED_MINOR_INFLUENCE);
 		}
 
