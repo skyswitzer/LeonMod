@@ -1,13 +1,22 @@
 
+
+Reduce notifications that pop up
+
+
+Trade Route Reset If Cannot follow route
+Trade route start at target and make 1 way trip home
+
+
+More Barbarians/Camps (spawn in vision potentially)
+1 Naval and combat unit per tech level
 gatling and machine gun range
+future tech military advantage
 
+
+Air Base Improvement (Great General?)
 Aircraft rebase range display
-Aircraft rebase extra dist damage
 Aircraft retreat
-Space ship part Wonder op, capital should take 4 turns at minimum to complete one
+Aircraft rebase extra dist damage
 
-urbanization happiness
-future tech military advantage?
-national wonder, defensive building
 
 
