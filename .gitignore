@@ -14,10 +14,6 @@
 # text
 !/DLC/LEKMOD_V28.2/Override/CIV5Units_Mongol.xml
 
-# main menu background and music
-!/DLC/LEKMOD_V28.2/UI/policy_buildings.lua
-!/DLC/LEKMOD_V28.2/UI/CityBannerManager.lua
-!/DLC/LEKMOD_V28.2/UI/InGame.lua
 # tourism combat mod
 !/DLC/LEKMOD_V28.2/Mods/No Quitters Mod (v 11)/ui/EnemyUnitPanel.lua
 # remove old exploration policy behavior
