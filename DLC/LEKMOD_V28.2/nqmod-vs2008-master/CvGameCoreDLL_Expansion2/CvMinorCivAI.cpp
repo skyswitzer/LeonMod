@@ -5368,6 +5368,8 @@ void CvMinorCivAI::DoFriendship()
 	for (int iPlayerLoop = 0; iPlayerLoop < MAX_MAJOR_CIVS; iPlayerLoop++)
 	{
 		ePlayer = (PlayerTypes)iPlayerLoop;
+		if (!GET_PLAYER(ePlayer).isAlive()) continue; // must be alive
+		if (GET_PLAYER(ePlayer).isMinorCiv()) continue; // must be major civ
 
 		const int tempStrength = getAStrengthNearAllBCities(ePlayer, m_pPlayer->GetID());
 		if (tempStrength > highestStrength)
