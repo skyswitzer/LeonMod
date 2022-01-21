@@ -18208,7 +18208,8 @@ void CvUnit::ChangeHeavyChargeDownhill(int iChange)
 int CvUnit::getFriendlyLandsModifier() const
 {
 	VALIDATE_OBJECT
-	return m_iFriendlyLandsModifier;
+	// always grant +25 friendly lands modifier
+	return m_iFriendlyLandsModifier + 25;
 }
 
 //	--------------------------------------------------------------------------------
