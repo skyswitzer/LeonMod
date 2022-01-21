@@ -17670,7 +17670,7 @@ int CvCity::GetMaxHitPoints() const
 		//float percentage = GC.turnsToPercentage(10.0f, 75.0f);
 
 		extraAiHitpoints = GC.getMAX_CITY_HIT_POINTS_AI_BONUS();
-		extraAiHitpoints /= 100;
+		//extraAiHitpoints /= 100;
 		//extraAiHitpoints *= percentage;
 	}
 
