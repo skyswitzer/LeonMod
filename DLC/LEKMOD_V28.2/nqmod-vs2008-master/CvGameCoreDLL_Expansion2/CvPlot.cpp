@@ -144,6 +144,41 @@ FDataStream& operator<<(FDataStream& saveTo, const CvArchaeologyData& readFrom)
 	return saveTo;
 }
 
+//	-----------------------------------------------------------------------------------------------
+inline static bool isEnemy(const CvUnit* pUnit, TeamTypes eOtherTeam, bool bAlwaysHostile)
+{
+	if (pUnit->canCoexistWithEnemyUnit(eOtherTeam))
+	{
+		return false;
+	}
+
+	TeamTypes eOurTeam = GET_PLAYER(pUnit->getCombatOwner(eOtherTeam, *(pUnit->plot()))).getTeam();
+	return (bAlwaysHostile ? eOtherTeam != eOurTeam : atWar(eOtherTeam, eOurTeam));
+}
+
+//	-----------------------------------------------------------------------------------------------
+inline static bool isPotentialEnemy(const CvUnit* pUnit, TeamTypes eOtherTeam, bool bAlwaysHostile)
+{
+	if (pUnit->canCoexistWithEnemyUnit(eOtherTeam))
+	{
+		return false;
+	}
+
+	TeamTypes eOurTeam = GET_PLAYER(pUnit->getCombatOwner(eOtherTeam, *(pUnit->plot()))).getTeam();
+	return (bAlwaysHostile ? eOtherTeam != eOurTeam : isPotentialEnemy(eOtherTeam, eOurTeam));
+}
+
+//	-----------------------------------------------------------------------------------------------
+inline static bool isOtherTeam(const CvUnit* pUnit, TeamTypes eOtherTeam)
+{
+	if (pUnit->canCoexistWithEnemyUnit(eOtherTeam))
+	{
+		return false;
+	}
+
+	return (pUnit->getTeam() != eOtherTeam);
+}
+
 //////////////////////////////////////////////////////////////////////////
 // CvPlot
 //////////////////////////////////////////////////////////////////////////
@@ -3372,8 +3407,42 @@ bool CvPlot::IsAllowsWalkWater() const
 	return false;
 }
 // --------------------------------------------------------------------------------- // from Izy
-bool CvPlot::IsAllowsSailLand() const
+bool CvPlot::IsAllowsSailLand(PlayerTypes ePlayer) const
 {
+	TeamTypes ePlayerTeam = GET_PLAYER(ePlayer).getTeam();
+	TeamTypes ePlotOwnerTeam = getTeam();
+
+	// no closed borders
+	if (ePlotOwnerTeam != NO_TEAM) // noteam is open borders
+	{
+		if (ePlotOwnerTeam != ePlayerTeam) // different team
+		{
+			if (!GET_TEAM(ePlotOwnerTeam).IsAllowsOpenBordersToTeam(ePlayerTeam)) // closed borders
+				return false;
+		}
+		else if (!GET_PLAYER(ePlayer).isMinorCiv()) // player is not minor civ
+		{
+			CvTeam& ownerTeam = GET_TEAM(ePlotOwnerTeam);
+			if (ownerTeam.isMinorCiv()) // owner is minor civ
+			{
+				if (!GET_PLAYER(ownerTeam.getLeaderID()).GetMinorCivAI()->IsPlayerHasOpenBorders(ePlayer)) // closed borders
+				{
+					return false;
+				}
+			}
+		}
+	}
+
+	// adjacent enemy units stop canal usage
+	bool bAnyNearbyEnemyUnits = isEnemyUnit(ePlayer, true, false, false) || GetAdjacentEnemyMilitaryUnits(ePlayerTeam, NO_DOMAIN).size() != 0;
+	if (bAnyNearbyEnemyUnits)
+		return false;
+
+	// allow travel through rivers
+	//if (isRiver()) // how do we prevent river hoping?
+	//	return true;
+
+	// allow travel through special improvements
     ImprovementTypes eImprovement = getImprovementType();
     if (eImprovement != NO_IMPROVEMENT)
     {
@@ -3381,8 +3450,91 @@ bool CvPlot::IsAllowsSailLand() const
         if (pkEntry)
             return pkEntry->IsAllowsSailLand();
     }
+
+	// disallow by default
     return false;
 }
+
+bool CvPlot::isEnemyUnit(PlayerTypes ePlayer, bool militaryUnit, bool bCheckVisibility, bool bIgnoreBarbs) const
+{
+	TeamTypes eTeam = GET_PLAYER(ePlayer).getTeam();
+
+	if (bCheckVisibility && !isVisible(eTeam))
+		return false;
+
+	CvAssertMsg(ePlayer != NO_PLAYER, "Source player must be valid");
+	const IDInfo* pUnitNode = m_units.head();
+	if (pUnitNode)
+	{
+		do
+		{
+			const CvUnit* pLoopUnit = GetPlayerUnit(*pUnitNode);
+			pUnitNode = m_units.next(pUnitNode);
+
+			if (pLoopUnit && !pLoopUnit->IsDead())
+			{
+				if (bCheckVisibility && pLoopUnit->isInvisible(eTeam, false))
+					continue;
+
+				const bool isCivilian = pLoopUnit->GetBaseCombatStrength() != 0;
+				if (militaryUnit == isCivilian)
+					continue;
+
+				if (bIgnoreBarbs && pLoopUnit->isBarbarian())
+					continue;
+
+				if (isOtherTeam(pLoopUnit, eTeam) && isEnemy(pLoopUnit, eTeam, false))
+				{
+					return true;
+				}
+			}
+		} while (pUnitNode != NULL);
+	}
+
+	return false;
+}
+
+vector<CvUnit*> CvPlot::GetAdjacentEnemyMilitaryUnits(TeamTypes eMyTeam, DomainTypes eDomain) const
+{
+	vector<CvUnit*> result;
+	for (int iCount = 0; iCount < NUM_DIRECTION_TYPES; iCount++)
+	{
+		CvPlot* pLoopPlot = plotDirection(getX(), getY(), (DirectionTypes)iCount);
+		if (pLoopPlot != NULL && !pLoopPlot->isCity()) //ignore units in cities
+		{
+			IDInfo* pUnitNode = pLoopPlot->headUnitNode();
+
+			// Loop through all units on this plot
+			while (pUnitNode != NULL)
+			{
+				CvUnit* pLoopUnit = ::getUnit(*pUnitNode);
+				pUnitNode = pLoopPlot->nextUnitNode(pUnitNode);
+
+				if (pLoopUnit)
+				{
+					// Must be a combat Unit
+					if (pLoopUnit->IsCombatUnit() && !pLoopUnit->isEmbarked() && !pLoopUnit->isDelayedDeath())
+					{
+						TeamTypes eTheirTeam = pLoopUnit->getTeam();
+
+						// This team which this unit belongs to must be at war with us
+						if (GET_TEAM(eTheirTeam).isAtWar(eMyTeam))
+						{
+							// Must be same domain
+							if (pLoopUnit->getDomainType() == eDomain || pLoopUnit->getDomainType() == DOMAIN_HOVER || eDomain == NO_DOMAIN)
+							{
+								result.push_back(pLoopUnit);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return result;
+}
+
 //	--------------------------------------------------------------------------------
 int CvPlot::getExtraMovePathCost() const
 {
@@ -4048,41 +4200,6 @@ bool CvPlot::isUnit() const
 }
 
 //	-----------------------------------------------------------------------------------------------
-inline static bool isEnemy(const CvUnit* pUnit, TeamTypes eOtherTeam, bool bAlwaysHostile)
-{
-	if(pUnit->canCoexistWithEnemyUnit(eOtherTeam))
-	{
-		return false;
-	}
-
-	TeamTypes eOurTeam = GET_PLAYER(pUnit->getCombatOwner(eOtherTeam, *(pUnit->plot()))).getTeam();
-	return (bAlwaysHostile ? eOtherTeam != eOurTeam : atWar(eOtherTeam, eOurTeam));
-}
-
-//	-----------------------------------------------------------------------------------------------
-inline static bool isPotentialEnemy(const CvUnit* pUnit, TeamTypes eOtherTeam, bool bAlwaysHostile)
-{
-	if(pUnit->canCoexistWithEnemyUnit(eOtherTeam))
-	{
-		return false;
-	}
-
-	TeamTypes eOurTeam = GET_PLAYER(pUnit->getCombatOwner(eOtherTeam, *(pUnit->plot()))).getTeam();
-	return (bAlwaysHostile ? eOtherTeam != eOurTeam : isPotentialEnemy(eOtherTeam, eOurTeam));
-}
-
-//	-----------------------------------------------------------------------------------------------
-inline static bool isOtherTeam(const CvUnit* pUnit, TeamTypes eOtherTeam)
-{
-	if(pUnit->canCoexistWithEnemyUnit(eOtherTeam))
-	{
-		return false;
-	}
-
-	return (pUnit->getTeam() != eOtherTeam);
-}
-
-//	-----------------------------------------------------------------------------------------------
 bool CvPlot::isVisibleEnemyDefender(const CvUnit* pUnit) const
 {
 	CvAssertMsg(pUnit, "Source unit must be valid");
@@ -4732,7 +4849,7 @@ bool CvPlot::isValidDomainForAction(const CvUnit& unit) const
 	switch(unit.getDomainType())
 	{
 	case DOMAIN_SEA:
-		  return (isWater() || unit.canMoveAllTerrain() || IsAllowsSailLand());
+		  return (isWater() || unit.canMoveAllTerrain() || IsAllowsSailLand(unit.getOwner()));
 		break;
 
 	case DOMAIN_AIR:

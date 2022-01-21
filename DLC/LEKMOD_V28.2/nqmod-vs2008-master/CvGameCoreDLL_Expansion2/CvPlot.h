@@ -474,7 +474,10 @@ public:
 
 	bool IsAllowsWalkWater() const;
 
-	bool IsAllowsSailLand() const;
+	bool IsAllowsSailLand(PlayerTypes ePlayer) const;
+
+	bool isEnemyUnit(PlayerTypes ePlayer, bool bCombat, bool bCheckVisibility, bool bIgnoreBarbs) const;
+	vector<CvUnit*> GetAdjacentEnemyMilitaryUnits(TeamTypes eMyTeam, DomainTypes eDomain) const;
 
 	bool isRoughGround() const
 	{

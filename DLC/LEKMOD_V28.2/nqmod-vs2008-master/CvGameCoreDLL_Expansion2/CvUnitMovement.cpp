@@ -152,12 +152,12 @@ void CvUnitMovement::GetCostsForMove(const CvUnit* pUnit, const CvPlot* pFromPlo
 		iRouteFlatCost = INT_MAX;
 	}
 
-	if(pUnit->getDomainType() == DOMAIN_SEA && pToPlot->IsAllowsSailLand()){ // from Izy
-			iRegularCost = iMoveDenominator*3;
-			iRouteCost = iRegularCost;
-			iRouteFlatCost = iRegularCost;
-		}
-	if(pUnit->getDomainType() == DOMAIN_LAND && pToPlot->IsAllowsSailLand() && (!bIgnoreTerrainCost)) { 
+	//if(pUnit->getDomainType() == DOMAIN_SEA && pToPlot->IsAllowsSailLand()){ // from Izy
+	//		iRegularCost = iMoveDenominator*3;
+	//		iRouteCost = iRegularCost;
+	//		iRouteFlatCost = iRegularCost;
+	//	}
+	if(pUnit->getDomainType() == DOMAIN_LAND && pToPlot->IsAllowsSailLand(pUnit->getOwner()) && (!bIgnoreTerrainCost)) {
 			iRegularCost = iMoveDenominator;
 			iRouteCost = iRegularCost;
 			iRouteFlatCost = iRegularCost;
@@ -185,6 +185,15 @@ void CvUnitMovement::GetCostsForMove(const CvUnit* pUnit, const CvPlot* pFromPlo
 		}
 	}
 	*/
+
+	// double cost for non coast
+	if (pUnit->getDomainType() == DOMAIN_SEA)
+	{
+		if (!pToPlot->HasTerrain(TERRAIN_COAST)) // ship not in coast costs 2 move
+		{
+			iRegularCost = 2 * iMoveDenominator;
+		}
+	}
 }
 
 //	---------------------------------------------------------------------------

@@ -2546,7 +2546,7 @@ bool CvUnit::canEnterTerrain(const CvPlot& enterPlot, byte bMoveFlags) const
 	switch(eDomain)
 	{
 	case DOMAIN_SEA:
-		if(enterPlot.IsAllowsSailLand()){
+		if(enterPlot.IsAllowsSailLand(getOwner())){
             return true;
         }
 		if(!enterPlot.isWater() && !canMoveAllTerrain())
@@ -7434,7 +7434,7 @@ bool CvUnit::canPillage(const CvPlot* pPlot) const
 {
 	VALIDATE_OBJECT
 	//cant pillage canal with friendly ship ~ from Izy
-	if(pPlot->IsAllowsSailLand()){
+	if(pPlot->IsAllowsSailLand(getOwner())){
         for (int iUnitLoop = 0; iUnitLoop < pPlot->getNumUnits(); iUnitLoop++)
         {
             CvUnit* pkUnit = pPlot->getUnitByIndex(iUnitLoop);

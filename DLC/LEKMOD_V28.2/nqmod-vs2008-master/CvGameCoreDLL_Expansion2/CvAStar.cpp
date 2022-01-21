@@ -5878,6 +5878,7 @@ int TradeRouteLandValid(CvAStarNode* parent, CvAStarNode* node, int data, const 
 /// slewis's fault
 int TradeRouteWaterPathCost(CvAStarNode* parent, CvAStarNode* node, int data, const void* pointer, CvAStar* finder)
 {
+	PlayerTypes ePlayer = (PlayerTypes)finder->GetInfo();
 #ifndef AUI_ASTAR_CACHE_PLOTS_AT_NODES
 	CvMap& kMap = GC.getMap();
 #endif
@@ -5914,13 +5915,16 @@ int TradeRouteWaterPathCost(CvAStarNode* parent, CvAStarNode* node, int data, co
 			iCost += 1000; // slewis - is this too prohibitive? Too cheap?
 		}
 
-		if (!pToPlot->isWater())
+		const bool isWater = pToPlot->isWater();
+		const bool isWaterPassable = pToPlot->IsAllowsSailLand(ePlayer);
+		if (!isWater && !isWaterPassable)
 		{
 			iCost += 1000;
 		}
 		else
 		{
-			if (pToPlot->getTerrainType() != (TerrainTypes) GC.getSHALLOW_WATER_TERRAIN())	// Quicker isShallowWater test, since we already know the plot is water
+			const bool isOcean = pToPlot->getTerrainType() == (TerrainTypes)GC.getDEEP_WATER_TERRAIN();
+			if (isOcean)	// Quicker shallow water test since we know that the plot is water already
 			{
 				if (!pCacheData->CanEmbarkAllWaterPassage())
 				{
@@ -5944,6 +5948,7 @@ int TradeRouteWaterPathCost(CvAStarNode* parent, CvAStarNode* node, int data, co
 //	--------------------------------------------------------------------------------
 int TradeRouteWaterValid(CvAStarNode* parent, CvAStarNode* node, int data, const void* pointer, CvAStar* finder)
 {
+	PlayerTypes ePlayer = (PlayerTypes)finder->GetInfo();
 	if(parent == NULL)
 	{
 		return TRUE;
@@ -5962,12 +5967,15 @@ int TradeRouteWaterValid(CvAStarNode* parent, CvAStarNode* node, int data, const
 
 	if (!pNewPlot->isCity())
 	{
-		if (!pNewPlot->isWater())
+		const bool isWater = pNewPlot->isWater();
+		const bool isWaterPassable = pNewPlot->IsAllowsSailLand(ePlayer);
+		if (!isWater && !isWaterPassable)
 		{
 			return FALSE;
 		}
 
-		if (pNewPlot->getTerrainType() != (TerrainTypes) GC.getSHALLOW_WATER_TERRAIN())	// Quicker shallow water test since we know that the plot is water already
+		const bool isOcean = pNewPlot->getTerrainType() == (TerrainTypes)GC.getDEEP_WATER_TERRAIN();
+		if (isOcean)	// Quicker shallow water test since we know that the plot is water already
 		{
 			if (!pCacheData->CanEmbarkAllWaterPassage())
 			{
@@ -5975,20 +5983,20 @@ int TradeRouteWaterValid(CvAStarNode* parent, CvAStarNode* node, int data, const
 			}
 		}
 
-#ifdef AUI_ASTAR_CACHE_PLOTS_AT_NODES
-		const CvPlot* pParentPlot = parent->m_pPlot;
-		if (!pParentPlot)
-			return FALSE;
-#else
-		CvPlot* pParentPlot = kMap.plotUnchecked(parent->m_iX, parent->m_iY);
-#endif
-		if (!pParentPlot->isCity())
-		{
-			if(pParentPlot->getArea() != pNewPlot->getArea())
-			{
-				return FALSE;
-			}
-		}
+//#ifdef AUI_ASTAR_CACHE_PLOTS_AT_NODES
+//		const CvPlot* pParentPlot = parent->m_pPlot;
+//		if (!pParentPlot)
+//			return FALSE;
+//#else
+//		CvPlot* pParentPlot = kMap.plotUnchecked(parent->m_iX, parent->m_iY);
+//#endif
+//		if (!pParentPlot->isCity())
+//		{
+//			if(pParentPlot->getArea() != pNewPlot->getArea())
+//			{
+//				return FALSE;
+//			}
+//		}
 
 		if(pNewPlot->isImpassable())
 		{
