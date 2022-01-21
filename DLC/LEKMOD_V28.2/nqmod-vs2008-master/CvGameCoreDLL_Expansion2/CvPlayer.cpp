@@ -5556,7 +5556,7 @@ int CvPlayer::GetScoreFromCities() const
 	iScore /= 100;
 
 	// get score from owning major civ capitals
-	const int scorePerCapitalOwned = 150;
+	const int scorePerCapitalOwned = 75;
 	int iLoop = 0;
 	for (const CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 	{
