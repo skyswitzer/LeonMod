@@ -872,6 +872,8 @@ void CvUnit::initWithNameOffset(int iID, UnitTypes eUnit, int iNameOffset, UnitA
 	if(bSetupGraphical)
 		setupGraphical();
 
+	// always grant +25 friendly lands modifier
+	changeFriendlyLandsModifier(+25);
 }
 
 //	--------------------------------------------------------------------------------
