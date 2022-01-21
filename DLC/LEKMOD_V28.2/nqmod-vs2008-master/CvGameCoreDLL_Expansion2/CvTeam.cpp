@@ -1141,6 +1141,10 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bDefensivePact)
 //	-----------------------------------------------------------------------------------------------
 void CvTeam::DoDeclareWar(TeamTypes eTeam, bool bDefensivePact, bool bMinorAllyPact)
 {
+	// if we are a minor civ, never declare war!
+	if (isMinorCiv())
+		return;
+
 	Localization::String locString;
 	int iI;
 
