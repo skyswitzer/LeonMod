@@ -730,7 +730,7 @@ int CvGameTrade::GetDomainModifierTimes100 (DomainTypes eDomain)
 	}
 	else
 	{
-		return 0;
+		return 75;
 	}
 }
 
