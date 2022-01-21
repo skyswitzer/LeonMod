@@ -27,7 +27,7 @@
 // score awarded upon winning the unrest contest
 const int scoreFromUnrestWinner = 40;
 // score per turn for being an ally
-const int scorePerAllyTurn = 100;
+const int scorePerAllyTurn = 1;
 // minimum military influence needed to gain influence
 const int minMilitaryStrength = 15;
 // influence gained per turn for having the most local military
