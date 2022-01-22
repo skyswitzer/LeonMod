@@ -3352,12 +3352,7 @@ CvString CvPlayerCulture::GetTourismModifierWithTooltip(PlayerTypes ePlayer) con
 	// adjust for number of cities
 	const int cityMod = GetTourismModifierCityCount(ePlayer);
 	stringstream s;
-	if (cityMod > 0)
-		s << "[COLOR_POSITIVE_TEXT]+" << cityMod << "% Bonus for their large number of cities[NEWLINE][ENDCOLOR]";
-	else if (cityMod == 0)
-		s << "[COLOR_GREY]No city count modifier[NEWLINE][ENDCOLOR]";
-	else if (cityMod < 0)
-		s << "[COLOR_NEGATIVE_TEXT]" << cityMod  << "% Penalty for their small number of cities[NEWLINE][ENDCOLOR]";
+	s << "[COLOR_POSITIVE_TEXT]+" << cityMod << "% Bonus for their number of cities[NEWLINE][ENDCOLOR]";
 	szRtnValue += s.str().c_str();
 
 	return szRtnValue;
