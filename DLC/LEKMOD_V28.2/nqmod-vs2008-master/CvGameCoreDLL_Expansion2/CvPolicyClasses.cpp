@@ -3526,6 +3526,24 @@ int CvPlayerPolicies::GetTourismFromUnitCreation(UnitClassTypes eUnitClass) cons
 	return iTourism;
 }
 
+
+int CvPlayerPolicies::GetPolicyModifierForCityCount()
+{
+	// Mod for City Count
+	const int iNumCities = m_pPlayer->GetMaxEffectiveCities();
+	const int iPolicyModDiscount = m_pPlayer->GetNumCitiesPolicyCostDiscount();
+	int perCityPercentIncrease = GC.getMap().getWorldInfo().GetNumCitiesPolicyCostMod();	// Default is 40, gets smaller on larger maps
+
+	if (iPolicyModDiscount != 0)
+	{
+		perCityPercentIncrease = perCityPercentIncrease * (100 + iPolicyModDiscount);
+		perCityPercentIncrease /= 100;
+	}
+
+	const int additionalPercentage = (iNumCities - 1) * perCityPercentIncrease; // 5 * 5
+	return max(0, additionalPercentage); // eg 25
+}
+
 /// How much will the next policy cost?
 int CvPlayerPolicies::GetNextPolicyCost()
 {
@@ -3550,19 +3568,8 @@ int CvPlayerPolicies::GetNextPolicyCost()
 	iCost += /*25*/ GC.getBASE_POLICY_COST();
 
 	// Mod for City Count
-	int iMod = GC.getMap().getWorldInfo().GetNumCitiesPolicyCostMod();	// Default is 40, gets smaller on larger maps
-	int iPolicyModDiscount = m_pPlayer->GetNumCitiesPolicyCostDiscount();
-	if(iPolicyModDiscount != 0)
-	{
-		iMod = iMod * (100 + iPolicyModDiscount);
-		iMod /= 100;
-	}
-
-	int iNumCities = m_pPlayer->GetMaxEffectiveCities();
-
-	iMod = (iCost * (iNumCities - 1) * iMod);
-	iMod /= 100;
-	iCost += iMod;
+	iCost *= (100 + GetPolicyModifierForCityCount());
+	iCost /= 100;
 
 	// Policy Cost Mod
 	iCost *= (100 + m_pPlayer->getPolicyCostModifier());

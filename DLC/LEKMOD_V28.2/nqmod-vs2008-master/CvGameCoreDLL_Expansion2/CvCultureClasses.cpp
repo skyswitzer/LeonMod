@@ -3351,23 +3351,21 @@ CvString CvPlayerCulture::GetTourismModifierWithTooltip(PlayerTypes ePlayer) con
 
 	// adjust for number of cities
 	const int cityMod = GetTourismModifierCityCount(ePlayer);
+	stringstream s;
 	if (cityMod > 0)
-		szRtnValue += "[COLOR_POSITIVE_TEXT]+" + cityMod + std::string("% Bonus for their large number of cities[NEWLINE][ENDCOLOR]");
+		s << "[COLOR_POSITIVE_TEXT]+" << cityMod << "% Bonus for their large number of cities[NEWLINE][ENDCOLOR]";
 	else if (cityMod == 0)
-		szRtnValue += "[COLOR_GREY]No city count modifier[NEWLINE][ENDCOLOR]";
+		s << "[COLOR_GREY]No city count modifier[NEWLINE][ENDCOLOR]";
 	else if (cityMod < 0)
-		szRtnValue += "[COLOR_NEGATIVE_TEXT]" + cityMod + std::string("% Penalty for their small number of cities[NEWLINE][ENDCOLOR]");
+		s << "[COLOR_NEGATIVE_TEXT]" << cityMod  << "% Penalty for their small number of cities[NEWLINE][ENDCOLOR]";
+	szRtnValue += s.str().c_str();
 
 	return szRtnValue;
 }
 
 int CvPlayerCulture::GetTourismModifierCityCount(PlayerTypes targetPlayer) const
 {
-	const float expectedNumCities = 7;
-	int iMultiplier = 0;
-	const float addedFraction = (1.0f - ((float)GET_PLAYER(targetPlayer).getNumCities() / expectedNumCities));
-	iMultiplier += addedFraction * 100;
-	return iMultiplier;
+	return GET_PLAYER(targetPlayer).GetPlayerPolicies()->GetPolicyModifierForCityCount();
 }
 
 /// Tourism modifier (base plus policy boost) - shared religion
