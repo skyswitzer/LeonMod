@@ -5626,6 +5626,10 @@ void CvCity::setProduction(int iNewValue)
 	{
 		setSpecialistProduction(getProductionSpecialist(), iNewValue);
 	}
+	else
+	{
+		setOverflowProduction(iNewValue);
+	}
 }
 
 
@@ -5649,6 +5653,10 @@ void CvCity::changeProduction(int iChange)
 	{
 		changeSpecialistProduction(getProductionSpecialist(), iChange);
 	}
+	else
+	{
+		changeOverflowProduction(iChange);
+	}
 }
 
 
@@ -5671,6 +5679,10 @@ void CvCity::setProductionTimes100(int iNewValue)
 	else if(isProductionSpecialist())
 	{
 		setSpecialistProductionTimes100(getProductionSpecialist(), iNewValue);
+	}
+	else
+	{
+		setOverflowProductionTimes100(iNewValue);
 	}
 }
 
@@ -5698,6 +5710,10 @@ void CvCity::changeProductionTimes100(int iChange)
 	else if(isProductionProcess())
 	{
 		doProcess();
+	}
+	else
+	{
+		changeOverflowProductionTimes100(iChange);
 	}
 }
 
