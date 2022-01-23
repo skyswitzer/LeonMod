@@ -1832,17 +1832,6 @@ void CvCity::doTurn()
 	CvPlot* pLoopPlot;
 	int iI;
 
-	// add city recon vision
-	const EraTypes era = GET_PLAYER(getOwner()).GetCurrentEra();
-	int visionRadius;
-	switch (era)
-	{
-		case 0:  visionRadius = 3; break; // ancient
-		case 1:  visionRadius = 4; break; // classical
-		default: visionRadius = 5; break;
-	}
-	plot()->changeAdjacentSight(getTeam(), visionRadius, true, NO_INVISIBLE, NO_DIRECTION, false);
-
 	if(getDamage() > 0)
 	{
 		CvAssertMsg(m_iDamage <= GetMaxHitPoints(), "Somehow a city has more damage than hit points. Please show this to a gameplay programmer immediately.");
