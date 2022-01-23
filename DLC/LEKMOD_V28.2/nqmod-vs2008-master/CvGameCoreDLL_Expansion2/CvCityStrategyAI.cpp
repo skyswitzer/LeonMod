@@ -1054,7 +1054,7 @@ EndHarborLoop:;
 
 				CvUnitEntry* pkUnitEntry = GC.getUnitInfo((UnitTypes)iUnitLoop);
 
-				const bool isCivilian = (pkUnitEntry->GetCombat() != 0);
+				const bool isCivilian = (pkUnitEntry->GetCombat() == 0);
 				const bool isMinorCiv = GET_PLAYER(m_pCity->getOwner()).isMinorCiv();
 				if (!isCivilian && isMinorCiv)
 					continue; // minor civs can only build non military
