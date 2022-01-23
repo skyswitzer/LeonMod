@@ -14883,7 +14883,8 @@ void CvCity::Purchase(UnitTypes eUnitType, BuildingTypes eBuildingType, ProjectT
 		{
 			// invest (not buy) in buildings
 			const int halfTotalProdT100 = getProductionNeeded(eBuildingType) * 100 / 2;
-			m_pCityBuildings->SetBuildingProductionTimes100(eBuildingType, halfTotalProdT100);
+			// change, not set!
+			m_pCityBuildings->ChangeBuildingProductionTimes100(eBuildingType, halfTotalProdT100);
 
 			ICvEngineScriptSystem1* pkScriptSystem = gDLL->GetScriptSystem();
 			if (pkScriptSystem) 
