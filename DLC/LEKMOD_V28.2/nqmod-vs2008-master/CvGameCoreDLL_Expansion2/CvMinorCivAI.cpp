@@ -27,7 +27,7 @@
 // score awarded upon winning the unrest contest
 const int scoreFromUnrestWinner = 40;
 // score per turn for being an ally
-const int scorePerAllyTurn = 1;
+const int scorePerAllyTurn = 2;
 // minimum military influence needed to gain influence
 const int minMilitaryStrength = 15;
 // influence gained per turn for having the most local military
@@ -4287,7 +4287,7 @@ int CvMinorCivAI::GetPersonalityQuestBias(MinorCivQuestTypes eQuest)
 	else if (eQuest == MINOR_CIV_QUEST_UNREST)
 	{
 		// always prefer
-		iCount += 600;
+		iCount *= 600;
 		iCount /= 100;
 	}
 
