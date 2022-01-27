@@ -249,7 +249,7 @@ public:
 	void ChangeInfluenceOn(PlayerTypes ePlayer, int iValue);
 	int GetLastTurnInfluenceOn(PlayerTypes ePlayer) const;
 	int GetInfluencePerTurn(PlayerTypes ePlayer) const;
-	int GetInfluencePercent(PlayerTypes ePlayer) const;
+	float GetInfluencePercent(PlayerTypes ePlayer) const;
 	InfluenceLevelTypes GetInfluenceLevel(PlayerTypes ePlayer) const;
 	InfluenceLevelTrend GetInfluenceTrend(PlayerTypes ePlayer) const;
 	int GetTurnsToInfluential(PlayerTypes ePlayer) const;
@@ -367,13 +367,15 @@ public:
 	void ClearGreatWorks();
 	GreatWorkSlotType GetSlotTypeFirstAvailableCultureBuilding() const;
 
-#if defined(AUI_CONSTIFY) || defined(AUI_WARNING_FIXES)
+
+	/// Compute raw tourism from this city
 	int GetBaseTourismBeforeModifiers() const;
+	// percent of city culture that is converted to tourism
+	int GetTourismFromCulturePercentT100() const;
+	// city tourism from culture
+	int GetTourismFromCultureT100() const;
+	/// What is the tourism output ignoring player-specific modifiers?
 	int GetBaseTourism() const;
-#else
-	int GetBaseTourismBeforeModifiers();
-	int GetBaseTourism();
-#endif
 	int GetTourismMultiplier(PlayerTypes ePlayer, bool bIgnoreReligion, bool bIgnoreOpenBorders, bool bIgnoreTrade, bool bIgnorePolicies, bool bIgnoreIdeologies) const;
 
 	CvString GetTourismTooltip();

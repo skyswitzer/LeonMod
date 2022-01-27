@@ -832,8 +832,12 @@ public:
 	std::vector<BuildingTypes> GetFreeBuildingsOnConquest();
 	int GetTourismFromUnitCreation(UnitClassTypes eUnitClass) const;
 
-	// Functions to give current player status with respect to policies
-	int GetPolicyModifierForCityCount();
+	// unmodded policy cost increase due to cities
+	int GetPolicyModifierForCityCountNormalT100() const;
+	// player modifiers for per city cost
+	int GetPolicyModifierForCityCountModT100() const;
+	// player determined policy cost increase due to cities
+	int GetPolicyModifierForCityCount() const;
 	int GetNextPolicyCost();
 	bool CanAdoptPolicy(PolicyTypes eIndex, bool bIgnoreCost = false) const;
 	int GetNumPoliciesCanBeAdopted();

@@ -13693,13 +13693,13 @@ int CvPlayer::GetTourismCombatPenalty(const PlayerTypes eOtherPlayerId) const
 	CvPlayer& usPlayer = GET_PLAYER(GetID());
 	CvPlayer& themPlayer = GET_PLAYER(eOtherPlayerId);
 
-	int ourInfluence = usPlayer.GetCulture()->GetInfluencePercent(themPlayer.GetID());
-	int theirInfluence = themPlayer.GetCulture()->GetInfluencePercent(usPlayer.GetID());
+	const float ourInfluence = usPlayer.GetCulture()->GetInfluencePercent(themPlayer.GetID());
+	const float theirInfluence = themPlayer.GetCulture()->GetInfluencePercent(usPlayer.GetID());
 
 	// if their influence is greater than ours, WE get a PENALTY, THEY don't get a bonus
 	if (theirInfluence > ourInfluence)
 	{
-		int maxBonus = (int)GC.getTOURISM_COMBAT_MAX();
+		const int maxBonus = (int)GC.getTOURISM_COMBAT_MAX();
 		float influenceDivisor = GC.getTOURISM_COMBAT_DIVISOR();
 		iRetVal = -1 * min(maxBonus, (int)((theirInfluence - ourInfluence) / influenceDivisor));
 	}

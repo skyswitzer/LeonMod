@@ -3526,27 +3526,33 @@ int CvPlayerPolicies::GetTourismFromUnitCreation(UnitClassTypes eUnitClass) cons
 	return iTourism;
 }
 
+int CvPlayerPolicies::GetPolicyModifierForCityCountNormalT100() const
+{
+	const float iNumCities = m_pPlayer->GetMaxEffectiveCities();
+	const float perCityPercentChange = GC.getMap().getWorldInfo().GetNumCitiesPolicyCostMod() / 100.0f;
 
-int CvPlayerPolicies::GetPolicyModifierForCityCount()
+	return 100 * perCityPercentChange * max(0.0f, iNumCities - 1);
+}
+
+int CvPlayerPolicies::GetPolicyModifierForCityCountModT100() const
+{
+	const float iNumCities = m_pPlayer->GetMaxEffectiveCities();
+	const float perCityPercentChange = m_pPlayer->GetNumCitiesPolicyCostDiscount() / 100.0f;
+
+	return 100 * perCityPercentChange * max(0.0f, iNumCities - 1);
+}
+
+int CvPlayerPolicies::GetPolicyModifierForCityCount() const
 {
 	// Mod for City Count
-	const int iNumCities = m_pPlayer->GetMaxEffectiveCities();
-	const int iPolicyModDiscount = m_pPlayer->GetNumCitiesPolicyCostDiscount();
-	int perCityPercentIncrease = GC.getMap().getWorldInfo().GetNumCitiesPolicyCostMod();	// Default is 40, gets smaller on larger maps
-
-	if (iPolicyModDiscount != 0)
-	{
-		perCityPercentIncrease = perCityPercentIncrease * (100 + iPolicyModDiscount);
-		perCityPercentIncrease /= 100;
-	}
-
-	const int additionalPercentage = (iNumCities - 1) * perCityPercentIncrease; // 5 * 5
-	return max(0, additionalPercentage); // eg 25
+	const int change = GetPolicyModifierForCityCountNormalT100() + GetPolicyModifierForCityCountModT100();
+	return change; // eg 25
 }
 
 /// How much will the next policy cost?
 int CvPlayerPolicies::GetNextPolicyCost()
 {
+	const float policyAdoptionIncrease = (100.f + 20) / 100.f;
 	int iNumPolicies = GetNumPoliciesOwned();
 
 	// Reduce count by however many free Policies we've had in this game
@@ -3559,7 +3565,7 @@ int CvPlayerPolicies::GetNextPolicyCost()
 	//}
 
 	int iCost = 0;
-	iCost += (iNumPolicies* /*7*/ GC.getPOLICY_COST_INCREASE_TO_BE_EXPONENTED());
+	iCost += (iNumPolicies / policyAdoptionIncrease * /*7*/ GC.getPOLICY_COST_INCREASE_TO_BE_EXPONENTED());
 
 	// Exponential cost scaling
 	iCost = (int) pow((double) iCost, (double) /*1.70*/ GC.getPOLICY_COST_EXPONENT());
@@ -3590,7 +3596,7 @@ int CvPlayerPolicies::GetNextPolicyCost()
 	iCost /= iDivisor;
 	iCost *= iDivisor;
 
-	return iCost;
+	return iCost / policyAdoptionIncrease;
 }
 
 /// Can we adopt this policy?

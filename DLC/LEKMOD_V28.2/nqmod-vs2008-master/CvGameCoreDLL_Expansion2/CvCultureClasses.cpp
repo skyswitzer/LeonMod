@@ -2594,15 +2594,15 @@ int CvPlayerCulture::GetLastTurnInfluenceOn(PlayerTypes ePlayer) const
 }
 
 /// Influence being applied each turn
-int CvPlayerCulture::GetInfluencePerTurn(PlayerTypes ePlayer) const
+int CvPlayerCulture::GetInfluencePerTurn(PlayerTypes eOtherPlayer) const
 {
 	int iRtnValue = 0;
 	int iModifier = 0;
 
-	CvPlayer &kOtherPlayer = GET_PLAYER(ePlayer);
+	CvPlayer &kOtherPlayer = GET_PLAYER(eOtherPlayer);
 	CvTeam &kOtherTeam = GET_TEAM(kOtherPlayer.getTeam());
 
-	if ((int)ePlayer != m_pPlayer->GetID() && kOtherPlayer.isAlive() && !kOtherPlayer.isMinorCiv() && kOtherTeam.isHasMet(m_pPlayer->getTeam()))
+	if ((int)eOtherPlayer != m_pPlayer->GetID() && kOtherPlayer.isAlive() && !kOtherPlayer.isMinorCiv() && kOtherTeam.isHasMet(m_pPlayer->getTeam()))
 	{
 		int iLoopCity;
 		CvCity *pLoopCity;
@@ -2612,7 +2612,7 @@ int CvPlayerCulture::GetInfluencePerTurn(PlayerTypes ePlayer) const
 		int iTechSpreadModifier = m_pPlayer->GetInfluenceSpreadModifier();
 		if (iTechSpreadModifier > 0) 
 		{
-			for (pLoopCity = GET_PLAYER(ePlayer).firstCity(&iLoopCity); pLoopCity != NULL; pLoopCity = GET_PLAYER(ePlayer).nextCity(&iLoopCity))
+			for (pLoopCity = GET_PLAYER(eOtherPlayer).firstCity(&iLoopCity); pLoopCity != NULL; pLoopCity = GET_PLAYER(eOtherPlayer).nextCity(&iLoopCity))
 			{
 				// Buildings
 #ifdef AUI_WARNING_FIXES
@@ -2682,22 +2682,22 @@ int CvPlayerCulture::GetInfluencePerTurn(PlayerTypes ePlayer) const
 
 }
 
-int CvPlayerCulture::GetInfluencePercent(PlayerTypes ePlayer) const
+float CvPlayerCulture::GetInfluencePercent(PlayerTypes ePlayer) const
 {
-	int iPercent = 0;
+	float iPercent = 0;
 	CvPlayer &kOtherPlayer = GET_PLAYER(ePlayer);
 	CvTeam &kOtherTeam = GET_TEAM(kOtherPlayer.getTeam());
 	if (kOtherTeam.isHasMet(m_pPlayer->getTeam()))
 	{
-		int iInfluenceOn = GetInfluenceOn(ePlayer);
-		int iLifetimeCulture = kOtherPlayer.GetJONSCultureEverGenerated();
+		float iInfluenceOn = GetInfluenceOn(ePlayer);
+		float iLifetimeCulture = kOtherPlayer.GetJONSCultureEverGenerated();
 
 		if (iLifetimeCulture > 0)
 		{
-			iPercent = iInfluenceOn * 100 / iLifetimeCulture;
+			iPercent = iInfluenceOn * 100.0f / iLifetimeCulture;
 		}
 	}
-	return max(0, iPercent);
+	return max(0.0f, iPercent);
 }
 
 /// Current influence level on this player
@@ -3349,18 +3349,28 @@ CvString CvPlayerCulture::GetTourismModifierWithTooltip(PlayerTypes ePlayer) con
 		szRtnValue += "[COLOR_NEGATIVE_TEXT]" + GetLocalizedText("TXT_KEY_CO_PLAYER_TOURISM_DIFFERENT_IDEOLOGIES", GC.getTOURISM_MODIFIER_DIFFERENT_IDEOLOGIES()) + "[ENDCOLOR]";
 	}
 
-	// adjust for number of cities
-	const int cityMod = GetTourismModifierCityCount(ePlayer);
-	stringstream s;
-	s << "[COLOR_POSITIVE_TEXT]+" << cityMod << "% Bonus for their number of cities[NEWLINE][ENDCOLOR]";
-	szRtnValue += s.str().c_str();
+	{ // adjust for number of cities
+		const int cityMod = GetTourismModifierCityCount(ePlayer);
+		stringstream s;
+		if (cityMod > 0)
+			s << "[COLOR_POSITIVE_TEXT]+";
+		else if (cityMod < 0)
+			s << "[COLOR_NEGATIVE_TEXT]-";
+		else
+			s << "[COLOR_GREY]+";
+		s << abs(cityMod) << "% From difference in number of cities[NEWLINE][ENDCOLOR]";
+		szRtnValue += s.str().c_str();
+	}
 
 	return szRtnValue;
 }
 
 int CvPlayerCulture::GetTourismModifierCityCount(PlayerTypes targetPlayer) const
 {
-	return GET_PLAYER(targetPlayer).GetPlayerPolicies()->GetPolicyModifierForCityCount();
+	// Mod for City Count
+	const int themMod = GET_PLAYER(targetPlayer).GetPlayerPolicies()->GetPolicyModifierForCityCountNormalT100();
+	const int usMod = m_pPlayer->GetPlayerPolicies()->GetPolicyModifierForCityCountNormalT100();
+	return themMod - usMod;
 }
 
 /// Tourism modifier (base plus policy boost) - shared religion
@@ -3973,6 +3983,9 @@ int CvPlayerCulture::ComputePublicOpinionUnhappiness(int iDissatisfaction, int &
 int CvPlayerCulture::ComputePublicOpinionUnhappiness(int iDissatisfaction, int &iPerCityUnhappy, int &iUnhappyPerXPop)
 #endif
 {
+	// change unhappiness from public pressure
+	const float publicUnhappinessFactor = 0.25f;
+
 	if (iDissatisfaction < 3)
 	{
 		iPerCityUnhappy = 1;
@@ -3995,7 +4008,7 @@ int CvPlayerCulture::ComputePublicOpinionUnhappiness(int iDissatisfaction, int &
 		totalUnhappiness *= (100 + iUnhappinessModifier);
 		totalUnhappiness /= 100;
 	}
-	return totalUnhappiness;
+	return totalUnhappiness * publicUnhappinessFactor;
 #else
 	return max(m_pPlayer->getNumCities() * iPerCityUnhappy, m_pPlayer->getTotalPopulation() / iUnhappyPerXPop);
 #endif
@@ -4483,12 +4496,7 @@ GreatWorkSlotType CvCityCulture::GetSlotTypeFirstAvailableCultureBuilding() cons
 	return eRtnValue;
 }
 
-/// Compute raw tourism from this city
-#if defined(AUI_CONSTIFY) || defined(AUI_WARNING_FIXES)
 int CvCityCulture::GetBaseTourismBeforeModifiers() const
-#else
-int CvCityCulture::GetBaseTourismBeforeModifiers()
-#endif
 {
 	// If we're in Resistance, then no Tourism!
 	if(m_pCity->IsResistance() || m_pCity->IsRazing())
@@ -4591,15 +4599,29 @@ int CvCityCulture::GetBaseTourismBeforeModifiers()
 	iBase += GET_PLAYER(m_pCity->getOwner()).GetPlayerPolicies()->GetNumericModifier(POLICYMOD_TOURISM_PER_CITY);
 #endif
 
+	iBase += GetTourismFromCultureT100() / 100;
+
 	return max(0, iBase);
 }
 
-/// What is the tourism output ignoring player-specific modifiers?
-#if defined(AUI_CONSTIFY) || defined(AUI_WARNING_FIXES)
+int CvCityCulture::GetTourismFromCulturePercentT100() const
+{
+	const int percentagePerPolicyPast = 10;
+	const int maxPercentage = 80;
+	const int numPolicyThreshold = 6;
+	const int numPoliciesPast = max(0, m_pCity->GetPlayer()->GetNumPolicies() - numPolicyThreshold);
+
+	return min(maxPercentage, (numPoliciesPast * percentagePerPolicyPast));
+}
+
+int CvCityCulture::GetTourismFromCultureT100() const
+{
+	const float cityCultureToTourismPercent = GetTourismFromCulturePercentT100() / 100.f;
+	const float totalCityCulture = m_pCity->getJONSCulturePerTurnTimes100() / 100.f;
+	return 100 * cityCultureToTourismPercent * totalCityCulture;
+}
+
 int CvCityCulture::GetBaseTourism() const
-#else
-int CvCityCulture::GetBaseTourism()
-#endif
 {
 	int iBase = GetBaseTourismBeforeModifiers();
 
@@ -4786,7 +4808,7 @@ int CvCityCulture::GetTourismMultiplier(PlayerTypes ePlayer, bool bIgnoreReligio
 	return iMultiplier;
 }
 
-/// What is the tooltip describing the tourism output?
+/// What is the tooltip describing the tourism output of a city?
 CvString CvCityCulture::GetTourismTooltip()
 {
 	CvString szRtnValue = "";
@@ -4823,12 +4845,23 @@ CvString CvCityCulture::GetTourismTooltip()
 	szRtnValue = GetLocalizedText("TXT_KEY_CO_CITY_TOURISM_GREAT_WORKS", iGWTourism, (int)m_pCity->GetCityCulture()->GetNumGreatWorks(), iTotalBonusTourismForWonders, iNumWorldWonders); // edited
 	// NQMP GJS - Flourishing of the Arts END
 
+
+	{ // city culture to tourism
+		szRtnValue += "[NEWLINE][NEWLINE]";
+		stringstream s;
+		s << (GetTourismFromCultureT100() / 100) << " [ICON_TOURISM] Tourism from " << GetTourismFromCulturePercentT100() << "% of city [ICON_CULTURE] Culture";
+		szRtnValue += s.str().c_str();
+	}
+
+
+	// theming bonuses
 	int iThemingBonuses = m_pCity->GetCityBuildings()->GetThemingBonuses();
 	if (iThemingBonuses > 0)
 	{
 		szRtnValue += "[NEWLINE][NEWLINE]";
 		szRtnValue += GetLocalizedText("TXT_KEY_CO_CITY_TOURISM_THEMING_BONUSES", iThemingBonuses);
 	}
+
 
 	// Landmarks, Wonders, Natural Wonders, Improvements
 	int iTileTourism = 0;
@@ -4846,6 +4879,8 @@ CvString CvCityCulture::GetTourismTooltip()
 		szRtnValue += GetLocalizedText("TXT_KEY_CO_CITY_TOURISM_TILES", iTileTourism, iPercent);
 	}
 
+
+	// tourism per city
 #ifdef NQ_TOURISM_PER_CITY
 	int iFromTourismPerCity = GET_PLAYER(m_pCity->getOwner()).GetPlayerPolicies()->GetNumericModifier(POLICYMOD_TOURISM_PER_CITY);
 	if (iFromTourismPerCity > 0)
