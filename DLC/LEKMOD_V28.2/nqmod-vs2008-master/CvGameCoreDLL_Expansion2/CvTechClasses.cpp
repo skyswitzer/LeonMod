@@ -2203,6 +2203,9 @@ int CvTeamTechs::GetResearchCost(TechTypes eTech) const
 	iCost *= GC.getGame().getStartEraInfo().getResearchPercent();
 	iCost /= 100;
 
+	// change tech cost factor
+	iCost *= 1.4f;
+
 	iCost *= std::max(0, ((GC.getTECH_COST_EXTRA_TEAM_MEMBER_MODIFIER() * (m_pTeam->getNumMembers() - 1)) + 100));
 	iCost /= 100;
 
