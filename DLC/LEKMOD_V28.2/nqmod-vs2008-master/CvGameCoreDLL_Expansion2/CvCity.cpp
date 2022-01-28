@@ -16779,6 +16779,12 @@ bool CvCity::canRangeStrikeAt(int iX, int iY) const
 		return false;
 	}
 
+	// cities can only attack within our borders
+	if (pTargetPlot->getTeam() != this->getOwner())
+	{
+		return false;
+	}
+
 	return true;
 }
 
