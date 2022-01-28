@@ -195,6 +195,33 @@ public:
 	{
 		return m_aiPlotDirectionY;
 	}
+
+	// computes a sigmoid distribution between 0 and 1
+	// https://www.desmos.com/calculator/c1aid2jsmv
+	float sigmoidRanged(float x, float minX, float maxX) const
+	{
+		double adjusted = (x - minX) / (maxX - minX);
+		return sigmoid(adjusted);
+	}
+
+	// computes a sigmoid distribution between 0 and 1
+	// https://www.desmos.com/calculator/c1aid2jsmv
+	float sigmoid(float x) const
+	{
+		x = max(0.0f, min(1.0f, x)); // bound to range [0, 1]
+		const double m = 1.1;
+		const double u = 0.5;
+		const double v = -0.05;
+		const double d = 6.3;
+
+		double val = 1 + exp(-d * (x - u)); // e to the [args] power
+		val = (m / val) + v;
+
+		val = max(0.0, min(1.0, val));
+
+		return val;
+	}
+
 	// in online turns, indicates the percentage [0,1]
 	float turnsToPercentage(float start, float end);
 	// [0, 1] Number of turns DONE as a percentage of max turns 

@@ -491,6 +491,19 @@ function ScienceTipHandler( control )
 	
 			strText = strText .. Locale.ConvertTextKey("TXT_KEY_TP_SCIENCE_FROM_RESEARCH_AGREEMENTS", iScienceFromRAs / 100);
 		end
+	
+		-- Display rubber band boost
+		local boost = math.floor(100 * pPlayer:GetNonLeaderBoost() + 0.5);
+		if (boost > 0) then		
+			-- Add separator for non-initial entries
+			if (bFirstEntry) then
+				bFirstEntry = false;
+			else
+				strText = strText .. "[NEWLINE]";
+			end
+	
+			strText = strText .. "[ICON_BULLET][COLOR_POSITIVE_TEXT]+" .. boost .. "%[ENDCOLOR] [ICON_RESEARCH] from more advanced civs.";
+		end
 		
 		-- Let people know that building more cities makes techs harder to get
 		if (not OptionsManager.IsNoBasicHelp()) then

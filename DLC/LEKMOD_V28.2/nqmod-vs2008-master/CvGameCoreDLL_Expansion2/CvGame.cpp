@@ -1643,6 +1643,8 @@ void CvGame::update()
 
 			if(!isPaused())	// Check for paused again, the doTurn call might have called something that paused the game and we don't want an update to sneak through
 			{
+				updateScienceCatchup();
+
 				updateScore();
 
 				updateWar();
@@ -1809,6 +1811,36 @@ void CvGame::CheckPlayerTurnDeactivate()
 				}
 			}
 		}
+	}
+}
+
+//	---------------------------------------------------------------------------------------------------------
+void CvGame::updateScienceCatchup()
+{
+	int progresses [MAX_CIV_TEAMS];
+	// find winner
+	int best = 0;
+	for (TeamTypes team = (TeamTypes)0; team < MAX_CIV_TEAMS; team = (TeamTypes)(team + 1))
+	{
+		int progress = GET_TEAM(team).GetTeamTechs()->GetTreeProgressBeakers();
+		progresses[team] = progress;
+		if (progress > best)
+			best = progress;
+	}
+
+	// 
+	for (PlayerTypes player = (PlayerTypes)0; player < MAX_CIV_TEAMS; player = (PlayerTypes)(player + 1))
+	{
+		CvPlayer& rPlayer = GET_PLAYER(player);
+		CvTeam& team = GET_TEAM(rPlayer.getTeam());
+		int progress = progresses[player];
+		float beakerDifference = best - progress;
+
+		const float adjustedBeakerDifference = (beakerDifference * (100 + rPlayer.GetPlayerTechs()->GetResearchCostIncreasePercentT100())) / 100;
+
+		const float turnDifference = (float)adjustedBeakerDifference / (float)rPlayer.GetScience();
+
+		rPlayer.leaderTechDiff = turnDifference;
 	}
 }
 

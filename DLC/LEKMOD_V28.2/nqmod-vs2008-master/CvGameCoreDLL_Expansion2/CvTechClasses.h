@@ -242,6 +242,8 @@ public:
 	int GetNumTechsCanBeResearched() const;
 	CvTechXMLEntries* GetTechs() const;
 	int GetResearchCost(TechTypes eTech) const;
+	// could return 50, meaning techs are 50% more expensive due to cities and other factors
+	int GetResearchCostIncreasePercentT100() const;
 	int GetResearchProgress(TechTypes eTech) const;
 	int GetMedianTechResearch() const;
 
@@ -300,6 +302,8 @@ public:
 	void SetResearchProgress(TechTypes eIndex, int iNewValue, PlayerTypes ePlayer);
 	void SetResearchProgressTimes100(TechTypes eIndex, int iNewValue, PlayerTypes ePlayer);
 	int GetResearchProgress(TechTypes eIndex) const;
+	// returns in the interval [0,1]
+	float GetResearchPercent(TechTypes eIndex) const;
 	int GetResearchProgressTimes100(TechTypes eIndex) const;
 	void ChangeResearchProgress(TechTypes eIndex, int iChange, PlayerTypes ePlayer);
 	void ChangeResearchProgressTimes100(TechTypes eIndex, int iChange, PlayerTypes ePlayer);
@@ -307,6 +311,8 @@ public:
 	int GetResearchCost(TechTypes eTech) const;
 	int GetResearchLeft(TechTypes eTech) const;
 	CvTechXMLEntries* GetTechs() const;
+	// what percentage of the tech tree do we have done?
+	float GetTreeProgressBeakers() const;
 
 private:
 	int GetMaxResearchOverflow(TechTypes eTech, PlayerTypes ePlayer) const;

@@ -220,6 +220,13 @@ int CvTechEntry::GetAITradeModifier() const
 int CvTechEntry::GetResearchCost() const
 {
 	return m_iResearchCost;
+
+	// increase cost based on era
+	const float percentPerEra = 10;
+	const int era = GetEra();
+	const float increase = 1.0f + min(100.0f, max(0, era - 1) * percentPerEra / 100.0f);
+	const float adjustedCost = m_iResearchCost * increase;
+	return adjustedCost;
 }
 
 /// Cost if starting midway through game
@@ -1521,6 +1528,23 @@ int CvPlayerTechs::GetResearchCost(TechTypes eTech) const
 	int iResearchMod = std::max(1, m_pPlayer->calculateResearchModifier(eTech));
 	iResearchCost = ((iResearchCost * 10000) / iResearchMod);
 
+	int iMod = GetResearchCostIncreasePercentT100();
+
+	iResearchCost = iResearchCost * (100 + iMod) / 100;
+
+	// We're going to round up so that the user wont get confused when the research progress seems to be equal to the research cost, but it is not acutally done.
+	// This is because the 'real' calculations use the GameCore's fixed point math where things are multiplied by 100
+	if((iResearchCost % 100) != 0)
+		iResearchCost = (iResearchCost / 100) + 1;
+	else
+		iResearchCost = (iResearchCost / 100);
+
+	return iResearchCost;
+#endif
+}
+
+int CvPlayerTechs::GetResearchCostIncreasePercentT100() const
+{
 	// Mod for City Count
 	int iMod = GC.getMap().getWorldInfo().GetNumCitiesTechCostMod();	// Default is 40, gets smaller on larger maps
 
@@ -1533,23 +1557,12 @@ int CvPlayerTechs::GetResearchCost(TechTypes eTech) const
 	}
 	// NQMP GJS - new Dictatorship of the Proletariat i.e. Communism END
 
-#ifdef NQ_IGNORE_PUPPETS_FOR_RESEARCH_COSTS_FROM_POLICIES
 	bool bIncludePuppets = (GC.getGame().isOption("GAMEOPTION_FAST_HAND"));
 	iMod = iMod * m_pPlayer->GetMaxEffectiveCities(bIncludePuppets);
-#else
+
 	iMod = iMod * m_pPlayer->GetMaxEffectiveCities(/*bIncludePuppets*/ true);
-#endif
-	iResearchCost = iResearchCost * (100 + iMod) / 100;
 
-	// We're going to round up so that the user wont get confused when the research progress seems to be equal to the research cost, but it is not acutally done.
-	// This is because the 'real' calculations use the GameCore's fixed point math where things are multiplied by 100
-	if((iResearchCost % 100) != 0)
-		iResearchCost = (iResearchCost / 100) + 1;
-	else
-		iResearchCost = (iResearchCost / 100);
-
-	return iResearchCost;
-#endif
+	return iMod;
 }
 
 //	----------------------------------------------------------------------------
@@ -2160,6 +2173,13 @@ int CvTeamTechs::GetResearchProgress(TechTypes eIndex) const
 	}
 }
 
+float CvTeamTechs::GetResearchPercent(TechTypes t) const
+{
+	const float actualPercent = (float)GetResearchProgress(t) / (float)GetResearchCost(t);
+	const float boundedPercent = min(1.0f, max(0.0f, actualPercent));
+	return boundedPercent;
+}
+
 /// Accessor: get research done on one tech (in hundredths)
 int CvTeamTechs::GetResearchProgressTimes100(TechTypes eIndex) const
 {
@@ -2202,9 +2222,6 @@ int CvTeamTechs::GetResearchCost(TechTypes eTech) const
 
 	iCost *= GC.getGame().getStartEraInfo().getResearchPercent();
 	iCost /= 100;
-
-	// change tech cost factor
-	iCost *= 1.4f;
 
 	iCost *= std::max(0, ((GC.getTECH_COST_EXTRA_TEAM_MEMBER_MODIFIER() * (m_pTeam->getNumMembers() - 1)) + 100));
 	iCost /= 100;
@@ -2307,6 +2324,35 @@ int CvTeamTechs::ChangeResearchProgressPercent(TechTypes eIndex, int iPercent, P
 	}
 
 	return iBeakers;
+}
+
+float CvTeamTechs::GetTreeProgressBeakers() const
+{
+	const int numTechs = GC.getNumTechInfos();
+
+	//int requiredBeakers = 0;
+	//if (requiredBeakers == 0)
+	//{
+	//	for (TechTypes t = (TechTypes)0; t < numTechs; t = (TechTypes)((int)t + 1))
+	//	{
+	//		CvTechEntry* info = GC.getTechInfo(t);
+	//		const double adjustedCost = info->GetResearchCost();
+	//		requiredBeakers += adjustedCost;
+	//	}
+	//}
+
+
+	// check how far we are on each tech
+	int haveBeakers = 0;
+	for (TechTypes t = (TechTypes)0; t < numTechs; t = (TechTypes)((int)t + 1))
+	{
+		CvTechEntry* info = GC.getTechInfo(t);
+		const int cost = info->GetResearchCost();
+
+		haveBeakers += cost * GetResearchPercent(t);
+	}
+
+	return haveBeakers;
 }
 
 // PRIVATE FUNCTIONS

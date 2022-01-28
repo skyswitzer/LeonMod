@@ -1120,6 +1120,7 @@ void CvPlayer::reset(PlayerTypes eID, bool bConstructorCall)
 	// Uninit class
 	uninit();
 
+	leaderTechDiff = 0;
 	m_eID = eID;
 	if(m_eID != NO_PLAYER)
 	{
@@ -18629,6 +18630,12 @@ void CvPlayer::updateExtraYieldThreshold(YieldTypes eIndex)
 	}
 }
 
+float CvPlayer::GetNonLeaderBoost() const
+{
+	const float boost = GC.sigmoidRanged(leaderTechDiff, 0.0f, 16.0f);
+	return boost;
+}
+
 //	--------------------------------------------------------------------------------
 int CvPlayer::GetScience() const
 {
@@ -18663,6 +18670,10 @@ int CvPlayer::GetScienceTimes100() const
 
 	// If we have a negative Treasury + GPT then it gets removed from Science
 	iValue += GetScienceFromBudgetDeficitTimes100();
+
+	const float nonLeaderBoost = GetNonLeaderBoost();
+
+	iValue += iValue * nonLeaderBoost;
 
 	return max(iValue, 0);
 }

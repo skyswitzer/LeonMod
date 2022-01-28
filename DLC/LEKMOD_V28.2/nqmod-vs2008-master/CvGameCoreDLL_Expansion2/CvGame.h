@@ -65,6 +65,8 @@ public:
 	void DoGameStarted();
 
 	void update();
+	// gives science output to teams that are behind
+	void updateScienceCatchup();
 	void updateScore(bool bForce = false);
 
 	int GetMapScoreMod() const;
