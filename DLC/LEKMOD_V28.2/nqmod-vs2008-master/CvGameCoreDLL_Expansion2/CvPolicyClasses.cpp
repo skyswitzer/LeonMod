@@ -3537,7 +3537,8 @@ int CvPlayerPolicies::GetPolicyModifierForCityCountNormalT100() const
 int CvPlayerPolicies::GetPolicyModifierForCityCountModT100() const
 {
 	const float iNumCities = m_pPlayer->GetMaxEffectiveCities();
-	const float perCityPercentChange = m_pPlayer->GetNumCitiesPolicyCostDiscount() / 100.0f;
+	float perCityPercentChange = GC.getMap().getWorldInfo().GetNumCitiesPolicyCostMod() / 100.0f;
+	perCityPercentChange *= m_pPlayer->GetNumCitiesPolicyCostDiscount() / 100.0f;
 
 	return 100 * perCityPercentChange * max(0.0f, iNumCities - 1);
 }
@@ -3552,7 +3553,7 @@ int CvPlayerPolicies::GetPolicyModifierForCityCount() const
 /// How much will the next policy cost?
 int CvPlayerPolicies::GetNextPolicyCost()
 {
-	const float policyAdoptionIncrease = (100.f + 20) / 100.f;
+	const float policyAdoptionIncrease = (100.f + 30) / 100.f;
 	int iNumPolicies = GetNumPoliciesOwned();
 
 	// Reduce count by however many free Policies we've had in this game
@@ -4730,12 +4731,19 @@ bool CvPlayerPolicies::IsTimeToChooseIdeology() const
 		return false;
 	}
 
-	if (m_pPlayer->GetCurrentEra() > GC.getInfoTypeForString("ERA_INDUSTRIAL"))
+	// era no longer matters
+	//if (m_pPlayer->GetCurrentEra() > GC.getInfoTypeForString("ERA_INDUSTRIAL"))
+	//{
+	//	return true;
+	//}
+
+	// have adopted enough policies?
+	const int numPoliciesForIdeology = 18;
+	if (GetNumPoliciesOwned() > numPoliciesForIdeology)
 	{
 		return true;
 	}
-
-	// Check for the right number of buildings of a certain type (3 factories)
+	// enough buildings? (3 factories)
 	else
 	{
 		CvBuildingXMLEntries* pkGameBuildings = GC.GetGameBuildings();
