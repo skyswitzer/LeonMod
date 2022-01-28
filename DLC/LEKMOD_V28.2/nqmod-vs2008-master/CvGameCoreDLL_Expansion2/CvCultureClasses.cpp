@@ -18,6 +18,13 @@
 
 #include "LintFree.h"
 
+// how many policies are needed before tourism starts happening
+const int numPolicyThreshold = 7;
+// each policy will increase tourism by this percent
+const int percentagePerPolicy = 5;
+// we will stop increasing due to policies at this value
+const int maxPolicyTourismPercentage = 50;
+
 //=====================================
 // CvGreatWork
 //=====================================
@@ -2655,6 +2662,13 @@ int CvPlayerCulture::GetInfluencePerTurn(PlayerTypes eOtherPlayer) const
 			}
 		}
 
+		// tourism from culture
+		int cityCultureT100 = 0;
+		int iLoop = 0;
+		for (CvCity* pCity = m_pPlayer->firstCity(&iLoop); pCity != NULL; pCity = m_pPlayer->nextCity(&iLoop))
+			cityCultureT100 += pCity->getJONSCulturePerTurnTimes100();
+		iRtnValue += (GetTourismFromCultureT100(cityCultureT100) + 49) / 100; // 49 causes rounding
+
 		// Loop through each of our cities
 		for (pLoopCity = m_pPlayer->firstCity(&iLoopCity); pLoopCity != NULL; pLoopCity = m_pPlayer->nextCity(&iLoopCity))
 		{
@@ -2680,6 +2694,20 @@ int CvPlayerCulture::GetInfluencePerTurn(PlayerTypes eOtherPlayer) const
 
 	return iRtnValue;
 
+}
+
+int CvPlayerCulture::GetTourismFromCulturePercentT100() const
+{
+	const int numPoliciesPast = max(0, m_pPlayer->GetNumPolicies() - numPolicyThreshold);
+
+	return min(maxPolicyTourismPercentage, (numPoliciesPast * percentagePerPolicy));
+}
+
+int CvPlayerCulture::GetTourismFromCultureT100(int cultureT100) const
+{
+	const float cityCultureToTourismPercent = GetTourismFromCulturePercentT100() / 100.f;
+	const float totalCityCulture = cultureT100 / 100.f;
+	return 100 * cityCultureToTourismPercent * totalCityCulture;
 }
 
 float CvPlayerCulture::GetInfluencePercent(PlayerTypes ePlayer) const
@@ -3086,13 +3114,18 @@ int CvPlayerCulture::GetTourism()
 #endif
 {
 	int iRtnValue = 0;
+	int cityCultureT100 = 0;
 
 	CvCity *pCity;
 	int iLoop;
 	for(pCity = m_pPlayer->firstCity(&iLoop); pCity != NULL; pCity = m_pPlayer->nextCity(&iLoop))
 	{
+		cityCultureT100 += pCity->getJONSCulturePerTurnTimes100();
 		iRtnValue += pCity->GetCityCulture()->GetBaseTourism();
 	}
+
+	// tourism from culture
+	iRtnValue += (GetTourismFromCultureT100(cityCultureT100) + 49) / 100; // 49 causes rounding
 
 	return iRtnValue;
 }
@@ -3208,6 +3241,38 @@ int CvPlayerCulture::GetTourismModifierWith(PlayerTypes ePlayer) const
 	iMultiplier += GetTourismModifierCityCount(ePlayer);
 
 	return iMultiplier;
+}
+
+// create the tooltip for tourism in the top panel
+CvString CvPlayerCulture::GetTooltipTopPanelTourism() const
+{
+	CvString tooltip = "";
+	const int greatSlotsFilled = GetNumGreatWorks();
+	const int greatSlotsAvailable = GetNumGreatWorkSlots();
+
+	{ 
+		stringstream s;
+		// great work slots
+		s << greatSlotsFilled;
+		s << " of ";
+		s << greatSlotsAvailable;
+		s << " [ICON_GREAT_WORK] Great Work Slots Filled";
+		s << "[NEWLINE][NEWLINE]";
+
+		// tourism from culture
+		s << "Each policy after your ";
+		s << numPolicyThreshold;
+		s << "th one will cause [COLOR_CYAN]+";
+		s << percentagePerPolicy;
+		s << "%[ENDCOLOR] of city [ICON_CULTURE] Culture to be added to [ICON_TOURISM] Tourism up to a max of [COLOR_CYAN]+";
+		s << maxPolicyTourismPercentage;
+		s << "%[ENDCOLOR]. Currently [COLOR_POSITIVE_TEXT]+";
+		s << GetTourismFromCulturePercentT100();
+		s << "%[ENDCOLOR].";
+		tooltip += s.str().c_str();
+	}
+
+	return tooltip;
 }
 
 /// Tooltip for GetTourismModifierWith()
@@ -4599,26 +4664,7 @@ int CvCityCulture::GetBaseTourismBeforeModifiers() const
 	iBase += GET_PLAYER(m_pCity->getOwner()).GetPlayerPolicies()->GetNumericModifier(POLICYMOD_TOURISM_PER_CITY);
 #endif
 
-	iBase += GetTourismFromCultureT100() / 100;
-
 	return max(0, iBase);
-}
-
-int CvCityCulture::GetTourismFromCulturePercentT100() const
-{
-	const int percentagePerPolicyPast = 10;
-	const int maxPercentage = 80;
-	const int numPolicyThreshold = 6;
-	const int numPoliciesPast = max(0, m_pCity->GetPlayer()->GetNumPolicies() - numPolicyThreshold);
-
-	return min(maxPercentage, (numPoliciesPast * percentagePerPolicyPast));
-}
-
-int CvCityCulture::GetTourismFromCultureT100() const
-{
-	const float cityCultureToTourismPercent = GetTourismFromCulturePercentT100() / 100.f;
-	const float totalCityCulture = m_pCity->getJONSCulturePerTurnTimes100() / 100.f;
-	return 100 * cityCultureToTourismPercent * totalCityCulture;
 }
 
 int CvCityCulture::GetBaseTourism() const
@@ -4846,12 +4892,12 @@ CvString CvCityCulture::GetTourismTooltip()
 	// NQMP GJS - Flourishing of the Arts END
 
 
-	{ // city culture to tourism
-		szRtnValue += "[NEWLINE][NEWLINE]";
-		stringstream s;
-		s << (GetTourismFromCultureT100() / 100) << " [ICON_TOURISM] Tourism from " << GetTourismFromCulturePercentT100() << "% of city [ICON_CULTURE] Culture";
-		szRtnValue += s.str().c_str();
-	}
+	//{ // city culture to tourism
+	//	szRtnValue += "[NEWLINE][NEWLINE]";
+	//	stringstream s;
+	//	s << (GetTourismFromCultureT100() / 100) << " [ICON_TOURISM] Tourism from " << GetTourismFromCulturePercentT100() << "% of city [ICON_CULTURE] Culture";
+	//	szRtnValue += s.str().c_str();
+	//}
 
 
 	// theming bonuses

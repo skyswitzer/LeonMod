@@ -249,6 +249,10 @@ public:
 	void ChangeInfluenceOn(PlayerTypes ePlayer, int iValue);
 	int GetLastTurnInfluenceOn(PlayerTypes ePlayer) const;
 	int GetInfluencePerTurn(PlayerTypes ePlayer) const;
+	// percent of city culture that is converted to tourism
+	int GetTourismFromCulturePercentT100() const;
+	// city tourism from culture
+	int GetTourismFromCultureT100(int cultureT100) const;
 	float GetInfluencePercent(PlayerTypes ePlayer) const;
 	InfluenceLevelTypes GetInfluenceLevel(PlayerTypes ePlayer) const;
 	InfluenceLevelTrend GetInfluenceTrend(PlayerTypes ePlayer) const;
@@ -268,6 +272,8 @@ public:
 	int GetTourism();
 #endif
 	int GetTourismModifierWith(PlayerTypes ePlayer) const;
+	// create the tooltip for tourism in the top panel
+	CvString GetTooltipTopPanelTourism() const;
 	CvString GetTourismModifierWithTooltip(PlayerTypes ePlayer) const;
 	// adjust for number of cities
 	int GetTourismModifierCityCount(PlayerTypes ePlayer) const;
@@ -370,10 +376,6 @@ public:
 
 	/// Compute raw tourism from this city
 	int GetBaseTourismBeforeModifiers() const;
-	// percent of city culture that is converted to tourism
-	int GetTourismFromCulturePercentT100() const;
-	// city tourism from culture
-	int GetTourismFromCultureT100() const;
 	/// What is the tourism output ignoring player-specific modifiers?
 	int GetBaseTourism() const;
 	int GetTourismMultiplier(PlayerTypes ePlayer, bool bIgnoreReligion, bool bIgnoreOpenBorders, bool bIgnoreTrade, bool bIgnorePolicies, bool bIgnoreIdeologies) const;

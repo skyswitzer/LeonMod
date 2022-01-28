@@ -240,6 +240,8 @@ protected:
 	static int lGetInfluenceTrend(lua_State* L);
 	static int lGetTurnsToInfluential(lua_State* L);
 	static int lGetNumCivsInfluentialOn(lua_State* L);
+	// move tourism panel to server
+	static int lGetTooltipTopPanelTourism(lua_State* L);
 	static int lGetNumCivsToBeInfluentialOn(lua_State* L);
 	static int lGetInfluenceTradeRouteScienceBonus(lua_State* L);
 	static int lGetInfluenceCityStateSpyRankBonus(lua_State* L);
@@ -660,6 +662,8 @@ protected:
 	// Science
 
 	static int lGetScience(lua_State* L);
+	// get the non leader tech boost percent
+	static int lGetNonLeaderBoost(lua_State* L);
 	static int lGetScienceTimes100(lua_State* L);
 
 	static int lGetScienceFromCitiesTimes100(lua_State* L);

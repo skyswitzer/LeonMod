@@ -1036,35 +1036,15 @@ end
 
 -- Tourism Tooltip
 function TourismTipHandler( control )
-
 	local iPlayerID = Game.GetActivePlayer();
 	local pPlayer = Players[iPlayerID];
-	
-	local iTotalGreatWorks = pPlayer:GetNumGreatWorks();
-	local iTotalSlots = pPlayer:GetNumGreatWorkSlots();
-	
-	local strText1 = Locale.ConvertTextKey("TXT_KEY_TOP_PANEL_TOURISM_TOOLTIP_1", iTotalGreatWorks);
-	local strText2 = Locale.ConvertTextKey("TXT_KEY_TOP_PANEL_TOURISM_TOOLTIP_2", (iTotalSlots - iTotalGreatWorks));
-		
-	local strText = strText1 .. "[NEWLINE]" .. strText2;
-		
-	local cultureVictory = GameInfo.Victories["VICTORY_CULTURAL"];
-	if(cultureVictory ~= nil and PreGame.IsVictory(cultureVictory.ID)) then
-	    local iNumInfluential = pPlayer:GetNumCivsInfluentialOn();
-		local iNumToBeInfluential = pPlayer:GetNumCivsToBeInfluentialOn();
-		local szText = Locale.ConvertTextKey("TXT_KEY_CO_VICTORY_INFLUENTIAL_OF", iNumInfluential, iNumToBeInfluential);
 
-		local strText3 = Locale.ConvertTextKey("TXT_KEY_TOP_PANEL_TOURISM_TOOLTIP_3", szText);
-		
-		strText = strText .. "[NEWLINE][NEWLINE]" .. strText3;
-	end	
-
+	-- move Tourism panel text to server
+	local strText = pPlayer:GetTooltipTopPanelTourism();		
 	tipControlTable.TooltipLabel:SetText( strText );
+
 	tipControlTable.TopPanelMouseover:SetHide(false);
-    
-    -- Autosize tooltip
-    tipControlTable.TopPanelMouseover:DoAutoSize();
-	
+    tipControlTable.TopPanelMouseover:DoAutoSize(); -- Autosize tooltip
 end
 
 -- FaithTooltip

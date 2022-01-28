@@ -254,6 +254,7 @@ void CvLuaPlayer::PushMethods(lua_State* L, int t)
 	Method(GetInfluenceTrend);
 	Method(GetTurnsToInfluential);
 	Method(GetNumCivsInfluentialOn);
+	Method(GetTooltipTopPanelTourism);
 	Method(GetNumCivsToBeInfluentialOn);
 	Method(GetInfluenceTradeRouteScienceBonus);
 	Method(GetInfluenceCityStateSpyRankBonus);
@@ -677,6 +678,7 @@ void CvLuaPlayer::PushMethods(lua_State* L, int t)
 	// Science
 
 	Method(GetScience);
+	Method(GetNonLeaderBoost);
 	Method(GetScienceTimes100);
 
 	Method(GetScienceFromCitiesTimes100);
@@ -2462,6 +2464,15 @@ int CvLuaPlayer::lGetNumCivsInfluentialOn(lua_State* L)
 	CvPlayerAI* pkPlayer = GetInstance(L);
 	const int iResult = pkPlayer->GetCulture()->GetNumCivsInfluentialOn();
 	lua_pushinteger(L, iResult);
+	return 1;
+}
+//------------------------------------------------------------------------------
+// move tourism panel to server
+int CvLuaPlayer::lGetTooltipTopPanelTourism(lua_State* L)
+{
+	CvPlayerAI* pkPlayer = GetInstance(L);
+	const CvString result = pkPlayer->GetCulture()->GetTooltipTopPanelTourism();
+	lua_pushstring(L, result);
 	return 1;
 }
 //------------------------------------------------------------------------------
@@ -7076,6 +7087,12 @@ int CvLuaPlayer::lGetExtraYieldThreshold(lua_State* L)
 int CvLuaPlayer::lGetScience(lua_State* L)
 {
 	return BasicLuaMethod(L, &CvPlayerAI::GetScience);
+}
+//------------------------------------------------------------------------------
+// get the science boost for being behind
+int CvLuaPlayer::lGetNonLeaderBoost(lua_State* L)
+{
+	return BasicLuaMethod(L, &CvPlayerAI::GetNonLeaderBoost);
 }
 //------------------------------------------------------------------------------
 //int GetScienceTimes100();
