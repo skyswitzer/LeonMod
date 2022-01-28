@@ -187,6 +187,16 @@ bool CvCitySiteEvaluator::CanFound(CvPlot* pPlot, const CvPlayer* pPlayer, bool 
 		}
 	}
 
+
+	// cannot found next to non-barb enemy units
+	vector<CvUnit*> enemyUnits = pPlot->GetAdjacentEnemyMilitaryUnits(pPlayer->getTeam(), DOMAIN_LAND);
+	for (int i = 0; i < enemyUnits.size(); ++i)
+	{
+		CvUnit* enemyUnit = enemyUnits[i];
+		if (enemyUnit->getOwner() != BARBARIAN_PLAYER) // non barbarian enemy
+			return false;
+	}
+
 	return true;
 }
 
