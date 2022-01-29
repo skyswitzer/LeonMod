@@ -7092,7 +7092,12 @@ int CvLuaPlayer::lGetScience(lua_State* L)
 // get the science boost for being behind
 int CvLuaPlayer::lGetNonLeaderBoost(lua_State* L)
 {
-	return BasicLuaMethod(L, &CvPlayerAI::GetNonLeaderBoost);
+	CvPlayerAI* pkPlayer = GetInstance(L);
+
+	const int iValue = 100 * pkPlayer->GetNonLeaderBoost() + 0.5;
+
+	lua_pushinteger(L, iValue);
+	return 1;
 }
 //------------------------------------------------------------------------------
 //int GetScienceTimes100();

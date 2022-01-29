@@ -1208,7 +1208,7 @@ public:
 	int leaderTechDiff; // if they have 5 techs and we have 4, this would be ~0.01 with 100 techs in the tree
 
 	int GetScience() const;
-	int GetScienceTimes100() const;
+	int GetScienceTimes100(bool includeBoost = true) const;
 
 	int GetScienceFromCitiesTimes100(bool bIgnoreTrade) const;
 	int GetScienceFromOtherPlayersTimes100() const;

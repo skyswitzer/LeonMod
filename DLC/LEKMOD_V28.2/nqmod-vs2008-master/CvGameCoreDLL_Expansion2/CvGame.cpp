@@ -1643,8 +1643,6 @@ void CvGame::update()
 
 			if(!isPaused())	// Check for paused again, the doTurn call might have called something that paused the game and we don't want an update to sneak through
 			{
-				updateScienceCatchup();
-
 				updateScore();
 
 				updateWar();
@@ -1838,7 +1836,9 @@ void CvGame::updateScienceCatchup()
 
 		const float adjustedBeakerDifference = (beakerDifference * (100 + rPlayer.GetPlayerTechs()->GetResearchCostIncreasePercentT100())) / 100;
 
-		const float turnDifference = (float)adjustedBeakerDifference / (float)rPlayer.GetScience();
+		const float medianScienceOutput = ((float)rPlayer.GetScienceTimes100(true) + (float)rPlayer.GetScienceTimes100(false)) / 2.0f;
+
+		const float turnDifference = (float)adjustedBeakerDifference * 100 / medianScienceOutput;
 
 		rPlayer.leaderTechDiff = turnDifference;
 	}
@@ -8247,6 +8247,9 @@ void CvGame::doTurn()
 #ifndef AUI_YIELDS_APPLIED_AFTER_TURN_NOT_BEFORE
 	// Victory stuff
 	testVictory();
+
+
+	updateScienceCatchup();
 #endif
 
 	// Who's Winning

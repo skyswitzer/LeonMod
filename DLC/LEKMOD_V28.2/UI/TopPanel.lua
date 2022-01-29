@@ -493,7 +493,7 @@ function ScienceTipHandler( control )
 		end
 	
 		-- Display rubber band boost
-		local boost = math.floor(100 * pPlayer:GetNonLeaderBoost() + 0.5);
+		local boost = pPlayer:GetNonLeaderBoost();
 		if (boost > 0) then		
 			-- Add separator for non-initial entries
 			if (bFirstEntry) then

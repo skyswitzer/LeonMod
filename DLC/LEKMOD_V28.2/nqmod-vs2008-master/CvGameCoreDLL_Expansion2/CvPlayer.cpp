@@ -18632,7 +18632,7 @@ void CvPlayer::updateExtraYieldThreshold(YieldTypes eIndex)
 
 float CvPlayer::GetNonLeaderBoost() const
 {
-	const float boost = GC.sigmoidRanged(leaderTechDiff, 0.0f, 16.0f);
+	const float boost = GC.sigmoidRanged(leaderTechDiff, 0.0f, 20.0f);
 	return boost;
 }
 
@@ -18643,7 +18643,7 @@ int CvPlayer::GetScience() const
 }
 
 //	--------------------------------------------------------------------------------
-int CvPlayer::GetScienceTimes100() const
+int CvPlayer::GetScienceTimes100(bool includeBoost) const
 {
 	// If we're in anarchy, then no Research is done!
 	if(IsAnarchy())
@@ -18671,9 +18671,11 @@ int CvPlayer::GetScienceTimes100() const
 	// If we have a negative Treasury + GPT then it gets removed from Science
 	iValue += GetScienceFromBudgetDeficitTimes100();
 
-	const float nonLeaderBoost = GetNonLeaderBoost();
-
-	iValue += iValue * nonLeaderBoost;
+	if (includeBoost)
+	{
+		const float nonLeaderBoost = GetNonLeaderBoost();
+		iValue += iValue * nonLeaderBoost;
+	}
 
 	return max(iValue, 0);
 }
