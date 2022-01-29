@@ -204,6 +204,8 @@ function AssignStartingPlots.Create()
 		CanPlaceCityStateAt = AssignStartingPlots.CanPlaceCityStateAt,
 		ObtainNextSectionInRegion = AssignStartingPlots.ObtainNextSectionInRegion,
 		PlaceCityState = AssignStartingPlots.PlaceCityState,
+		findNear = AssignStartingPlots.findNear,
+		isValidForCs = AssignStartingPlots.isValidForCs,
 		PlaceCityStateInRegion = AssignStartingPlots.PlaceCityStateInRegion,
 		PlaceCityStates = AssignStartingPlots.PlaceCityStates,	-- Dependent on AssignLuxuryRoles being executed first, so beware.
 		NormalizeCityState = AssignStartingPlots.NormalizeCityState,
@@ -262,6 +264,9 @@ function AssignStartingPlots.Create()
 		playerCollisionData = table.fill(false, iW * iH), -- Stores "impact" data only, of start points, to avoid player collisions
 		startLocationConditions = {},   -- Stores info regarding conditions at each start location
 		bModLuxes = false,				-- Set to true if extra luxes exsist in database
+
+		haltonPointsX = {},
+		haltonPointsY = {},
 
 		-- Team info variables (not used in the core process, but necessary to many Multiplayer map scripts)
 		bTeamGame,
@@ -7879,27 +7884,27 @@ end
 function AssignStartingPlots:CanPlaceCityStateAt(x, y, area_ID, force_it, ignore_collisions)
 	local iW, iH = Map.GetGridSize();
 	local plot = Map.GetPlot(x, y)
-	local area = plot:GetArea()
-	local biggest_area = Map.FindBiggestArea(False);
-	local iAreaID = biggest_area:GetID();
+	--local area = plot:GetArea()
+	--local biggest_area = Map.FindBiggestArea(False);
+	--local iAreaID = biggest_area:GetID();
 
-	if self.continent_grain == 1 then
-		if area_ID ~= iAreaID then
-			return false
-		end
-	end
+	--if self.continent_grain == 1 then
+	--	if area_ID ~= iAreaID then
+	--		return false
+	--	end
+	--end
 
-	if area ~= area_ID and area_ID ~= -1 then
-		return false
-	end
+	--if area ~= area_ID and area_ID ~= -1 then
+	--	return false
+	--end
 	local plotType = plot:GetPlotType()
 	if plotType == PlotTypes.PLOT_OCEAN or plotType == PlotTypes.PLOT_MOUNTAIN then
 		return false
 	end
 	local terrainType = plot:GetTerrainType()
-	if terrainType == TerrainTypes.TERRAIN_SNOW then
-		return false
-	end
+	--if terrainType == TerrainTypes.TERRAIN_SNOW then
+	--	return false
+	--end
 	local featureType = plot:GetFeatureType()
 	if featureType == FeatureTypes.FEATURE_OASIS then
 		return false
@@ -7912,9 +7917,9 @@ function AssignStartingPlots:CanPlaceCityStateAt(x, y, area_ID, force_it, ignore
 		--print("-"); print("City State candidate plot rejected: collided with already-placed civ or City State at", x, y);
 		return false
 	end
-	if self.plotDataIsNextToCoast[plotIndex] == true then
-		return false
-	end
+	--if self.plotDataIsNextToCoast[plotIndex] == true then
+	--	return false
+	--end
 	return true
 end
 ------------------------------------------------------------------------------
@@ -8007,7 +8012,7 @@ function AssignStartingPlots:ObtainNextSectionInRegion(incoming_west_x, incoming
 	return coastal_plots, inland_plots, new_west_x, new_south_y, new_width, new_height, reached_middle;
 end
 ------------------------------------------------------------------------------
-function AssignStartingPlots:PlaceCityState(coastal_plot_list, inland_plot_list, check_proximity, check_collision)
+function AssignStartingPlots:PlaceCityState(coastal_plot_list, inland_plot_list, check_proximity, check_collision, i)
 	-- returns coords, plus boolean indicating whether assignment succeeded or failed.
 	-- Argument "check_collision" should be false if plots in lists were already checked, true if not.
 	if coastal_plot_list == nil or inland_plot_list == nil then
@@ -8020,8 +8025,86 @@ function AssignStartingPlots:PlaceCityState(coastal_plot_list, inland_plot_list,
 	print("Inc. Inland List Size: ", table.maxn(inland_plot_list));
 	print("--------------------------------------------------------------------------------------------");
 
-	local coastornot = Map.Rand(100, "Chance for coast v inalnd");
+	--local coastornot = Map.Rand(100, "Chance for coast v inland");
 
+	local x,y = math.floor(iW * self.haltonPointsX[i]), math.floor(iH * self.haltonPointsY[i]);
+
+	x,y = self:findNear(x, y, iW, iH);
+
+	return x, y, true;
+end
+
+------------------------------------------------------------------------------
+-- converts an x,y coordinate into an linear index
+------------------------------------------------------------------------------
+function GetI(x,y,maxX)
+	return y * maxX + x + 1;
+end
+
+function AssignStartingPlots:findNear(x, y, iW, iH)
+	local xOffA,yOffA = 0,0;
+	for d = 1, 35 do -- (start with 1 since we already did 0)
+		for u = 0, d do
+
+			local i = GetI(x+xOffA,y+yOffA,iW);
+			print("Checking: (" .. x+xOffA .. ", " .. y+yOffA .. ")");
+			if self:isValidForCs(x+xOffA, y+yOffA, iW, iH) then
+				return x+xOffA, y+yOffA;
+			end
+
+			xOffA=Switch(u);
+			yOffA=Switch(d - u);
+		end
+	end
+	print("ERROR NO SPOT FOUND");
+end
+
+function AssignStartingPlots:isValidForCs(x, y, iW, iH)
+
+	if (x > 1 and x < iW-1 and y > 1 and y < iH-1) then
+		return self:CanPlaceCityStateAt(x, y, -1, false, false);
+	end
+	return false;
+end
+
+-------------------------------------------------
+-- maps positive integers: 0, 1, 2, 3, 4 etc.
+-- to alternating signed:  0,-1, 1,-2, 2 etc.
+-------------------------------------------------
+function Switch(offset)
+	if (offset % 2 == 0) then -- is even number
+		return offset/2;
+	else                      -- is odd number
+		return (1+offset)/-2
+	end
+end
+
+-- https://en.wikipedia.org/wiki/Halton_sequence
+function halton(base, numToGen, rngAddition)
+	points = {};
+    local numerator, divisor = 0, 1;
+    local minToGen = 100 + rngAddition;
+
+    for i = 0,minToGen+numToGen do
+        local range = divisor - numerator;
+        if range == 1 then -- find new divisor because we are the end of this range
+            numerator = 1;
+            divisor = divisor * base;
+        else
+            local shift = divisor / base;
+            while (range <= shift) do
+                shift = shift / base;
+            end
+            numerator = (base + 1) * shift - range;
+        end
+        if (i > minToGen) then
+			table.insert(points, numerator / divisor);
+		end
+    end
+    return points;
+end
+
+--[[
 	if coastornot >= 50 then
 
 		local iNumCoastal = table.maxn(coastal_plot_list);
@@ -8116,7 +8199,7 @@ function AssignStartingPlots:PlaceCityState(coastal_plot_list, inland_plot_list,
 	end
 
 	return 0, 0, false;
-end
+end]]--
 ------------------------------------------------------------------------------
 function AssignStartingPlots:PlaceCityStateInRegion(city_state_number, region_number)
 	--print("Place City State in Region called for City State", city_state_number, "Region", region_number);
@@ -8145,7 +8228,8 @@ function AssignStartingPlots:PlaceCityStateInRegion(city_state_number, region_nu
 		  reached_middle = self:ObtainNextSectionInRegion(curWX, curSY, curWid, curHei, iAreaID, false, false) -- Don't force it. Yet.
 		curWX, curSY, curWid, curHei = nextWX, nextSY, nextWid, nextHei;
 		-- Attempt to place city state using the two plot lists received from the last call.
-		x, y, placed_city_state = self:PlaceCityState(eligible_coastal, eligible_inland, false, false) -- Don't need to re-check collisions.
+		x, y, placed_city_state = self:PlaceCityState(eligible_coastal, eligible_inland, false, false, city_state_number + 1);
+		-- Don't need to re-check collisions.
 	end
 	
 	-- Disabling all fallback methods of city state placement. Jon has decided that, rather than
@@ -8283,6 +8367,10 @@ function AssignStartingPlots:PlaceCityStates()
 
 	self:AssignCityStatesToRegionsOrToUninhabited()
 	
+
+	self.haltonPointsX = halton(2, 600, 2 + Map.Rand(6,"Halton Rng"));
+	self.haltonPointsY = halton(3, 600, 2 + Map.Rand(6,"Halton Rng"));
+
 	--print("-"); print("--- City State Placement Results ---");
 
 	local iW, iH = Map.GetGridSize();
@@ -8294,7 +8382,7 @@ function AssignStartingPlots:PlaceCityStates()
 				--print("Place City States, place in uninhabited called for City State", cs_number);
 				iUninhabitedCandidatePlots = iUninhabitedCandidatePlots - 1;
 				local cs_x, cs_y, success;
-				cs_x, cs_y, success = self:PlaceCityState(self.uninhabited_areas_coastal_plots, self.uninhabited_areas_inland_plots, true, true)
+				cs_x, cs_y, success = self:PlaceCityState(self.uninhabited_areas_coastal_plots, self.uninhabited_areas_inland_plots, true, true, cs_number + 1)
 				--
 				-- Disabling fallback methods that remove proximity and collision checks. Jon has decided
 				-- that city states that do not fit on the map will simply not be placed, but instead discarded.
@@ -8367,7 +8455,7 @@ function AssignStartingPlots:PlaceCityStates()
 			end
 			for loop, cs_number in ipairs(cs_list) do
 				local cs_x, cs_y, success;
-				cs_x, cs_y, success = self:PlaceCityState(last_chance_shuffled, {}, true, true)
+				cs_x, cs_y, success = self:PlaceCityState(last_chance_shuffled, {}, true, true, cs_number + 1);
 				if success == true then
 					self.cityStatePlots[cs_number] = {cs_x, cs_y, -1};
 					self.city_state_validity_table[cs_number] = true; -- This is the line that marks a city state as valid to be processed by the rest of the system.
