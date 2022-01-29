@@ -767,7 +767,9 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, 
 
 	// Spread a pantheon here if one is active
 	CvPlayerReligions* pReligions = kPlayer.GetReligions();
-	if(pReligions->HasCreatedPantheon() && !pReligions->HasCreatedReligion())
+
+	// spread pantheon even if they have a religion
+	if(pReligions->HasCreatedPantheon()) //  && !pReligions->HasCreatedReligion()
 	{
 		GetCityReligions()->AddReligiousPressure(FOLLOWER_CHANGE_PANTHEON_FOUNDED, RELIGION_PANTHEON, GC.getRELIGION_ATHEISM_PRESSURE_PER_POP() * getPopulation() * 2);
 	}
@@ -12578,6 +12580,12 @@ void CvCity::GetBuyablePlotList(std::vector<int>& aiPlotList)
 					continue;
 				}
 
+				// cannot buy plots with enemy units of any domain (water/land) on or nearby
+				if (pLoopPlot->GetAdjacentEnemyMilitaryUnits(getTeam(), NO_DOMAIN).size() > 0)
+				{
+					continue;
+				}
+
 #ifdef AUI_CITY_GET_BUYABLE_PLOT_LIST_ACTUALLY_IMPOSSIBLE_IF_NOT_ADJACENT_OWNED
 				// Plots not adjacent to another Plot acquired by this City are pretty much impossible to get
 				bFoundAdjacentOwnedByCity = false;
@@ -17035,7 +17043,7 @@ int CvCity::GetAirStrikeDefenseDamage(const CvUnit* pAttacker, bool bIncludeRand
 	iDefenderDamage /= 100;
 
 	// Always do at least 1 damage
-	int iMinDamage = /*1*/ GC.getMIN_CITY_STRIKE_DAMAGE();
+	int iMinDamage = 4;
 	if(iDefenderDamage < iMinDamage)
 		iDefenderDamage = iMinDamage;
 
