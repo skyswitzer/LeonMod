@@ -1296,10 +1296,6 @@ bool CvMinorCivQuest::DoFinishQuest()
 	int iOldInf = pMinor->GetMinorCivAI()->GetEffectiveFriendshipWithMajor(m_eAssignedPlayer);
 
 	pMinor->GetMinorCivAI()->ChangeFriendshipWithMajor(m_eAssignedPlayer, GetInfluenceReward(), /*bFromQuest*/ true);
-	if (GetType() == MINOR_CIV_QUEST_UNREST)
-	{
-		GET_PLAYER(m_eAssignedPlayer).ChangeScoreFromFutureTech(scoreFromUnrestWinner); // award victory points
-	}
 
 	bool bNowFriends = pMinor->GetMinorCivAI()->IsFriends(m_eAssignedPlayer);
 	bool bNowAllies = pMinor->GetMinorCivAI()->IsAllies(m_eAssignedPlayer);
@@ -1448,6 +1444,8 @@ bool CvMinorCivQuest::DoFinishQuest()
 	// Techs contest
 	else if (m_eType == MINOR_CIV_QUEST_UNREST)
 	{
+	GET_PLAYER(m_eAssignedPlayer).ChangeScoreFromFutureTech(scoreFromUnrestWinner); // award victory points
+
 	strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_COMPLETE_UNREST");
 	strMessage << scoreFromUnrestWinner;
 	strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_COMPLETE_UNREST");
@@ -4287,7 +4285,7 @@ int CvMinorCivAI::GetPersonalityQuestBias(MinorCivQuestTypes eQuest)
 	else if (eQuest == MINOR_CIV_QUEST_UNREST)
 	{
 		// always prefer
-		iCount *= 600;
+		iCount *= 6000;
 		iCount /= 100;
 	}
 
