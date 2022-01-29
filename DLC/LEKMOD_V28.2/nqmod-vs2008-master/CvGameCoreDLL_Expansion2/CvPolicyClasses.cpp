@@ -3553,7 +3553,7 @@ int CvPlayerPolicies::GetPolicyModifierForCityCount() const
 /// How much will the next policy cost?
 int CvPlayerPolicies::GetNextPolicyCost()
 {
-	const float policyAdoptionIncrease = (100.f + 30) / 100.f;
+	const float policyAdoptionIncrease = (100.f + 20) / 100.f;
 	int iNumPolicies = GetNumPoliciesOwned();
 
 	// Reduce count by however many free Policies we've had in this game
@@ -3566,7 +3566,7 @@ int CvPlayerPolicies::GetNextPolicyCost()
 	//}
 
 	int iCost = 0;
-	iCost += (iNumPolicies / policyAdoptionIncrease * /*7*/ GC.getPOLICY_COST_INCREASE_TO_BE_EXPONENTED());
+	iCost += ((float)iNumPolicies / policyAdoptionIncrease * /*7*/ GC.getPOLICY_COST_INCREASE_TO_BE_EXPONENTED());
 
 	// Exponential cost scaling
 	iCost = (int) pow((double) iCost, (double) /*1.70*/ GC.getPOLICY_COST_EXPONENT());
