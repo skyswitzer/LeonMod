@@ -253,7 +253,7 @@ function FeatureGenerator:AddIceAtPlot(plot, iX, iY, lat)
 			plot:SetFeatureType(self.featureIce, -1)
 
 		else
-			local rand = Map.Rand(200, "Add Ice Lua")/100.0;
+			local rand = Map.Rand(300, "Add Ice Lua")/100.0;
 
 			if(rand < 8 * (lat - 0.875)) then
 				plot:SetFeatureType(self.featureIce, -1);
