@@ -496,8 +496,8 @@ function GeneratePlotTypes()
 	local islandSizeMin = 6; -- actually effectively 5 (-1) because unknown black magic
 	local islandSizeMax = Map.GetCustomOption(18)*2-1;
 	local islandChance = Map.GetCustomOption(17)*2; -- chance in 1000 that an island will start generating (Standard size does 4000 checks)
-	local polesIslandChance = islandChance / 2; -- chance in 1000 that an island will start generating in polar region
-	local poleClearDist = 7; -- clear all land at this range
+	local polesIslandChance = islandChance / 1.3; -- chance in 1000 that an island will start generating in polar region
+	local poleClearDist = 6; -- clear all land at this range
 	local polesAddDist =  3; -- add small islands up to this range 
 	local geometricReduction = GetSizeExponent();
 
@@ -529,9 +529,10 @@ function GeneratePlotTypes()
 	for x = 0, maxX - 1 do
 		for y = 0, maxY - 1 do
 			local i = GetI(x,y,maxX);
+			local islandSize = GenIslandSize(islandSizeMin,islandSizeMax,geometricReduction);
 			if plotTypes[i] == PlotTypes.PLOT_OCEAN then
-				if Map.Rand(1000, "Island Chance") < islandChance then
-					RandomIsland(plotTypes,x,y,maxX,GenIslandSize(islandSizeMin,islandSizeMax,geometricReduction))
+				if Map.Rand(1000, "Island Chance") < islandChance and (not IsNearLand(plotTypes,x,y,maxX,islandSize)) then
+					RandomIsland(plotTypes,x,y,maxX,islandSize)
 				end
 			end
 		end
@@ -554,17 +555,89 @@ function GeneratePlotTypes()
 				end
 				if y <= polesAddDist or y >= maxY-polesAddDist then
 					if Map.Rand(1000, "Pole Island Chance") < polesIslandChance then
-						RandomIsland(plotTypes,x,y,maxX,Map.Rand(6, "Pole Size")+1)
+						RandomIsland(plotTypes,x,y,maxX,Map.Rand(8, "Pole Size")+1)
 					end
 				end
 			end
 		end
 	end
+
+	-- add random islands
+	for x = 0, maxX - 1 do
+		for y = 0, maxY - 1 do
+			local i = GetI(x,y,maxX);
+			local islandSize = GenIslandSize(islandSizeMin,islandSizeMax,geometricReduction);
+			if plotTypes[i] ~= PlotTypes.PLOT_OCEAN then
+				if (IsSingleIsland(plotTypes,x,y,maxX)) then
+					RandomIsland(plotTypes,x,y,maxX,islandSize)
+				end
+			end
+		end
+	end
+
 	SetPlotTypes(plotTypes);
 
 	local args = {expansion_diceroll_table = {10, 4, 4}};
 	GenerateCoasts(args);
 end
+
+
+------------------------------------------------------------------------------
+-- creates a random island starting with x,y and going around that point 
+-- bouncing positive and negative until numLandTiles is reached
+-- maxX needs to be the width of the map
+-- plotTypes needs to be the linear array of tile types
+------------------------------------------------------------------------------
+function IsSingleIsland(plotTypes,x,y,maxX,numLandTiles)
+
+	local start = GetI(x,y,maxX);
+
+	local radius = 3;
+	local points = GetGridPoints(radius);
+
+	for i=1,radius*radius do
+		local p = points[i];
+    	local nx,ny = p[1]-1 + x, p[2]-1 + y;
+		local index = GetI(nx, ny, maxX);
+
+		if (not (x == nx and y == ny)) then -- center tile
+			-- don't replace an existing non ocean tile
+			if plotTypes[index] ~= PlotTypes.PLOT_OCEAN then
+				return false;
+			end
+		end
+	end
+
+	print ("Single Island found at" .. x .. "," .. y);
+	return true; -- we checked them all
+end
+
+------------------------------------------------------------------------------
+-- creates a random island starting with x,y and going around that point 
+-- bouncing positive and negative until numLandTiles is reached
+-- maxX needs to be the width of the map
+-- plotTypes needs to be the linear array of tile types
+------------------------------------------------------------------------------
+function IsNearLand(plotTypes,x,y,maxX,numLandTiles)
+
+	local start = GetI(x,y,maxX);
+
+	local radius = 2 + math.floor(math.sqrt(numLandTiles) + 0.5);
+	local points = GetGridPoints(radius);
+
+	for i=1,radius*radius do
+		local p = points[i];
+    	local xOffA,yOffA = p[1]-1, p[2]-1;
+		local index = GetI(x+xOffA,y+yOffA,maxX);
+
+		-- don't replace an existing non ocean tile
+		if plotTypes[index] ~= PlotTypes.PLOT_OCEAN then
+			return true;
+		end
+	end
+	return false;
+end
+
 ------------------------------------------------------------------------------
 -- creates a random island starting with x,y and going around that point 
 -- bouncing positive and negative until numLandTiles is reached
@@ -574,28 +647,71 @@ end
 function RandomIsland(plotTypes,x,y,maxX,numLandTiles)
 	local remaining = numLandTiles;
 	local start = GetI(x,y,maxX);
-	if plotTypes[start] == PlotTypes.PLOT_OCEAN then
-		plotTypes[start] = RandomPlot(40,40,8*numLandTiles-8,0);
+
+
+	local radius = math.floor(math.sqrt(numLandTiles) + 0.5);
+	local points = GetGridPoints(radius+1); -- get extra poitns just in case
+
+	for i=1,radius*radius do
+    	p = points[i];
+    	local xOffA,yOffA = p[1], p[2];
+		local index = GetI(x+xOffA,y+yOffA,maxX);
+
+		-- don't replace an existing non ocean tile
+		if plotTypes[index] == PlotTypes.PLOT_OCEAN then
+			local oceanChance = 20;
+			if i==1 then oceanChance = 0; end
+			plotTypes[index] = RandomPlot(40,40,18, oceanChance);
+		end
+		-- reduce count if we added/already have a land tile here
+		if plotTypes[index] ~= PlotTypes.PLOT_OCEAN then
+			remaining = remaining - 1;
+		end
+		-- we are done making the island
+		if remaining <= 0 then
+			return;
+		end
 	end
-	for d = 1, 15 do -- (start with 1 since we already did 0)
-		for u = 0, d do
-			local xOffA=Switch(u);
-			local yOffA=Switch(d - u);
-			local i = GetI(x+xOffA,y+yOffA,maxX);
-			-- don't replace an existing non ocean tile
-			if plotTypes[i] == PlotTypes.PLOT_OCEAN then
-				plotTypes[i] = RandomPlot(40,40,18,20);
-			end
-			-- reduce count if we added/already have a land tile here
-			if plotTypes[i] ~= PlotTypes.PLOT_OCEAN then
+
+	if (remaining > 0) then -- we still need to place tiles!
+		for i=1,radius*radius do -- recheck the points
+	    	p = points[i];
+	    	local xOffA, yOffA = p[1], p[2];
+			local index = GetI(x+xOffA,y+yOffA,maxX);
+
+			-- replace an existing ocean tile
+			if plotTypes[index] == PlotTypes.PLOT_OCEAN then
+				plotTypes[index] = RandomPlot(40,40,18, 0);
 				remaining = remaining - 1;
 			end
-			-- we are done making the island
-			if remaining <= 0 then
-				return;
+
+			if (not (remaining > 0)) then
+				break;
 			end
 		end
 	end
+
+end
+
+function GetGridPoints(radius)
+	local points = {};
+	offX, offY = 0, 0;
+	for layer=0,radius-1 do
+	    offX = 0;
+	    offY = layer;
+	    
+	    repeat 
+	        table.insert(points, {offX, offY});
+	        
+	        if (offX==layer) then
+	            offY = offY - 1;
+	        else
+	            offX = offX + 1;
+	        end
+	            
+	    until (offX > layer or offY < 0)
+	end
+	return points;
 end
 
 function GenIslandSize(min,max,c)
@@ -604,18 +720,20 @@ end
 -------------------------------------------------
 -- https://www.wolframalpha.com/input/?i=y%3D0.8%5Ex+from+1+to+10
 -------------------------------------------------
-function GeometricRand(a,b,c)
+function GeometricRand(min,max,c)
 	local odds = math.floor(c*1000);
 
-	val = a;
-	while val<b do
+	if (min >= max) then return max; end
+
+	val = min;
+	while val<max do
 		-- return [0,x-1] -- so a 99% chance should be possible
 		if Map.Rand(1000, "Geometric Random") >= odds then
 			return val;
 		end
 		val = val + 1;
 	end
-	return b
+	return max; -- never stopped, just return max
 end
 -------------------------------------------------
 -- maps positive integers: 0, 1, 2, 3, 4 etc.
