@@ -2690,14 +2690,9 @@ bool CvCityBuildings::IsBuildingSellable(const CvBuildingEntry& kBuilding) const
 	if(IsSoldBuildingThisTurn())
 		return false;
 
-	// Can't sell a building if it doesn't cost us anything
-	
+	// Can't sell a building if it doesn't cost us anything	
 	if(kBuilding.GetGoldMaintenance() <= 0)
 		return false;
-
-	// Can't sell a building if it's a shrine (no exploits)
-    if (kBuilding.GetBuildingClassType() == (BuildingClassTypes)GC.getInfoTypeForString("BUILDINGCLASS_SHRINE"))
-        return false;
 
 	// Is this a free building?
 	if(GetNumFreeBuilding((BuildingTypes)kBuilding.GetID()) > 0)
@@ -2755,6 +2750,11 @@ void CvCityBuildings::DoSellBuilding(BuildingTypes eIndex)
 
 	// Gold refund
 	int iRefund = GetSellBuildingRefund(eIndex);
+
+	// Can't refund a building if it's a shrine (no exploits)
+	if (pkBuildingEntry->GetBuildingClassType() == (BuildingClassTypes)GC.getInfoTypeForString("BUILDINGCLASS_SHRINE"))
+		iRefund = 0;
+
 	GET_PLAYER(m_pCity->getOwner()).GetTreasury()->ChangeGold(iRefund);
 
 	// Kick everyone out
