@@ -12867,8 +12867,8 @@ int CvUnit::GetAirCombatDamage(const CvUnit* pDefender, CvCity* pCity, bool bInc
 
 
 	// find base damage
-	int iAttackerDamage = /*250*/ GC.getRANGE_ATTACK_SAME_STRENGTH_MIN_DAMAGE();
-	iAttackerDamage /= GC.getMAX_HIT_POINTS();
+	double fAttackerDamage = /*250*/ GC.getRANGE_ATTACK_SAME_STRENGTH_MIN_DAMAGE();
+	fAttackerDamage /= GC.getMAX_HIT_POINTS();
 
 
 	// add random damage
@@ -12880,15 +12880,16 @@ int CvUnit::GetAirCombatDamage(const CvUnit* pDefender, CvCity* pCity, bool bInc
 		else // find average bonus damage
 			randBonusDamage = possibleBonusDamage / 100.0f / 2.0f;
 	}
-	iAttackerDamage += randBonusDamage;
 
+	const double fStrengthRatio = CvUnit::adjustedDamageRatio(iAttackerStrength, iDefenderStrength);
+	fAttackerDamage = (double)fAttackerDamage * fStrengthRatio;
 
-	double fStrengthRatio = CvUnit::adjustedDamageRatio(iAttackerStrength, iDefenderStrength);
-	double fAttackerDamage = (double)iAttackerDamage * fStrengthRatio;
+	fAttackerDamage += randBonusDamage;
 
-	iAttackerDamage = min(9999, iAttackerDamage); // dont deal more than 9999 damage
-	iAttackerDamage = max(1, iAttackerDamage); // deal at least 1 damage
-	return iAttackerDamage;
+	fAttackerDamage = min(999.0, fAttackerDamage); // dont deal more than 999 damage
+	fAttackerDamage = max(1.0, fAttackerDamage); // deal at least 1 damage
+
+	return fAttackerDamage;
 }
 
 
@@ -12945,10 +12946,10 @@ int CvUnit::GetRangeCombatDamage(const CvUnit* pDefender, CvCity* pCity, bool bI
 	if(iAttackerDamageRatio < 0)
 		iAttackerDamageRatio = 0;
 
-	int iAttackerDamage = /*250*/ GC.getRANGE_ATTACK_SAME_STRENGTH_MIN_DAMAGE();
+	double fAttackerDamage = /*250*/ GC.getRANGE_ATTACK_SAME_STRENGTH_MIN_DAMAGE();
 #ifndef NQM_COMBAT_RNG_USE_BINOM_RNG_OPTION
-	iAttackerDamage *= iAttackerDamageRatio;
-	iAttackerDamage /= GC.getMAX_HIT_POINTS();
+	fAttackerDamage *= iAttackerDamageRatio;
+	fAttackerDamage /= GC.getMAX_HIT_POINTS();
 #endif
 
 	int iAttackerRoll = 0;
@@ -12967,7 +12968,7 @@ int CvUnit::GetRangeCombatDamage(const CvUnit* pDefender, CvCity* pCity, bool bI
 		iAttackerRoll = /*300*/ GC.getGame().getJonRandNum(GC.getRANGE_ATTACK_SAME_STRENGTH_POSSIBLE_EXTRA_DAMAGE(), "Unit Ranged Combat Damage");
 #ifndef NQM_COMBAT_RNG_USE_BINOM_RNG_OPTION
 		iAttackerRoll *= iAttackerDamageRatio;
-		iAttackerRoll /= GC.getMAX_HIT_POINTS();
+		iAttackerRoll /= 100;
 #endif
 	}
 	else
@@ -12976,30 +12977,25 @@ int CvUnit::GetRangeCombatDamage(const CvUnit* pDefender, CvCity* pCity, bool bI
 		iAttackerRoll -= 1;	// Subtract 1 here, because this is the amount normally "lost" when doing a rand roll
 #ifndef NQM_COMBAT_RNG_USE_BINOM_RNG_OPTION
 		iAttackerRoll *= iAttackerDamageRatio;
-		iAttackerRoll /= GC.getMAX_HIT_POINTS();
+		iAttackerRoll /= 100;
 #endif
 		iAttackerRoll /= 2;	// The divide by 2 is to provide the average damage
 	}
-	iAttackerDamage += iAttackerRoll;
 #ifdef NQM_COMBAT_RNG_USE_BINOM_RNG_OPTION
 	iAttackerDamage = MAX(1, MIN(iAttackerDamage, GC.getMAX_HIT_POINTS() * 100)) * iAttackerDamageRatio / GetMaxHitPoints();
 #endif
 
-	double fStrengthRatio = CvUnit::adjustedDamageRatio(iAttackerStrength, iDefenderStrength);
-	double fAttackerDamage = (double)iAttackerDamage * fStrengthRatio;
+	const double fStrengthRatio = CvUnit::adjustedDamageRatio(iAttackerStrength, iDefenderStrength);
+	fAttackerDamage = fAttackerDamage * fStrengthRatio;
 
-	// Protect against it overflowing an int
-	if(fAttackerDamage > INT_MAX)
-		iAttackerDamage = INT_MAX;
-	else
-		iAttackerDamage = int(fAttackerDamage);
+	fAttackerDamage += iAttackerRoll;
 
 	// Bring it back out of hundreds
-	iAttackerDamage /= 100;
+	fAttackerDamage /= 100;
 
-	iAttackerDamage = max(1,iAttackerDamage);
+	fAttackerDamage = max(1.0, fAttackerDamage);
 
-	return iAttackerDamage;
+	return fAttackerDamage;
 }
 
 //	--------------------------------------------------------------------------------
