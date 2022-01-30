@@ -659,7 +659,7 @@ function RandomIsland(plotTypes,x,y,maxX,numLandTiles)
 
 		-- don't replace an existing non ocean tile
 		if plotTypes[index] == PlotTypes.PLOT_OCEAN then
-			local oceanChance = 20;
+			local oceanChance = 30;
 			if i==1 then oceanChance = 0; end
 			plotTypes[index] = RandomPlot(40,40,18, oceanChance);
 		end

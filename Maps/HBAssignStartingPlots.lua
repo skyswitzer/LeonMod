@@ -8027,7 +8027,7 @@ function AssignStartingPlots:PlaceCityState(coastal_plot_list, inland_plot_list,
 
 	--local coastornot = Map.Rand(100, "Chance for coast v inland");
 
-	local x,y = math.floor(iW * self.haltonPointsX[i]), math.floor(iH * self.haltonPointsY[i]);
+	local x,y = math.floor(iW * self.haltonPointsX[i*3]), math.floor(iH * self.haltonPointsY[i*2]);
 
 	x,y = self:findNear(x, y, iW, iH);
 
