@@ -481,19 +481,20 @@ end
 
 ------------------------------------------------------------------------------
 function GetSeaLevel()
-	local choice = Map.GetCustomOption(4)*2 + 48 + (Map.GetCustomOption(19)-2);
+	return Map.GetCustomOption(4)*2 + 48 + (Map.GetCustomOption(19)-2);
 end
 
 ------------------------------------------------------------------------------
 function GeneratePlotTypes()
-	print("Generating Plot Types (Lua Small Continents) ...");
+	--print("Generating Plot Types (Lua Small Continents) ...");
 
-	local inverse_continent_sizes = Map.GetCustomOption(15); -- 1 means pangea, 2 means continents, 3, means small cont, etc.
+	local inverse_continent_sizes = 1--Map.GetCustomOption(15); -- 1 means pangea, 2 means continents, 3, means small cont, etc.
 	local age = Map.GetCustomOption(1)
 	local sea = Map.GetCustomOption(4)
 	local maxX = Map.GetCustomOption(11)*2+28; -- get map x size
 	local maxY = Map.GetCustomOption(12)*2+18; -- get map y size
-	local islandSizeMin = 6; -- actually effectively 5 (-1) because unknown black magic
+	local islandPoleMinSize = 4;
+	local islandSizeMin = 8;
 	local islandSizeMax = Map.GetCustomOption(18)*2-1;
 	local islandChance = Map.GetCustomOption(17)*2; -- chance in 1000 that an island will start generating (Standard size does 4000 checks)
 	local polesIslandChance = islandChance / 1.3; -- chance in 1000 that an island will start generating in polar region
@@ -531,8 +532,10 @@ function GeneratePlotTypes()
 			local i = GetI(x,y,maxX);
 			local islandSize = GenIslandSize(islandSizeMin,islandSizeMax,geometricReduction);
 			if plotTypes[i] == PlotTypes.PLOT_OCEAN then
-				if Map.Rand(1000, "Island Chance") < islandChance and (not IsNearLand(plotTypes,x,y,maxX,islandSize)) then
-					RandomIsland(plotTypes,x,y,maxX,islandSize)
+				-- local shouldGen = (x==0 and (y==30 or y==15 or y==25 or y==35 or y==45));
+				local shouldGen = Map.Rand(1000, "Island Chance") < islandChance and (not IsNearLand(plotTypes,x,y,maxX,islandSize));
+				if shouldGen then
+					RandomIsland(plotTypes,x,y,maxX,islandSize,80)
 				end
 			end
 		end
@@ -553,23 +556,31 @@ function GeneratePlotTypes()
 						-- so no one concludes intelligent design
 					end
 				end
+			end
+		end
+	end
+
+	-- add pole islands
+	if true then
+		for x = 0, maxX - 1 do
+			for y = 0, maxY - 1 do
 				if y <= polesAddDist or y >= maxY-polesAddDist then
 					if Map.Rand(1000, "Pole Island Chance") < polesIslandChance then
-						RandomIsland(plotTypes,x,y,maxX,Map.Rand(8, "Pole Size")+1)
+						RandomIsland(plotTypes,x,y,maxX,3+Map.Rand(8, "Pole Size"),80);
 					end
 				end
 			end
 		end
 	end
 
-	-- add random islands
+	-- remove single islands
 	for x = 0, maxX - 1 do
 		for y = 0, maxY - 1 do
 			local i = GetI(x,y,maxX);
 			local islandSize = GenIslandSize(islandSizeMin,islandSizeMax,geometricReduction);
 			if plotTypes[i] ~= PlotTypes.PLOT_OCEAN then
 				if (IsSingleIsland(plotTypes,x,y,maxX)) then
-					RandomIsland(plotTypes,x,y,maxX,islandSize)
+					RandomIsland(plotTypes,x,y,maxX,islandPoleMinSize+Map.Rand(4, "Pole Size")+math.floor(islandSizeMax/3), 0);
 				end
 			end
 		end
@@ -600,10 +611,9 @@ function IsSingleIsland(plotTypes,x,y,maxX,numLandTiles)
     	local nx,ny = p[1]-1 + x, p[2]-1 + y;
 		local index = GetI(nx, ny, maxX);
 
-		if (not (x == nx and y == ny)) then -- center tile
-			-- don't replace an existing non ocean tile
+		if (not (x == nx and y == ny)) then -- skip center tile
 			if plotTypes[index] ~= PlotTypes.PLOT_OCEAN then
-				return false;
+				return false; -- adjacent tile was land, so skip
 			end
 		end
 	end
@@ -613,16 +623,13 @@ function IsSingleIsland(plotTypes,x,y,maxX,numLandTiles)
 end
 
 ------------------------------------------------------------------------------
--- creates a random island starting with x,y and going around that point 
--- bouncing positive and negative until numLandTiles is reached
--- maxX needs to be the width of the map
--- plotTypes needs to be the linear array of tile types
+-- True if there is any land in this area
 ------------------------------------------------------------------------------
 function IsNearLand(plotTypes,x,y,maxX,numLandTiles)
 
 	local start = GetI(x,y,maxX);
 
-	local radius = 2 + math.floor(math.sqrt(numLandTiles) + 0.5);
+	local radius = 3 + math.floor(math.sqrt(numLandTiles) + 0.5);
 	local points = GetGridPoints(radius);
 
 	for i=1,radius*radius do
@@ -644,13 +651,16 @@ end
 -- maxX needs to be the width of the map
 -- plotTypes needs to be the linear array of tile types
 ------------------------------------------------------------------------------
-function RandomIsland(plotTypes,x,y,maxX,numLandTiles)
+function RandomIsland(plotTypes,x,y,maxX,numLandTiles,oceanChance)
+	--print("Gen island of size: " .. numLandTiles);
 	local remaining = numLandTiles;
 	local start = GetI(x,y,maxX);
 
 
-	local radius = math.floor(math.sqrt(numLandTiles) + 0.5);
-	local points = GetGridPoints(radius+1); -- get extra poitns just in case
+	local radius = 1 + math.floor(math.sqrt(numLandTiles) + 0.5); -- get extra points just in case
+	local points = GetGridPoints(radius);
+
+	local mountainChance = 17; -- gets reduced if we've made one
 
 	for i=1,radius*radius do
     	p = points[i];
@@ -659,9 +669,13 @@ function RandomIsland(plotTypes,x,y,maxX,numLandTiles)
 
 		-- don't replace an existing non ocean tile
 		if plotTypes[index] == PlotTypes.PLOT_OCEAN then
-			local oceanChance = 30;
 			if i==1 then oceanChance = 0; end
-			plotTypes[index] = RandomPlot(40,40,18, oceanChance);
+			plotTypes[index] = RandomPlot(10,40,mountainChance,oceanChance);
+
+			-- reduce odds of mountain if we just made one
+			if plotTypes[index] == PlotTypes.PLOT_MOUNTAIN then
+				mountainChance = math.floor(mountainChance / 2);
+			end
 		end
 		-- reduce count if we added/already have a land tile here
 		if plotTypes[index] ~= PlotTypes.PLOT_OCEAN then
@@ -669,11 +683,15 @@ function RandomIsland(plotTypes,x,y,maxX,numLandTiles)
 		end
 		-- we are done making the island
 		if remaining <= 0 then
-			return;
+			break;
 		end
 	end
-
-	if (remaining > 0) then -- we still need to place tiles!
+	
+	--print("Remaining: ".. remaining);
+	--return;
+	--[-[
+	-- we still need to place tiles!
+	if (remaining > 0) then
 		for i=1,radius*radius do -- recheck the points
 	    	p = points[i];
 	    	local xOffA, yOffA = p[1], p[2];
@@ -681,7 +699,7 @@ function RandomIsland(plotTypes,x,y,maxX,numLandTiles)
 
 			-- replace an existing ocean tile
 			if plotTypes[index] == PlotTypes.PLOT_OCEAN then
-				plotTypes[index] = RandomPlot(40,40,18, 0);
+				plotTypes[index] = RandomPlot(30,40,0,0);
 				remaining = remaining - 1;
 			end
 
@@ -690,6 +708,7 @@ function RandomIsland(plotTypes,x,y,maxX,numLandTiles)
 			end
 		end
 	end
+	--]-]
 
 end
 
@@ -807,8 +826,8 @@ function AddFeatures()
 	local args = {rainfall = rain}
 	local featuregen = FeatureGenerator.Create(args);
 
-	-- False parameter removes mountains from coastlines.
-	featuregen:AddFeatures(false);
+	-- passing false removes mountains from coastlines
+	featuregen:AddFeatures(true);
 end
 ------------------------------------------------------------------------------
 
@@ -830,10 +849,10 @@ function StartPlotSystem()
 	OnlyCoastal = false;
 	CoastLux = false;
 
-	print("Creating start plot database.");
+	--print("Creating start plot database.");
 	local start_plot_database = AssignStartingPlots.Create()
 	
-	print("Dividing the map in to Regions.");
+	--print("Dividing the map in to Regions.");
 	-- Regional Division Method 1: Biggest Landmass
 	local args = {
 		method = RegionalMethod,
@@ -846,13 +865,13 @@ function StartPlotSystem()
 		};
 	start_plot_database:GenerateRegions(args)
 
-	print("Choosing start locations for civilizations.");
+	--print("Choosing start locations for civilizations.");
 	start_plot_database:ChooseLocations()
 	
-	print("Normalizing start locations and assigning them to Players.");
+	--print("Normalizing start locations and assigning them to Players.");
 	start_plot_database:BalanceAndAssign(args)
 
-	print("Placing Natural Wonders.");
+	--print("Placing Natural Wonders.");
 	local wonders = Map.GetCustomOption(7)
 	if wonders == 14 then
 		wonders = Map.Rand(13, "Number of Wonders To Spawn - Lua");
@@ -860,14 +879,14 @@ function StartPlotSystem()
 		wonders = wonders - 1;
 	end
 
-	print("########## Wonders ##########");
-	print("Natural Wonders To Place: ", wonders);
+	--print("########## Wonders ##########");
+	--print("Natural Wonders To Place: ", wonders);
 
 	local wonderargs = {
 		wonderamt = wonders,
 	};
 	start_plot_database:PlaceNaturalWonders(wonderargs);
-	print("Placing Resources and City States.");
+	--print("Placing Resources and City States.");
 	start_plot_database:PlaceResourcesAndCityStates()
 
 	-- tell the AI that we should treat this as a naval expansion map
