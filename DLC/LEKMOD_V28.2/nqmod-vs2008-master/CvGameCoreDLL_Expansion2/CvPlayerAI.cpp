@@ -592,7 +592,7 @@ void CvPlayerAI::AI_considerAnnex()
 	// Find first coastal city in same area as settler
 	for(pCity = firstCity(&iLoop); pCity != NULL; pCity = nextCity(&iLoop))
 	{
-		CityAndProduction kEval;
+		CityAndProduction kEval = CityAndProduction();
 		kEval.pCity = pCity;
 		kEval.iProduction = pCity->getYieldRateTimes100(YIELD_PRODUCTION, false);
 		aCityAndProductions.push_back(kEval);

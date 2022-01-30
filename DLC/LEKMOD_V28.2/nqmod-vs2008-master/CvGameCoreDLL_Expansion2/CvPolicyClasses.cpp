@@ -3553,7 +3553,7 @@ int CvPlayerPolicies::GetPolicyModifierForCityCount() const
 /// How much will the next policy cost?
 int CvPlayerPolicies::GetNextPolicyCost()
 {
-	const float policyAdoptionIncrease = (100.f + 20) / 100.f;
+	const float policyAdoptionIncrease = (100.f + 20.f) / 100.f;
 	int iNumPolicies = GetNumPoliciesOwned();
 
 	// Reduce count by however many free Policies we've had in this game
