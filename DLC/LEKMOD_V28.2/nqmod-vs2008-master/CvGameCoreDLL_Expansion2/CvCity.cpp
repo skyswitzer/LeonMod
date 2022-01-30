@@ -12270,18 +12270,16 @@ bool CvCity::CanBuyPlot(int iPlotX, int iPlotY, bool bIgnoreCost)
 #endif
 {
 	VALIDATE_OBJECT
-	CvPlot* pTargetPlot = NULL;
+	CvPlot* pTargetPlot = GC.getMap().plot(iPlotX, iPlotY);
 
 	if(GC.getBUY_PLOTS_DISABLED())
 	{
 		return false;
 	}
 
-	pTargetPlot = GC.getMap().plot(iPlotX, iPlotY);
-
+	// no plot to buy
 	if(!pTargetPlot)
 	{
-		// no plot to buy
 		return false;
 	}
 
@@ -12310,9 +12308,14 @@ bool CvCity::CanBuyPlot(int iPlotX, int iPlotY, bool bIgnoreCost)
 			}
 		}
 	}
-
-	if(!bFoundAdjacent)
+	if (!bFoundAdjacent)
 		return false;
+
+	// cannot buy plots with enemy units of any domain (water/land) on or nearby
+	if (pTargetPlot->GetAdjacentEnemyMilitaryUnits(getTeam(), NO_DOMAIN).size() > 0)
+	{
+		return false;
+	}
 
 	// Max range of 3
 	const int iMaxRange = /*3*/ GC.getMAXIMUM_BUY_PLOT_DISTANCE();
