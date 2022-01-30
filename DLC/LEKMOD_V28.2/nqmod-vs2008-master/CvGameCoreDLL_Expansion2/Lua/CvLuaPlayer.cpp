@@ -2423,7 +2423,7 @@ int CvLuaPlayer::lGetInfluencePerTurn(lua_State* L)
 {
 	CvPlayerAI* pkPlayer = GetInstance(L);
 	PlayerTypes ePlayer = (PlayerTypes)lua_tointeger(L, 2);
-	const int iResult = pkPlayer->GetCulture()->GetInfluencePerTurn(ePlayer);
+	const int iResult = pkPlayer->GetCulture()->GetNetTourismWith(ePlayer);
 	lua_pushinteger(L, iResult);
 	return 1;
 }
@@ -2471,7 +2471,7 @@ int CvLuaPlayer::lGetNumCivsInfluentialOn(lua_State* L)
 int CvLuaPlayer::lGetTooltipTopPanelTourism(lua_State* L)
 {
 	CvPlayerAI* pkPlayer = GetInstance(L);
-	const CvString result = pkPlayer->GetCulture()->GetTooltipTopPanelTourism();
+	const CvString result = pkPlayer->GetCulture()->GetOurTourism_Tooltip();
 	lua_pushstring(L, result);
 	return 1;
 }
@@ -2527,11 +2527,11 @@ int CvLuaPlayer::lGetInfluenceSpyRankTooltip(lua_State* L)
 	return 1;
 }
 //------------------------------------------------------------------------------
-//int GetTourism();
+//int GetOurNetTourism();
 int CvLuaPlayer::lGetTourism(lua_State* L)
 {
 	CvPlayerAI* pkPlayer = GetInstance(L);
-	const int iResult = pkPlayer->GetCulture()->GetTourism();
+	const int iResult = pkPlayer->GetCulture()->GetOurNetTourismT100() / 100;
 	lua_pushinteger(L, iResult);
 	return 1;
 }
@@ -2541,7 +2541,7 @@ int CvLuaPlayer::lGetTourismModifierWith(lua_State* L)
 {
 	CvPlayerAI* pkPlayer = GetInstance(L);
 	PlayerTypes ePlayer = (PlayerTypes)lua_tointeger(L, 2);
-	const int iResult = pkPlayer->GetCulture()->GetTourismModifierWith(ePlayer);
+	const int iResult = pkPlayer->GetCulture()->GetTourismModifierWithT100(ePlayer) / 100;
 	lua_pushinteger(L, iResult);
 	return 1;
 }
@@ -2551,7 +2551,7 @@ int CvLuaPlayer::lGetTourismModifierWithTooltip(lua_State* L)
 {
 	CvPlayerAI* pkPlayer = GetInstance(L);
 	PlayerTypes ePlayer = (PlayerTypes)lua_tointeger(L, 2);
-	lua_pushstring(L, pkPlayer->GetCulture()->GetTourismModifierWithTooltip(ePlayer));
+	lua_pushstring(L, pkPlayer->GetCulture()->GetTourismModifierWith_Tooltip(ePlayer));
 	return 1;
 }
 //------------------------------------------------------------------------------
@@ -4149,6 +4149,13 @@ int CvLuaPlayer::lGetTradeToYouRoutesTTString(lua_State* L)
 	return 1;
 }
 
+void getDeltas(const CvCity* from, const CvCity* to, int& toDelta, int& fromDelta)
+{
+	// don't consider trade route for tourism
+	toDelta = 0; // = from->GetCityCulture()->GetNetTourism() * GET_PLAYER(from->getOwner()).GetCulture()->GetTourismModifierWithT100(to->getOwner()) / 100;
+	fromDelta = 0; // = to->GetCityCulture()->GetNetTourism() * GET_PLAYER(to->getOwner()).GetCulture()->GetTourismModifierWithT100(from->getOwner()) / 100;
+}
+
 //------------------------------------------------------------------------------
 int CvLuaPlayer::lGetTradeRoutes(lua_State* L)
 {
@@ -4249,8 +4256,9 @@ int CvLuaPlayer::lGetTradeRoutes(lua_State* L)
 		lua_pushinteger(L, iFromPressure);
 		lua_setfield(L, t, "FromPressure");
 
-		int iToDelta = pFromCity->GetCityCulture()->GetBaseTourism() * pFromCity->GetCityCulture()->GetTourismMultiplier(pToPlayer->GetID(), true, true, false, true, true);
-		int iFromDelta = pToCity->GetCityCulture()->GetBaseTourism() * pToCity->GetCityCulture()->GetTourismMultiplier(pkPlayer->GetID(), true, true, false, true, true);
+		int iToDelta = 0;
+		int iFromDelta = 0;
+		getDeltas(pFromCity, pToCity, iToDelta, iFromDelta);
 		lua_pushinteger(L, iFromDelta);
 		lua_setfield(L, t, "FromTourism");
 		lua_pushinteger(L, iToDelta);
@@ -4431,8 +4439,9 @@ int CvLuaPlayer::lGetTradeRoutesAvailable(lua_State* L)
 						lua_pushinteger(L, iFromPressure);
 						lua_setfield(L, t, "FromPressure");
 
-						int iToDelta = pOriginCity->GetCityCulture()->GetBaseTourism() * pOriginCity->GetCityCulture()->GetTourismMultiplier(eOtherPlayer, true, true, false, true, true);
-						int iFromDelta = pDestCity->GetCityCulture()->GetBaseTourism() * pDestCity->GetCityCulture()->GetTourismMultiplier(pkPlayer->GetID(), true, true, false, true, true);
+						int iToDelta = 0;
+						int iFromDelta = 0;
+						getDeltas(pOriginCity, pDestCity, iToDelta, iFromDelta);
 						lua_pushinteger(L, iFromDelta);
 						lua_setfield(L, t, "FromTourism");
 						lua_pushinteger(L, iToDelta);
@@ -4559,8 +4568,9 @@ int CvLuaPlayer::lGetTradeRoutesToYou(lua_State* L)
 		lua_pushinteger(L, iFromPressure);
 		lua_setfield(L, t, "FromPressure");
 
-		int iToDelta = pFromCity->GetCityCulture()->GetBaseTourism() * pFromCity->GetCityCulture()->GetTourismMultiplier(pToPlayer->GetID(), true, true, false, true, true);
-		int iFromDelta = pToCity->GetCityCulture()->GetBaseTourism() * pToCity->GetCityCulture()->GetTourismMultiplier(pkPlayer->GetID(), true, true, false, true, true);
+		int iToDelta = 0;
+		int iFromDelta = 0;
+		getDeltas(pFromCity, pToCity, iToDelta, iFromDelta);
 		lua_pushinteger(L, iFromDelta);
 		lua_setfield(L, t, "FromTourism");
 		lua_pushinteger(L, iToDelta);

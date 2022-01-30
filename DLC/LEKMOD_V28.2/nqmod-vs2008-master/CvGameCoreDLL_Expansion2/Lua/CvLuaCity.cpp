@@ -2186,7 +2186,7 @@ int CvLuaCity::lGetNumGreatWorkSlots(lua_State* L)
 int CvLuaCity::lGetBaseTourism(lua_State* L)
 {
 	CvCity* pkCity = GetInstance(L);
-	lua_pushinteger(L, pkCity->GetCityCulture()->GetBaseTourism());
+	lua_pushinteger(L, pkCity->GetCityCulture()->GetNetTourism());
 	return 1;
 }
 //------------------------------------------------------------------------------
@@ -2195,7 +2195,7 @@ int CvLuaCity::lGetTourismMultiplier(lua_State* L)
 {
 	CvCity* pkCity = GetInstance(L);
 	const PlayerTypes ePlayer = (PlayerTypes)lua_tointeger(L, 2);
-	lua_pushinteger(L, pkCity->GetCityCulture()->GetTourismMultiplier(ePlayer, false, false, false, false, false));
+	lua_pushinteger(L, pkCity->GetCityCulture()->GetCityTourismMultiplierT100());
 	return 1;
 }
 //------------------------------------------------------------------------------

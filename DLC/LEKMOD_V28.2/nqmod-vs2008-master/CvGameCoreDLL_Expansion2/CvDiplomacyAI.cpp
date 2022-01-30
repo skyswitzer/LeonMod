@@ -5690,7 +5690,7 @@ bool CvDiplomacyAI::IsWantsOpenBordersWithPlayer(PlayerTypes ePlayer)
 	AIGrandStrategyTypes eCultureStrategy = (AIGrandStrategyTypes) GC.getInfoTypeForString("AIGRANDSTRATEGY_CULTURE");
 #ifdef AUI_WARNING_FIXES
 	const CvPlayerCulture* pPlayerCulture = m_pPlayer->GetCulture();
-	if (eCultureStrategy != NO_AIGRANDSTRATEGY && m_pPlayer->GetGrandStrategyAI()->GetActiveGrandStrategy() == eCultureStrategy && pPlayerCulture->GetTourism() > 0)
+	if (eCultureStrategy != NO_AIGRANDSTRATEGY && m_pPlayer->GetGrandStrategyAI()->GetActiveGrandStrategy() == eCultureStrategy && pPlayerCulture->GetOurNetTourism() > 0)
 	{
 		// The civ we need influence on the most should ALWAYS be included
 		if (pPlayerCulture->GetCivLowestInfluence(false /*bCheckOpenBorders*/) == ePlayer)
@@ -5703,7 +5703,7 @@ bool CvDiplomacyAI::IsWantsOpenBordersWithPlayer(PlayerTypes ePlayer)
 		{
 			if (pPlayerCulture->GetInfluenceLevel(ePlayer) < INFLUENCE_LEVEL_INFLUENTIAL)
 #else
-	if (eCultureStrategy != NO_AIGRANDSTRATEGY && m_pPlayer->GetGrandStrategyAI()->GetActiveGrandStrategy() == eCultureStrategy && m_pPlayer->GetCulture()->GetTourism() > 0 )
+	if (eCultureStrategy != NO_AIGRANDSTRATEGY && m_pPlayer->GetGrandStrategyAI()->GetActiveGrandStrategy() == eCultureStrategy && m_pPlayer->GetCulture()->GetOurNetTourismT100() / 10 > 0 )
 	{
 		// The civ we need influence on the most should ALWAYS be included
 		if (m_pPlayer->GetCulture()->GetCivLowestInfluence(false /*bCheckOpenBorders*/) == ePlayer)
@@ -25937,7 +25937,7 @@ void CvDiplomacyAI::LogMinorCivQuestType(CvString& strString, MinorCivQuestTypes
 	case MINOR_CIV_QUEST_CONTEST_TECHS:
 		strTemp.Format("Contest Techs");
 		break;
-	case MINOR_CIV_QUEST_UNREST:
+	case MINOR_CIV_QUEST_KILL_CAMP:
 		strTemp.Format("Contest Unrest");
 		break;
 	case MINOR_CIV_QUEST_INVEST:

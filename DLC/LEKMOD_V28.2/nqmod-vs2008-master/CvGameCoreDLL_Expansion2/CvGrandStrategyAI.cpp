@@ -613,7 +613,7 @@ int CvGrandStrategyAI::GetCulturePriority()
 	// Loop through Players to see how we are doing on Tourism and Culture
 	PlayerTypes eLoopPlayer;
 	int iOurCulture = m_pPlayer->GetTotalJONSCulturePerTurn();
-	int iOurTourism = m_pPlayer->GetCulture()->GetTourism();
+	int iOurTourism = m_pPlayer->GetCulture()->GetOurNetTourismT100() / 100;
 	int iNumCivsBehindCulture = 0;
 	int iNumCivsAheadCulture = 0;
 	int iNumCivsBehindTourism = 0;
@@ -635,7 +635,7 @@ int CvGrandStrategyAI::GetCulturePriority()
 			{
 				iNumCivsBehindCulture++;
 			}
-			if (iOurTourism > kPlayer.GetCulture()->GetTourism())
+			if (iOurTourism > kPlayer.GetCulture()->GetOurNetTourismT100() / 100)
 			{
 				iNumCivsAheadTourism++;
 			}
@@ -966,12 +966,15 @@ void CvGrandStrategyAI::DoGuessOtherPlayersActiveGrandStrategy()
 		if(GET_PLAYER(eMajor).isAlive())
 		{
 			iWorldCultureAverage += GET_PLAYER(eMajor).GetJONSCultureEverGenerated();
-			iWorldTourismAverage += GET_PLAYER(eMajor).GetCulture()->GetTourism();
+			iWorldTourismAverage += GET_PLAYER(eMajor).GetCulture()->GetOurNetTourismT100();
 			iNumPlayersAlive++;
 		}
 	}
+	iWorldTourismAverage /= 100;
+
 	iWorldCultureAverage /= iNumPlayersAlive;
 	iWorldTourismAverage /= iNumPlayersAlive;
+
 
 	// Establish world Tech progress average
 	iNumPlayersAlive = 0;
@@ -1148,7 +1151,7 @@ int CvGrandStrategyAI::GetGuessOtherPlayerCulturePriority(PlayerTypes ePlayer, i
 	// Compare their Tourism to the world average; Possible range is 75 to -75
 	if(iWorldTourismAverage > 0)
 	{
-		iRatio = (GET_PLAYER(ePlayer).GetCulture()->GetTourism() - iWorldTourismAverage) * /*75*/ GC.getAI_GS_TOURISM_RATIO_MULTIPLIER() / iWorldTourismAverage;
+		iRatio = (GET_PLAYER(ePlayer).GetCulture()->GetOurNetTourismT100() / 100 - iWorldTourismAverage) * /*75*/ GC.getAI_GS_TOURISM_RATIO_MULTIPLIER() / iWorldTourismAverage;
 		if (iRatio > GC.getAI_GS_TOURISM_RATIO_MULTIPLIER())
 		{
 			iCulturePriority += GC.getAI_GS_TOURISM_RATIO_MULTIPLIER();

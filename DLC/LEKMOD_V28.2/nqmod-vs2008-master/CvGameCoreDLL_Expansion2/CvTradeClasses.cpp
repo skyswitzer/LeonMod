@@ -5174,7 +5174,7 @@ int CvTradeAI::ScoreInternationalTR (const TradeConnection& kTradeConnection)
 	iScore = (iScore * 10) / iDangerSum;
 	
 	// if we have any tourism and the destination owner is not a minor civ
-	if (m_pPlayer->GetCulture()->GetTourism() > 0 && !GET_PLAYER(kTradeConnection.m_eDestOwner).isMinorCiv())
+	if (m_pPlayer->GetCulture()->GetOurNetTourismT100() / 100 > 0 && !GET_PLAYER(kTradeConnection.m_eDestOwner).isMinorCiv())
 	{
 		// if we're not connected to a player, double the value to that player
 		if (!GC.getGame().GetGameTrade()->IsPlayerConnectedToPlayer(m_pPlayer->GetID(), kTradeConnection.m_eDestOwner))

@@ -845,7 +845,9 @@ public:
 	int GetPolicyCostMinorCivModifier() const;
 	void ChangePolicyCostMinorCivModifier(int iChange);
 
+	// tech related tourism modifier
 	int GetInfluenceSpreadModifier() const;
+	// tech related tourism modifier
 	void ChangeInfluenceSpreadModifier(int iChange);
 
 	int GetExtraVotesPerDiplomat() const;

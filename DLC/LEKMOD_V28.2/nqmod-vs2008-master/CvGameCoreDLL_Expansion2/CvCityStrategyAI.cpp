@@ -3320,7 +3320,7 @@ bool CityStrategyAIHelpers::IsTestCityStrategy_NeedTourismBuilding(CvCity *pCity
 	iTourismValue += pCity->GetCityCulture()->GetCultureFromWonders();
 	iTourismValue += pCity->GetCityCulture()->GetCultureFromNaturalWonders();
 	iTourismValue += pCity->GetCityCulture()->GetCultureFromImprovements();
-	iTourismValue += pCity->GetCityCulture()->GetBaseTourism();
+	iTourismValue += pCity->GetCityCulture()->GetNetTourism();
 #endif
 
 	if (iTourismValue > 10)

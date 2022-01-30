@@ -248,11 +248,7 @@ public:
 	int GetInfluenceOn(PlayerTypes ePlayer) const;
 	void ChangeInfluenceOn(PlayerTypes ePlayer, int iValue);
 	int GetLastTurnInfluenceOn(PlayerTypes ePlayer) const;
-	int GetInfluencePerTurn(PlayerTypes ePlayer) const;
-	// percent of city culture that is converted to tourism
-	int GetTourismFromCulturePercentT100() const;
-	// city tourism from culture
-	int GetTourismFromCultureT100(int cultureT100) const;
+
 	float GetInfluencePercent(PlayerTypes ePlayer) const;
 	InfluenceLevelTypes GetInfluenceLevel(PlayerTypes ePlayer) const;
 	InfluenceLevelTrend GetInfluenceTrend(PlayerTypes ePlayer) const;
@@ -266,20 +262,58 @@ public:
 	int GetInfluenceCityStateSpyRankBonus(PlayerTypes eCityStatePlayer) const;
 	int GetInfluenceMajorCivSpyRankBonus(PlayerTypes ePlayer) const;
 	CvString GetInfluenceSpyRankTooltip (CvString szName, CvString iRank, PlayerTypes ePlayer);
-#if defined(AUI_WARNING_FIXES) || defined(AUI_CONSTIFY)
-	int GetTourism() const;
-#else
-	int GetTourism();
-#endif
-	int GetTourismModifierWith(PlayerTypes ePlayer) const;
-	// create the tooltip for tourism in the top panel
-	CvString GetTooltipTopPanelTourism() const;
-	CvString GetTourismModifierWithTooltip(PlayerTypes ePlayer) const;
+
+
+	int GetTourismBlastStrength(int iMultiplier);
+	void AddTourismAllKnownCivs(int iTourism);
+
+
+	// Net tourism with other
+	int GetNetTourismWith(PlayerTypes eOtherPlayer) const;
+	// tourism mod with other
+	CvString GetTourismModifierWith_Tooltip(PlayerTypes eOtherPlayer) const;
+	// tourism mod (eg 50.0) with other
+	int GetTourismModifierWithT100(PlayerTypes eOtherPlayer,
+		bool bIgnoreReligion = false,
+		bool bIgnoreOpenBorders = false,
+		bool bIgnoreTrade = false,
+		bool bIgnorePolicies = false,
+		bool bIgnoreIdeologies = false) const;
+
+	// golden age boost
+	double GetTourismModifierGoldenAgeT100(PlayerTypes eOtherPlayer) const;
+	// happiness boost
+	double GetTourismModifierHappinessT100(PlayerTypes eOtherPlayer) const;
 	// adjust for number of cities
-	int GetTourismModifierCityCount(PlayerTypes ePlayer) const;
+	int GetTourismModifierCityCount(PlayerTypes eOtherPlayer) const;
+	// modifier IF we have a shared religion
 	int GetTourismModifierSharedReligion() const;
-	int GetTourismModifierTradeRoute() const;
-	int GetTourismModifierOpenBorders() const;
+	// modifier for tech
+	int GetTourismModifierTechnologyT100(PlayerTypes eOtherPlayer) const;
+
+
+	// tourism BEFORE "Other-Civ" specific modifiers but after OUR modifiers
+	CvString GetOurTourism_Tooltip() const;
+	// tourism BEFORE "Other-Civ" specific modifiers but after OUR modifiers
+	int GetOurNetTourismT100() const;
+	// tourism BEFORE "Other-Civ" and OUR modifiers
+	int GetOurBaseTourism() const;
+	// tourism modifiers that impact our base tourism BEFORE other player modifiers
+	int GetOurTourismModifier() const;
+
+
+	// tourism from city culture
+	int GetTourismFromCityCultureT100() const;
+
+	int GetCultureFromCitiesT100() const;
+	// tourism from cities culture
+	int GetNetTourismFromCitiesT100() const;
+	// percent of city culture that is converted to tourism
+	int GetTourismFromCulturePercentT100() const;
+
+
+	//int GetTourismModifierTradeRoute() const;
+	//int GetTourismModifierOpenBorders() const;
 	PublicOpinionTypes GetPublicOpinionType() const;
 	PolicyBranchTypes GetPublicOpinionPreferredIdeology() const;
 	CvString GetPublicOpinionTooltip() const;
@@ -288,8 +322,6 @@ public:
 	PlayerTypes GetPublicOpinionBiggestInfluence() const;
 	int GetTurnIdeologySwitch() const;
 	void SetTurnIdeologySwitch(int iTurn);
-	int GetTourismBlastStrength(int iMultiplier);
-	void AddTourismAllKnownCivs(int iTourism);
 	void DoPublicOpinion();
 	int ComputeHypotheticalPublicOpinionUnhappiness(PolicyBranchTypes eBranch);
 	bool WantsDiplomatDoingPropaganda(PlayerTypes ePlayer) const;
@@ -376,10 +408,10 @@ public:
 
 	/// Compute raw tourism from this city
 	int GetBaseTourismBeforeModifiers() const;
-	/// What is the tourism output ignoring player-specific modifiers?
-	int GetBaseTourism() const;
-	int GetTourismMultiplier(PlayerTypes ePlayer, bool bIgnoreReligion, bool bIgnoreOpenBorders, bool bIgnoreTrade, bool bIgnorePolicies, bool bIgnoreIdeologies) const;
-
+	// Multiplier (50.0) would mean +50%
+	double GetCityTourismMultiplierT100() const;
+	/// Net city tourism output of this city (includes city specific bonuses)
+	int GetNetTourism() const;
 	CvString GetTourismTooltip();
 	CvString GetFilledSlotsTooltip();
 	CvString GetTotalSlotsTooltip();

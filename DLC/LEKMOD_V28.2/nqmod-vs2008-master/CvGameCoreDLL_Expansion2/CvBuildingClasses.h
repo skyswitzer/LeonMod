@@ -699,7 +699,9 @@ public:
 
 	int GetLandmarksTourismPercent() const;
 	void ChangeLandmarksTourismPercent(int iChange);
+	// bonus percentage for Great Works
 	int GetGreatWorksTourismModifier() const;
+	// bonus percentage for Great Works
 	void ChangeGreatWorksTourismModifier(int iChange);
 
 	int GetThemingBonuses() const;

@@ -3710,13 +3710,11 @@ void CvCityBuildings::ChangeLandmarksTourismPercent(int iChange)
 	}
 }
 
-/// Accessor: Get extra times to spread religion for missionaries from this city
 int CvCityBuildings::GetGreatWorksTourismModifier() const
 {
 	return m_iGreatWorksTourismModifier;
 }
 
-/// Accessor: Change extra times to spread religion for missionaries from this city
 void CvCityBuildings::ChangeGreatWorksTourismModifier(int iChange)
 {
 	if(iChange != 0)

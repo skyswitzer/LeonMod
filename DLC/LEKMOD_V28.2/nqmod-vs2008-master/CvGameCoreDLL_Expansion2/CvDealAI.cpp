@@ -1622,7 +1622,7 @@ int CvDealAI::GetOpenBordersValue(bool bFromMe, PlayerTypes eOtherPlayer, bool b
 			CvPlayer &kOtherPlayer = GET_PLAYER(eOtherPlayer);
 
 			// If he has tourism and he's not influential on us yet, resist!
-			if (kOtherPlayer.GetCulture()->GetTourism() > 0 && kOtherPlayer.GetCulture()->GetInfluenceOn(GetPlayer()->GetID()) < INFLUENCE_LEVEL_INFLUENTIAL)
+			if (kOtherPlayer.GetCulture()->GetOurNetTourismT100() / 100 > 0 && kOtherPlayer.GetCulture()->GetInfluenceOn(GetPlayer()->GetID()) < INFLUENCE_LEVEL_INFLUENTIAL)
 			{
 				iItemValue *= 500;
 				iItemValue /= 100;
@@ -1665,12 +1665,12 @@ int CvDealAI::GetOpenBordersValue(bool bFromMe, PlayerTypes eOtherPlayer, bool b
 		AIGrandStrategyTypes eCultureStrategy = (AIGrandStrategyTypes) GC.getInfoTypeForString("AIGRANDSTRATEGY_CULTURE");
 #ifdef AUI_WARNING_FIXES
 		const CvPlayerCulture* pPlayerCulture = GetPlayer()->GetCulture();
-		if (eCultureStrategy != NO_AIGRANDSTRATEGY && GetPlayer()->GetGrandStrategyAI()->GetActiveGrandStrategy() == eCultureStrategy && pPlayerCulture->GetTourism() > 0)
+		if (eCultureStrategy != NO_AIGRANDSTRATEGY && GetPlayer()->GetGrandStrategyAI()->GetActiveGrandStrategy() == eCultureStrategy && pPlayerCulture->GetOurNetTourism() > 0)
 		{
 			// The civ we need influence on the most should ALWAYS be included
 			if (pPlayerCulture->GetCivLowestInfluence(false /*bCheckOpenBorders*/) == eOtherPlayer)
 #else
-		if (eCultureStrategy != NO_AIGRANDSTRATEGY && GetPlayer()->GetGrandStrategyAI()->GetActiveGrandStrategy() == eCultureStrategy && GetPlayer()->GetCulture()->GetTourism() > 0 )
+		if (eCultureStrategy != NO_AIGRANDSTRATEGY && GetPlayer()->GetGrandStrategyAI()->GetActiveGrandStrategy() == eCultureStrategy && GetPlayer()->GetCulture()->GetOurNetTourismT100() / 100 > 0 )
 		{
 			// The civ we need influence on the most should ALWAYS be included
 			if (GetPlayer()->GetCulture()->GetCivLowestInfluence(false /*bCheckOpenBorders*/) == eOtherPlayer)
