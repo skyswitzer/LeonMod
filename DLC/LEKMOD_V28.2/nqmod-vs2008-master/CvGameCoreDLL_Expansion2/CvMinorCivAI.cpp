@@ -33,7 +33,7 @@ const int minMilitaryStrength = 15;
 // influence gained per turn for having the most local military
 const int baseMilitaryInfluence = 5;
 // influence gained per turn for having the most local military
-const int baseTradeInfluence = 5;
+const int baseTradeInfluence = 0;
 
 // Default Constructor
 CvMinorCivQuest::CvMinorCivQuest()
@@ -93,7 +93,7 @@ int CvMinorCivQuest::GetEndTurn() const
 	CvAssertMsg(m_iStartTurn != NO_TURN, "GetEndTurn called for a quest, but the start turn was not initialized!");
 
 	int iLength = 0;
-	if (m_eType == MINOR_CIV_QUEST_UNREST)
+	if (m_eType == MINOR_CIV_QUEST_KILL_CAMP)
 	{
 		iLength = (1.5f * GC.getMINOR_QUEST_STANDARD_CONTEST_LENGTH());
 	}
@@ -196,7 +196,7 @@ int CvMinorCivQuest::GetInfluenceReward() const
 	case MINOR_CIV_QUEST_CONTEST_TECHS:
 		iReward = /*40*/ GC.getMINOR_QUEST_FRIENDSHIP_CONTEST_TECHS();
 		break;
-	case MINOR_CIV_QUEST_UNREST:
+	case MINOR_CIV_QUEST_KILL_CAMP:
 		iReward = /*40*/ GC.getMINOR_QUEST_FRIENDSHIP_CONTEST_TECHS();
 		break;
 	case MINOR_CIV_QUEST_INVEST:
@@ -297,7 +297,7 @@ int CvMinorCivQuest::GetContestValueForPlayer(PlayerTypes ePlayer)
 		int iEndTechs = GET_TEAM(GET_PLAYER(ePlayer).getTeam()).GetTeamTechs()->GetNumTechsKnown();
 		iValue = iEndTechs - iStartTechs;
 	}
-	else if (eType == MINOR_CIV_QUEST_UNREST)
+	else if (eType == MINOR_CIV_QUEST_KILL_CAMP)
 	{
 		const int strength = getAStrengthNearAllBCities(ePlayer, pMinor->GetID());
 		iValue = strength;
@@ -311,10 +311,13 @@ int CvMinorCivQuest::GetContestValueForLeader()
 	MinorCivQuestTypes eType = GetType();
 	int iHighestValue = -1;
 
-	if(eType == MINOR_CIV_QUEST_CONTEST_CULTURE ||
-	        eType == MINOR_CIV_QUEST_CONTEST_FAITH ||
+	if
+	(
+		eType == MINOR_CIV_QUEST_CONTEST_CULTURE ||
+		eType == MINOR_CIV_QUEST_CONTEST_FAITH ||
 		eType == MINOR_CIV_QUEST_CONTEST_TECHS ||
-		eType == MINOR_CIV_QUEST_UNREST)
+		eType == MINOR_CIV_QUEST_KILL_CAMP
+	)
 	{
 		// What is the largest value a participant has for this contest?
 		for(int iPlayerLoop = 0; iPlayerLoop < MAX_MAJOR_CIVS; iPlayerLoop++)
@@ -342,7 +345,7 @@ CivsList CvMinorCivQuest::GetContestLeaders()
 	if(eType == MINOR_CIV_QUEST_CONTEST_CULTURE ||
 	        eType == MINOR_CIV_QUEST_CONTEST_FAITH ||
 		eType == MINOR_CIV_QUEST_CONTEST_TECHS ||
-		eType == MINOR_CIV_QUEST_UNREST)
+		eType == MINOR_CIV_QUEST_KILL_CAMP)
 	{
 		for(int iPlayerLoop = 0; iPlayerLoop < MAX_MAJOR_CIVS; iPlayerLoop++)
 		{
@@ -379,7 +382,7 @@ bool CvMinorCivQuest::IsContestLeader(PlayerTypes ePlayer)
 		eType == MINOR_CIV_QUEST_CONTEST_CULTURE ||
 	    eType == MINOR_CIV_QUEST_CONTEST_FAITH ||
 	    eType == MINOR_CIV_QUEST_CONTEST_TECHS ||
-		eType == MINOR_CIV_QUEST_UNREST
+		eType == MINOR_CIV_QUEST_KILL_CAMP
 	)
 	{
 		CivsList veTiedForLead = GetContestLeaders();
@@ -549,7 +552,7 @@ bool CvMinorCivQuest::IsComplete()
 			if (IsContestLeader(GetPlayerAssignedTo()))
 				return true;
 	}
-	else if (m_eType == MINOR_CIV_QUEST_UNREST)
+	else if (m_eType == MINOR_CIV_QUEST_KILL_CAMP)
 	{
 		// Is it time to compare the score?
 		if (GetEndTurn() == GC.getGame().getGameTurn())
@@ -779,7 +782,7 @@ bool CvMinorCivQuest::IsExpired()
 	}
 
 	// Contest Unrest
-	else if (m_eType == MINOR_CIV_QUEST_UNREST)
+	else if (m_eType == MINOR_CIV_QUEST_KILL_CAMP)
 	{
 		if (GC.getGame().getGameTurn() == GetEndTurn() && !IsComplete())
 			return true;
@@ -1085,7 +1088,7 @@ void CvMinorCivQuest::DoStartQuest(int iStartTurn)
 		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_CONTEST_TECHS");
 	}
 	// Techs contest
-	else if (m_eType == MINOR_CIV_QUEST_UNREST)
+	else if (m_eType == MINOR_CIV_QUEST_KILL_CAMP)
 	{
 		int iMilitaryStrength = 0;
 
@@ -1442,7 +1445,7 @@ bool CvMinorCivQuest::DoFinishQuest()
 	}
 
 	// Techs contest
-	else if (m_eType == MINOR_CIV_QUEST_UNREST)
+	else if (m_eType == MINOR_CIV_QUEST_KILL_CAMP)
 	{
 	GET_PLAYER(m_eAssignedPlayer).ChangeScoreFromFutureTech(scoreFromUnrestWinner); // award victory points
 
@@ -1631,7 +1634,7 @@ bool CvMinorCivQuest::DoCancelQuest()
 		}
 
 		// Contest Unrest
-		else if (m_eType == MINOR_CIV_QUEST_UNREST)
+		else if (m_eType == MINOR_CIV_QUEST_KILL_CAMP)
 		{
 			strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_ENDED_UNREST");
 			strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_ENDED_UNREST");
@@ -3439,6 +3442,15 @@ void CvMinorCivAI::DoQuestsCleanupForPlayer(PlayerTypes ePlayer)
 // Is this quest enabled at all?
 bool CvMinorCivAI::IsEnabledQuest(MinorCivQuestTypes eQuest)
 {
+	if (eQuest == MINOR_CIV_QUEST_KILL_CAMP)
+	{
+		return true;
+	}
+	else
+	{
+		return false; // disallow all other quest types
+	}
+
 	// BUILD A ROUTE
 	if(eQuest == MINOR_CIV_QUEST_ROUTE)
 	{
@@ -3527,7 +3539,7 @@ bool CvMinorCivAI::IsEnabledQuest(MinorCivQuestTypes eQuest)
 			return false;
 	}
 	// CONTEST TECHS
-	else if (eQuest == MINOR_CIV_QUEST_UNREST)
+	else if (eQuest == MINOR_CIV_QUEST_KILL_CAMP)
 	{
 		return true;
 	}
@@ -3769,7 +3781,7 @@ bool CvMinorCivAI::IsValidQuestForPlayer(PlayerTypes ePlayer, MinorCivQuestTypes
 	{
 	}
 	// CONTEST UNREST
-	else if (eQuest == MINOR_CIV_QUEST_UNREST)
+	else if (eQuest == MINOR_CIV_QUEST_KILL_CAMP)
 	{
 	}
 	// Invest
@@ -3935,7 +3947,7 @@ bool CvMinorCivAI::IsValidQuestCopyForPlayer(PlayerTypes ePlayer, CvMinorCivQues
 	{
 	}
 	// CONTEST UNREST
-	else if (eQuestType == MINOR_CIV_QUEST_UNREST)
+	else if (eQuestType == MINOR_CIV_QUEST_KILL_CAMP)
 	{
 	}
 	// Invest
@@ -3973,7 +3985,7 @@ bool CvMinorCivAI::IsGlobalQuest(MinorCivQuestTypes eQuest) const
 	if (eQuest == MINOR_CIV_QUEST_INVEST)
 		return true;
 
-	if (eQuest == MINOR_CIV_QUEST_UNREST)
+	if (eQuest == MINOR_CIV_QUEST_KILL_CAMP)
 		return true;
 	
 	return false;
@@ -4001,6 +4013,11 @@ int CvMinorCivAI::GetMinPlayersNeededForQuest(MinorCivQuestTypes eQuest) const
 	else if(eQuest == MINOR_CIV_QUEST_CONTEST_TECHS)
 	{
 		iPlayersNeeded = 3; //antonjs: todo: XML
+	}
+
+	else if (eQuest == MINOR_CIV_QUEST_KILL_CAMP)
+	{
+		iPlayersNeeded = 1;
 	}
 
 	else if(eQuest == MINOR_CIV_QUEST_INVEST)
@@ -4282,7 +4299,7 @@ int CvMinorCivAI::GetPersonalityQuestBias(MinorCivQuestTypes eQuest)
 	}
 
 	// CONTEST UNREST
-	else if (eQuest == MINOR_CIV_QUEST_UNREST)
+	else if (eQuest == MINOR_CIV_QUEST_KILL_CAMP)
 	{
 		// always prefer
 		iCount *= 6000;
