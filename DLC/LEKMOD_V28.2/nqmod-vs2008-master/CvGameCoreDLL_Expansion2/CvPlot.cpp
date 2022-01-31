@@ -1271,7 +1271,7 @@ bool CvPlot::isCoastalLand(int iMinWaterSize) const
 
 		if(pAdjacentPlot != NULL)
 		{
-			if(pAdjacentPlot->isWater())
+			if(pAdjacentPlot->isWater() || pAdjacentPlot->isLake())
 			{
 				if(iMinWaterSize <= 0)
 				{
