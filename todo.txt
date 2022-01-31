@@ -1,11 +1,17 @@
 
+Victory Point icon [ICON_TROPHY_GOLD]
+fix city health after AI capture
 
-influence at player is displayed wrong
-should not be able to buy tile with enemy unit on it
-fix city state quests
-
+ship passable makes a city coastal
+coast spawns always?
+fix city state quest
 no city attack for 15 turns
-lower health (so it is at risk of getting captured)
+
+
+uprisings ideology (without unhappiness)
+
+
+health (so it is at risk of getting captured)
 
 
 puppet city buff
