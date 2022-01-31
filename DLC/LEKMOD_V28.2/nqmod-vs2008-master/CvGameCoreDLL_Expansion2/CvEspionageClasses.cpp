@@ -2001,7 +2001,7 @@ bool CvPlayerEspionage::AttemptCoup(uint uiSpyIndex)
 			bNotify = true;
 		}
 
-		pMinorCivAI->SetFriendshipWithMajorTimes100(ePlayer, aiNewInfluenceValueTimes100[ui]);
+		pMinorCivAI->ChangeFriendshipWithMajorTimes100(ePlayer, -50 * 100);
 
 		CvNotifications* pNotifications = GET_PLAYER(ePlayer).GetNotifications();
 		if(pNotifications && bMetMinor && bNotify)
@@ -2035,7 +2035,7 @@ bool CvPlayerEspionage::AttemptCoup(uint uiSpyIndex)
 		}
 	}
 	
-	pMinorCivAI->SetFriendshipWithMajorTimes100(m_pPlayer->GetID(), aiNewInfluenceValueTimes100[m_pPlayer->GetID()]);
+	pMinorCivAI->ChangeFriendshipWithMajorTimes100(m_pPlayer->GetID(), +50 * 100);
 	pMinorCivAI->SetDisableNotifications(false);
 
 	// send notification to player

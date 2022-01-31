@@ -1759,6 +1759,7 @@ void CvMinorCivAI::Reset()
 		m_abRouteConnectionEstablished[iI] = false;
 
 		m_aiFriendshipWithMajorTimes100[iI] = 0;
+		m_aiFriendshipDeltaWithMajorTimes100[iI] = 0;
 		m_aiAngerFreeIntrusionCounter[iI] = 0;
 		m_aiPlayerQuests[iI] = NO_MINOR_CIV_QUEST_TYPE;
 		m_aiQuestData1[iI] = -1;
@@ -1847,6 +1848,8 @@ void CvMinorCivAI::Read(FDataStream& kStream)
 
 	kStream >> m_aiFriendshipWithMajorTimes100;
 
+	kStream >> m_aiFriendshipDeltaWithMajorTimes100;
+
 	kStream >> m_aiAngerFreeIntrusionCounter;
 
 	kStream >> m_aiPlayerQuests;
@@ -1928,6 +1931,7 @@ void CvMinorCivAI::Write(FDataStream& kStream) const
 	kStream << m_abRouteConnectionEstablished;
 
 	kStream << m_aiFriendshipWithMajorTimes100;
+	kStream << m_aiFriendshipDeltaWithMajorTimes100;
 	kStream << m_aiAngerFreeIntrusionCounter;
 	kStream << m_aiPlayerQuests;
 	kStream << m_aiQuestData1;
@@ -5398,76 +5402,133 @@ void CvMinorCivAI::DoFriendship()
 		}
 	}
 
-	for(int iPlayerLoop = 0; iPlayerLoop < MAX_MAJOR_CIVS; iPlayerLoop++)
+	// calculate changes
+	for (int iPlayerLoop = 0; iPlayerLoop < MAX_MAJOR_CIVS; iPlayerLoop++)
 	{
-		ePlayer = (PlayerTypes) iPlayerLoop;
+		ePlayer = (PlayerTypes)iPlayerLoop;
 
-		if(GET_PLAYER(ePlayer).isAlive())
+		// Update friendship even if the player hasn't met us yet, since we may have heard things through the grapevine (Wary Of, SP, etc.)
+		if (GET_PLAYER(ePlayer).isAlive())
 		{
-			// Update friendship even if the player hasn't met us yet, since we may have heard things through the grapevine (Wary Of, SP, etc.)
+			// standard per turn change
+			ChangeFriendshipWithMajorTimes100(ePlayer, GetFriendshipChangePerTurnTimes100(ePlayer));
 
-			// Look at the base friendship (not counting war status etc.) and change it
-			int iOldFriendship = GetBaseFriendshipWithMajor(ePlayer);
-			int iChangeThisTurn = GetFriendshipChangePerTurnTimes100(ePlayer);
-			// add military bonus
-			if (eMilitaryWinner == ePlayer) iChangeThisTurn += baseMilitaryInfluence * 100;
+			{ // add military bonus
+				int militaryChangeT100 = 0;
+				const int iOldFriendship = GetBaseFriendshipWithMajor(ePlayer);
+				// lose by default (go negative by X)
+				militaryChangeT100 -= baseMilitaryInfluence * 100;
+				// double bonus if winner (go positive by X)
+				if (eMilitaryWinner == ePlayer) militaryChangeT100 += 2 * baseMilitaryInfluence * 100;
+				ChangeFriendshipWithMajorTimes100(ePlayer, militaryChangeT100);
+			}
+		}
+	}
 
-			int iFriendshipAnchor = GetFriendshipAnchorWithMajor(ePlayer);
-			int iNewFriendship = iOldFriendship + (iChangeThisTurn / 100);
-			if(iOldFriendship >= iFriendshipAnchor && iNewFriendship < iFriendshipAnchor)
+	// find biggest change
+	int largestChangeT100 = 0;
+	int secondLargestChangeT100 = 0;
+	for (int iPlayerLoop = 0; iPlayerLoop < MAX_MAJOR_CIVS; iPlayerLoop++)
+	{
+		ePlayer = (PlayerTypes)iPlayerLoop;
+		if (GET_PLAYER(ePlayer).isAlive())
+		{
+			const int iChangeThisTurnT100 = m_aiFriendshipDeltaWithMajorTimes100[ePlayer];
+			if (iChangeThisTurnT100 > largestChangeT100)
 			{
-				// If we are at or above anchor, don't let the decay dip us below it
-				SetFriendshipWithMajor(ePlayer, iFriendshipAnchor);
+				secondLargestChangeT100 = largestChangeT100; // shift 1st to second
+				largestChangeT100 = iChangeThisTurnT100;
 			}
-			else if (iChangeThisTurn != 0)
+			else if (iChangeThisTurnT100 > secondLargestChangeT100) // did not beat 1st place, but did beat 2nd
 			{
-				ChangeFriendshipWithMajorTimes100(ePlayer, iChangeThisTurn);
+				secondLargestChangeT100 = iChangeThisTurnT100;
 			}
-			else
+		}
+	}
+
+	// reduce all by second largest so that only the leader makes progress, second place stays put, everyone else loses
+	for (int iPlayerLoop = 0; iPlayerLoop < MAX_MAJOR_CIVS; iPlayerLoop++)
+	{
+		ePlayer = (PlayerTypes)iPlayerLoop;
+		if (GET_PLAYER(ePlayer).isAlive())
+		{
+			ChangeFriendshipWithMajorTimes100(ePlayer, -secondLargestChangeT100);
+		}
+	}
+
+	// apply changes
+	for (int iPlayerLoop = 0; iPlayerLoop < MAX_MAJOR_CIVS; iPlayerLoop++)
+	{
+		ePlayer = (PlayerTypes)iPlayerLoop;
+
+		// Update friendship even if the player hasn't met us yet, since we may have heard things through the grapevine (Wary Of, SP, etc.)
+		if (GET_PLAYER(ePlayer).isAlive())
+		{
+			const int iChangeThisTurnT100 = m_aiFriendshipDeltaWithMajorTimes100[ePlayer];
+			m_aiFriendshipDeltaWithMajorTimes100[ePlayer] = 0; // reset delta
+
+			const int iOldFriendship = GetBaseFriendshipWithMajor(ePlayer);
+			const int iFriendshipAnchor = GetFriendshipAnchorWithMajor(ePlayer);
+			int iNewFriendship = iOldFriendship + (iChangeThisTurnT100 / 100);
+
+			// below min?
+			if (iOldFriendship >= iFriendshipAnchor && iNewFriendship < iFriendshipAnchor)
+				iNewFriendship = iFriendshipAnchor;
+
+			// above max?
+			const int maxFriendship = 100;
+			if (iNewFriendship > maxFriendship)
+				iNewFriendship = maxFriendship;
+
+			// friendship changed
+			if (iNewFriendship != iOldFriendship)
 			{
-				// Friendship amount doesn't change, but ally state could have (ex. current ally decays below our level)
-				DoFriendshipChangeEffects(ePlayer, iOldFriendship, iNewFriendship);
+				SetFriendshipWithMajor(ePlayer, iNewFriendship);
 			}
 
+			// even if Friendship amount doesn't change, but ally state could have (ex. current ally decays below our level)
+			DoFriendshipChangeEffects(ePlayer, iOldFriendship, iNewFriendship);
+
+			//	// remove stupid notifications
 			// Notification for status changes
-			if(GetPlayer()->isAlive() && IsHasMetPlayer(ePlayer))
-			{
-				const int iTurnsWarning = 2;
-				const int iAlliesThreshold = GetAlliesThreshold() * 100;
-				const int iFriendsThreshold = GetFriendsThreshold() * 100;
-				int iEffectiveFriendship = GetEffectiveFriendshipWithMajorTimes100(ePlayer);
-				if(IsAllies(ePlayer))
-				{
-					if(iEffectiveFriendship + (iTurnsWarning * iChangeThisTurn) < iAlliesThreshold &&
-						iEffectiveFriendship + ((iTurnsWarning-1) * iChangeThisTurn) >= iAlliesThreshold)
-					{
-						strMessage = Localization::Lookup("TXT_KEY_NTFN_CITY_STATE_ALMOST_NOT_ALLIES");
-						strMessage << strMinorsNameKey;
-						strSummary = Localization::Lookup("TXT_KEY_NTFN_CITY_STATE_ALMOST_SM");
-						strSummary << strMinorsNameKey;
+			//if(GetPlayer()->isAlive() && IsHasMetPlayer(ePlayer))
+			//{
+			//	const int iTurnsWarning = 2;
+			//	const int iAlliesThreshold = GetAlliesThreshold() * 100;
+			//	const int iFriendsThreshold = GetFriendsThreshold() * 100;
+			//	int iEffectiveFriendship = GetEffectiveFriendshipWithMajorTimes100(ePlayer);
+			//	//if(IsAllies(ePlayer))
+			//	//{
+			//	//	if(iEffectiveFriendship + (iTurnsWarning * iChangeThisTurn) < iAlliesThreshold &&
+			//	//		iEffectiveFriendship + ((iTurnsWarning-1) * iChangeThisTurn) >= iAlliesThreshold)
+			//	//	{
+			//	//		strMessage = Localization::Lookup("TXT_KEY_NTFN_CITY_STATE_ALMOST_NOT_ALLIES");
+			//	//		strMessage << strMinorsNameKey;
+			//	//		strSummary = Localization::Lookup("TXT_KEY_NTFN_CITY_STATE_ALMOST_SM");
+			//	//		strSummary << strMinorsNameKey;
 
-						AddNotification(strMessage.toUTF8(), strSummary.toUTF8(), ePlayer);
-					}
-					if(!GC.getGame().isGameMultiPlayer() && GET_PLAYER(ePlayer).isHuman())
-					{
-						gDLL->UnlockAchievement(ACHIEVEMENT_CITYSTATE_ALLY);
-					}
+			//	//		AddNotification(strMessage.toUTF8(), strSummary.toUTF8(), ePlayer);
+			//	//	}
+			//	//	if(!GC.getGame().isGameMultiPlayer() && GET_PLAYER(ePlayer).isHuman())
+			//	//	{
+			//	//		gDLL->UnlockAchievement(ACHIEVEMENT_CITYSTATE_ALLY);
+			//	//	}
 
-				}
-				else if(IsFriends(ePlayer))
-				{
-					if(iEffectiveFriendship + (iTurnsWarning * iChangeThisTurn) < iFriendsThreshold &&
-						iEffectiveFriendship + ((iTurnsWarning-1) * iChangeThisTurn) >= iFriendsThreshold)
-					{
-						strMessage = Localization::Lookup("TXT_KEY_NTFN_CITY_STATE_ALMOST_NOT_FRIENDS");
-						strMessage << strMinorsNameKey;
-						strSummary = Localization::Lookup("TXT_KEY_NTFN_CITY_STATE_ALMOST_SM");
-						strSummary << strMinorsNameKey;
+			//	//}
+			//	//else if(IsFriends(ePlayer))
+			//	//{
+			//	//	if(iEffectiveFriendship + (iTurnsWarning * iChangeThisTurn) < iFriendsThreshold &&
+			//	//		iEffectiveFriendship + ((iTurnsWarning-1) * iChangeThisTurn) >= iFriendsThreshold)
+			//	//	{
+			//	//		//strMessage = Localization::Lookup("TXT_KEY_NTFN_CITY_STATE_ALMOST_NOT_FRIENDS");
+			//	//		//strMessage << strMinorsNameKey;
+			//	//		//strSummary = Localization::Lookup("TXT_KEY_NTFN_CITY_STATE_ALMOST_SM");
+			//	//		//strSummary << strMinorsNameKey;
 
-						AddNotification(strMessage.toUTF8(), strSummary.toUTF8(), ePlayer);
-					}
-				}
-			}
+			//	//		//AddNotification(strMessage.toUTF8(), strSummary.toUTF8(), ePlayer);
+			//	//	}
+			//	//}
+			//}
 		}
 	}
 }
@@ -5629,18 +5690,39 @@ void CvMinorCivAI::ChangeFriendshipWithMajorTimes100(PlayerTypes ePlayer, int iC
 	CvAssertMsg(ePlayer >= 0, "ePlayer is expected to be non-negative (invalid Index)");
 	CvAssertMsg(ePlayer < MAX_MAJOR_CIVS, "ePlayer is expected to be within maximum bounds (invalid Index)");
 
-	if(iChange != 0)
+	if (iChange != 0)
 	{
 		// If this friendship was earned from a Quest, then we might apply a modifier to it
-		if(bFromQuest && iChange > 0)
+		if (bFromQuest && iChange > 0)
 		{
-			if(GET_PLAYER(ePlayer).getMinorQuestFriendshipMod() != 0)
+			if (GET_PLAYER(ePlayer).getMinorQuestFriendshipMod() != 0)
 			{
 				iChange *= (100 + GET_PLAYER(ePlayer).getMinorQuestFriendshipMod());
 				iChange /= 100;
 			}
 		}
+		m_aiFriendshipDeltaWithMajorTimes100[ePlayer] += iChange;
+		//SetFriendshipWithMajorTimes100(ePlayer, GetBaseFriendshipWithMajorTimes100(ePlayer) + iChange, bFromQuest);
+	}
+}
 
+/// Changes the base level of Friendship between this Minor and the specified Major Civ
+void CvMinorCivAI::ChangeFriendshipWithMajorTimes100Instant(PlayerTypes ePlayer, int iChange, bool bFromQuest)
+{
+	CvAssertMsg(ePlayer >= 0, "ePlayer is expected to be non-negative (invalid Index)");
+	CvAssertMsg(ePlayer < MAX_MAJOR_CIVS, "ePlayer is expected to be within maximum bounds (invalid Index)");
+
+	if (iChange != 0)
+	{
+		// If this friendship was earned from a Quest, then we might apply a modifier to it
+		if (bFromQuest && iChange > 0)
+		{
+			if (GET_PLAYER(ePlayer).getMinorQuestFriendshipMod() != 0)
+			{
+				iChange *= (100 + GET_PLAYER(ePlayer).getMinorQuestFriendshipMod());
+				iChange /= 100;
+			}
+		}
 		SetFriendshipWithMajorTimes100(ePlayer, GetBaseFriendshipWithMajorTimes100(ePlayer) + iChange, bFromQuest);
 	}
 }
@@ -9214,7 +9296,7 @@ void CvMinorCivAI::DoGoldGiftFromMajor(PlayerTypes ePlayer, int iGold)
 
 			ChangeNumGoldGifted(ePlayer, iGold);
 
-			ChangeFriendshipWithMajor(ePlayer, iFriendshipChange);
+			ChangeFriendshipWithMajorTimes100Instant(ePlayer, iFriendshipChange * 100);
 
 			// In case we had a Gold Gift quest active, complete it now
 			DoTestActiveQuestsForPlayer(ePlayer, /*bTestComplete*/ true, /*bTestObsolete*/ false, MINOR_CIV_QUEST_GIVE_GOLD);

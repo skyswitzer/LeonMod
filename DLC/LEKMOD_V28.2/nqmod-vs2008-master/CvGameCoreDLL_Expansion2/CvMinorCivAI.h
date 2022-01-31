@@ -327,12 +327,11 @@ public:
 
 	int GetEffectiveFriendshipWithMajorTimes100(PlayerTypes ePlayer);
 	int GetBaseFriendshipWithMajorTimes100(PlayerTypes ePlayer) const;
-	void SetFriendshipWithMajorTimes100(PlayerTypes ePlayer, int iNum, bool bFromQuest = false);
 	void ChangeFriendshipWithMajorTimes100(PlayerTypes ePlayer, int iChange, bool bFromQuest = false);
+	void ChangeFriendshipWithMajorTimes100Instant(PlayerTypes ePlayer, int iChange, bool bFromQuest = false);
 
 	int GetEffectiveFriendshipWithMajor(PlayerTypes ePlayer);
 	int GetBaseFriendshipWithMajor(PlayerTypes ePlayer) const;
-	void SetFriendshipWithMajor(PlayerTypes ePlayer, int iNum, bool bFromQuest = false);
 	void ChangeFriendshipWithMajor(PlayerTypes ePlayer, int iChange, bool bFromQuest = false);
 
 	int GetFriendshipAnchorWithMajor(PlayerTypes ePlayer);
@@ -564,7 +563,10 @@ public:
 	bool IsDisableNotifications() const;
 	void SetDisableNotifications(bool bDisableNotifications);
 
+	void SetFriendshipWithMajor(PlayerTypes ePlayer, int iNum, bool bFromQuest = false);
 private:
+	void SetFriendshipWithMajorTimes100(PlayerTypes ePlayer, int iNum, bool bFromQuest = false);
+
 	CvPlayer* m_pPlayer;
 	MinorCivTypes m_minorCivType;
 	MinorCivPersonalityTypes m_ePersonality;
@@ -584,6 +586,7 @@ private:
 	PlayerTypes m_eMajorBoughtOutBy;
 
 	int m_aiFriendshipWithMajorTimes100[MAX_MAJOR_CIVS];
+	int m_aiFriendshipDeltaWithMajorTimes100[MAX_MAJOR_CIVS];
 	int m_aiAngerFreeIntrusionCounter[MAX_MAJOR_CIVS];
 	int m_aiPlayerQuests[MAX_MAJOR_CIVS]; //antonjs: DEPRECATED
 	int m_aiQuestData1[MAX_MAJOR_CIVS]; //antonjs: DEPRECATED

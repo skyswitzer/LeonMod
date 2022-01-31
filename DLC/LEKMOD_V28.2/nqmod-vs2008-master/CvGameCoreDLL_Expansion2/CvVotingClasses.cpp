@@ -1422,11 +1422,14 @@ void CvActiveResolution::DoEffects(PlayerTypes ePlayer)
 			for (int iMinor = MAX_MAJOR_CIVS; iMinor < MAX_CIV_PLAYERS; iMinor++)
 			{
 				PlayerTypes eMinor = (PlayerTypes) iMinor;
-				if (GET_PLAYER(eMinor).isAlive() && GET_PLAYER(eMinor).GetMinorCivAI()->GetBaseFriendshipWithMajor(ePlayer) < iNeutral)
+				if (GET_PLAYER(eMinor).isAlive())
 				{
+					// need this much to get back to neutral
+					const int deltaNeeded = max(0, GET_PLAYER(eMinor).GetMinorCivAI()->GetBaseFriendshipWithMajor(ePlayer) - iNeutral);
+
 					if (pLeague->IsMember(eMinor))
 					{
-						GET_PLAYER(eMinor).GetMinorCivAI()->SetFriendshipWithMajor(ePlayer, iNeutral);
+						GET_PLAYER(eMinor).GetMinorCivAI()->ChangeFriendshipWithMajor(ePlayer, deltaNeeded);
 					}
 				}
 			}
