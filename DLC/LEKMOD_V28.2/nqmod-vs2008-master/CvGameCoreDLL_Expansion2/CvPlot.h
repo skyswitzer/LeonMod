@@ -472,9 +472,19 @@ public:
 		return m_bIsImpassable;
 	}
 
+	// true if land untis can walk on this sea tile
 	bool IsAllowsWalkWater() const;
-
+	bool IsEnemyTerritory(const PlayerTypes ePlayer) const;
+	// true if sea units can walk on this land tile
 	bool IsAllowsSailLand(PlayerTypes ePlayer) const;
+	// total cap
+	int GetAircraftCapacity() const;
+	// true the unit is allowed to be here this turn
+	bool CanHoldThisAircraft(const CvUnit* aircraft) const;
+	// true if this tile could potentially hold aircraft
+	bool CanHoldAnyAircraft() const;
+	vector<CvUnit*> CvPlot::getAllUnits();
+	vector<const CvUnit*> CvPlot::getAllUnitsConst() const;
 
 	bool isEnemyUnit(PlayerTypes ePlayer, bool bCombat, bool bCheckVisibility, bool bIgnoreBarbs) const;
 	vector<CvUnit*> GetAdjacentEnemyMilitaryUnits(TeamTypes eMyTeam, DomainTypes eDomain) const;

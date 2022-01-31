@@ -208,6 +208,7 @@ protected:
 	static int lChangeNumResource(lua_State* L);
 
 	static int lGetImprovementType(lua_State* L);
+	static int lGetAircraftCapacity(lua_State* L);
 	static int lSetImprovementType(lua_State* L);
 	static int lSetImprovementPillaged(lua_State* L);
 	static int lGetRouteType(lua_State* L);

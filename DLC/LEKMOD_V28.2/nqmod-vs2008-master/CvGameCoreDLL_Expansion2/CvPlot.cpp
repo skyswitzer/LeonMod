@@ -3406,11 +3406,10 @@ bool CvPlot::IsAllowsWalkWater() const
 	}
 	return false;
 }
-// --------------------------------------------------------------------------------- // from Izy
-bool CvPlot::IsAllowsSailLand(PlayerTypes ePlayer) const
+bool CvPlot::IsEnemyTerritory(const PlayerTypes ePlayer) const
 {
-	TeamTypes ePlayerTeam = GET_PLAYER(ePlayer).getTeam();
-	TeamTypes ePlotOwnerTeam = getTeam();
+	const TeamTypes ePlayerTeam = GET_PLAYER(ePlayer).getTeam();
+	const TeamTypes ePlotOwnerTeam = getTeam();
 
 	// no closed borders
 	if (ePlotOwnerTeam != NO_TEAM) // noteam is open borders
@@ -3418,20 +3417,32 @@ bool CvPlot::IsAllowsSailLand(PlayerTypes ePlayer) const
 		if (ePlotOwnerTeam != ePlayerTeam) // different team
 		{
 			if (!GET_TEAM(ePlotOwnerTeam).IsAllowsOpenBordersToTeam(ePlayerTeam)) // closed borders
-				return false;
+				return true;
 		}
 		else if (!GET_PLAYER(ePlayer).isMinorCiv()) // player is not minor civ
 		{
-			CvTeam& ownerTeam = GET_TEAM(ePlotOwnerTeam);
+			const CvTeam& ownerTeam = GET_TEAM(ePlotOwnerTeam);
 			if (ownerTeam.isMinorCiv()) // owner is minor civ
 			{
 				if (!GET_PLAYER(ownerTeam.getLeaderID()).GetMinorCivAI()->IsPlayerHasOpenBorders(ePlayer)) // closed borders
 				{
-					return false;
+					return true;
 				}
 			}
 		}
 	}
+
+	return false;
+}
+// --------------------------------------------------------------------------------- // from Izy
+bool CvPlot::IsAllowsSailLand(PlayerTypes ePlayer) const
+{
+	TeamTypes ePlayerTeam = GET_PLAYER(ePlayer).getTeam();
+	TeamTypes ePlotOwnerTeam = getTeam();
+
+	// no closed borders
+	if (IsEnemyTerritory(ePlayer))
+		return false;
 
 	// adjacent enemy units stop canal usage
 	bool bAnyNearbyEnemyUnits = isEnemyUnit(ePlayer, true, false, false) || GetAdjacentEnemyMilitaryUnits(ePlayerTeam, NO_DOMAIN).size() != 0;
@@ -3453,6 +3464,129 @@ bool CvPlot::IsAllowsSailLand(PlayerTypes ePlayer) const
 
 	// disallow by default
     return false;
+}
+
+int CvPlot::GetAircraftCapacity() const
+{
+	int maxAircraft = 0;
+	{ // COUNT CAPACITY
+		// improvements
+		ImprovementTypes eImprovement = getImprovementType();
+		if (eImprovement != NO_IMPROVEMENT && !IsImprovementPillaged()) // has non pillaged improvement
+		{
+			CvImprovementEntry* pkEntry = GC.getImprovementInfo(eImprovement);
+			if (pkEntry)
+				maxAircraft += pkEntry->AircraftCapacity();
+		}
+
+		// cities
+		const CvCity* city = getPlotCity();
+		if (city)
+			maxAircraft += city->GetMaxAirUnits();
+
+		// units
+		const vector<const CvUnit*> units = getAllUnitsConst();
+		for (int i = 0; i < units.size(); ++i)
+		{
+			const CvUnit* unit = units[i];
+			if (unit)
+				maxAircraft += unit->cargoSpace();
+		}
+	}
+	return maxAircraft;
+}
+
+bool CvPlot::CanHoldThisAircraft(const CvUnit* aircraft) const
+{
+	//const CvCity* city = this->getPlotCity();
+	//if (city)
+	//{
+	//	city->GetMaxAirUnits() > city->getair;
+	//}
+	//else // check for improvement
+
+	//const PlayerTypes originalOwner = pToPlot->GetPlayerThatBuiltImprovement();
+
+	const int maxAircraft = GetAircraftCapacity();
+
+	{ // CHECK CAPACITY
+		const int currentAircraft = countNumAirUnits(NO_TEAM);
+		const bool alreadyHasThisUnit = aircraft->plot() == this;
+		if (!alreadyHasThisUnit) // make sure it can hold one more
+		{
+			// remaining capacity too low?
+			if (currentAircraft >= maxAircraft)
+				return false;
+		}
+		// over capacity?
+		if ((maxAircraft <= 0) || (currentAircraft > maxAircraft))
+			return false;
+	}
+
+	{ // ENEMY CONTROLLED
+		if (IsEnemyTerritory(aircraft->getOwner()))
+			return false;
+		// does contain any enemy units?
+		const bool isAnyEnemyUnit = isEnemyUnit(aircraft->getOwner(), true, false, false) || isEnemyUnit(aircraft->getOwner(), false, false, false);
+		if (isAnyEnemyUnit)
+			return false;
+	}
+
+	return true;
+}
+
+bool CvPlot::CanHoldAnyAircraft() const
+{
+	ImprovementTypes eImprovement = getImprovementType();
+	if (eImprovement != NO_IMPROVEMENT)
+	{
+		CvImprovementEntry* pkEntry = GC.getImprovementInfo(eImprovement);
+		int maxAircraft = 0;
+		if (pkEntry)
+			maxAircraft = pkEntry->AircraftCapacity();
+
+		return maxAircraft > 0;
+	}
+
+	return false;
+}
+
+vector<const CvUnit*> CvPlot::getAllUnitsConst() const
+{
+	vector<const CvUnit*> units = vector<const CvUnit*>();
+	const IDInfo* pUnitNode = m_units.head();
+	if (pUnitNode)
+	{
+		do
+		{
+			const CvUnit* pLoopUnit = GetPlayerUnit(*pUnitNode);
+			pUnitNode = m_units.next(pUnitNode);
+			if (pLoopUnit && !pLoopUnit->IsDead())
+			{
+				units.push_back(pLoopUnit);
+			}
+		} while (pUnitNode != NULL);
+	}
+	return units;
+}
+
+vector<CvUnit*> CvPlot::getAllUnits()
+{
+	vector<CvUnit*> units = vector<CvUnit*>();
+	IDInfo* pUnitNode = m_units.head();
+	if (pUnitNode)
+	{
+		do
+		{
+			CvUnit* pLoopUnit = GetPlayerUnit(*pUnitNode);
+			pUnitNode = m_units.next(pUnitNode);
+			if (pLoopUnit && !pLoopUnit->IsDead())
+			{
+				units.push_back(pLoopUnit);
+			}
+		} while (pUnitNode != NULL);
+	}
+	return units;
 }
 
 bool CvPlot::isEnemyUnit(PlayerTypes ePlayer, bool militaryUnit, bool bCheckVisibility, bool bIgnoreBarbs) const
@@ -4853,7 +4987,7 @@ bool CvPlot::isValidDomainForAction(const CvUnit& unit) const
 		break;
 
 	case DOMAIN_AIR:
-		return false;
+		return CanHoldThisAircraft(&unit); // TODO Check improvement type
 		break;
 
 	case DOMAIN_LAND:
@@ -11479,10 +11613,15 @@ int CvPlot::countNumAirUnits(TeamTypes eTeam) const
 	{
 		const CvUnit* pLoopUnit = GetPlayerUnit(*pUnitNode);
 		pUnitNode = nextUnitNode(pUnitNode);
-
-		if(pLoopUnit && DOMAIN_AIR == pLoopUnit->getDomainType() && !pLoopUnit->isCargo() && pLoopUnit->getTeam() == eTeam)
+		if (pLoopUnit)
 		{
-			iCount += pLoopUnit->getUnitInfo().GetAirUnitCap();
+			const bool isAirUnit = DOMAIN_AIR == pLoopUnit->getDomainType();
+			const bool isRelevantTeam = pLoopUnit->getTeam() == eTeam || NO_TEAM == eTeam;
+			const bool isWithinOtherUnit = !pLoopUnit->isCargo();
+			if (isAirUnit && isRelevantTeam && isWithinOtherUnit)
+			{
+				iCount += pLoopUnit->getUnitInfo().GetAirUnitCap();
+			}
 		}
 	}
 

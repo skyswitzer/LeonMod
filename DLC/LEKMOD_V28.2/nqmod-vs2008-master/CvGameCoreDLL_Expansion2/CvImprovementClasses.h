@@ -104,6 +104,7 @@ public:
 	bool IsAdjacentLuxury() const;
 	bool IsAllowsWalkWater() const;
 	bool IsAllowsSailLand() const;
+	int AircraftCapacity() const;
 	bool IsCreatedByGreatPerson() const;
 	bool IsSpecificCivRequired() const;
 
@@ -217,6 +218,7 @@ protected:
     bool m_bAdjacentLuxury;
 	bool m_bAllowsWalkWater;
 	bool m_bAllowsSailLand;
+	int m_iAircraftCapacity;
 	bool m_bCreatedByGreatPerson;
 	bool m_bSpecificCivRequired;
 

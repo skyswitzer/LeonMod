@@ -112,6 +112,7 @@ CvImprovementEntry::CvImprovementEntry(void):
 	m_bAdjacentLuxury(false),
 	m_bAllowsWalkWater(false),
 	m_bAllowsSailLand(false),
+	m_iAircraftCapacity(0),
 	m_bCreatedByGreatPerson(false),
 	m_bSpecificCivRequired(false),
 	m_eImprovementUsageType(IMPROVEMENTUSAGE_BASIC),
@@ -252,6 +253,7 @@ bool CvImprovementEntry::CacheResults(Database::Results& kResults, CvDatabaseUti
 	m_bAdjacentLuxury = kResults.GetBool("AdjacentLuxury");
 	m_bAllowsWalkWater = kResults.GetBool("AllowsWalkWater");
 	m_bAllowsSailLand = kResults.GetBool("AllowsSailLand"); // from Izy
+	m_iAircraftCapacity = kResults.GetInt("AircraftCapacity");
 	m_bCreatedByGreatPerson = kResults.GetBool("CreatedByGreatPerson");
 	m_bSpecificCivRequired = kResults.GetBool("SpecificCivRequired");
 	m_iResourceExtractionMod = kResults.GetInt("ResourceExtractionMod");
@@ -820,7 +822,12 @@ bool CvImprovementEntry::IsAllowsWalkWater() const
 /// Does this improvement allow naval units to cross land?
 bool CvImprovementEntry::IsAllowsSailLand() const // from Izy
 {
-    return m_bAllowsSailLand;
+	return m_bAllowsSailLand;
+}
+/// Does this improvement allow aircraft?
+int CvImprovementEntry::AircraftCapacity() const
+{
+	return m_iAircraftCapacity;
 }
 /// Does this improvement need to be built inside or adjacent to a civ's borders?
 bool CvImprovementEntry::IsInAdjacentFriendly() const

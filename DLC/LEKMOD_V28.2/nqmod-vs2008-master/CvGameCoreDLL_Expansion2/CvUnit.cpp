@@ -7245,6 +7245,8 @@ bool CvUnit::canRebase(const CvPlot* /*pPlot*/) const
 //	--------------------------------------------------------------------------------
 bool CvUnit::canRebaseAt(const CvPlot* pPlot, int iX, int iY) const
 {
+	const PlayerTypes unitPlayer = getOwner();
+
 	// If we can't rebase ANYWHERE then we definitely can't rebase at this X,Y
 	if(!canRebase(pPlot))
 	{
@@ -7273,6 +7275,12 @@ bool CvUnit::canRebaseAt(const CvPlot* pPlot, int iX, int iY) const
 	if(plotDistance(getX(), getY(), iX, iY) > iRange)
 	{
 		return false;
+	}
+
+	// plot can hold one more aircraft?
+	if (pToPlot->CanHoldThisAircraft(this))
+	{
+		return true;
 	}
 
 	// Can't load to the target plot

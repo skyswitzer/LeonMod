@@ -192,6 +192,7 @@ void CvLuaPlot::PushMethods(lua_State* L, int t)
 	Method(ChangeNumResource);
 
 	Method(GetImprovementType);
+	Method(GetAircraftCapacity);
 	Method(SetImprovementType);
 	Method(SetImprovementPillaged);
 	Method(GetRouteType);
@@ -1290,6 +1291,16 @@ int CvLuaPlot::lChangeNumResource(lua_State* L)
 int CvLuaPlot::lGetImprovementType(lua_State* L)
 {
 	return BasicLuaMethod(L, &CvPlot::getImprovementType);
+}
+
+//------------------------------------------------------------------------------
+//ImprovementTypes getImprovementType();
+int CvLuaPlot::lGetAircraftCapacity(lua_State* L)
+{
+	CvPlot* pkPlot = GetInstance(L);
+	const int capacity = pkPlot->GetAircraftCapacity();
+	lua_pushinteger(L, capacity);
+	return 1;
 }
 //------------------------------------------------------------------------------
 //void setImprovementType(ImprovementTypes eNewValue);
