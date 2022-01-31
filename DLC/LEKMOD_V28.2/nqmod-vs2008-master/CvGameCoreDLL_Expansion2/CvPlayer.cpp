@@ -1927,7 +1927,7 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bGift)
 	int iPopulation;
 	int iHighestPopulation;
 	int iOldPopulation;
-	int iBattleDamage;
+	float previousDamagePercent = 0.0f;
 #ifdef AUI_WARNING_FIXES
 	uint iI;
 #else
@@ -2205,19 +2205,7 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bGift)
 	tempReligions.Init(pOldCity);
 	tempReligions.Copy(pOldCity->GetCityReligions());
 
-	iBattleDamage = pOldCity->getDamage();
-
-	// Traded cities between humans don't heal (an exploit would be to trade a city back and forth between teammates to get an instant heal.)
-	if(!bGift || !isHuman() || !GET_PLAYER(pOldCity->getOwner()).isHuman())
-	{
-		int iBattleDamgeThreshold = pOldCity->GetMaxHitPoints() * /*50*/ GC.getCITY_CAPTURE_DAMAGE_PERCENT();
-		iBattleDamgeThreshold /= 100;
-
-		if(iBattleDamage > iBattleDamgeThreshold)
-		{
-			iBattleDamage = iBattleDamgeThreshold;
-		}
-	}
+	previousDamagePercent = (float)pOldCity->getDamage() / (float)pOldCity->GetMaxHitPoints();
 
 	for(iI = 0; iI < MAX_PLAYERS; iI++)
 	{
@@ -2477,7 +2465,14 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bGift)
 	pNewCity->setHighestPopulation(iHighestPopulation);
 	pNewCity->setName(strName);
 	pNewCity->setNeverLost(false);
-	pNewCity->setDamage(iBattleDamage,true);
+
+	float damageFraction = (GC.getCITY_CAPTURE_DAMAGE_PERCENT() / 100.0f);
+	if (bGift) // gifts should not heal at all
+		damageFraction = previousDamagePercent;
+
+	const float maxHp = pNewCity->GetMaxHitPoints();
+	float damage = maxHp * damageFraction;
+	pNewCity->setDamage(damage, true);
 	pNewCity->setMadeAttack(bHasMadeAttack);
 
 	for(iI = 0; iI < MAX_PLAYERS; iI++)
@@ -8891,16 +8886,9 @@ void CvPlayer::processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst
 		int iMinorFriendshipChange = pBuildingInfo->GetMinorFriendshipChange();
 		if(iMinorFriendshipChange != 0)
 		{
-			int iNewValue;
-			iMinorFriendshipChange += 100;	// Make it a mod
-
 			for(int iMinorLoop = MAX_MAJOR_CIVS; iMinorLoop < MAX_CIV_PLAYERS; iMinorLoop++)
 			{
-				iNewValue = GET_PLAYER((PlayerTypes) iMinorLoop).GetMinorCivAI()->GetBaseFriendshipWithMajorTimes100(GetID());
-				iNewValue *= iMinorFriendshipChange;
-				iNewValue /= 100;
-
-				GET_PLAYER((PlayerTypes) iMinorLoop).GetMinorCivAI()->SetFriendshipWithMajorTimes100(GetID(), iNewValue);
+				GET_PLAYER((PlayerTypes) iMinorLoop).GetMinorCivAI()->ChangeFriendshipWithMajorTimes100(GetID(), iMinorFriendshipChange);
 			}
 		}
 	}
