@@ -31,7 +31,7 @@ const int scorePerAllyTurn = 2;
 // minimum military influence needed to gain influence
 const int minMilitaryStrength = 15;
 // influence gained per turn for having the most local military
-const int baseMilitaryInfluence = 5;
+const int baseMilitaryInfluence = 8;
 // influence gained per turn for having the most local military
 const int baseTradeInfluence = 0;
 
@@ -5379,49 +5379,15 @@ void CvMinorCivAI::DoFriendship()
 	Localization::String strSummary;
 	const char* strMinorsNameKey = GetPlayer()->getNameKey();
 
-	PlayerTypes ePlayer;
-
-	// find military winner
-	PlayerTypes eMilitaryWinner = NO_PLAYER;
-	int highestStrength = minMilitaryStrength;
-	for (int iPlayerLoop = 0; iPlayerLoop < MAX_MAJOR_CIVS; iPlayerLoop++)
-	{
-		ePlayer = (PlayerTypes)iPlayerLoop;
-		if (!GET_PLAYER(ePlayer).isAlive()) continue; // must be alive
-		if (GET_PLAYER(ePlayer).isMinorCiv()) continue; // must be major civ
-
-		const int tempStrength = getAStrengthNearAllBCities(ePlayer, m_pPlayer->GetID());
-		if (tempStrength > highestStrength)
-		{
-			highestStrength = tempStrength;
-			eMilitaryWinner = ePlayer;
-		}
-		else if (tempStrength == highestStrength)
-		{
-			eMilitaryWinner = NO_PLAYER;
-		}
-	}
-
 	// calculate changes
 	for (int iPlayerLoop = 0; iPlayerLoop < MAX_MAJOR_CIVS; iPlayerLoop++)
 	{
-		ePlayer = (PlayerTypes)iPlayerLoop;
+		const PlayerTypes ePlayer = (PlayerTypes)iPlayerLoop;
 
 		// Update friendship even if the player hasn't met us yet, since we may have heard things through the grapevine (Wary Of, SP, etc.)
 		if (GET_PLAYER(ePlayer).isAlive())
 		{
-			// standard per turn change
 			ChangeFriendshipWithMajorTimes100(ePlayer, GetFriendshipChangePerTurnTimes100(ePlayer));
-
-			{ // add military bonus
-				int militaryChangeT100 = 0;
-				const int iOldFriendship = GetBaseFriendshipWithMajor(ePlayer);
-				// lose by default (go negative by X)
-				militaryChangeT100 -= baseMilitaryInfluence * 100;
-				// double bonus if winner (go positive by X)
-				if (eMilitaryWinner == ePlayer) militaryChangeT100 += 2 * baseMilitaryInfluence * 100;
-				ChangeFriendshipWithMajorTimes100(ePlayer, militaryChangeT100);
-			}
 		}
 	}
 
@@ -5430,7 +5396,7 @@ void CvMinorCivAI::DoFriendship()
 	int secondLargestChangeT100 = 0;
 	for (int iPlayerLoop = 0; iPlayerLoop < MAX_MAJOR_CIVS; iPlayerLoop++)
 	{
-		ePlayer = (PlayerTypes)iPlayerLoop;
+		const PlayerTypes ePlayer = (PlayerTypes)iPlayerLoop;
 		if (GET_PLAYER(ePlayer).isAlive())
 		{
 			const int iChangeThisTurnT100 = m_aiFriendshipDeltaWithMajorTimes100[ePlayer];
@@ -5449,7 +5415,7 @@ void CvMinorCivAI::DoFriendship()
 	// reduce all by second largest so that only the leader makes progress, second place stays put, everyone else loses
 	for (int iPlayerLoop = 0; iPlayerLoop < MAX_MAJOR_CIVS; iPlayerLoop++)
 	{
-		ePlayer = (PlayerTypes)iPlayerLoop;
+		const PlayerTypes ePlayer = (PlayerTypes)iPlayerLoop;
 		if (GET_PLAYER(ePlayer).isAlive())
 		{
 			ChangeFriendshipWithMajorTimes100(ePlayer, -secondLargestChangeT100);
@@ -5459,7 +5425,7 @@ void CvMinorCivAI::DoFriendship()
 	// apply changes
 	for (int iPlayerLoop = 0; iPlayerLoop < MAX_MAJOR_CIVS; iPlayerLoop++)
 	{
-		ePlayer = (PlayerTypes)iPlayerLoop;
+		const PlayerTypes ePlayer = (PlayerTypes)iPlayerLoop;
 
 		// Update friendship even if the player hasn't met us yet, since we may have heard things through the grapevine (Wary Of, SP, etc.)
 		if (GET_PLAYER(ePlayer).isAlive())
@@ -5536,87 +5502,120 @@ void CvMinorCivAI::DoFriendship()
 /// How much does friendship drop per turn with ePlayer?
 /// Note that this does not pay attention to whether ePlayer is at war
 /// with this minor, in which case there is no friendship change per turn.
-int CvMinorCivAI::GetFriendshipChangePerTurnTimes100(PlayerTypes ePlayer)
+int CvMinorCivAI::GetFriendshipChangePerTurnTimes100(const PlayerTypes ePlayer)
 {
-	CvPlayer& kPlayer = GET_PLAYER(ePlayer);
+	if (!GET_PLAYER(ePlayer).isAlive())
+	{
+		return 0;
+	}
+	const CvPlayer& kPlayer = GET_PLAYER(ePlayer);
 	int iChangeThisTurn = 0;
 
-	// Modifier to rate based on traits and religion
-	int iTraitMod = kPlayer.GetPlayerTraits()->GetCityStateFriendshipModifier();
-	int iReligionMod = 0;
-	if (IsSameReligionAsMajor(ePlayer))
-		iReligionMod += /*50*/ GC.getMINOR_FRIENDSHIP_RATE_MOD_SHARED_RELIGION();
+	//// Modifier to rate based on traits and religion
+	//const int iTraitMod = kPlayer.GetPlayerTraits()->GetCityStateFriendshipModifier();
+	//int iReligionMod = 0;
+	//if (IsSameReligionAsMajor(ePlayer))
+	//	iReligionMod += /*50*/ GC.getMINOR_FRIENDSHIP_RATE_MOD_SHARED_RELIGION();
 
-	// Relation to anchor point?
-	int iBaseFriendship = GetBaseFriendshipWithMajor(ePlayer);
-	int iFriendshipAnchor = GetFriendshipAnchorWithMajor(ePlayer);
-	if (iBaseFriendship == iFriendshipAnchor)
-	{
-		// Change rate is 0
-	}
-	else if (iBaseFriendship > iFriendshipAnchor)
-	{
-		// Hostile Minors have Friendship decay quicker
-		if(GetPersonality() == MINOR_CIV_PERSONALITY_HOSTILE)
-			iChangeThisTurn += /*-150*/ GC.getMINOR_FRIENDSHIP_DROP_PER_TURN_HOSTILE();
-		// Aggressor!
-		else if(GET_TEAM(kPlayer.getTeam()).IsMinorCivAggressor())
-			iChangeThisTurn += /*-200*/ GC.getMINOR_FRIENDSHIP_DROP_PER_TURN_AGGRESSOR();
-		// Normal decay
-		else
-			iChangeThisTurn += /*-100*/ GC.getMINOR_FRIENDSHIP_DROP_PER_TURN();
+	//// Relation to anchor point?
+	//const int iBaseFriendship = GetBaseFriendshipWithMajor(ePlayer);
+	//const int iFriendshipAnchor = GetFriendshipAnchorWithMajor(ePlayer);
+	//if (iBaseFriendship == iFriendshipAnchor)
+	//{
+	//	// Change rate is 0
+	//}
+	//else if (iBaseFriendship > iFriendshipAnchor)
+	//{
+	//	// Hostile Minors have Friendship decay quicker
+	//	if(GetPersonality() == MINOR_CIV_PERSONALITY_HOSTILE)
+	//		iChangeThisTurn += /*-150*/ GC.getMINOR_FRIENDSHIP_DROP_PER_TURN_HOSTILE();
+	//	// Aggressor!
+	//	else if(GET_TEAM(kPlayer.getTeam()).IsMinorCivAggressor())
+	//		iChangeThisTurn += /*-200*/ GC.getMINOR_FRIENDSHIP_DROP_PER_TURN_AGGRESSOR();
+	//	// Normal decay
+	//	else
+	//		iChangeThisTurn += /*-100*/ GC.getMINOR_FRIENDSHIP_DROP_PER_TURN();
 
-		// Decay modified (Trait, policies, shared religion, etc.)
-		int iDecayMod = 100;
-		iDecayMod += GET_PLAYER(ePlayer).GetMinorFriendshipDecayMod();
-		iDecayMod += (-1) * (iTraitMod / 2);
-		iDecayMod += (-1) * (iReligionMod / 2);
-		
-		if (iDecayMod < 0)
-			iDecayMod = 0;
+	//	// Decay modified (Trait, policies, shared religion, etc.)
+	//	int iDecayMod = 100;
+	//	iDecayMod += GET_PLAYER(ePlayer).GetMinorFriendshipDecayMod();
+	//	iDecayMod += (-1) * (iTraitMod / 2);
+	//	iDecayMod += (-1) * (iReligionMod / 2);
+	//	
+	//	if (iDecayMod < 0)
+	//		iDecayMod = 0;
 
-		iChangeThisTurn *= iDecayMod;
-		iChangeThisTurn /= 100;
-	}
-	else
-	{
-		iChangeThisTurn += /*100*/ GC.getMINOR_FRIENDSHIP_NEGATIVE_INCREASE_PER_TURN();
+	//	iChangeThisTurn *= iDecayMod;
+	//	iChangeThisTurn /= 100;
+	//}
+	//else
+	//{
+	//	iChangeThisTurn += /*100*/ GC.getMINOR_FRIENDSHIP_NEGATIVE_INCREASE_PER_TURN();
 
-		// Recovery modified (Trait, policies, shared religion, etc.)
-		int iRecoveryMod = 100;
-		iRecoveryMod += iTraitMod;
-		iRecoveryMod += iReligionMod;
-		
-		if (iRecoveryMod < 0)
-			iRecoveryMod = 0;
+	//	// Recovery modified (Trait, policies, shared religion, etc.)
+	//	int iRecoveryMod = 100;
+	//	iRecoveryMod += iTraitMod;
+	//	iRecoveryMod += iReligionMod;
+	//	
+	//	if (iRecoveryMod < 0)
+	//		iRecoveryMod = 0;
 
-		iChangeThisTurn *= iRecoveryMod;
-		iChangeThisTurn /= 100;
-	}
+	//	iChangeThisTurn *= iRecoveryMod;
+	//	iChangeThisTurn /= 100;
+	//}
 
-	// Shift on top of base rate
-	if (GET_TEAM(kPlayer.getTeam()).isHasMet(GetPlayer()->getTeam()))
-	{
-		int iShift = 0;
+	//// Shift on top of base rate
+	//if (GET_TEAM(kPlayer.getTeam()).isHasMet(GetPlayer()->getTeam()))
+	//{
+	//	int iShift = 0;
 
-		const bool hasTradeRoute = GC.getGame().GetGameTrade()->IsPlayerConnectedToPlayer(ePlayer, GetPlayer()->GetID());
+	//	const bool hasTradeRoute = GC.getGame().GetGameTrade()->IsPlayerConnectedToPlayer(ePlayer, GetPlayer()->GetID());
 
-		if (hasTradeRoute)
+	//	if (hasTradeRoute)
+	//	{
+	//		iShift += baseTradeInfluence * 100; // base influence for trade
+	//		iShift += kPlayer.GetPlayerPolicies()->GetNumericModifier(POLICYMOD_PROTECTED_MINOR_INFLUENCE);
+	//	}
+
+	//	if (CanMajorBullyGold(ePlayer))
+	//	{
+	//		iShift += kPlayer.GetPlayerPolicies()->GetNumericModifier(POLICYMOD_AFRAID_INFLUENCE);
+	//		iShift += kPlayer.GetPlayerTraits()->GetAfraidMinorPerTurnInfluence();
+	//	}
+	//	
+	//	if (iShift != 0)
+	//	{
+	//		iChangeThisTurn += iShift;
+	//	}
+	//}
+
+	{ // find military winner
+		PlayerTypes eMilitaryWinner = NO_PLAYER;
+		int highestStrength = minMilitaryStrength;
+		for (int iPlayerLoop = 0; iPlayerLoop < MAX_MAJOR_CIVS; iPlayerLoop++)
 		{
-			iShift += baseTradeInfluence * 100; // base influence for trade
-			iShift += kPlayer.GetPlayerPolicies()->GetNumericModifier(POLICYMOD_PROTECTED_MINOR_INFLUENCE);
-		}
+			const PlayerTypes loopPlayer = (PlayerTypes)iPlayerLoop;
+			if (!GET_PLAYER(loopPlayer).isAlive()) continue; // must be alive
+			if (GET_PLAYER(loopPlayer).isMinorCiv()) continue; // must be major civ
 
-		if (CanMajorBullyGold(ePlayer))
-		{
-			iShift += kPlayer.GetPlayerPolicies()->GetNumericModifier(POLICYMOD_AFRAID_INFLUENCE);
-			iShift += kPlayer.GetPlayerTraits()->GetAfraidMinorPerTurnInfluence();
+			const int tempStrength = getAStrengthNearAllBCities(loopPlayer, m_pPlayer->GetID());
+			if (tempStrength > highestStrength)
+			{
+				highestStrength = tempStrength;
+				eMilitaryWinner = loopPlayer;
+			}
+			else if (tempStrength == highestStrength)
+			{
+				eMilitaryWinner = NO_PLAYER;
+			}
 		}
-		
-		if (iShift != 0)
-		{
-			iChangeThisTurn += iShift;
-		}
+		// add military bonus
+		int militaryChangeT100 = 0;
+		// lose by default (go negative by X)
+		militaryChangeT100 -= baseMilitaryInfluence * 100;
+		// double bonus if winner (go positive by X)
+		if (ePlayer == eMilitaryWinner) militaryChangeT100 += 2 * baseMilitaryInfluence * 100;
+		iChangeThisTurn += militaryChangeT100;
 	}
 
 	// Mod everything by game speed
