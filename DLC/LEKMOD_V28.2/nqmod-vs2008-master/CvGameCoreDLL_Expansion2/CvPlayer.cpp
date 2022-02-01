@@ -18620,8 +18620,9 @@ void CvPlayer::updateExtraYieldThreshold(YieldTypes eIndex)
 
 float CvPlayer::GetNonLeaderBoost() const
 {
+	const float percentGameDone = GC.getPercentTurnsDone(); 
 	const float boost = GC.sigmoidRanged(leaderTechDiff, 0.0f, 20.0f);
-	return boost;
+	return min(1.0, boost * percentGameDone * 1.25); // reach 
 }
 
 //	--------------------------------------------------------------------------------
