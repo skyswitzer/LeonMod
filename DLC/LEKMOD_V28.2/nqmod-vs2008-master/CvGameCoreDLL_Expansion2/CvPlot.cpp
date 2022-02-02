@@ -1251,9 +1251,7 @@ bool CvPlot::isAdjacentToIce() const
 //	--------------------------------------------------------------------------------
 bool CvPlot::isCoastalLand(int iMinWaterSize) const
 {
-	CvPlot* pAdjacentPlot;
-	int iI;
-
+	// we aren't coastal land if we are water!
 	if(isWater())
 	{
 		return false;
@@ -1265,23 +1263,32 @@ bool CvPlot::isCoastalLand(int iMinWaterSize) const
 		iMinWaterSize = GC.getMIN_WATER_SIZE_FOR_OCEAN();
 	}
 
-	for(iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+	// check each direction
+	for(int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
 	{
-		pAdjacentPlot = plotDirection(getX(), getY(), ((DirectionTypes)iI));
+		const CvPlot* pAdjacentPlot = plotDirection(getX(), getY(), ((DirectionTypes)iI));
 
-		if(pAdjacentPlot != NULL)
+		if (pAdjacentPlot)
 		{
-			if(pAdjacentPlot->isWater() || pAdjacentPlot->isLake())
+			// allow travel through special improvements
+			bool allowSailLand = false;
+			ImprovementTypes eImprovement = getImprovementType();
+			if (eImprovement != NO_IMPROVEMENT)
 			{
-				if(iMinWaterSize <= 0)
-				{
+				CvImprovementEntry* pkEntry = GC.getImprovementInfo(eImprovement);
+				if (pkEntry)
+					allowSailLand = pkEntry->IsAllowsSailLand();
+			}
+
+			// this tile is effectively water
+			if (pAdjacentPlot->isWater() || pAdjacentPlot->isLake() || allowSailLand)
+			{
+				if(iMinWaterSize <= 1) // any non 0 amount is fine
 					return true;
-				}
+
 				CvLandmass* pAdjacentBodyOfWater = GC.getMap().getLandmass(pAdjacentPlot->getLandmass());
 				if(pAdjacentBodyOfWater && pAdjacentBodyOfWater->getNumTiles() >= iMinWaterSize)
-				{
 					return true;
-				}
 			}
 		}
 	}
