@@ -18621,9 +18621,10 @@ void CvPlayer::updateExtraYieldThreshold(YieldTypes eIndex)
 float CvPlayer::GetNonLeaderBoost() const
 {
 	const float reachMaxBoost = 3.0f; // reach 100% boost early
-	const float percentGameDone = GC.getPercentTurnsDone(); 
-	const float boost = GC.sigmoidRanged(leaderTechDiff, 0.0f, 20.0f); // tech boost
-	const float resultBoost = min(1.0f, boost * max(0.10f, percentGameDone * reachMaxBoost));
+	const float percentGameDone = GC.getPercentTurnsDone();
+	const float effectiveGameDone = min(1.0f, percentGameDone * reachMaxBoost); // don't exceed 100% done
+	const float boost = GC.sigmoidRanged(leaderTechDiff, 0.0f, 12.0f); // tech boost
+	const float resultBoost = min(1.0f, boost * max(0.10f, effectiveGameDone));
 	return resultBoost;
 }
 
