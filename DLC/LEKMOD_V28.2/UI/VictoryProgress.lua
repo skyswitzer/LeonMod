@@ -512,6 +512,7 @@ function PopulateDiplomatic()
 	Controls.VotesNeededLabel:SetHide(true);
 	Controls.VotesHaveLabel:SetHide(true);
 	 
+	local player = Players[Game.GetActivePlayer()];
 	local victoryId;
 	local victoryInfo = GameInfo.Victories["VICTORY_DIPLOMATIC"];
 	if(victoryInfo ~= nil) then
@@ -553,8 +554,12 @@ function PopulateDiplomatic()
 					iVotesControlled = pLeague:CalculateStartingVotesForMember(Game.GetActivePlayer());
 				end
 			end
+
+			-- do influence
+			local influence = player:GetTeamDiplomaticInfluence();
+			local influenceNeeded = player:GetTeamDiplomaticInfluenceNeeded();
 			Controls.InfluenceHave:SetHide(false);
-			Controls.InfluenceHave:SetText("You have " .. 7 .. " of " .. 10 .. " [ICON_TROPHY_SILVER] Diplomatic Influence needed.");
+			Controls.InfluenceHave:SetText("You have " .. influence .. " of " .. influenceNeeded .. " [ICON_DIPLOMATIC_INFLUENCE] Diplomatic Influence needed.");
 			
 			Controls.UNInfo:SetText(sUNInfo);
 			Controls.VotesNeeded:SetText(Game.GetVotesNeededForDiploVictory());
