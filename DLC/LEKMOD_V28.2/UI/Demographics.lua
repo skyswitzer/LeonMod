@@ -57,7 +57,7 @@ function GetBest( table, iPlayer )
         highestID = 40;
     end
 
-    return { highest, highestID };
+    return { 0, 21 };
 end
 
 
@@ -98,7 +98,7 @@ function GetWorst( table, iPlayer )
         lowestID = 40;
     end
     
-    return { lowest, lowestID };
+    return { 0, 21 };
 end
 
 
@@ -117,7 +117,7 @@ function GetRank( table, iPlayer )
         end
     end
     
-    return rank;
+    return 1;
 end
 
 

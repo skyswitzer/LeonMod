@@ -179,6 +179,7 @@
           <Label ID="VPLabel4" Offset="0,0" Anchor="L,T" String="TXT_KEY_VP_SCENARIO4"/>
           <Image Offset="-6,0" Anchor="L,T" Texture="bar300x2.dds" Size="300.1"/>
           <Label Offset="0,0" Anchor="L,T" String="TXT_KEY_VP_SCORE"/>
+          <Label Offset="0,0" Anchor="L,T" String="[NEWLINE]{TXT_KEY_WIN_REQUIREMENTS}"/>
         </Stack>
         <Stack ID="ScoreDetailsStack" Anchor="L,T" Offset="225,32" Padding="12" StackGrowth="Bottom">
           <Box Offset="0,0" Size="1,1" Color="255,255,255,0"/>
@@ -255,7 +256,7 @@
       <!-- DOMINATION -->
       <Box Size="618,142" Color="255,255,255,0">
         <Image Size="128,128" Anchor="R,C" Texture="VictoryConditions_128_Shared.dds" TextureOffset="128,128" Color="255,255,255,100"/>
-        <Label Offset="5,3" Font="TwCenMT24" String="TXT_KEY_VICTORYSCREEN_DOMINATION"/>
+        <Label Offset="5,3" Font="TwCenMT24" String="TXT_KEY_VICTORYSCREEN_DOMINATION" ToolTip="TXT_KEY_VICTORYSCREEN_DOMINATION_DETAILS"/>
         <Label ID="DominationLabel" Offset="5,5" Anchor="R.T" Font="TwCenMT16"/>
         <Box ID="DominationVictoryProgress" Size="618,142" Color="0,0,0,0">
           <ScrollPanel Anchor="L,T" Offset="0,20" Size="596,114" Vertical="1" ID="DominationScrollPanel">
@@ -271,7 +272,7 @@
       <!-- TECH -->
       <Box ID="TechBox" Size="618,142" Color="255,255,255,0">
         <Image Size="128,128" Anchor="R,C" Texture="VictoryConditions_128_Shared.dds" TextureOffset="0,0" Color="255,255,255,100"/>
-        <Label Offset="5,5" Font="TwCenMT24" String="TXT_KEY_VICTORYSCREEN_SPACE_RACE"/>
+        <Label Offset="5,5" Font="TwCenMT24" String="TXT_KEY_VICTORYSCREEN_SPACE_RACE" ToolTip="TXT_KEY_VP_TECH_PROGRESS"/>
         <Label ID="SpaceInfo" Offset="5,5" Anchor="R.T" Font="TwCenMT16"/>
         <Box ID="ScienceVictoryProgress" Size="618,142" Color="0,0,0,0">
           <!-- TechMeter -->
@@ -280,7 +281,7 @@
             <ScrollAnim Hidden="1" ID="BubblesAnim" Anchor="C,C" Offset="0,1" Size="86.86" Speed="0.25" Texture="assets\UI\Art\Notification\Bubbles256.dds" MaskTexture="assets\UI\Art\Notification\TechMeterMask.dds"/>
             <Image ID="ApolloIcon" Anchor="C,C" Offset="0,0" Size="128,128" TextureOffset="128.512" Texture="assets\UI\Art\Notification\WonderAtlas1024.dds" Color="White.64"/>
             <AlphaAnim ID="TechIconAnim" Hidden="1" Anchor="C,C" Pause="0" Cycle="Bounce" Speed="1" AlphaStart="1" AlphaEnd="0">
-              <Image Anchor="C,C" Offset="0,0" Size="128,128" TextureOffset="128.512" Texture="assets\UI\Art\Notification\WonderAtlas1024.dds"  Color="White.255"/>
+              <Image Anchor="C,C" Offset="0,0" Size="128,128" TextureOffset="128.512" Texture="assets\UI\Art\Notification\WonderAtlas1024.dds" Color="White.255"/>
             </AlphaAnim>
           </Image>
           <Stack ID="ApolloProject" Hidden="0" Anchor="L.C" Offset="120,16" Padding="1" StackGrowth="Right">
@@ -311,7 +312,7 @@
       <!-- DIPLOMACY  -->
       <Box ID="DiploBox" Size="618,142" Color="255,255,255,0">
         <Image Size="128,128" Anchor="R,C" Texture="VictoryConditions_128_Shared.dds" TextureOffset="0,128" Color="255,255,255,100"/>
-        <Label Offset="5,5" Font="TwCenMT24" String="TXT_KEY_VICTORYSCREEN_DIPLOMATIC"/>
+        <Label Offset="5,5" Font="TwCenMT24" String="TXT_KEY_VICTORYSCREEN_DIPLOMATIC" ToolTip="TXT_KEY_VP_DIPLOMATIC_PROGRESS"/>
         <Label ID="UNInfo" Offset="5,5" Anchor="R.T" Font="TwCenMT16"/>
         <Box ID="DiploVictoryProgress" Size="618,142" Color="0,0,0,0">
           <Image ID="UNIconFrame" Anchor="L,C" Offset="0,8" Size="128,128" Texture="assets\UI\Art\Icons\LeaderPortraits1024Frame.dds">
@@ -338,7 +339,7 @@
       <!-- CULTURE -->
       <Box ID="CultureBox" Size="618,142" Color="255,255,255,0">
         <Image Size="128,128" Anchor="R,C" Texture="VictoryConditions_128_Shared.dds" TextureOffset="128,0" Color="255,255,255,100"/>
-        <Label Offset="5,3" Font="TwCenMT24" String="TXT_KEY_VICTORYSCREEN_CULTURAL"/>
+        <Label Offset="5,3" Font="TwCenMT24" String="TXT_KEY_VICTORYSCREEN_CULTURAL" ToolTip="TXT_KEY_VICTORYSCREEN_CULTURAL_DETAILS"/>
         <Label ID="CultureLabel" Offset="5,45" Anchor="C.T" Font="TwCenMT16"/>
         <Box ID="CultureVictoryProgress" Size="618,142" Color="0,0,0,0">
           <ScrollPanel Anchor="L,T" Offset="0,20" Size="596,114" Vertical="1" ID="CultureScrollPanel">
