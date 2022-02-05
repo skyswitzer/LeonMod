@@ -9633,11 +9633,6 @@ void CvGame::testVictory()
 
 	std::vector<std::vector<int> > aaiGameWinners;
 	int iTeamLoop = 0;
-#ifdef AUI_WARNING_FIXES
-	uint iVictoryLoop = 0;
-#else
-	int iVictoryLoop = 0;
-#endif
 
 	int iNumCompetitionWinners = 0;
 	for(iTeamLoop = 0; iTeamLoop < MAX_CIV_TEAMS; iTeamLoop++)
@@ -9646,7 +9641,7 @@ void CvGame::testVictory()
 	}
 
 	// Look at each Victory Competition
-	for(iVictoryLoop = 0; iVictoryLoop < GC.getNumVictoryInfos(); iVictoryLoop++)
+	for(int iVictoryLoop = 0; iVictoryLoop < GC.getNumVictoryInfos(); iVictoryLoop++)
 	{
 		const VictoryTypes eVictory = static_cast<VictoryTypes>(iVictoryLoop);
 		CvVictoryInfo* pkVictoryInfo = GC.getVictoryInfo(eVictory);
@@ -9714,6 +9709,7 @@ void CvGame::testVictory()
 	{
 		const CvTeam& kLoopTeam = GET_TEAM((TeamTypes)iTeamLoop);
 		int teamCompetitionsComplete = 0;
+		VictoryTypes lastToAccomplish = NO_VICTORY;
 
 		// each Victory Competition
 		for (int iVictoryLoop = 0; iVictoryLoop < GC.getNumVictoryInfos(); iVictoryLoop++)
@@ -9723,15 +9719,20 @@ void CvGame::testVictory()
 			if (pkVictoryInfo == NULL)
 				continue;
 
-			teamCompetitionsComplete += (int)kLoopTeam.isVictoryAchieved(eVictory);
+			if (kLoopTeam.isVictoryAchieved(eVictory))
+			{
+				lastToAccomplish = eVictory;
+				teamCompetitionsComplete++;
+			}
 		}
 
 		// won enough competitions to win the whole game
 		if (teamCompetitionsComplete >= competitionsNeeded)
 		{
+			const int victoryScreen = GC.rand(4, "");
 			std::vector<int> aWinner;
 			aWinner.push_back(iTeamLoop);
-			aWinner.push_back(iVictoryLoop);
+			aWinner.push_back(victoryScreen);
 			aaiGameWinners.push_back(aWinner);
 			bEndGame = true;
 		}
@@ -9745,7 +9746,7 @@ void CvGame::testVictory()
 		if(bEndGame)
 		{
 			VictoryTypes eScoreVictory = NO_VICTORY;
-			for(iVictoryLoop = 0; iVictoryLoop < GC.getNumVictoryInfos(); iVictoryLoop++)
+			for(int iVictoryLoop = 0; iVictoryLoop < GC.getNumVictoryInfos(); iVictoryLoop++)
 			{
 				VictoryTypes eVictory = static_cast<VictoryTypes>(iVictoryLoop);
 				CvVictoryInfo* pkVictoryInfo = GC.getVictoryInfo(eVictory);
@@ -9799,7 +9800,7 @@ void CvGame::testVictory()
 			std::vector<int> winnerData;
 			int winningTeam = NO_TEAM;
 			VictoryTypes scoreVictoryType = NO_VICTORY;
-			for(iVictoryLoop = 0; iVictoryLoop < GC.getNumVictoryInfos(); iVictoryLoop++)
+			for(int iVictoryLoop = 0; iVictoryLoop < GC.getNumVictoryInfos(); iVictoryLoop++)
 			{
 				VictoryTypes eVictory = static_cast<VictoryTypes>(iVictoryLoop);
 				CvVictoryInfo* pkVictoryInfo = GC.getVictoryInfo(eVictory);
