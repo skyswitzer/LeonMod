@@ -9708,6 +9708,35 @@ void CvGame::testVictory()
 		}
 	}
 
+	// has a team won?
+	const int competitionsNeeded = 3;
+	for (int iTeamLoop = 0; iTeamLoop < MAX_CIV_TEAMS; iTeamLoop++)
+	{
+		const CvTeam& kLoopTeam = GET_TEAM((TeamTypes)iTeamLoop);
+		int teamCompetitionsComplete = 0;
+
+		// each Victory Competition
+		for (int iVictoryLoop = 0; iVictoryLoop < GC.getNumVictoryInfos(); iVictoryLoop++)
+		{
+			const VictoryTypes eVictory = static_cast<VictoryTypes>(iVictoryLoop);
+			CvVictoryInfo* pkVictoryInfo = GC.getVictoryInfo(eVictory);
+			if (pkVictoryInfo == NULL)
+				continue;
+
+			teamCompetitionsComplete += (int)kLoopTeam.isVictoryAchieved(eVictory);
+		}
+
+		// won enough competitions to win the whole game
+		if (teamCompetitionsComplete >= competitionsNeeded)
+		{
+			std::vector<int> aWinner;
+			aWinner.push_back(iTeamLoop);
+			aWinner.push_back(iVictoryLoop);
+			aaiGameWinners.push_back(aWinner);
+			bEndGame = true;
+		}
+	}
+
 	// Game could have been set to ending already by an insta-win victory, or we might have hit the end of time manually
 	if(!bEndGame)
 	{
