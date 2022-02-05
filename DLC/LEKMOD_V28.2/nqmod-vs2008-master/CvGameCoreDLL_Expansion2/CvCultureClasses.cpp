@@ -2768,7 +2768,7 @@ CvString CvPlayerCulture::GetTourismModifierWith_Tooltip(PlayerTypes eOtherPlaye
 	}
 
 	{ // adjust for number of cities
-		const int mod = GetTourismModifierCityCount(eOtherPlayer);
+		const int mod = GetTourismModifierCityCountT100(eOtherPlayer);
 		stringstream s;
 		if (mod > 0)      s << "[COLOR_POSITIVE_TEXT]+";
 		else if (mod < 0) s << "[COLOR_NEGATIVE_TEXT]-";
@@ -2902,7 +2902,7 @@ int CvPlayerCulture::GetTourismModifierWithT100(PlayerTypes eOtherPlayer, bool b
 	iMultiplier += GetTourismModifierHappinessT100(eOtherPlayer);
 
 	// adjust for number of cities
-	iMultiplier += GetTourismModifierCityCount(eOtherPlayer);
+	iMultiplier += GetTourismModifierCityCountT100(eOtherPlayer);
 
 	return iMultiplier;
 }
@@ -2934,12 +2934,18 @@ double CvPlayerCulture::GetTourismModifierHappinessT100(PlayerTypes eOtherPlayer
 	return modT100;
 }
 
-int CvPlayerCulture::GetTourismModifierCityCount(PlayerTypes eOtherPlayer) const
+float CvPlayerCulture::GetTourismModifierCityCount(PlayerTypes eOtherPlayer) const
 {
+	const int offset = 3;
 	// Mod for City Count
-	const int themMod = GET_PLAYER(eOtherPlayer).GetPlayerPolicies()->GetPolicyModifierForCityCountNormalT100();
-	const int usMod = m_pPlayer->GetPlayerPolicies()->GetPolicyModifierForCityCountNormalT100();
-	return themMod - usMod;
+	const int themCities = GET_PLAYER(eOtherPlayer).GetMaxEffectiveCities(true);
+	const int usCities = GET_PLAYER(eOtherPlayer).GetMaxEffectiveCities(true);
+	return (float)(themCities + offset) / (float)(usCities + offset);
+}
+
+int CvPlayerCulture::GetTourismModifierCityCountT100(PlayerTypes eOtherPlayer) const
+{
+	return (int)((GetTourismModifierCityCount(eOtherPlayer) - 1) * 100.0 + 0.5);
 }
 
 int CvPlayerCulture::GetTourismModifierSharedReligion() const

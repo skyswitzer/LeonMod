@@ -285,7 +285,9 @@ public:
 	// happiness boost
 	double GetTourismModifierHappinessT100(PlayerTypes eOtherPlayer) const;
 	// adjust for number of cities
-	int GetTourismModifierCityCount(PlayerTypes eOtherPlayer) const;
+	float GetTourismModifierCityCount(PlayerTypes eOtherPlayer) const;
+	// adjust for number of cities
+	int GetTourismModifierCityCountT100(PlayerTypes eOtherPlayer) const;
 	// modifier IF we have a shared religion
 	int GetTourismModifierSharedReligion() const;
 	// modifier for tech
