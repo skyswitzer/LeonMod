@@ -553,6 +553,8 @@ function PopulateDiplomatic()
 					iVotesControlled = pLeague:CalculateStartingVotesForMember(Game.GetActivePlayer());
 				end
 			end
+			Controls.InfluenceHave:SetHide(false);
+			Controls.InfluenceHave:SetText("You have " .. 7 .. " of " .. 10 .. " [ICON_TROPHY_SILVER] Diplomatic Influence needed.");
 			
 			Controls.UNInfo:SetText(sUNInfo);
 			Controls.VotesNeeded:SetText(Game.GetVotesNeededForDiploVictory());
@@ -621,7 +623,7 @@ function PopulateCultural()
 				local influencePercent = 0;
 						
 				local iInfluence = pActivePlayer:GetInfluenceOn(iPlayer);
-				local iCulture = pPlayer:GetJONSCultureEverGenerated();
+				local iCulture = (pPlayer:GetJONSCultureEverGeneratedTimes100() + 50) / 100;
 				if (iCulture > 0) then
 					influencePercent = iInfluence / iCulture;
 				end
