@@ -2939,7 +2939,7 @@ float CvPlayerCulture::GetTourismModifierCityCount(PlayerTypes eOtherPlayer) con
 	const int offset = 3;
 	// Mod for City Count
 	const int themCities = GET_PLAYER(eOtherPlayer).GetMaxEffectiveCities(true);
-	const int usCities = GET_PLAYER(eOtherPlayer).GetMaxEffectiveCities(true);
+	const int usCities = m_pPlayer->GetMaxEffectiveCities(true);
 	return (float)(themCities + offset) / (float)(usCities + offset);
 }
 
