@@ -222,7 +222,7 @@ int CvTechEntry::GetResearchCost() const
 	return m_iResearchCost;
 
 	// increase cost based on era
-	const float percentPerEraT100 = 15;
+	const float percentPerEraT100 = 5;
 	const int era = GetEra();
 
 	const float percentT100 = max(0, era) * percentPerEraT100;
