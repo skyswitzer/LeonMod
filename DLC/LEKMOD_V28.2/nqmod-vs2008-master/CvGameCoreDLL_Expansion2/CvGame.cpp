@@ -4799,6 +4799,17 @@ void CvGame::incrementElapsedGameTurns()
 
 
 //	--------------------------------------------------------------------------------
+int CvGame::getNumMajorCivsStart() const
+{
+	int count = 0;
+	for (int i = 0; i < MAX_MAJOR_CIVS; ++i)
+		if (GET_PLAYER((PlayerTypes)i).isEverAlive())
+			count++;
+	return count;
+}
+
+
+//	--------------------------------------------------------------------------------
 int CvGame::getMaxTurns() const
 {
 	return CvPreGame::maxTurns();
@@ -9270,7 +9281,7 @@ void CvGame::testAlive()
 	}
 }
 
-bool CvGame::testVictory(VictoryTypes eVictory, TeamTypes eTeam, bool* pbEndScore) const
+bool CvGame::testVictory(const VictoryTypes eVictory, const TeamTypes eTeam, bool* pbEndScore) const
 {
 	CvAssert(eVictory >= 0 && eVictory < GC.getNumVictoryInfos());
 	CvAssert(eTeam >=0 && eTeam < MAX_CIV_TEAMS);
@@ -9437,6 +9448,18 @@ bool CvGame::testVictory(VictoryTypes eVictory, TeamTypes eTeam, bool* pbEndScor
 						bValid = true;
 					}
 				}
+			}
+
+			{ // check to see if they've accumulated enough diplomatic influence
+				int totalTeamPoints = 0;
+				int totalTeamPointsNeeded = 0;
+
+				totalTeamPoints += GET_TEAM(eTeam).GetTotalDiplomaticInfluence();
+				totalTeamPointsNeeded += GET_TEAM(eTeam).GetTotalDiplomaticInfluenceNeeded();
+
+				// check if they won
+				if (totalTeamPoints >= totalTeamPointsNeeded)
+					bValid = true; // mark to win
 			}
 		}
 	}

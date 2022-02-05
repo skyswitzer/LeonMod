@@ -27,7 +27,7 @@
 // score awarded upon winning the unrest contest
 const int scoreFromUnrestWinner = 40;
 // score per turn for being an ally
-const int scorePerAllyTurn = 2;
+const int scorePerAllyTurn = 10;
 // minimum military influence needed to gain influence
 const int minMilitaryStrength = 15;
 // influence gained per turn for having the most local military
@@ -1447,7 +1447,7 @@ bool CvMinorCivQuest::DoFinishQuest()
 	// Techs contest
 	else if (m_eType == MINOR_CIV_QUEST_KILL_CAMP)
 	{
-	GET_PLAYER(m_eAssignedPlayer).ChangeScoreFromFutureTech(scoreFromUnrestWinner); // award victory points
+	GET_PLAYER(m_eAssignedPlayer).ChangeDiplomaticInfluence(scoreFromUnrestWinner);
 
 	strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_COMPLETE_UNREST");
 	strMessage << scoreFromUnrestWinner;
@@ -3007,7 +3007,7 @@ void CvMinorCivAI::DoTurnQuests()
 	PlayerTypes ally = GetAlly();
 	if (ally != NO_PLAYER)
 	{
-		GET_PLAYER(ally).ChangeScoreFromFutureTech(scorePerAllyTurn);
+		GET_PLAYER(ally).ChangeDiplomaticInfluence(scorePerAllyTurn);
 	}
 }
 
@@ -4297,7 +4297,7 @@ int CvMinorCivAI::GetPersonalityQuestBias(MinorCivQuestTypes eQuest)
 	{
 		if (eTrait == MINOR_CIV_TRAIT_RELIGIOUS)
 		{
-			iCount += 50; //antonjs: todo: XML
+			iCount *= 50; //antonjs: todo: XML
 			iCount /= 100;
 		}
 	}
@@ -4306,7 +4306,7 @@ int CvMinorCivAI::GetPersonalityQuestBias(MinorCivQuestTypes eQuest)
 	else if (eQuest == MINOR_CIV_QUEST_KILL_CAMP)
 	{
 		// always prefer
-		iCount *= 6000;
+		iCount *= 600;
 		iCount /= 100;
 	}
 
@@ -6652,7 +6652,8 @@ void CvMinorCivAI::DoIntrusion()
 			strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_MINOR_INTRUSION");
 			strSummary << GetPlayer()->getNameKey();
 
-			AddNotification(strMessage.toUTF8(), strSummary.toUTF8(), eMajor);
+			// silence tresspass notification
+			//AddNotification(strMessage.toUTF8(), strSummary.toUTF8(), eMajor);
 		}
 	}
 }

@@ -165,6 +165,8 @@ public:
 	int getElapsedGameTurns() const;
 	void incrementElapsedGameTurns();
 
+	// how many major civs started this game?
+	int getNumMajorCivsStart() const;
 	int getMaxTurns() const;
 	void setMaxTurns(int iNewValue);
 	void changeMaxTurns(int iChange);
@@ -479,7 +481,7 @@ public:
 	void addPlayer(PlayerTypes eNewPlayer, LeaderHeadTypes eLeader, CivilizationTypes eCiv);
 
 	void testVictory();
-	bool testVictory(VictoryTypes eVictory, TeamTypes eTeam, bool* pbEndScore = NULL) const;
+	bool testVictory(const VictoryTypes eVictory, const TeamTypes eTeam, bool* pbEndScore = NULL) const;
 
 	int getPlotExtraYield(int iX, int iY, YieldTypes eYield) const;
 	void setPlotExtraYield(int iX, int iY, YieldTypes eYield, int iCost);

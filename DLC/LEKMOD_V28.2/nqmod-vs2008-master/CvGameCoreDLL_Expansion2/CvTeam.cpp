@@ -5089,28 +5089,28 @@ void CvTeam::resetVictoryProgress()
 #ifdef AUI_WARNING_FIXES
 	for (uint iI = 0; iI < GC.getNumVictoryInfos(); ++iI)
 #else
-	for(int iI = 0; iI < GC.getNumVictoryInfos(); ++iI)
+	for (int iI = 0; iI < GC.getNumVictoryInfos(); ++iI)
 #endif
 	{
 		VictoryTypes eVictory = static_cast<VictoryTypes>(iI);
 		CvVictoryInfo* pkVictoryInfo = GC.getVictoryInfo((VictoryTypes)iI);
-		if(pkVictoryInfo)
+		if (pkVictoryInfo)
 		{
-			if(getVictoryCountdown(eVictory) >= 0 && GC.getGame().getGameState() == GAMESTATE_ON)
+			if (getVictoryCountdown(eVictory) >= 0 && GC.getGame().getGameState() == GAMESTATE_ON)
 			{
 				setVictoryCountdown(eVictory, -1);
 
 #ifdef AUI_WARNING_FIXES
 				for (uint iK = 0; iK < GC.getNumProjectInfos(); iK++)
 #else
-				for(int iK = 0; iK < GC.getNumProjectInfos(); iK++)
+				for (int iK = 0; iK < GC.getNumProjectInfos(); iK++)
 #endif
 				{
 					ProjectTypes eProject = static_cast<ProjectTypes>(iK);
 					CvProjectEntry* pkProjectInfo = GC.getProjectInfo(eProject);
-					if(pkProjectInfo)
+					if (pkProjectInfo)
 					{
-						if(pkProjectInfo->GetVictoryMinThreshold(eVictory) > 0)
+						if (pkProjectInfo->GetVictoryMinThreshold(eVictory) > 0)
 						{
 							changeProjectCount(eProject, -getProjectCount(eProject));
 						}
@@ -5119,9 +5119,9 @@ void CvTeam::resetVictoryProgress()
 
 				CvString strBuffer = GetLocalizedText("TXT_KEY_VICTORY_RESET", getName().GetCString(), pkVictoryInfo->GetTextKey());
 
-				for(int iJ = 0; iJ < MAX_PLAYERS; ++iJ)
+				for (int iJ = 0; iJ < MAX_PLAYERS; ++iJ)
 				{
-					if(GET_PLAYER((PlayerTypes)iJ).isAlive())
+					if (GET_PLAYER((PlayerTypes)iJ).isAlive())
 					{
 						GC.messagePlayer(0, ((PlayerTypes)iJ), false, GC.getEVENT_MESSAGE_TIME(), strBuffer, "AS2D_MELTDOWN", MESSAGE_TYPE_MAJOR_EVENT);
 					}
@@ -5131,6 +5131,41 @@ void CvTeam::resetVictoryProgress()
 			}
 		}
 	}
+}
+
+int CvTeam::GetTotalDiplomaticInfluence() const
+{
+	int totalInfluence = 0;
+	// for each player
+	for (int iPlayerLoop = 0; iPlayerLoop < MAX_MAJOR_CIVS; iPlayerLoop++)
+	{
+		const PlayerTypes ePlayer = (PlayerTypes)iPlayerLoop;
+		const CvPlayer& player = GET_PLAYER(ePlayer);
+		// on our team
+		if (player.getTeam() == GetID())
+		{
+			// sum the influence
+			totalInfluence += player.GetDiplomaticInfluence();
+		}
+	}
+	return totalInfluence;
+}
+int CvTeam::GetTotalDiplomaticInfluenceNeeded() const
+{
+	int totalInfluenceNeeded = 0;
+	// for each player
+	for (int iPlayerLoop = 0; iPlayerLoop < MAX_MAJOR_CIVS; iPlayerLoop++)
+	{
+		const PlayerTypes ePlayer = (PlayerTypes)iPlayerLoop;
+		const CvPlayer& player = GET_PLAYER(ePlayer);
+		// on our team
+		if (player.getTeam() == GetID())
+		{
+			// sum the influence
+			totalInfluenceNeeded += player.GetDiplomaticInfluenceNeeded();
+		}
+	}
+	return totalInfluenceNeeded;
 }
 
 

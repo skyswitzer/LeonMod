@@ -326,6 +326,7 @@ CvPlayer::CvPlayer() :
 	, m_iScenarioScore2("CvPlayer::m_iScenarioScore2", m_syncArchive)
 	, m_iScenarioScore3("CvPlayer::m_iScenarioScore3", m_syncArchive)
 	, m_iScenarioScore4("CvPlayer::m_iScenarioScore4", m_syncArchive)
+	, m_iDiplomaticInfluence("CvPlayer::m_iScoreFromCityStates", m_syncArchive)
 	, m_iScoreFromFutureTech("CvPlayer::m_iScoreFromFutureTech", m_syncArchive)
 	, m_iCombatExperience("CvPlayer::m_iCombatExperience", m_syncArchive)
 	, m_iLifetimeCombatExperience(0)
@@ -444,6 +445,8 @@ CvPlayer::CvPlayer() :
 	, m_iNumFreePolicies("CvPlayer::m_iNumFreePolicies", m_syncArchive)
 	, m_iNumFreePoliciesEver("CvPlayer::m_iNumFreePoliciesEver", m_syncArchive)
 	, m_iNumFreeTenets(0)
+	, m_iNumGoodyHutsPopped("CvPlayer::m_iNumGoodyHutsPopped", m_syncArchive)
+	, m_nextGoodyType("CvPlayer::m_nextGoodyType", m_syncArchive)
 	, m_iMaxEffectiveCities(1)
 	, m_iLastSliceMoved(0)
 	, m_eEndTurnBlockingType(NO_ENDTURN_BLOCKING_TYPE)
@@ -1022,6 +1025,7 @@ void CvPlayer::uninit()
 	m_iScenarioScore2 = 0;
 	m_iScenarioScore3 = 0;
 	m_iScenarioScore4 = 0;
+	m_iDiplomaticInfluence = 0;
 	m_iScoreFromFutureTech = 0;
 	m_iCombatExperience = 0;
 	m_iLifetimeCombatExperience = 0;
@@ -1069,6 +1073,8 @@ void CvPlayer::uninit()
 	m_iNumFreePolicies = 0;
 	m_iNumFreePoliciesEver = 0;
 	m_iNumFreeTenets = 0;
+	m_iNumGoodyHutsPopped = 0;
+	m_nextGoodyType = 0;
 	m_iNumFreeGreatPeople = 0;
 	m_iNumMayaBoosts = 0;
 	m_iNumFaithGreatPeople = 0;
@@ -5760,6 +5766,31 @@ void CvPlayer::ChangeScoreFromScenario4(int iChange)
 	if(iChange != 0)
 		m_iScenarioScore4 += iChange;
 }
+//	--------------------------------------------------------------------------------
+int CvPlayer::GetDiplomaticInfluence() const
+{
+	return m_iDiplomaticInfluence;
+}
+void CvPlayer::ChangeDiplomaticInfluence(int iChange)
+{
+	if (iChange != 0)
+		m_iDiplomaticInfluence += iChange;
+}
+//	--------------------------------------------------------------------------------
+int CvPlayer::GetDiplomaticInfluenceNeeded() const
+{
+	const float numCityStates = CvPreGame::numMinorCivs();
+	const float numMajorCivs = GC.getGamePointer()->getNumMajorCivsStart();
+
+	const float expectedTurnFraction = 0.5;
+	const float totalGameTurns = GC.getGamePointer()->getMaxTurns();
+	const float expectedAllies = (numCityStates / numMajorCivs) * 1.33; // fair share + some percentage
+	const float influencePerTurnPerAlly = 10;
+
+	const int influenceNeeded = influencePerTurnPerAlly * expectedAllies * expectedTurnFraction * totalGameTurns;
+	const int truncate = 10;
+	return (influenceNeeded / truncate) * truncate;
+}
 
 //////////////////////////////////////////////////////////////////////////
 // End Civ 5 Score
@@ -6987,25 +7018,25 @@ void CvPlayer::doGoody(CvPlot* pPlot, CvUnit* pUnit)
 				{
 					const int numPossibleGoodyHuts = DB.Count("GoodyHuts");
 
-					if (m_iNumGoodyHutsPopped == 0) // default the first goody hut
-					{
-						m_nextGoodyType = getGoodyHut(m_iNumGoodyHutsPopped, numPossibleGoodyHuts);
-					}
+					//if (m_iNumGoodyHutsPopped == 0) // default the first goody hut
+					//{
+					//	m_nextGoodyType = getGoodyHut(m_iNumGoodyHutsPopped, numPossibleGoodyHuts);
+					//}
 
 					// get the alternate goody (the next one)
 					eGoody = getGoodyHut(m_iNumGoodyHutsPopped + 1, numPossibleGoodyHuts);
 
-					const int probabilityOfExpectedReward = 60;
+					const int probabilityOfExpectedReward = 50;
 					const int randValue = (1 + GC.getGame().getJonRandNum(100, "Random Goody"));
 					if (randValue < probabilityOfExpectedReward) // randomly possibly choose the alternate goody (or not)
 					{
-						GoodyTypes temp = m_nextGoodyType;
-						m_nextGoodyType = eGoody;
+						GoodyTypes temp = (GoodyTypes)(int)m_nextGoodyType;
+						m_nextGoodyType = (int)eGoody;
 						eGoody = temp;
 					}
 
 					// give goody hut reward to player
-					++m_iNumGoodyHutsPopped;
+					m_iNumGoodyHutsPopped = m_iNumGoodyHutsPopped + 1;
 					receiveGoody(pPlot, eGoody, pUnit);
 				}
 				
@@ -24489,6 +24520,7 @@ void CvPlayer::Read(FDataStream& kStream)
 	kStream >> m_iScenarioScore3;
 	kStream >> m_iScoreFromFutureTech;
 	kStream >> m_iScenarioScore4;
+	kStream >> m_iDiplomaticInfluence;
 	kStream >> m_iCombatExperience;
 	kStream >> m_iNavalCombatExperience;
 	kStream >> m_iLifetimeCombatExperience;
@@ -24542,8 +24574,7 @@ void CvPlayer::Read(FDataStream& kStream)
 	}
 	int temp;
 	kStream >> m_iNumGoodyHutsPopped;
-	kStream >> temp;
-	m_nextGoodyType = (GoodyTypes)temp;
+	kStream >> m_nextGoodyType;
 	kStream >> m_iNumFreeGreatPeople;
 	kStream >> m_iNumMayaBoosts;
 	kStream >> m_iNumFaithGreatPeople;
@@ -25046,6 +25077,7 @@ void CvPlayer::Write(FDataStream& kStream) const
 	kStream << m_iScenarioScore3;
 	kStream << m_iScoreFromFutureTech;
 	kStream << m_iScenarioScore4;
+	kStream << m_iDiplomaticInfluence;
 	kStream << m_iCombatExperience;
 	kStream << m_iNavalCombatExperience;
 	kStream << m_iLifetimeCombatExperience;

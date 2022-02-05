@@ -372,6 +372,10 @@ public:
 	bool canLaunch(VictoryTypes eVictory) const;
 	void setCanLaunch(VictoryTypes eVictory, bool bCan);
 	void resetVictoryProgress();
+	// the summed diplomatic influence of players on this team
+	int GetTotalDiplomaticInfluence() const;
+	// the REQUIRED summed diplomatic influence of players on this team
+	int GetTotalDiplomaticInfluenceNeeded() const;
 
 	bool isVictoryAchieved(VictoryTypes eVictory) const;
 	void setVictoryAchieved(VictoryTypes eVictory, bool bValue);
