@@ -488,9 +488,9 @@ end
 function GeneratePlotTypes()
 	--print("Generating Plot Types (Lua Small Continents) ...");
 
-	local inverse_continent_sizes = 1--Map.GetCustomOption(15); -- 1 means pangea, 2 means continents, 3, means small cont, etc.
-	local age = Map.GetCustomOption(1)
-	local sea = Map.GetCustomOption(4)
+	local inverse_continent_sizes = Map.GetCustomOption(15); -- 1 means pangea, 2 means continents, 3, means small cont, etc.
+	local age = Map.GetCustomOption(1);
+	local sea = GetSeaLevel();
 	local maxX = Map.GetCustomOption(11)*2+28; -- get map x size
 	local maxY = Map.GetCustomOption(12)*2+18; -- get map y size
 	local islandPoleMinSize = 4;
@@ -513,7 +513,7 @@ function GeneratePlotTypes()
 	local args = {
 		sea_level = 1,
 		world_age = age,
-		sea_level_low = GetSeaLevel(),
+		sea_level_low = sea,
 		sea_level_normal = 75,
 		sea_level_high = 85,
 		extra_mountains = 5, -- at 0, very few mountains, at 40, ~15% of all land is mountains
