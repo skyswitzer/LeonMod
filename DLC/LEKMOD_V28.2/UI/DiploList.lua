@@ -214,6 +214,7 @@ function UpdateDisplay()
 	-- Your Score Info
 	local strMyScore = g_pPlayer:GetScore();
 	Controls.MyScore:SetText(strMyScore);
+	Controls.MyScore:SetHide(true); -- hide because this is mean
 	
 	local myScoreEntries = {};
 	table.insert(myScoreEntries, Locale.Lookup("TXT_KEY_DIPLO_MY_SCORE_CITIES", g_pPlayer:GetScoreFromCities()));
@@ -406,6 +407,7 @@ function UpdateDisplay()
 				end
 
 				controlTable.Score:SetText( pOtherPlayer:GetScore() );
+				controlTable.Score:SetHide(true); -- hide because this is mean
 				
 				
 				local otherScoreEntries = {};

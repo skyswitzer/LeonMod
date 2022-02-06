@@ -200,7 +200,7 @@ function InitMajorCivList()
 				
 				local strScore = pOtherPlayer:GetScore();
 				controlTable.Score:SetText(strScore);
-				controlTable.Score:SetHide(false);
+				controlTable.Score:SetHide(true); -- hide because this is mean
 				
 				local textBoxSize = controlTable.LeaderNameStack:GetSizeX() - controlTable.DiploState:GetSizeX() -
 									controlTable.Score:GetSizeX() - controlTable.CivIconBG:GetSizeX()- 74;
