@@ -177,7 +177,7 @@ function FeatureGenerator:AddFeatures(allow_mountains_on_coast)
 		for x = 0, self.iGridW - 1 do
 			for y = 0, self.iGridH - 1 do
 				local plot = Map.GetPlot(x, y)
-				if plot:GetPlotType() == PlotTypes.PLOT_MOUNTAIN then
+				if plot:GetPlotType() == PlotTypes.PLOT_MOUNTAIN and 60 > Map.Rand(100, "Remove Coastal Mountain") then
 					if plot:IsCoastalLand() then
 						plot:SetPlotType(PlotTypes.PLOT_HILLS, false, true); -- These flags are for recalc of areas and rebuild of graphics. Instead of recalc over and over, do recalc at end of loop.
 					end

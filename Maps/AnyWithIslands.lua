@@ -827,7 +827,7 @@ function AddFeatures()
 	local featuregen = FeatureGenerator.Create(args);
 
 	-- passing false removes mountains from coastlines
-	featuregen:AddFeatures(true);
+	featuregen:AddFeatures(false);
 end
 ------------------------------------------------------------------------------
 

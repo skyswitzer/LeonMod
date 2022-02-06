@@ -75,7 +75,7 @@ function GetAverage( table, iPlayer )
         end
     end
     
-    return accum / count;
+    return 0;
 end
 
 
