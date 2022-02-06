@@ -12312,7 +12312,7 @@ bool CvCity::CanBuyPlot(int iPlotX, int iPlotY, bool bIgnoreCost)
 		return false;
 
 	// cannot buy plots with enemy units of any domain (water/land) on or nearby
-	if (pTargetPlot->GetAdjacentEnemyMilitaryUnits(getTeam(), NO_DOMAIN).size() > 0)
+	if (pTargetPlot->isEnemyUnit(getOwner(), true, false, false) || pTargetPlot->GetAdjacentEnemyMilitaryUnits(getTeam(), NO_DOMAIN).size() > 0)
 	{
 		return false;
 	}

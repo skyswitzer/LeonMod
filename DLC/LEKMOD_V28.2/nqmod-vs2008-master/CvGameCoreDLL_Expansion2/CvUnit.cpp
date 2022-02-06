@@ -7457,6 +7457,15 @@ bool CvUnit::canPillage(const CvPlot* pPlot) const
             }
         }
     }
+
+	// barbarians cannot pillage
+	if (isBarbarian())
+		return false;
+
+	// no pillage next to enemy units of the same domain
+	if (pPlot->GetAdjacentEnemyMilitaryUnits(getTeam(), getDomainType()).size() > 0)
+		return false;
+
 	if(isEmbarked())
 	{
 		return false;
