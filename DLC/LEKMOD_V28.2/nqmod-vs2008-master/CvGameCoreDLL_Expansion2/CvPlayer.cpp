@@ -70,6 +70,28 @@ bool isEmpty(const char* szString)
 	return szString == NULL || szString[0] == '\0';
 }
 
+void reveal(const TeamTypes forTeam, const CvPlot* center, const int radius, const float probability)
+{
+	for (int iDX = -(radius); iDX <= radius; iDX++)
+	{
+		for (int iDY = -(radius); iDY <= radius; iDY++)
+		{
+			CvPlot* pLoopPlot = plotXY(center->getX(), center->getY(), iDX, iDY);
+
+			if (pLoopPlot != NULL)
+			{
+				if (hexDistance(iDX, iDY) <= radius)
+				{
+					if (GC.getGame().getJonRandNum(100, "Reveal Plot Chance") < (probability * 100))
+					{
+						pLoopPlot->setRevealed(forTeam, true);
+					}
+				}
+			}
+		}
+	}
+}
+
 //	--------------------------------------------------------------------------------
 // Public Functions...
 namespace FSerialization
@@ -1557,7 +1579,7 @@ void CvPlayer::initFreeUnits(CvGameInitialItemsOverrides& /*kOverrides*/)
 
 				for(iJ = 0; iJ < iFreeCount; iJ++)
 				{
-					addFreeUnit(eLoopUnit,(UnitAITypes)iDefaultAI);
+					addFreeUnit(eLoopUnit, (UnitAITypes)iDefaultAI, true);
 				}
 			}
 		}
@@ -1569,7 +1591,7 @@ void CvPlayer::initFreeUnits(CvGameInitialItemsOverrides& /*kOverrides*/)
 	{
 		eLoopUnit = (UnitTypes)playerCivilization.getCivilizationUnits(iUnitClass);
 		iDefaultAI = GC.GetGameUnits()->GetEntry(eLoopUnit)->GetDefaultUnitAIType();
-		addFreeUnit(eLoopUnit,(UnitAITypes)iDefaultAI);
+		addFreeUnit(eLoopUnit, (UnitAITypes)iDefaultAI, true);
 
 		// Another?
 		iUnitClass = GetPlayerTraits()->GetNextFreeUnit();
@@ -1732,7 +1754,7 @@ void CvPlayer::addFreeUnitAI(UnitAITypes eUnitAI, int iCount)
 
 //	--------------------------------------------------------------------------------
 /// Returns plot where new unit was created
-CvPlot* CvPlayer::addFreeUnit(UnitTypes eUnit, UnitAITypes eUnitAI)
+CvPlot* CvPlayer::addFreeUnit(UnitTypes eUnit, UnitAITypes eUnitAI, const bool isGameStart)
 {
 	CvPlot* pStartingPlot;
 	CvPlot* pBestPlot;
@@ -1859,6 +1881,23 @@ CvPlot* CvPlayer::addFreeUnit(UnitTypes eUnit, UnitAITypes eUnitAI)
 		}
 
 		CvUnit* pNewUnit = initUnit(eUnit, pBestPlot->getX(), pBestPlot->getY(), eUnitAI);
+
+		// give free units a big bonus
+		const bool isSettler = pNewUnit->isFound(); // can ever found cities?
+		if (isSettler && isGameStart)
+		{
+			const int extraMoves = 5;
+			const int sightBonus = 6;
+
+			// buff unit
+			pNewUnit->setHasPromotion((PromotionTypes)142, true); // PROMOTION_IGNORE_TERRAIN_COST
+			pNewUnit->changeMoves(extraMoves * GC.getMOVE_DENOMINATOR()); // more moves
+			pNewUnit->changeExtraMoves(extraMoves); // permanent boost
+
+			// reveal nearby
+			reveal(getTeam(), pBestPlot, sightBonus, 1.0f);
+		}
+
 		CvAssert(pNewUnit != NULL);
 		if (pNewUnit == NULL)
 			return NULL;
@@ -6701,8 +6740,8 @@ int hutFaith()
 // Map radius a goody hut gives
 int hutMapRadius()
 {
-	int baseRadius = 7; // starts with this much radius
-	int turnsPerRadius = 20; // on average, will grant 1 more radius every 20 turns on online speed
+	int baseRadius = 9; // starts with this much radius
+	int turnsPerRadius = 12; // on average, will grant 1 more radius every 20 turns on online speed
 	int randValue = GC.getGame().getJonRandNum(turnsPerRadius + 1, "Goody Hut Map"); // [1-20]
 	int bonusRadius = ((int)GC.onePerOnlineSpeedTurn() + randValue) / turnsPerRadius;
 	float value = baseRadius + bonusRadius;
@@ -6881,24 +6920,7 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit)
 		{
 			pBestPlot = pPlot;
 		}
-		for(int iDX = -(iRange); iDX <= iRange; iDX++)
-		{
-			for(int iDY = -(iRange); iDY <= iRange; iDY++)
-			{
-				CvPlot* pLoopPlot = plotXY(pBestPlot->getX(), pBestPlot->getY(), iDX, iDY);
-
-				if(pLoopPlot != NULL)
-				{
-					if (hexDistance(iDX, iDY) <= iRange)
-					{
-						if (GC.getGame().getJonRandNum(100, "Goody Map") < hexProbability)
-						{
-							pLoopPlot->setRevealed(getTeam(), true);
-						}
-					}
-				}
-			}
-		}
+		reveal(getTeam(), pBestPlot, iRange, hutMapHexProbability());
 	}
 	//////////
 	// Units

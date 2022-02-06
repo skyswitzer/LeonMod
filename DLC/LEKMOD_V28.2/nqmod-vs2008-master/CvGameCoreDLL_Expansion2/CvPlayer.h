@@ -86,7 +86,7 @@ public:
 	void initFreeState(CvGameInitialItemsOverrides& kOverrides);
 	void initFreeUnits(CvGameInitialItemsOverrides& kOverrides);
 	void addFreeUnitAI(UnitAITypes eUnitAI, int iCount);
-	CvPlot* addFreeUnit(UnitTypes eUnit, UnitAITypes eUnitAI = NO_UNITAI);
+	CvPlot* addFreeUnit(UnitTypes eUnit, UnitAITypes eUnitAI = NO_UNITAI, const bool isGameStart = false);
 
 	CvCity* initCity(int iX, int iY, bool bBumpUnits = true, bool bInitialFounding = true);
 	void acquireCity(CvCity* pCity, bool bConquest, bool bGift);
