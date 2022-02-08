@@ -21,9 +21,11 @@
 // how many policies are needed before tourism starts happening
 const int numPolicyThreshold = 7;
 // each policy will increase tourism by this percent
-const int percentagePerPolicy = 5;
+const int percentagePerPolicy = 4;
 // we will stop increasing due to policies at this value
-const int maxPolicyTourismPercentage = 50;
+const int maxPolicyTourismPercentage = 40;
+// how many more cities does the capital count for when calculating tourism adjustment
+const int capitalCityAdditionalFactor = 6;
 
 //=====================================
 // CvGreatWork
@@ -2936,11 +2938,10 @@ double CvPlayerCulture::GetTourismModifierHappinessT100(PlayerTypes eOtherPlayer
 
 float CvPlayerCulture::GetTourismModifierCityCount(PlayerTypes eOtherPlayer) const
 {
-	const int offset = 3;
 	// Mod for City Count
 	const int themCities = GET_PLAYER(eOtherPlayer).GetMaxEffectiveCities(true);
 	const int usCities = m_pPlayer->GetMaxEffectiveCities(true);
-	return (float)(themCities + offset) / (float)(usCities + offset);
+	return (float)(themCities + capitalCityAdditionalFactor) / (float)(usCities + capitalCityAdditionalFactor);
 }
 
 int CvPlayerCulture::GetTourismModifierCityCountT100(PlayerTypes eOtherPlayer) const
@@ -3004,8 +3005,7 @@ CvString CvPlayerCulture::GetOurTourism_Tooltip() const
 	const int greatSlotsFilled = GetNumGreatWorks();
 	const int greatSlotsAvailable = GetNumGreatWorkSlots();
 
-	{
-		// EXPLAIN great work slots
+	{	// EXPLAIN great work slots
 		stringstream s;
 		s << greatSlotsFilled;
 		s << " of ";
@@ -3015,12 +3015,11 @@ CvString CvPlayerCulture::GetOurTourism_Tooltip() const
 		tooltip += s.str().c_str();
 	}
 
-	{
-		// EXPLAIN tourism from culture
+	{	// EXPLAIN tourism from culture
 		stringstream s;
-		s << "Each policy after your ";
+		s << "Each policy after your [COLOR_CYAN]";
 		s << numPolicyThreshold;
-		s << "th one will cause [COLOR_CYAN]+";
+		s << "th[ENDCOLOR] one will cause [COLOR_CYAN]+";
 		s << percentagePerPolicy;
 		s << "%[ENDCOLOR] of city [ICON_CULTURE] Culture to be added to [ICON_TOURISM] Tourism up to a max of [COLOR_CYAN]+";
 		s << maxPolicyTourismPercentage;
@@ -3028,8 +3027,7 @@ CvString CvPlayerCulture::GetOurTourism_Tooltip() const
 		tooltip += s.str().c_str();
 	}
 
-	{
-		// tourism from culture
+	{	// tourism from culture
 		stringstream s;
 		s << "[NEWLINE][ICON_BULLET][COLOR_POSITIVE_TEXT]+";
 		s << GetTourismFromCityCultureT100() / 100;
@@ -3041,12 +3039,18 @@ CvString CvPlayerCulture::GetOurTourism_Tooltip() const
 		tooltip += s.str().c_str();
 	}
 
-	{
-		// tourism from cities
+	{	// tourism from cities
 		stringstream s;
 		s << "[NEWLINE][ICON_BULLET][COLOR_POSITIVE_TEXT]+";
 		s << GetNetTourismFromCitiesT100() / 100;
 		s << "[ENDCOLOR] [ICON_TOURISM] from Cities";
+		tooltip += s.str().c_str();
+	}
+
+	{	// tourism from cities
+		stringstream s;
+		s << "[NEWLINE][NEWLINE]Having a stronger [ICON_TOURISM] Tourism percentage than another ";
+		s << "civilization can grant up to [COLOR_POSITIVE_TEXT]+33%[ENDCOLOR] [ICON_STRENGTH] Strength against that civilization's units.";
 		tooltip += s.str().c_str();
 	}
 
