@@ -7068,7 +7068,7 @@ bool CvUnit::createGreatWork()
 		Localization::String localizedText;
 
 		// Notification in MP games
-		if(bDontShowRewardPopup || GC.getGame().isNetworkMultiPlayer())
+		if(bDontShowRewardPopup)// || GC.getGame().isNetworkMultiPlayer())
 		{
 			CvNotifications* pNotifications = kPlayer.GetNotifications();
 			if(pNotifications)

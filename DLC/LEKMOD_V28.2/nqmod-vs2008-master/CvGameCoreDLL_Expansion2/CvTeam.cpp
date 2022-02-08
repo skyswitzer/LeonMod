@@ -6088,7 +6088,7 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 				bool bDontShowRewardPopup = DLLUI->IsOptionNoRewardPopups();
 
 				// Notification in MP games
-				if(bDontShowRewardPopup || GC.getGame().isNetworkMultiPlayer())
+				if(bDontShowRewardPopup)// || GC.getGame().isNetworkMultiPlayer())
 				{
 					Localization::String localizedText = Localization::Lookup("TXT_KEY_MISC_YOU_DISCOVERED_TECH");
 					localizedText << pkTechInfo->GetTextKey();

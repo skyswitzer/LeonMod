@@ -3085,7 +3085,7 @@ void CvCityBuildings::SetNumRealBuildingTimed(BuildingTypes eIndex, int iNewValu
 						bool bDontShowRewardPopup = GC.GetEngineUserInterface()->IsOptionNoRewardPopups();
 
 						// Notification in MP games
-						if(bDontShowRewardPopup || GC.getGame().isNetworkMultiPlayer())	// KWG: Candidate for !GC.getGame().IsOption(GAMEOPTION_SIMULTANEOUS_TURNS)
+						if(bDontShowRewardPopup)// || GC.getGame().isNetworkMultiPlayer())	// KWG: Candidate for !GC.getGame().IsOption(GAMEOPTION_SIMULTANEOUS_TURNS)
 						{
 							CvNotifications* pNotifications = GET_PLAYER(m_pCity->getOwner()).GetNotifications();
 							if(pNotifications)
