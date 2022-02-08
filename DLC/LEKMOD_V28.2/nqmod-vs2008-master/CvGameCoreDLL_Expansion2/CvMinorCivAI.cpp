@@ -6794,6 +6794,8 @@ void CvMinorCivAI::DoChangeProtectionFromMajor(PlayerTypes eMajor, bool bProtect
 
 bool CvMinorCivAI::CanMajorProtect(PlayerTypes eMajor)
 {
+	return false; // remove pledge to protect
+	
 	CvAssertMsg(eMajor >= 0, "eMajor is expected to be non-negative (invalid Index)");
 	CvAssertMsg(eMajor < MAX_MAJOR_CIVS, "eMajor is expected to be within maximum bounds (invalid Index)");
 	if(eMajor < 0 || eMajor >= MAX_MAJOR_CIVS) return false;
