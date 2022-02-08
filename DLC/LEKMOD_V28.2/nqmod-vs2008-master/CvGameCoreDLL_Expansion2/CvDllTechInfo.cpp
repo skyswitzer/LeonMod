@@ -92,7 +92,7 @@ const char* CvDllTechInfo::GetSound() const
 //------------------------------------------------------------------------------
 const char* CvDllTechInfo::GetSoundMP() const
 {
-	return m_pTechInfo->GetSoundMP();
+	return m_pTechInfo->GetSound();
 }
 //------------------------------------------------------------------------------
 const char* CvDllTechInfo::GetType() const
