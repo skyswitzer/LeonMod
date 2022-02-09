@@ -1562,8 +1562,6 @@ int CvPlayerTechs::GetResearchCostIncreasePercentT100() const
 	bool bIncludePuppets = (GC.getGame().isOption("GAMEOPTION_FAST_HAND"));
 	iMod = iMod * m_pPlayer->GetMaxEffectiveCities(bIncludePuppets);
 
-	iMod = iMod * m_pPlayer->GetMaxEffectiveCities(/*bIncludePuppets*/ true);
-
 	return iMod;
 }
 

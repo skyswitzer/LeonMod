@@ -155,6 +155,8 @@ public:
 #endif
 	void DoSpecialists();
 
+	int NeededPopForOneMoreSpecialist();
+	bool CanAddOneMoreSpecialist();
 #ifdef AUI_CONSTIFY
 	bool IsCanAddSpecialistToBuilding(BuildingTypes eBuilding) const;
 #else

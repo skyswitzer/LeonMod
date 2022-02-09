@@ -774,7 +774,6 @@ bool CvCityCitizens::IsAvoidGrowth()
 	}
 #endif
 
-#ifdef AUI_CITIZENS_FIX_FORCED_AVOID_GROWTH_ONLY_WHEN_GROWING_LOWERS_HAPPINESS
 	if (GetPlayer()->GetExcessHappiness() <= 0)
 	{
 		int iPopulation = m_pCity->getPopulation();
@@ -790,17 +789,14 @@ bool CvCityCitizens::IsAvoidGrowth()
 		// Growing would not be covered by local happiness
 		if (m_pCity->GetLocalHappiness() < iLocalHappinessCap)
 		{
-			int iHappinessPerXPopulation = GetPlayer()->GetHappinessPerXPopulation();
+			const int oldHappy = GetPlayer()->GetHappinessPerXPopulation(iPopulation);
+			const int newHappy = GetPlayer()->GetHappinessPerXPopulation(iPopulation + 1);
 			// Growing would not be covered by happiness per X population
-			if (iHappinessPerXPopulation == 0 || m_pCity->IsPuppet() || (iPopulation + 1) / iHappinessPerXPopulation <= iPopulation / iHappinessPerXPopulation)
+			if (m_pCity->IsPuppet() || newHappy > oldHappy)
 			{
 				// Growing would not be covered by reduced unhappiness from population
 				bool bHasSpecialistSlot = false;
-#ifdef AUI_WARNING_FIXES
 				for (uint iBuildingLoop = 0; iBuildingLoop < GC.getNumBuildingInfos(); iBuildingLoop++)
-#else
-				for (int iBuildingLoop = 0; iBuildingLoop < GC.getNumBuildingInfos(); iBuildingLoop++)
-#endif
 				{
 					const BuildingTypes eBuilding = static_cast<BuildingTypes>(iBuildingLoop);
 					CvBuildingEntry* pkBuildingInfo = GC.getBuildingInfo(eBuilding);
@@ -820,12 +816,11 @@ bool CvCityCitizens::IsAvoidGrowth()
 			}
 		}
 	}
-#elif !defined(AUI_CITIZENS_GET_VALUE_CONSIDER_GROWTH_MODIFIERS)
-	if(GetPlayer()->GetExcessHappiness() < 0)
-	{
-		return true;
-	}
-#endif
+
+	//if(GetPlayer()->GetExcessHappiness() < 0)
+	//{
+	//	return true;
+	//}
 
 	return IsForcedAvoidGrowth();
 }
@@ -3134,30 +3129,47 @@ int CvCityCitizens::GetNumSpecialistsAllowedByBuilding(const CvBuildingEntry& kB
 	return kBuilding.GetSpecialistCount();
 }
 
+const int minBlueCollar = 8;
+const int divisor = 3;
+int CvCityCitizens::NeededPopForOneMoreSpecialist()
+{
+	const int start = minBlueCollar + 1;
+	const int pop = GetCity()->getPopulation();
+
+	if (pop < start)
+		return start - pop;
+
+	const int remainder = pop - start;
+	int todo = remainder % divisor;
+	todo = divisor - remainder;
+	return todo;
+}
+
+bool CvCityCitizens::CanAddOneMoreSpecialist()
+{
+	const int currentSpecialists = GetTotalSpecialistCount();
+	const int specialistPool = max(0, GetCity()->getPopulation() - minBlueCollar);
+	const int maxSpecialists = ceil((float)specialistPool / (float)divisor);
+
+	const bool result = currentSpecialists < maxSpecialists;
+	return result;
+}
+
 /// Are we in the position to add another Specialist to eBuilding?
-#ifdef AUI_CONSTIFY
-bool CvCityCitizens::IsCanAddSpecialistToBuilding(BuildingTypes eBuilding) const
-#else
 bool CvCityCitizens::IsCanAddSpecialistToBuilding(BuildingTypes eBuilding)
-#endif
 {
 	CvAssert(eBuilding > -1);
 	CvAssert(eBuilding < GC.getNumBuildingInfos());
-#ifdef AUI_WARNING_FIXES
 	CvBuildingEntry* pBuildingInfo = GC.getBuildingInfo(eBuilding);
 	if (!pBuildingInfo)
 		return false;
-#endif
 
-	int iNumSpecialistsAssigned = GetNumSpecialistsInBuilding(eBuilding);
-
-	if(iNumSpecialistsAssigned < GetCity()->getPopulation() &&	// Limit based on Pop of City
-#ifdef AUI_WARNING_FIXES
+	const int iNumSpecialistsAssigned = GetNumSpecialistsInBuilding(eBuilding);
+	if(
+		CanAddOneMoreSpecialist() &&
+		iNumSpecialistsAssigned < GetCity()->getPopulation() &&	// Limit based on Pop of City
 		iNumSpecialistsAssigned < pBuildingInfo->GetSpecialistCount() &&				// Limit for this particular Building
-#else
-	        iNumSpecialistsAssigned < GC.getBuildingInfo(eBuilding)->GetSpecialistCount() &&				// Limit for this particular Building
-#endif
-	        iNumSpecialistsAssigned < GC.getMAX_SPECIALISTS_FROM_BUILDING())	// Overall Limit
+		iNumSpecialistsAssigned < GC.getMAX_SPECIALISTS_FROM_BUILDING())	// Overall Limit
 	{
 		return true;
 	}

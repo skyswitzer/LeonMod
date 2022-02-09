@@ -532,18 +532,10 @@ public:
 
 	int GetUnhappinessFromCityCount(CvCity* pAssumeCityAnnexed = NULL, CvCity* pAssumeCityPuppeted = NULL) const;
 	int GetUnhappinessFromCapturedCityCount(CvCity* pAssumeCityAnnexed = NULL, CvCity* pAssumeCityPuppeted = NULL) const;
-#if defined(AUI_CITIZENS_FIX_FORCED_AVOID_GROWTH_ONLY_WHEN_GROWING_LOWERS_HAPPINESS) || defined(AUI_CITIZENS_UNHARDCODE_SPECIALIST_VALUE_HAPPINESS)
 	int GetUnhappinessFromCityPopulation(CvCity* pAssumeCityAnnexed = NULL, CvCity* pAssumeCityPuppeted = NULL, const CvCity* pAssumeCityGrows = NULL, const CvCity* pAssumeCityExtraSpecialist = NULL) const;
-#else
-	int GetUnhappinessFromCityPopulation(CvCity* pAssumeCityAnnexed = NULL, CvCity* pAssumeCityPuppeted = NULL) const;
-#endif
 	int GetUnhappinessFromCitySpecialists(CvCity* pAssumeCityAnnexed, CvCity* pAssumeCityPuppeted) const;
 	int GetUnhappinessFromPuppetCityPopulation() const;
-#if defined(AUI_CITIZENS_FIX_FORCED_AVOID_GROWTH_ONLY_WHEN_GROWING_LOWERS_HAPPINESS) || defined(AUI_CITIZENS_UNHARDCODE_SPECIALIST_VALUE_HAPPINESS)
 	int GetUnhappinessFromOccupiedCities(CvCity* pAssumeCityAnnexed = NULL, CvCity* pAssumeCityPuppeted = NULL, const CvCity* pAssumeCityGrows = NULL, const CvCity* pAssumeCityExtraSpecialist = NULL) const;
-#else
-	int GetUnhappinessFromOccupiedCities(CvCity* pAssumeCityAnnexed = NULL, CvCity* pAssumeCityPuppeted = NULL) const;
-#endif
 
 	int GetUnhappinessFromUnits() const;
 	void ChangeUnhappinessFromUnits(int iChange);
@@ -577,7 +569,7 @@ public:
 	void ChangeHappinessPerRailConnection(int iChange);
 #endif
 
-	int GetHappinessPerXPopulation() const;
+	int GetHappinessPerXPopulation(int population = -1) const;
 	void SetHappinessPerXPopulation(int iValue);
 	void ChangeHappinessPerXPopulation(int iChange);
 
