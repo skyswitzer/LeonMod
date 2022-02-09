@@ -1895,7 +1895,10 @@ CvPlot* CvPlayer::addFreeUnit(UnitTypes eUnit, UnitAITypes eUnitAI, const bool i
 			pNewUnit->changeExtraMoves(extraMoves); // permanent boost
 
 			// reveal nearby
-			reveal(getTeam(), pBestPlot, sightBonus, 1.0f);
+			reveal(getTeam(), pBestPlot, sightBonus + 1, 0.10f);
+			reveal(getTeam(), pBestPlot, sightBonus + 0, 0.25f);
+			reveal(getTeam(), pBestPlot, sightBonus - 1, 0.75f);
+			reveal(getTeam(), pBestPlot, sightBonus - 3, 1.00f);
 		}
 
 		CvAssert(pNewUnit != NULL);
@@ -12773,11 +12776,7 @@ int CvPlayer::GetUnhappinessFromCapturedCityCount(CvCity* pAssumeCityAnnexed, Cv
 
 //	--------------------------------------------------------------------------------
 /// Unhappiness from City Population
-#if defined(AUI_CITIZENS_FIX_FORCED_AVOID_GROWTH_ONLY_WHEN_GROWING_LOWERS_HAPPINESS) || defined(AUI_CITIZENS_UNHARDCODE_SPECIALIST_VALUE_HAPPINESS)
 int CvPlayer::GetUnhappinessFromCityPopulation(CvCity* pAssumeCityAnnexed, CvCity* pAssumeCityPuppeted, const CvCity* pAssumeCityGrows, const CvCity* pAssumeCityExtraSpecialist) const
-#else
-int CvPlayer::GetUnhappinessFromCityPopulation(CvCity* pAssumeCityAnnexed, CvCity* pAssumeCityPuppeted) const
-#endif
 {
 	int iUnhappiness = 0;
 	int iUnhappinessFromThisCity;
@@ -12980,11 +12979,7 @@ int CvPlayer::GetUnhappinessFromCitySpecialists(CvCity* pAssumeCityAnnexed, CvCi
 
 //	--------------------------------------------------------------------------------
 /// Unhappiness from City Population in Occupied Cities
-#if defined(AUI_CITIZENS_FIX_FORCED_AVOID_GROWTH_ONLY_WHEN_GROWING_LOWERS_HAPPINESS) || defined(AUI_CITIZENS_UNHARDCODE_SPECIALIST_VALUE_HAPPINESS)
 int CvPlayer::GetUnhappinessFromOccupiedCities(CvCity* pAssumeCityAnnexed, CvCity* pAssumeCityPuppeted, const CvCity* pAssumeCityGrows, const CvCity* pAssumeCityExtraSpecialist) const
-#else
-int CvPlayer::GetUnhappinessFromOccupiedCities(CvCity* pAssumeCityAnnexed, CvCity* pAssumeCityPuppeted) const
-#endif
 {
 	int iUnhappiness = 0;
 	int iUnhappinessFromThisCity;
@@ -13261,9 +13256,14 @@ void CvPlayer::ChangeHappinessPerRailConnection(int iChange)
 
 //	--------------------------------------------------------------------------------
 /// How much Happiness are we getting from large cities?
-int CvPlayer::GetHappinessPerXPopulation() const
+int CvPlayer::GetHappinessPerXPopulation(int population) const
 {
-	return m_iHappinessPerXPopulation;
+	if (population == -1) // no pop passed
+		return m_iHappinessPerXPopulation;
+	if (m_iHappinessPerXPopulation == 0) // no value
+		return 0;
+	else
+		return population / m_iHappinessPerXPopulation;
 }
 
 //	--------------------------------------------------------------------------------
