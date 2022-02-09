@@ -742,6 +742,7 @@ protected:
 	static int lAddCityName(lua_State* L);
 	static int lGetNumCityNames(lua_State* L);
 	static int lGetCityName(lua_State* L);
+	static int lGetScienceTopPanelTooltip(lua_State* L);
 
 	static int lGetCities(lua_State* L);
 	static int lGetNumCities(lua_State* L);

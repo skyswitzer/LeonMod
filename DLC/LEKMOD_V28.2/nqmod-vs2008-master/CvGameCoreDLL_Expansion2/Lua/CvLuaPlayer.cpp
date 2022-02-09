@@ -758,6 +758,7 @@ void CvLuaPlayer::PushMethods(lua_State* L, int t)
 	Method(AddCityName);
 	Method(GetNumCityNames);
 	Method(GetCityName);
+	Method(GetScienceTopPanelTooltip);
 
 	Method(Cities);
 	Method(GetNumCities);
@@ -7485,11 +7486,40 @@ int CvLuaPlayer::lGetNumCityNames(lua_State* L)
 int CvLuaPlayer::lGetCityName(lua_State* L)
 {
 	CvPlayerAI* pkPlayer = GetInstance(L);
-	if(pkPlayer)
+	if (pkPlayer)
 	{
 		const int index = luaL_checkint(L, 2);
 		CvString cityName = pkPlayer->getCityName(index);
 		lua_pushstring(L, cityName.c_str());
+		return 1;
+	}
+
+	return 0;
+}
+int CvLuaPlayer::lGetScienceTopPanelTooltip(lua_State* L)
+{
+	CvPlayerAI* pkPlayer = GetInstance(L);
+	if (pkPlayer)
+	{
+		const int increase = pkPlayer->GetPlayerTechs()->GetResearchCostIncreasePercentT100();
+		const int increasePer = GC.getMap().getWorldInfo().GetNumCitiesTechCostMod();
+		const int percentFromOthers = pkPlayer->GetNonLeaderBoost() * 100.0 + 0.5;
+
+		string color = "[COLOR_POSITIVE_TEXT]";
+		if (percentFromOthers <= 0) color = "[COLOR_NEGATIVE_TEXT]";
+
+
+		stringstream s;
+		s << "[NEWLINE][ICON_BULLET]" + color + "+";
+		s << percentFromOthers;
+		s << "%[ENDCOLOR][ICON_RESEARCH] from more advanced civs.";
+		s << "[NEWLINE]Each City or [ICON_PUPPET] Puppeted City you own will increase Technology costs by ";
+		s << increasePer;
+		s << "%. You currently have [COLOR_NEGATIVE_TEXT]+";
+		s << increase;
+		s << "%[ENDCOLOR] increased Technology costs.";
+
+		lua_pushstring(L, s.str().c_str());
 		return 1;
 	}
 
