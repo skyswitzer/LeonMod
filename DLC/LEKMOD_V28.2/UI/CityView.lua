@@ -506,7 +506,15 @@ function AddBuildingButton( pCity, building )
 			controlTable.BuildingFilledSpecialistSlot1:SetToolTipString(ToolTipString);
 			controlTable.BuildingFilledSpecialistSlot2:SetToolTipString(ToolTipString);
 			controlTable.BuildingFilledSpecialistSlot3:SetToolTipString(ToolTipString);
-			ToolTipString = emptySlotString.."[NEWLINE]("..ToolTipString..")";
+
+			local warning = "";
+			if (not pCity:CanAddOneMoreSpecialist()) then
+				local numNeeded = pCity:NeededPopForOneMoreSpecialist();
+				warning = "[COLOR_WARNING_TEXT]You need " .. numNeeded .. " more Population to support another specialist![ENDCOLOR][NEWLINE]";
+			end
+
+			ToolTipString = warning..emptySlotString.."[NEWLINE]("..ToolTipString..")";
+			
 			controlTable.BuildingEmptySpecialistSlot1:SetToolTipString(ToolTipString);
 			controlTable.BuildingEmptySpecialistSlot2:SetToolTipString(ToolTipString);
 			controlTable.BuildingEmptySpecialistSlot3:SetToolTipString(ToolTipString);

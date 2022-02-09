@@ -204,6 +204,9 @@ protected:
 	static int lChangePopulation(lua_State* L);
 	static int lGetRealPopulation(lua_State* L);
 
+	static int lNeededPopForOneMoreSpecialist(lua_State* L);
+	static int lCanAddOneMoreSpecialist(lua_State* L);
+
 	static int lGetHighestPopulation(lua_State* L);
 	static int lSetHighestPopulation(lua_State* L);
 	//static int lGetWorkingPopulation(lua_State* L);

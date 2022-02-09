@@ -205,6 +205,9 @@ void CvLuaCity::PushMethods(lua_State* L, int t)
 	Method(ChangePopulation);
 	Method(GetRealPopulation);
 
+	Method(NeededPopForOneMoreSpecialist);
+	Method(CanAddOneMoreSpecialist);
+
 	Method(GetHighestPopulation);
 	Method(SetHighestPopulation);
 	//Method(GetWorkingPopulation);
@@ -1947,6 +1950,20 @@ int CvLuaCity::lChangePopulation(lua_State* L)
 int CvLuaCity::lGetRealPopulation(lua_State* L)
 {
 	return BasicLuaMethod(L, &CvCity::getRealPopulation);
+}
+int CvLuaCity::lNeededPopForOneMoreSpecialist(lua_State* L)
+{
+	CvCity* pkCity = GetInstance(L);
+	const int neededPop = pkCity->GetCityCitizens()->NeededPopForOneMoreSpecialist();
+	lua_pushinteger(L, neededPop);
+	return 1;
+}
+int CvLuaCity::lCanAddOneMoreSpecialist(lua_State* L)
+{
+	CvCity* pkCity = GetInstance(L);
+	const bool needPop = pkCity->GetCityCitizens()->CanAddOneMoreSpecialist();
+	lua_pushboolean(L, needPop);
+	return 1;
 }
 //------------------------------------------------------------------------------
 //int getHighestPopulation();
