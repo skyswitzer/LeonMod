@@ -3141,7 +3141,7 @@ int CvCityCitizens::NeededPopForOneMoreSpecialist()
 
 	const int remainder = pop - start;
 	int todo = remainder % divisor;
-	todo = divisor - remainder;
+	todo = divisor - todo;
 	return todo;
 }
 
