@@ -5281,10 +5281,6 @@ int CvCity::GetPurchaseCost(UnitTypes eUnit)
 	return iCost;
 }
 
-bool doesHaveBranch(const string branchName, CvPlayer& kPlayer)
-{
-	return doesHaveBranch((PolicyBranchTypes)GC.getInfoTypeForString("POLICY_BRANCH_AESTHETICS", true /*bHideAssert*/), kPlayer);
-}
 bool doesHaveBranch(const PolicyBranchTypes eBranch, CvPlayer& kPlayer)
 {
 	return
@@ -5295,6 +5291,10 @@ bool doesHaveBranch(const PolicyBranchTypes eBranch, CvPlayer& kPlayer)
 	);
 }
 
+bool doesHaveBranch(const string branchName, CvPlayer& kPlayer)
+{
+	return doesHaveBranch((PolicyBranchTypes)GC.getInfoTypeForString(branchName.c_str(), true /*bHideAssert*/), kPlayer);
+}
 //	--------------------------------------------------------------------------------
 #ifdef AUI_CONSTIFY
 int CvCity::GetFaithPurchaseCost(UnitTypes eUnit, bool bIncludeBeliefDiscounts) const
@@ -5342,26 +5342,24 @@ int CvCity::GetFaithPurchaseCost(UnitTypes eUnit, bool bIncludeBeliefDiscounts)
 				}
 				else if (eThisPlayersUnitType == eUnit)
 				{
-					PolicyBranchTypes eBranch = NO_POLICY_BRANCH_TYPE;
-					int iNum = 0;
-
+					int numAlreadyAttained = 0;
 					bool isUnlockedByPolicy = false;
 
 					// Check social policy tree
 					if (eUnitClass == GC.getInfoTypeForString("UNITCLASS_WRITER", true /*bHideAssert*/))
 					{
 						isUnlockedByPolicy |= doesHaveBranch("POLICY_BRANCH_AESTHETICS", kPlayer);
-						iNum = kPlayer.getWritersFromFaith();
+						numAlreadyAttained = kPlayer.getWritersFromFaith();
 					}
 					else if (eUnitClass == GC.getInfoTypeForString("UNITCLASS_ARTIST", true /*bHideAssert*/))
 					{
 						isUnlockedByPolicy |= doesHaveBranch("POLICY_BRANCH_AESTHETICS", kPlayer);
-						iNum = kPlayer.getArtistsFromFaith();
+						numAlreadyAttained = kPlayer.getArtistsFromFaith();
 					}
 					else if (eUnitClass == GC.getInfoTypeForString("UNITCLASS_MUSICIAN", true /*bHideAssert*/))
 					{
 						isUnlockedByPolicy |= doesHaveBranch("POLICY_BRANCH_AESTHETICS", kPlayer);
-						iNum = kPlayer.getMusiciansFromFaith();
+						numAlreadyAttained = kPlayer.getMusiciansFromFaith();
 					}
 #ifndef NQ_NO_FAITH_PURCHASING_SCIENTISTS
 					else if (eUnitClass == GC.getInfoTypeForString("UNITCLASS_SCIENTIST", true /*bHideAssert*/))
@@ -5373,22 +5371,24 @@ int CvCity::GetFaithPurchaseCost(UnitTypes eUnit, bool bIncludeBeliefDiscounts)
 					else if (eUnitClass == GC.getInfoTypeForString("UNITCLASS_MERCHANT", true /*bHideAssert*/))
 					{
 						isUnlockedByPolicy |= doesHaveBranch("POLICY_BRANCH_COMMERCE", kPlayer);
-						iNum = kPlayer.getMerchantsFromFaith();
+						numAlreadyAttained = kPlayer.getMerchantsFromFaith();
 					}
 					else if (eUnitClass == GC.getInfoTypeForString("UNITCLASS_ENGINEER", true /*bHideAssert*/))
 					{
 						isUnlockedByPolicy |= doesHaveBranch("POLICY_BRANCH_TRADITION", kPlayer);
-						iNum = kPlayer.getEngineersFromFaith();
+						isUnlockedByPolicy |= doesHaveBranch("POLICY_BRANCH_LIBERTY", kPlayer);
+						isUnlockedByPolicy |= doesHaveBranch("POLICY_BRANCH_HONOR", kPlayer);
+						numAlreadyAttained = kPlayer.getEngineersFromFaith();
 					}
 					else if (eUnitClass == GC.getInfoTypeForString("UNITCLASS_GREAT_GENERAL", true /*bHideAssert*/))
 					{
 						isUnlockedByPolicy |= doesHaveBranch("POLICY_BRANCH_HONOR", kPlayer);
-						iNum = kPlayer.getGeneralsFromFaith();
+						numAlreadyAttained = kPlayer.getGeneralsFromFaith();
 					}
 					else if (eUnitClass == GC.getInfoTypeForString("UNITCLASS_GREAT_ADMIRAL", true /*bHideAssert*/))
 					{
 						isUnlockedByPolicy |= doesHaveBranch("POLICY_BRANCH_EXPLORATION", kPlayer);
-						iNum = kPlayer.getAdmiralsFromFaith();
+						numAlreadyAttained = kPlayer.getAdmiralsFromFaith();
 					}
 
 					bool bAllUnlockedByBelief = false;
@@ -5403,7 +5403,7 @@ int CvCity::GetFaithPurchaseCost(UnitTypes eUnit, bool bIncludeBeliefDiscounts)
 
 					if (bAllUnlockedByBelief || isUnlockedByPolicy)
 					{
-						iCost = GC.getGame().GetGameReligions()->GetFaithGreatPersonNumber(iNum + 1);
+						iCost = GC.getGame().GetGameReligions()->GetFaithGreatPersonNumber(numAlreadyAttained + 1);
 					}
 				}
 			}
