@@ -5281,6 +5281,20 @@ int CvCity::GetPurchaseCost(UnitTypes eUnit)
 	return iCost;
 }
 
+bool doesHaveBranch(const string branchName, CvPlayer& kPlayer)
+{
+	return doesHaveBranch((PolicyBranchTypes)GC.getInfoTypeForString("POLICY_BRANCH_AESTHETICS", true /*bHideAssert*/), kPlayer);
+}
+bool doesHaveBranch(const PolicyBranchTypes eBranch, CvPlayer& kPlayer)
+{
+	return
+	(
+		eBranch != NO_POLICY_BRANCH_TYPE &&
+		kPlayer.GetPlayerPolicies()->IsPolicyBranchFinished(eBranch) &&
+		!kPlayer.GetPlayerPolicies()->IsPolicyBranchBlocked(eBranch)
+	);
+}
+
 //	--------------------------------------------------------------------------------
 #ifdef AUI_CONSTIFY
 int CvCity::GetFaithPurchaseCost(UnitTypes eUnit, bool bIncludeBeliefDiscounts) const
@@ -5331,47 +5345,49 @@ int CvCity::GetFaithPurchaseCost(UnitTypes eUnit, bool bIncludeBeliefDiscounts)
 					PolicyBranchTypes eBranch = NO_POLICY_BRANCH_TYPE;
 					int iNum = 0;
 
+					bool isUnlockedByPolicy = false;
+
 					// Check social policy tree
 					if (eUnitClass == GC.getInfoTypeForString("UNITCLASS_WRITER", true /*bHideAssert*/))
 					{
-						eBranch = (PolicyBranchTypes)GC.getInfoTypeForString("POLICY_BRANCH_AESTHETICS", true /*bHideAssert*/);
+						isUnlockedByPolicy |= doesHaveBranch("POLICY_BRANCH_AESTHETICS", kPlayer);
 						iNum = kPlayer.getWritersFromFaith();
 					}
 					else if (eUnitClass == GC.getInfoTypeForString("UNITCLASS_ARTIST", true /*bHideAssert*/))
 					{
-						eBranch = (PolicyBranchTypes)GC.getInfoTypeForString("POLICY_BRANCH_AESTHETICS", true /*bHideAssert*/);
+						isUnlockedByPolicy |= doesHaveBranch("POLICY_BRANCH_AESTHETICS", kPlayer);
 						iNum = kPlayer.getArtistsFromFaith();
 					}
 					else if (eUnitClass == GC.getInfoTypeForString("UNITCLASS_MUSICIAN", true /*bHideAssert*/))
 					{
-						eBranch = (PolicyBranchTypes)GC.getInfoTypeForString("POLICY_BRANCH_AESTHETICS", true /*bHideAssert*/);
+						isUnlockedByPolicy |= doesHaveBranch("POLICY_BRANCH_AESTHETICS", kPlayer);
 						iNum = kPlayer.getMusiciansFromFaith();
 					}
 #ifndef NQ_NO_FAITH_PURCHASING_SCIENTISTS
 					else if (eUnitClass == GC.getInfoTypeForString("UNITCLASS_SCIENTIST", true /*bHideAssert*/))
 					{
-						eBranch = (PolicyBranchTypes)GC.getInfoTypeForString("POLICY_BRANCH_RATIONALISM", true /*bHideAssert*/);
+						isUnlockedByPolicy |= doesHaveBranch("POLICY_BRANCH_RATIONALISM", kPlayer);
 						iNum = kPlayer.getScientistsFromFaith();
 					}
 #endif
 					else if (eUnitClass == GC.getInfoTypeForString("UNITCLASS_MERCHANT", true /*bHideAssert*/))
 					{
-						eBranch = (PolicyBranchTypes)GC.getInfoTypeForString("POLICY_BRANCH_COMMERCE", true /*bHideAssert*/);
+						isUnlockedByPolicy |= doesHaveBranch("POLICY_BRANCH_COMMERCE", kPlayer);
 						iNum = kPlayer.getMerchantsFromFaith();
 					}
 					else if (eUnitClass == GC.getInfoTypeForString("UNITCLASS_ENGINEER", true /*bHideAssert*/))
 					{
-						eBranch = (PolicyBranchTypes)GC.getInfoTypeForString("POLICY_BRANCH_TRADITION", true /*bHideAssert*/);
+						isUnlockedByPolicy |= doesHaveBranch("POLICY_BRANCH_TRADITION", kPlayer);
 						iNum = kPlayer.getEngineersFromFaith();
 					}
 					else if (eUnitClass == GC.getInfoTypeForString("UNITCLASS_GREAT_GENERAL", true /*bHideAssert*/))
 					{
-						eBranch = (PolicyBranchTypes)GC.getInfoTypeForString("POLICY_BRANCH_HONOR", true /*bHideAssert*/);
+						isUnlockedByPolicy |= doesHaveBranch("POLICY_BRANCH_HONOR", kPlayer);
 						iNum = kPlayer.getGeneralsFromFaith();
 					}
 					else if (eUnitClass == GC.getInfoTypeForString("UNITCLASS_GREAT_ADMIRAL", true /*bHideAssert*/))
 					{
-						eBranch = (PolicyBranchTypes)GC.getInfoTypeForString("POLICY_BRANCH_EXPLORATION", true /*bHideAssert*/);
+						isUnlockedByPolicy |= doesHaveBranch("POLICY_BRANCH_EXPLORATION", kPlayer);
 						iNum = kPlayer.getAdmiralsFromFaith();
 					}
 
@@ -5385,7 +5401,7 @@ int CvCity::GetFaithPurchaseCost(UnitTypes eUnit, bool bIncludeBeliefDiscounts)
 						}
 					}
 
-					if (bAllUnlockedByBelief || (eBranch != NO_POLICY_BRANCH_TYPE && kPlayer.GetPlayerPolicies()->IsPolicyBranchFinished(eBranch) && !kPlayer.GetPlayerPolicies()->IsPolicyBranchBlocked(eBranch)))
+					if (bAllUnlockedByBelief || isUnlockedByPolicy)
 					{
 						iCost = GC.getGame().GetGameReligions()->GetFaithGreatPersonNumber(iNum + 1);
 					}
