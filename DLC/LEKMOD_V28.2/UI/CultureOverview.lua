@@ -680,7 +680,7 @@ function RefreshYourCulture()
 		
 		cityData.HealthPercent = 1 - (city:GetDamage() / city:GetMaxHitPoints());
     
-		cityData.Culture = city:GetJONSCulturePerTurn();
+		cityData.Culture = city:GetJONSCulturePerTurnTimes100() / 100;
 		cityData.Tourism = city:GetBaseTourism();
 		cityData.TourismToolTip = city:GetTourismTooltip();
 		cityData.GreatWorks = city:GetNumGreatWorks();
@@ -1826,7 +1826,7 @@ function RefreshCultureVictory()
 			row.strPublicOpinionToolTip = nil;
 			row.strPublicOpinionUnhappiness = "";
 			row.strPublicOpinionUnhappinessToolTip = nil;
-			row.strExcessHappiness = "";
+			row.strExcessHappiness = 0;
 			
 			local iIdeology = pPlayer:GetLateGamePolicyTree();
 			if (iIdeology ~= PolicyBranchTypes.NO_POLICY_BRANCH_TYPE) then
@@ -1858,14 +1858,14 @@ function RefreshCultureVictory()
 				row.strPublicOpinionUnhappinessToolTip = pPlayer:GetPublicOpinionUnhappinessTooltip();
 				
 				local iExcessHappiness = pPlayer:GetExcessHappiness();
-				local strExcessHappiness = tostring(0);
+				--[[local strExcessHappiness = tostring(0);
 				if (iExcessHappiness < 0) then
 					strExcessHappiness = Locale.ConvertTextKey("TXT_KEY_CO_PUBLIC_OPINION_UNHAPPINESS", iExcessHappiness);
 				elseif (iExcessHappiness> 0) then
 					strExcessHappiness = Locale.ConvertTextKey("TXT_KEY_CO_PUBLIC_OPINION_HAPPINESS", iExcessHappiness);				
 				end
-				row.iExcessHappiness = iExcessHappiness;
-				row.strExcessHappiness = strExcessHappiness;
+				row.iExcessHappiness = iExcessHappiness;]]--
+				row.strExcessHappiness = iExcessHappiness;
 			end
 			
 			table.insert(g_CultureVictory, row);
@@ -1897,7 +1897,12 @@ function SortAndDisplayCultureVictory()
 		instance.PublicOpinionUnhappiness:SetText(row.strPublicOpinionUnhappiness);
 		instance.PublicOpinionUnhappiness:SetToolTipString(row.strPublicOpinionUnhappinessToolTip);
 		
-		instance.ExcessHappiness:SetText(row.strExcessHappiness);
+		--instance.ExcessHappiness:SetText("[ICON_HAPPINESS_1]");
+		if (row.strExcessHappiness >= 0) then
+			instance.ExcessHappiness:SetText("[ICON_HAPPINESS_1]");
+		else
+			instance.ExcessHappiness:SetText("[ICON_HAPPINESS_3]");
+		end
 	end
     
     Controls.VictoryStack:CalculateSize();
@@ -1965,7 +1970,7 @@ function RefreshPlayerInfluence()
 					
 				
 					local iInfluence = pSelectedPlayer:GetInfluenceOn(iPlayer);
-					local iCulture = pPlayer:GetJONSCultureEverGenerated();
+					local iCulture = pPlayer:GetJONSCultureEverGeneratedTimes100() / 100;
 					local iPercent = 0;
 					
 					if (iCulture > 0) then
@@ -2025,12 +2030,13 @@ function RefreshPlayerInfluence()
 					end
 					
 					if(iModifiers == 0) then
-						playerInfluence.ModifierText = "--";
-					elseif(iModifiers > 0) then
-						playerInfluence.ModifierText = "+" .. iModifiers .. "%";
+						playerInfluence.ModifierText = "+0%";
+					elseif(iModifiers >= 0) then
+						playerInfluence.ModifierText = "[COLOR_POSITIVE_TEXT]+" .. iModifiers .. "%";
 					else
-						playerInfluence.ModifierText = iModifiers .. "%";
+						playerInfluence.ModifierText = "[COLOR_NEGATIVE_TEXT]" .. iModifiers .. "%";
 					end
+					playerInfluence.ModifierText = playerInfluence.ModifierText .. "[ENDCOLOR]"
 					
 					local iTrend = pSelectedPlayer:GetInfluenceTrend(iPlayer);			
     				playerInfluence.Trend = iTrend;
