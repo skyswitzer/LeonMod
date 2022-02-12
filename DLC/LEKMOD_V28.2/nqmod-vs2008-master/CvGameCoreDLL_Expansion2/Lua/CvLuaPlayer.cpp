@@ -2544,7 +2544,7 @@ int CvLuaPlayer::lGetTourismModifierWith(lua_State* L)
 {
 	CvPlayerAI* pkPlayer = GetInstance(L);
 	PlayerTypes ePlayer = (PlayerTypes)lua_tointeger(L, 2);
-	const int iResult = pkPlayer->GetCulture()->GetTourismModifierWithT100(ePlayer) / 100;
+	const int iResult = pkPlayer->GetCulture()->GetTourismModifierWithT100(ePlayer);
 	lua_pushinteger(L, iResult);
 	return 1;
 }
