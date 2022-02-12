@@ -156,6 +156,7 @@ Controls.ScoreClose:RegisterCallback( Mouse.eLClick, OnScoreClose );
 function PopulateScoreBreakdown()
 	local pPlayer = Players[Game.GetActivePlayer()];
 	local bScenario = PreGame.GetLoadWBScenario();
+	Controls.ScoreDetails:SetHide(true); -- hide score details
 	
 	if(PreGame.IsVictory(GameInfo.Victories["VICTORY_TIME"].ID))then
 		Controls.Cities:SetText(pPlayer:GetScoreFromCities());
