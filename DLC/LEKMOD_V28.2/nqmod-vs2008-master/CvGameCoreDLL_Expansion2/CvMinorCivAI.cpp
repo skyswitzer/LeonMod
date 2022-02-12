@@ -31,7 +31,7 @@ const int scorePerAllyTurn = 10;
 // minimum military influence needed to gain influence
 const int minMilitaryStrength = 15;
 // influence gained per turn for having the most local military
-const int baseMilitaryInfluence = 8;
+const int baseMilitaryInfluence = 17;
 // influence gained per turn for having the most local military
 const int baseTradeInfluence = 0;
 
@@ -5766,16 +5766,16 @@ int CvMinorCivAI::GetFriendshipAnchorWithMajor(PlayerTypes eMajor)
 	if (!pMajor) return iAnchor;
 
 	// Pledge to Protect
-	if (IsProtectedByMajor(eMajor))
-	{
-		iAnchor += GC.getMINOR_FRIENDSHIP_ANCHOR_MOD_PROTECTED();
-	}
+	//if (IsProtectedByMajor(eMajor))
+	//{
+	//	iAnchor += GC.getMINOR_FRIENDSHIP_ANCHOR_MOD_PROTECTED();
+	//}
 
 	// Wary Of?
-	if (IsWaryOfTeam(pMajor->getTeam()))
-	{
-		iAnchor += GC.getMINOR_FRIENDSHIP_ANCHOR_MOD_WARY_OF();
-	}
+	//if (IsWaryOfTeam(pMajor->getTeam()))
+	//{
+	//	iAnchor += GC.getMINOR_FRIENDSHIP_ANCHOR_MOD_WARY_OF();
+	//}
 
 	// Social Policies
 	iAnchor += pMajor->GetMinorFriendshipAnchorMod();
