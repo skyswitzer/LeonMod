@@ -11594,7 +11594,7 @@ void CvPlayer::DoUpdateHappiness()
 	m_iHappiness = getHandicapInfo().getHappinessDefault();
 
 	// Increase from Luxury Resources
-	int iNumHappinessFromResources = GetHappinessFromResources();
+	const int iNumHappinessFromResources = GetHappinessFromResources();
 	m_iHappiness += iNumHappinessFromResources;
 
 	// Increase from Local City Happiness
@@ -12313,11 +12313,7 @@ int CvPlayer::GetHappinessFromResources() const
 
 	// Check all connected Resources
 	ResourceTypes eResource;
-#ifdef AUI_WARNING_FIXES
 	for (uint iResourceLoop = 0; iResourceLoop < GC.getNumResourceInfos(); iResourceLoop++)
-#else
-	for(int iResourceLoop = 0; iResourceLoop < GC.getNumResourceInfos(); iResourceLoop++)
-#endif
 	{
 		eResource = (ResourceTypes) iResourceLoop;
 
@@ -12486,47 +12482,52 @@ void CvPlayer::ChangeExtraHappinessPerLuxury(int iChange)
 /// How much happiness credit for having this resource as a luxury?
 int CvPlayer::GetHappinessFromLuxury(ResourceTypes eResource) const
 {
+	int happiness = 0;
 	CvResourceInfo* pkResourceInfo = GC.getResourceInfo(eResource);
 	if(pkResourceInfo)
 	{
-		int iBaseHappiness = pkResourceInfo->getHappiness();
-
+		// resource banned
 		if (GC.getGame().GetGameLeagues()->IsLuxuryHappinessBanned(GetID(), eResource))
 		{
-			iBaseHappiness = 0;
+			happiness = 0;
 		}
-
-		// Only look at Luxuries
-		if(pkResourceInfo->getResourceUsage() != RESOURCEUSAGE_LUXURY)
+		else
 		{
-			return 0;
-		}
-
-		// Any extras?
-		else if(getNumResourceAvailable(eResource, /*bIncludeImport*/ true) > 0)
-		{
-		// NQMP GJS - New Netherlands UA gives +1 Happiness per unique Luxury for the empire BEGIN
-			return iBaseHappiness + GetPlayerTraits()->GetExtraHappinessPerLuxury();
-			//return iBaseHappiness;
-		}
-		
-		/*
-		else if(GetPlayerTraits()->GetLuxuryHappinessRetention() > 0)
-		{
-			if(getResourceExport(eResource) > 0)
+			const int amount = getNumResourceAvailable(eResource, /*bIncludeImport*/ true);
+			if (amount > 0)
 			{
-				return ((iBaseHappiness * GetPlayerTraits()->GetLuxuryHappinessRetention()) / 100);
+				const int extra = amount - 1;
+				const int happinessFromResource = pkResourceInfo->getHappiness();
+				const int happinessFromExtra = happinessFromResource / 2; // each additional gives half
+				if (happinessFromResource > 0) // only grant happiness if it gives any to start
+				{
+					// base happiness
+					happiness += happinessFromResource;
+					// netherlands +1 Happiness per unique lux
+					happiness += GetPlayerTraits()->GetExtraHappinessPerLuxury();
+					// extra?
+					happiness += extra * happinessFromExtra;
+				}
 			}
+
+
+			// no need for this!
+			// Only look at Luxuries
+			//if(pkResourceInfo->getResourceUsage() != RESOURCEUSAGE_LUXURY)
+			//{
+			//	return 0;
+			//}
+			//else if(GetPlayerTraits()->GetLuxuryHappinessRetention() > 0)
+			//{
+			//	if(getResourceExport(eResource) > 0)
+			//	{
+			//		return ((iBaseHappiness * GetPlayerTraits()->GetLuxuryHappinessRetention()) / 100);
+			//	}
+			//}
 		}
-		*/
-		// NQMP GJS - New Netherlands UA gives +1 Happiness per unique Luxury for the empire END
 	}
 
-#ifdef AUI_WARNING_FIXES
-	return 0;
-#else
-	return false;
-#endif
+	return happiness;
 }
 
 
