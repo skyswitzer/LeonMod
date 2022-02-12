@@ -12328,7 +12328,12 @@ bool CvCity::CanBuyPlot(int iPlotX, int iPlotY, bool bIgnoreCost)
 		return false;
 
 	// cannot buy plots with enemy units of any domain (water/land) on or nearby
-	if (pTargetPlot->isEnemyUnit(getOwner(), true, false, false) || pTargetPlot->GetAdjacentEnemyMilitaryUnits(getTeam(), NO_DOMAIN).size() > 0)
+	const bool ignoreBarbs = true;
+	const bool isMilitaryOrCivilian =
+		pTargetPlot->isEnemyUnit(getOwner(), true, false, ignoreBarbs) ||
+		pTargetPlot->isEnemyUnit(getOwner(), false, false, ignoreBarbs);
+	const bool orAnyAdjacent = pTargetPlot->GetAdjacentEnemyMilitaryUnits(getTeam(), NO_DOMAIN, ignoreBarbs).size() > 0;
+	if (isMilitaryOrCivilian || orAnyAdjacent)
 	{
 		return false;
 	}
@@ -12600,7 +12605,7 @@ void CvCity::GetBuyablePlotList(std::vector<int>& aiPlotList)
 				}
 
 				// cannot buy plots with enemy units of any domain (water/land) on or nearby
-				if (pLoopPlot->GetAdjacentEnemyMilitaryUnits(getTeam(), NO_DOMAIN).size() > 0)
+				if (pLoopPlot->GetAdjacentEnemyMilitaryUnits(getTeam(), NO_DOMAIN, true).size() > 0)
 				{
 					continue;
 				}

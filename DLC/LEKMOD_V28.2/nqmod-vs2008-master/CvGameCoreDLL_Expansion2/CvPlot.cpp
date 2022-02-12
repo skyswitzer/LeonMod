@@ -3617,7 +3617,7 @@ bool CvPlot::isEnemyUnit(PlayerTypes ePlayer, bool militaryUnit, bool bCheckVisi
 				if (bCheckVisibility && pLoopUnit->isInvisible(eTeam, false))
 					continue;
 
-				const bool isCivilian = pLoopUnit->GetBaseCombatStrength() != 0;
+				const bool isCivilian = pLoopUnit->GetBaseCombatStrength() == 0;
 				if (militaryUnit == isCivilian)
 					continue;
 
@@ -3635,7 +3635,7 @@ bool CvPlot::isEnemyUnit(PlayerTypes ePlayer, bool militaryUnit, bool bCheckVisi
 	return false;
 }
 
-vector<CvUnit*> CvPlot::GetAdjacentEnemyMilitaryUnits(TeamTypes eMyTeam, DomainTypes eDomain) const
+vector<CvUnit*> CvPlot::GetAdjacentEnemyMilitaryUnits(const TeamTypes eMyTeam, const DomainTypes eDomain, const bool ignoreBarbs) const
 {
 	vector<CvUnit*> result;
 	for (int iCount = 0; iCount < NUM_DIRECTION_TYPES; iCount++)
@@ -3653,6 +3653,9 @@ vector<CvUnit*> CvPlot::GetAdjacentEnemyMilitaryUnits(TeamTypes eMyTeam, DomainT
 
 				if (pLoopUnit)
 				{
+					// potentially ignore barbarians
+					if (ignoreBarbs && pLoopUnit->isBarbarian()) continue;
+
 					// Must be a combat Unit
 					if (pLoopUnit->IsCombatUnit() && !pLoopUnit->isEmbarked() && !pLoopUnit->isDelayedDeath())
 					{

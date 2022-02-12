@@ -487,7 +487,7 @@ public:
 	vector<const CvUnit*> CvPlot::getAllUnitsConst() const;
 
 	bool isEnemyUnit(PlayerTypes ePlayer, bool bCombat, bool bCheckVisibility, bool bIgnoreBarbs) const;
-	vector<CvUnit*> GetAdjacentEnemyMilitaryUnits(TeamTypes eMyTeam, DomainTypes eDomain) const;
+	vector<CvUnit*> GetAdjacentEnemyMilitaryUnits(const TeamTypes eMyTeam, const DomainTypes eDomain, const bool ignoreBarbs = false) const;
 
 	bool isRoughGround() const
 	{
