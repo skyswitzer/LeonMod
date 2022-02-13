@@ -15235,7 +15235,8 @@ void CvCity::doGrowth()
 			if(getPopulation() <= 5)
 			{
 #endif
-				CvNotifications* pNotifications = GET_PLAYER(getOwner()).GetNotifications();
+				// remove population notification
+				CvNotifications* pNotifications = NULL;//GET_PLAYER(getOwner()).GetNotifications();
 				if(pNotifications)
 				{
 					Localization::String localizedText = Localization::Lookup("TXT_KEY_NOTIFICATION_CITY_GROWTH");

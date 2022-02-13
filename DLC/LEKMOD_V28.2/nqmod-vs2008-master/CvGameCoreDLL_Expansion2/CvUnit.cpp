@@ -18547,7 +18547,8 @@ void CvUnit::setPromotionReady(bool bNewValue)
 
 		if(bNewValue)
 		{
-			CvNotifications* pNotifications = GET_PLAYER(getOwner()).GetNotifications();
+			// disable promotion notifications
+			CvNotifications* pNotifications = NULL;// GET_PLAYER(getOwner()).GetNotifications();
 			if(pNotifications)
 			{
 				CvString strBuffer = GetLocalizedText("TXT_KEY_NOTIFICATION_UNIT_CAN_GET_PROMOTION");

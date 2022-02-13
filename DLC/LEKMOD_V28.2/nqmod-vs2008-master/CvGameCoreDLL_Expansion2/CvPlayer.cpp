@@ -17801,7 +17801,8 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 				{
 					if(kGame.isNetworkMultiPlayer())
 					{
-						GC.messagePlayer(0, GetID(), true, GC.getEVENT_MESSAGE_TIME(), GetLocalizedText("TXT_KEY_MISC_TURN_BEGINS").GetCString(), "AS2D_NEWTURN", MESSAGE_TYPE_DISPLAY_ONLY);
+						// remove turn begin notification
+						//GC.messagePlayer(0, GetID(), true, GC.getEVENT_MESSAGE_TIME(), GetLocalizedText("TXT_KEY_MISC_TURN_BEGINS").GetCString(), "AS2D_NEWTURN", MESSAGE_TYPE_DISPLAY_ONLY);
 					}
 				}
 
