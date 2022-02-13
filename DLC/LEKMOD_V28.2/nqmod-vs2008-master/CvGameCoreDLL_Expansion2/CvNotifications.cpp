@@ -17,7 +17,7 @@
 // Include this after all other headers.
 #include "LintFree.h"
 
-#define MAX_NOTIFICATIONS 100
+#define MAX_NOTIFICATIONS 250
 
 #ifdef AUI_WARNING_FIXES
 static int V1_IndexToHash[] =
