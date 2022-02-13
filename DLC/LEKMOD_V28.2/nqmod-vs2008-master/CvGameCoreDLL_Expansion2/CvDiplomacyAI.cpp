@@ -25901,9 +25901,6 @@ void CvDiplomacyAI::LogMinorCivQuestType(CvString& strString, MinorCivQuestTypes
 	case MINOR_CIV_QUEST_ROUTE:
 		strTemp.Format("Route");
 		break;
-	//case MINOR_CIV_QUEST_KILL_CAMP:
-	//	strTemp.Format("Kill Camp");
-	//	break;
 	case MINOR_CIV_QUEST_CONNECT_RESOURCE:
 		strTemp.Format("Connect Resource");
 		break;
@@ -25937,7 +25934,7 @@ void CvDiplomacyAI::LogMinorCivQuestType(CvString& strString, MinorCivQuestTypes
 	case MINOR_CIV_QUEST_CONTEST_TECHS:
 		strTemp.Format("Contest Techs");
 		break;
-	case MINOR_CIV_QUEST_KILL_CAMP:
+	case QUEST_UNREST:
 		strTemp.Format("Contest Unrest");
 		break;
 	case MINOR_CIV_QUEST_INVEST:

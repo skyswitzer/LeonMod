@@ -93,7 +93,7 @@ int CvMinorCivQuest::GetEndTurn() const
 	CvAssertMsg(m_iStartTurn != NO_TURN, "GetEndTurn called for a quest, but the start turn was not initialized!");
 
 	int iLength = 0;
-	if (m_eType == MINOR_CIV_QUEST_KILL_CAMP)
+	if (m_eType == QUEST_UNREST)
 	{
 		iLength = (1.5f * GC.getMINOR_QUEST_STANDARD_CONTEST_LENGTH());
 	}
@@ -160,9 +160,6 @@ int CvMinorCivQuest::GetInfluenceReward() const
 	case MINOR_CIV_QUEST_ROUTE:
 		iReward = /*50*/ GC.getMINOR_QUEST_FRIENDSHIP_ROUTE();
 		break;
-	//case MINOR_CIV_QUEST_KILL_CAMP:
-	//	iReward = /*50*/ GC.getMINOR_QUEST_FRIENDSHIP_KILL_CAMP();
-	//	break;
 	case MINOR_CIV_QUEST_CONNECT_RESOURCE:
 		iReward = /*40*/ GC.getMINOR_QUEST_FRIENDSHIP_CONNECT_RESOURCE();
 		break;
@@ -196,7 +193,7 @@ int CvMinorCivQuest::GetInfluenceReward() const
 	case MINOR_CIV_QUEST_CONTEST_TECHS:
 		iReward = /*40*/ GC.getMINOR_QUEST_FRIENDSHIP_CONTEST_TECHS();
 		break;
-	case MINOR_CIV_QUEST_KILL_CAMP:
+	case QUEST_UNREST:
 		iReward = /*40*/ GC.getMINOR_QUEST_FRIENDSHIP_CONTEST_TECHS();
 		break;
 	case MINOR_CIV_QUEST_INVEST:
@@ -297,11 +294,6 @@ int CvMinorCivQuest::GetContestValueForPlayer(PlayerTypes ePlayer)
 		int iEndTechs = GET_TEAM(GET_PLAYER(ePlayer).getTeam()).GetTeamTechs()->GetNumTechsKnown();
 		iValue = iEndTechs - iStartTechs;
 	}
-	else if (eType == MINOR_CIV_QUEST_KILL_CAMP)
-	{
-		const int strength = getAStrengthNearAllBCities(ePlayer, pMinor->GetID());
-		iValue = strength;
-	}
 
 	return iValue;
 }
@@ -315,8 +307,7 @@ int CvMinorCivQuest::GetContestValueForLeader()
 	(
 		eType == MINOR_CIV_QUEST_CONTEST_CULTURE ||
 		eType == MINOR_CIV_QUEST_CONTEST_FAITH ||
-		eType == MINOR_CIV_QUEST_CONTEST_TECHS ||
-		eType == MINOR_CIV_QUEST_KILL_CAMP
+		eType == MINOR_CIV_QUEST_CONTEST_TECHS
 	)
 	{
 		// What is the largest value a participant has for this contest?
@@ -344,8 +335,7 @@ CivsList CvMinorCivQuest::GetContestLeaders()
 
 	if(eType == MINOR_CIV_QUEST_CONTEST_CULTURE ||
 	        eType == MINOR_CIV_QUEST_CONTEST_FAITH ||
-		eType == MINOR_CIV_QUEST_CONTEST_TECHS ||
-		eType == MINOR_CIV_QUEST_KILL_CAMP)
+		eType == MINOR_CIV_QUEST_CONTEST_TECHS)
 	{
 		for(int iPlayerLoop = 0; iPlayerLoop < MAX_MAJOR_CIVS; iPlayerLoop++)
 		{
@@ -382,7 +372,7 @@ bool CvMinorCivQuest::IsContestLeader(PlayerTypes ePlayer)
 		eType == MINOR_CIV_QUEST_CONTEST_CULTURE ||
 	    eType == MINOR_CIV_QUEST_CONTEST_FAITH ||
 	    eType == MINOR_CIV_QUEST_CONTEST_TECHS ||
-		eType == MINOR_CIV_QUEST_KILL_CAMP
+		eType == QUEST_UNREST
 	)
 	{
 		CivsList veTiedForLead = GetContestLeaders();
@@ -423,25 +413,6 @@ bool CvMinorCivQuest::IsComplete()
 			return true;
 		}
 	}
-	//else if(m_eType == MINOR_CIV_QUEST_KILL_CAMP)
-	//{
-	//	int iX = m_iData1;
-	//	int iY = m_iData2;
-	//	CvPlot* pPlot = GC.getMap().plot(iX, iY);
-
-	//	if(pPlot)
-	//	{
-	//		// No longer a camp here?
-	//		if(pPlot->getImprovementType() != GC.getBARBARIAN_CAMP_IMPROVEMENT())
-	//		{
-	//			// Did this guy clear it?
-	//			if(pPlot->GetPlayerThatClearedBarbCampHere() == m_eAssignedPlayer)
-	//			{
-	//				return true;
-	//			}
-	//		}
-	//	}
-	//}
 	else if(m_eType == MINOR_CIV_QUEST_CONNECT_RESOURCE)
 	{
 		ResourceTypes eResource = (ResourceTypes) m_iData1;
@@ -552,7 +523,7 @@ bool CvMinorCivQuest::IsComplete()
 			if (IsContestLeader(GetPlayerAssignedTo()))
 				return true;
 	}
-	else if (m_eType == MINOR_CIV_QUEST_KILL_CAMP)
+	else if (m_eType == QUEST_UNREST)
 	{
 		// Is it time to compare the score?
 		if (GetEndTurn() == GC.getGame().getGameTurn())
@@ -655,27 +626,6 @@ bool CvMinorCivQuest::IsExpired()
 	if(m_eType == MINOR_CIV_QUEST_ROUTE)
 	{
 	}
-
-	//// City-state wanted us to clear a camp
-	//if(m_eType == MINOR_CIV_QUEST_KILL_CAMP)
-	//{
-	//	int iX = GetPrimaryData();
-	//	int iY = GetSecondaryData();
-	//	CvPlot* pPlot = GC.getMap().plot(iX, iY);
-
-	//	if(pPlot)
-	//	{
-	//		// Camp that was here is gone
-	//		if(!pPlot->HasBarbarianCamp())
-	//		{
-	//			// Someone cleared it, and it wasn't us
-	//			if(pPlot->GetPlayerThatClearedBarbCampHere() != NO_PLAYER && pPlot->GetPlayerThatClearedBarbCampHere() != m_eAssignedPlayer)
-	//			{
-	//				return true;
-	//			}
-	//		}
-	//	}
-	//}
 
 	// Connect a resource
 	if(m_eType == MINOR_CIV_QUEST_CONNECT_RESOURCE)
@@ -782,7 +732,7 @@ bool CvMinorCivQuest::IsExpired()
 	}
 
 	// Contest Unrest
-	else if (m_eType == MINOR_CIV_QUEST_KILL_CAMP)
+	else if (m_eType == QUEST_UNREST)
 	{
 		if (GC.getGame().getGameTurn() == GetEndTurn() && !IsComplete())
 			return true;
@@ -872,24 +822,6 @@ void CvMinorCivQuest::DoStartQuest(int iStartTurn)
 		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_START_ROUTE");
 		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_START_ROUTE");
 	}
-	//// Kill a Camp
-	//else if(m_eType == MINOR_CIV_QUEST_KILL_CAMP)
-	//{
-	//	CvPlot* pPlot = pMinor->GetMinorCivAI()->GetBestNearbyCampToKill();
-
-	//	FAssertMsg(pPlot != NULL, "MINOR CIV AI: Somehow we're starting a quest to kill a barb camp but we can't find one nearby. Please send Jon this with your last 5 autosaves and what changelist # you're playing. Oh, and you're about to crash.");
-
-	//	m_iData1 = pPlot->getX();
-	//	m_iData2 = pPlot->getY();
-
-	//	pPlot->setRevealed(pAssignedPlayer->getTeam(), true);
-	//	pPlot->setRevealedImprovementType(pAssignedPlayer->getTeam(), pPlot->getImprovementType());
-
-	//	strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_KILL_CAMP");
-	//	strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_KILL_CAMP");
-	//	iNotificationX = pPlot->getX();
-	//	iNotificationY = pPlot->getY();
-	//}
 	// Connect a Resource
 	else if(m_eType == MINOR_CIV_QUEST_CONNECT_RESOURCE)
 	{
@@ -1088,7 +1020,7 @@ void CvMinorCivQuest::DoStartQuest(int iStartTurn)
 		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_CONTEST_TECHS");
 	}
 	// Techs contest
-	else if (m_eType == MINOR_CIV_QUEST_KILL_CAMP)
+	else if (m_eType == QUEST_UNREST)
 	{
 		int iMilitaryStrength = 0;
 
@@ -1228,43 +1160,6 @@ void CvMinorCivQuest::DoStartQuestUsingExistingData(CvMinorCivQuest* pExistingQu
 	int iNotificationX = -1;
 	int iNotificationY = -1;
 
-	//// Kill a Camp - This quest needs to have the data for the same camp as the existing quest
-	//if(m_eType == MINOR_CIV_QUEST_KILL_CAMP)
-	//{
-	//	m_iStartTurn = pExistingQuest->GetStartTurn();
-
-	//	int iCampX = pExistingQuest->GetPrimaryData();
-	//	int iCampY = pExistingQuest->GetSecondaryData();
-
-	//	CvPlot* pPlot = GC.getMap().plot(iCampX, iCampY);
-
-	//	if(!pPlot)
-	//	{
-	//		CvAssertMsg(false, "We're starting a quest to kill a barb camp using an existing quest's barb camp data, but the data is bad. Please send Anton your save file and version.");
-	//		return;
-	//	}
-	//	if(pPlot->getImprovementType() != GC.getBARBARIAN_CAMP_IMPROVEMENT())
-	//	{
-	//		CvAssertMsg(false, "We're starting a quest to kill a barb camp using an existing quest's barb camp data, but there's no camp there anymore. Please send Anton your save file and version.");
-	//		return;
-	//	}
-
-	//	m_iData1 = iCampX;
-	//	m_iData2 = iCampY;
-
-	//	pPlot->setRevealed(pAssignedPlayer->getTeam(), true);
-	//	pPlot->setRevealedImprovementType(pAssignedPlayer->getTeam(), pPlot->getImprovementType());
-
-	//	strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_KILL_CAMP");
-	//	strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_KILL_CAMP");
-	//	iNotificationX = pPlot->getX();
-	//	iNotificationY = pPlot->getY();
-
-	//	strMessage << pMinor->getNameKey();
-	//	strSummary << pMinor->getNameKey();
-	//	pMinor->GetMinorCivAI()->AddQuestNotification(strMessage.toUTF8(), strSummary.toUTF8(), m_eAssignedPlayer, iNotificationX, iNotificationY);
-	//}
-
 	// Other global quests (ie. contests) - Quest data is initialized as normal except for the start turn, which was in the past
 	if(pMinor->GetMinorCivAI()->IsGlobalQuest(pExistingQuest->GetType()))
 	{
@@ -1319,13 +1214,6 @@ bool CvMinorCivQuest::DoFinishQuest()
 		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_MINOR_ROUTE_CONNECTION");
 		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_MINOR_ROUTE_CONNECTION");
 	}
-
-	// KILL A CAMP
-	//else if(m_eType == MINOR_CIV_QUEST_KILL_CAMP)
-	//{
-	//	strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_COMPLETE_KILL_CAMP");
-	//	strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_COMPLETE_KILL_CAMP");
-	//}
 
 	// CONNECT A RESOURCE
 	else if(m_eType == MINOR_CIV_QUEST_CONNECT_RESOURCE)
@@ -1445,7 +1333,7 @@ bool CvMinorCivQuest::DoFinishQuest()
 	}
 
 	// Techs contest
-	else if (m_eType == MINOR_CIV_QUEST_KILL_CAMP)
+	else if (m_eType == QUEST_UNREST)
 	{
 	GET_PLAYER(m_eAssignedPlayer).ChangeDiplomaticInfluence(scoreFromUnrestWinner);
 
@@ -1573,12 +1461,6 @@ bool CvMinorCivQuest::DoCancelQuest()
 	// If quest expired "naturally", send a notification particular to the expiration conditions of the quest
 	else if(bExpired)
 	{
-		// City-state wanted us to clear a camp
-		//if(m_eType == MINOR_CIV_QUEST_KILL_CAMP)
-		//{
-		//	strMessage = Localization::Lookup("TXT_KEY_NTFN_QUEST_ENDED_KILL_CAMP");
-		//	strSummary = Localization::Lookup("TXT_KEY_NTFN_QUEST_ENDED_KILL_CAMP_S");
-		//}
 		// CONSTRUCT A WONDER
 		if(m_eType == MINOR_CIV_QUEST_CONSTRUCT_WONDER)
 		{
@@ -1634,7 +1516,7 @@ bool CvMinorCivQuest::DoCancelQuest()
 		}
 
 		// Contest Unrest
-		else if (m_eType == MINOR_CIV_QUEST_KILL_CAMP)
+		else if (m_eType == QUEST_UNREST)
 		{
 			strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_ENDED_UNREST");
 			strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_ENDED_UNREST");
@@ -3446,7 +3328,18 @@ void CvMinorCivAI::DoQuestsCleanupForPlayer(PlayerTypes ePlayer)
 // Is this quest enabled at all?
 bool CvMinorCivAI::IsEnabledQuest(MinorCivQuestTypes eQuest)
 {
-	if (eQuest == MINOR_CIV_QUEST_KILL_CAMP)
+	if 
+	(
+		eQuest == QUEST_BUILD_NATIONAL_WONDER ||
+		eQuest == QUEST_BUILD_WORLD_WONDER ||
+		eQuest == QUEST_GIFT_GOLD ||
+		eQuest == QUEST_GIFT_GREAT_PERSON ||
+		eQuest == QUEST_GIFT_MILITARY ||
+		eQuest == QUEST_GIFT_WORKER ||
+		eQuest == QUEST_SPREAD_RELIGION ||
+		eQuest == QUEST_TRADE_ROUTE ||
+		eQuest == QUEST_UNREST
+	)
 	{
 		return true;
 	}
@@ -3461,12 +3354,6 @@ bool CvMinorCivAI::IsEnabledQuest(MinorCivQuestTypes eQuest)
 		if(GC.getQUEST_DISABLED_ROUTE() == 1)
 			return false;
 	}
-	//// KILL A CAMP
-	//else if(eQuest == MINOR_CIV_QUEST_KILL_CAMP)
-	//{
-	//	if(GC.getQUEST_DISABLED_KILL_CAMP() == 1)
-	//		return false;
-	//}
 	// CONNECT A RESOURCE
 	else if(eQuest == MINOR_CIV_QUEST_CONNECT_RESOURCE)
 	{
@@ -3543,7 +3430,7 @@ bool CvMinorCivAI::IsEnabledQuest(MinorCivQuestTypes eQuest)
 			return false;
 	}
 	// CONTEST TECHS
-	else if (eQuest == MINOR_CIV_QUEST_KILL_CAMP)
+	else if (eQuest == QUEST_UNREST)
 	{
 		return true;
 	}
@@ -3655,13 +3542,6 @@ bool CvMinorCivAI::IsValidQuestForPlayer(PlayerTypes ePlayer, MinorCivQuestTypes
 		if(!bInRange)
 			return false;
 	}
-	//// KILL A CAMP
-	//else if(eQuest == MINOR_CIV_QUEST_KILL_CAMP)
-	//{
-	//	// Any nearby camps?
-	//	if(GetBestNearbyCampToKill() == NULL)
-	//		return false;
-	//}
 	// CONNECT A RESOURCE
 	else if(eQuest == MINOR_CIV_QUEST_CONNECT_RESOURCE)
 	{
@@ -3785,8 +3665,10 @@ bool CvMinorCivAI::IsValidQuestForPlayer(PlayerTypes ePlayer, MinorCivQuestTypes
 	{
 	}
 	// CONTEST UNREST
-	else if (eQuest == MINOR_CIV_QUEST_KILL_CAMP)
+	else if (eQuest == QUEST_UNREST)
 	{
+		// always valid
+		return true;
 	}
 	// Invest
 	else if(eQuest == MINOR_CIV_QUEST_INVEST)
@@ -3927,17 +3809,6 @@ bool CvMinorCivAI::IsValidQuestCopyForPlayer(PlayerTypes ePlayer, CvMinorCivQues
 	if(pMinorsCapital == NULL || pMajorsCapital == NULL)
 		return false;
 
-	//// KILL A CAMP - Is the camp in the existing quest still around?
-	//if(eQuestType == MINOR_CIV_QUEST_KILL_CAMP)
-	//{
-	//	int iCampX = pQuest->GetPrimaryData();
-	//	int iCampY = pQuest->GetSecondaryData();
-	//	CvPlot* pPlot = GC.getMap().plot(iCampX, iCampY);
-	//	if(!pPlot)
-	//		return false;
-	//	if(pPlot->getImprovementType() != GC.getBARBARIAN_CAMP_IMPROVEMENT())
-	//		return false;
-	//}
 	// CONTEST CULTURE
 	if(eQuestType == MINOR_CIV_QUEST_CONTEST_CULTURE)
 	{
@@ -3951,7 +3822,7 @@ bool CvMinorCivAI::IsValidQuestCopyForPlayer(PlayerTypes ePlayer, CvMinorCivQues
 	{
 	}
 	// CONTEST UNREST
-	else if (eQuestType == MINOR_CIV_QUEST_KILL_CAMP)
+	else if (eQuestType == QUEST_UNREST)
 	{
 	}
 	// Invest
@@ -3974,9 +3845,6 @@ bool CvMinorCivAI::IsValidQuestCopyForPlayer(PlayerTypes ePlayer, CvMinorCivQues
 
 bool CvMinorCivAI::IsGlobalQuest(MinorCivQuestTypes eQuest) const
 {
-	//if(eQuest == MINOR_CIV_QUEST_KILL_CAMP)
-	//	return true;
-
 	if(eQuest == MINOR_CIV_QUEST_CONTEST_CULTURE)
 		return true;
 
@@ -3989,7 +3857,7 @@ bool CvMinorCivAI::IsGlobalQuest(MinorCivQuestTypes eQuest) const
 	if (eQuest == MINOR_CIV_QUEST_INVEST)
 		return true;
 
-	if (eQuest == MINOR_CIV_QUEST_KILL_CAMP)
+	if (eQuest == QUEST_UNREST)
 		return true;
 	
 	return false;
@@ -4019,7 +3887,7 @@ int CvMinorCivAI::GetMinPlayersNeededForQuest(MinorCivQuestTypes eQuest) const
 		iPlayersNeeded = 3; //antonjs: todo: XML
 	}
 
-	else if (eQuest == MINOR_CIV_QUEST_KILL_CAMP)
+	else if (eQuest == QUEST_UNREST)
 	{
 		iPlayersNeeded = 1;
 	}
@@ -4303,25 +4171,12 @@ int CvMinorCivAI::GetPersonalityQuestBias(MinorCivQuestTypes eQuest)
 	}
 
 	// CONTEST UNREST
-	else if (eQuest == MINOR_CIV_QUEST_KILL_CAMP)
+	else if (eQuest == QUEST_UNREST)
 	{
 		// always prefer
 		iCount *= 600;
 		iCount /= 100;
 	}
-
-	//// KILL A CAMP
-	//else if(eQuest == MINOR_CIV_QUEST_KILL_CAMP)
-	//{
-	//	iCount *= 300;
-	//	iCount /= 100;
-
-	//	if(eTrait == MINOR_CIV_TRAIT_MILITARISTIC)					// Militaristic
-	//	{
-	//		iCount *= /*300*/ GC.getMINOR_CIV_QUEST_WEIGHT_MULTIPLIER_MILITARISTIC_KILL_CAMP();
-	//		iCount /= 100;
-	//	}
-	//}
 
 	// Invest
 	else if(eQuest == MINOR_CIV_QUEST_INVEST)
