@@ -242,7 +242,7 @@ function GetCityStateStatusToolTip(iMajor, iMinor, bFullInfo)
 	if (pMinor:IsAllies(iMajor)) then		-- Allies
 		strStatusTT = Locale.ConvertTextKey("TXT_KEY_DIPLO_STATUS_TT", Locale.ConvertTextKey(strShortDescKey), Locale.ConvertTextKey("TXT_KEY_ALLIES"),
 										  iInfluence, 
-										  GameDefines["FRIENDSHIP_THRESHOLD_MAX"] - GameDefines["FRIENDSHIP_THRESHOLD_ALLIES"]); 
+										  GameDefines["FRIENDSHIP_THRESHOLD_ALLIES"]); 
 		
 		local strTempTT = Locale.ConvertTextKey("TXT_KEY_ALLIES_CSTATE_TT", strShortDescKey);
 		
@@ -251,7 +251,7 @@ function GetCityStateStatusToolTip(iMajor, iMinor, bFullInfo)
 	elseif (pMinor:IsFriends(iMajor)) then		-- Friends
 		strStatusTT = Locale.ConvertTextKey("TXT_KEY_DIPLO_STATUS_TT", Locale.ConvertTextKey(strShortDescKey), Locale.ConvertTextKey("TXT_KEY_FRIENDS"),
 										    iInfluence,
-										    GameDefines["FRIENDSHIP_THRESHOLD_ALLIES"] - GameDefines["FRIENDSHIP_THRESHOLD_FRIENDS"]);
+										    GameDefines["FRIENDSHIP_THRESHOLD_FRIENDS"]);
 		
 		local strTempTT = Locale.ConvertTextKey("TXT_KEY_FRIENDS_CSTATE_TT", strShortDescKey);
 		
@@ -304,19 +304,30 @@ function GetCityStateStatusToolTip(iMajor, iMinor, bFullInfo)
 		strStatusTT = strStatusTT .. "[NEWLINE][NEWLINE]" .. Locale.ConvertTextKey("TXT_KEY_NEUTRAL_CSTATE_TT", strShortDescKey);
 	end
 	
-	-- start NQ_SHOW_BASE_INFLUENCE_WHILE_AT_WAR_IN_CS_TOOLTIP
+	--[[ start NQ_SHOW_BASE_INFLUENCE_WHILE_AT_WAR_IN_CS_TOOLTIP
 	if (bWar) then
 		local iBaseInfluence = pMinor:GetMinorCivBaseFriendshipWithMajor(iMajor);
 		strStatusTT = strStatusTT .. "[NEWLINE][NEWLINE]";
 		strStatusTT = strStatusTT .. Locale.ConvertTextKey("TXT_KEY_BASE_INFLUENCE_DESPITE_WAR", iBaseInfluence);
-	end
+	end]]--
 
 	-- end NQ_SHOW_BASE_INFLUENCE_WHILE_AT_WAR_IN_CS_TOOLTIP
+
+	-- show a + sign for positive values
+	local displayedInfluenceChange = "" .. math.floor(iInfluenceChangeThisTurn);
+	if (iInfluenceChangeThisTurn > 0) then
+		displayedInfluenceChange = "[COLOR_POSITIVE_TEXT]+" .. displayedInfluenceChange .. "[ENDCOLOR]";
+	elseif (iInfluenceChangeThisTurn <= 0) then
+		displayedInfluenceChange = "[COLOR_NEGATIVE_TEXT]" .. displayedInfluenceChange .. "[ENDCOLOR]";
+	end
+
+	-- highlight anchor
+	local displayedInfluenceAnchor = "[COLOR_CYAN]" .. iInfluenceAnchor .. "[ENDCOLOR]";
 
 	-- Influence change
 	if (iInfluence ~= iInfluenceAnchor) then
 		strStatusTT = strStatusTT .. "[NEWLINE][NEWLINE]";
-		strStatusTT = strStatusTT .. Locale.ConvertTextKey("TXT_KEY_CSTATE_INFLUENCE_RATE", iInfluenceChangeThisTurn, iInfluenceAnchor);
+		strStatusTT = strStatusTT .. Locale.ConvertTextKey("TXT_KEY_CSTATE_INFLUENCE_RATE", displayedInfluenceChange, displayedInfluenceAnchor);
 	end
 	
 	-- Bullying

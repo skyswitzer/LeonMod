@@ -5391,36 +5391,38 @@ void CvMinorCivAI::DoFriendship()
 		}
 	}
 
+	// this should consider not modifying like this unless the player is above their anchor (or some threshold)
 	// find biggest change
-	int largestChangeT100 = 0;
-	int secondLargestChangeT100 = 0;
-	for (int iPlayerLoop = 0; iPlayerLoop < MAX_MAJOR_CIVS; iPlayerLoop++)
-	{
-		const PlayerTypes ePlayer = (PlayerTypes)iPlayerLoop;
-		if (GET_PLAYER(ePlayer).isAlive())
-		{
-			const int iChangeThisTurnT100 = m_aiFriendshipDeltaWithMajorTimes100[ePlayer];
-			if (iChangeThisTurnT100 > largestChangeT100)
-			{
-				secondLargestChangeT100 = largestChangeT100; // shift 1st to second
-				largestChangeT100 = iChangeThisTurnT100;
-			}
-			else if (iChangeThisTurnT100 > secondLargestChangeT100) // did not beat 1st place, but did beat 2nd
-			{
-				secondLargestChangeT100 = iChangeThisTurnT100;
-			}
-		}
-	}
-
+	//{
+	//int largestChangeT100 = 0;
+	//int secondLargestChangeT100 = 0;
+	//for (int iPlayerLoop = 0; iPlayerLoop < MAX_MAJOR_CIVS; iPlayerLoop++)
+	//{
+	//	const PlayerTypes ePlayer = (PlayerTypes)iPlayerLoop;
+	//	if (GET_PLAYER(ePlayer).isAlive())
+	//	{
+	//		const int iChangeThisTurnT100 = m_aiFriendshipDeltaWithMajorTimes100[ePlayer];
+	//		if (iChangeThisTurnT100 > largestChangeT100)
+	//		{
+	//			secondLargestChangeT100 = largestChangeT100; // shift 1st to second
+	//			largestChangeT100 = iChangeThisTurnT100;
+	//		}
+	//		else if (iChangeThisTurnT100 > secondLargestChangeT100) // did not beat 1st place, but did beat 2nd
+	//		{
+	//			secondLargestChangeT100 = iChangeThisTurnT100;
+	//		}
+	//	}
+	//}
 	// reduce all by second largest so that only the leader makes progress, second place stays put, everyone else loses
-	for (int iPlayerLoop = 0; iPlayerLoop < MAX_MAJOR_CIVS; iPlayerLoop++)
-	{
-		const PlayerTypes ePlayer = (PlayerTypes)iPlayerLoop;
-		if (GET_PLAYER(ePlayer).isAlive())
-		{
-			ChangeFriendshipWithMajorTimes100(ePlayer, -secondLargestChangeT100);
-		}
-	}
+	//	for (int iPlayerLoop = 0; iPlayerLoop < MAX_MAJOR_CIVS; iPlayerLoop++)
+	//	{
+	//		const PlayerTypes ePlayer = (PlayerTypes)iPlayerLoop;
+	//		if (GET_PLAYER(ePlayer).isAlive())
+	//		{
+	//			ChangeFriendshipWithMajorTimes100(ePlayer, -secondLargestChangeT100);
+	//		}
+	//	}
+	//}
 
 	// apply changes
 	for (int iPlayerLoop = 0; iPlayerLoop < MAX_MAJOR_CIVS; iPlayerLoop++)
@@ -5434,16 +5436,14 @@ void CvMinorCivAI::DoFriendship()
 			m_aiFriendshipDeltaWithMajorTimes100[ePlayer] = 0; // reset delta
 
 			const int iOldFriendship = GetBaseFriendshipWithMajor(ePlayer);
-			const int iFriendshipAnchor = GetFriendshipAnchorWithMajor(ePlayer);
 			int iNewFriendship = iOldFriendship + (iChangeThisTurnT100 / 100);
 
-			// below min?
-			if (iOldFriendship >= iFriendshipAnchor && iNewFriendship < iFriendshipAnchor)
-				iNewFriendship = iFriendshipAnchor;
-
-			// above max?
+			// stay in range
 			const int maxFriendship = 100;
-			if (iNewFriendship > maxFriendship)
+			const int minFriendship = -300;
+			if (iNewFriendship < minFriendship)
+				iNewFriendship = minFriendship;
+			else if (iNewFriendship > maxFriendship)
 				iNewFriendship = maxFriendship;
 
 			// friendship changed
@@ -5504,93 +5504,21 @@ void CvMinorCivAI::DoFriendship()
 /// with this minor, in which case there is no friendship change per turn.
 int CvMinorCivAI::GetFriendshipChangePerTurnTimes100(const PlayerTypes ePlayer)
 {
-	if (!GET_PLAYER(ePlayer).isAlive())
+	const CvPlayer& kPlayer = GET_PLAYER(ePlayer);
+	if (!kPlayer.isAlive())
 	{
 		return 0;
 	}
-	const CvPlayer& kPlayer = GET_PLAYER(ePlayer);
-	int iChangeThisTurn = 0;
 
-	//// Modifier to rate based on traits and religion
-	//const int iTraitMod = kPlayer.GetPlayerTraits()->GetCityStateFriendshipModifier();
-	//int iReligionMod = 0;
-	//if (IsSameReligionAsMajor(ePlayer))
-	//	iReligionMod += /*50*/ GC.getMINOR_FRIENDSHIP_RATE_MOD_SHARED_RELIGION();
 
-	//// Relation to anchor point?
-	//const int iBaseFriendship = GetBaseFriendshipWithMajor(ePlayer);
-	//const int iFriendshipAnchor = GetFriendshipAnchorWithMajor(ePlayer);
-	//if (iBaseFriendship == iFriendshipAnchor)
-	//{
-	//	// Change rate is 0
-	//}
-	//else if (iBaseFriendship > iFriendshipAnchor)
-	//{
-	//	// Hostile Minors have Friendship decay quicker
-	//	if(GetPersonality() == MINOR_CIV_PERSONALITY_HOSTILE)
-	//		iChangeThisTurn += /*-150*/ GC.getMINOR_FRIENDSHIP_DROP_PER_TURN_HOSTILE();
-	//	// Aggressor!
-	//	else if(GET_TEAM(kPlayer.getTeam()).IsMinorCivAggressor())
-	//		iChangeThisTurn += /*-200*/ GC.getMINOR_FRIENDSHIP_DROP_PER_TURN_AGGRESSOR();
-	//	// Normal decay
-	//	else
-	//		iChangeThisTurn += /*-100*/ GC.getMINOR_FRIENDSHIP_DROP_PER_TURN();
+	const int defaultChangeT100 = baseMilitaryInfluence * 100 / 2;
+	const int currentValueT100 = GetEffectiveFriendshipWithMajorTimes100(ePlayer);
+	const int iAnchorT100 = GetFriendshipAnchorWithMajor(ePlayer) * 100;
+	int iChangeThisTurnT100 = 0;
 
-	//	// Decay modified (Trait, policies, shared religion, etc.)
-	//	int iDecayMod = 100;
-	//	iDecayMod += GET_PLAYER(ePlayer).GetMinorFriendshipDecayMod();
-	//	iDecayMod += (-1) * (iTraitMod / 2);
-	//	iDecayMod += (-1) * (iReligionMod / 2);
-	//	
-	//	if (iDecayMod < 0)
-	//		iDecayMod = 0;
-
-	//	iChangeThisTurn *= iDecayMod;
-	//	iChangeThisTurn /= 100;
-	//}
-	//else
-	//{
-	//	iChangeThisTurn += /*100*/ GC.getMINOR_FRIENDSHIP_NEGATIVE_INCREASE_PER_TURN();
-
-	//	// Recovery modified (Trait, policies, shared religion, etc.)
-	//	int iRecoveryMod = 100;
-	//	iRecoveryMod += iTraitMod;
-	//	iRecoveryMod += iReligionMod;
-	//	
-	//	if (iRecoveryMod < 0)
-	//		iRecoveryMod = 0;
-
-	//	iChangeThisTurn *= iRecoveryMod;
-	//	iChangeThisTurn /= 100;
-	//}
-
-	//// Shift on top of base rate
-	//if (GET_TEAM(kPlayer.getTeam()).isHasMet(GetPlayer()->getTeam()))
-	//{
-	//	int iShift = 0;
-
-	//	const bool hasTradeRoute = GC.getGame().GetGameTrade()->IsPlayerConnectedToPlayer(ePlayer, GetPlayer()->GetID());
-
-	//	if (hasTradeRoute)
-	//	{
-	//		iShift += baseTradeInfluence * 100; // base influence for trade
-	//		iShift += kPlayer.GetPlayerPolicies()->GetNumericModifier(POLICYMOD_PROTECTED_MINOR_INFLUENCE);
-	//	}
-
-	//	if (CanMajorBullyGold(ePlayer))
-	//	{
-	//		iShift += kPlayer.GetPlayerPolicies()->GetNumericModifier(POLICYMOD_AFRAID_INFLUENCE);
-	//		iShift += kPlayer.GetPlayerTraits()->GetAfraidMinorPerTurnInfluence();
-	//	}
-	//	
-	//	if (iShift != 0)
-	//	{
-	//		iChangeThisTurn += iShift;
-	//	}
-	//}
-
+	PlayerTypes eMilitaryWinner = NO_PLAYER;
+	if (!IsAtWarWithPlayersTeam(ePlayer)) // cant gain this influence if at war
 	{ // find military winner
-		PlayerTypes eMilitaryWinner = NO_PLAYER;
 		int highestStrength = minMilitaryStrength;
 		for (int iPlayerLoop = 0; iPlayerLoop < MAX_MAJOR_CIVS; iPlayerLoop++)
 		{
@@ -5609,20 +5537,40 @@ int CvMinorCivAI::GetFriendshipChangePerTurnTimes100(const PlayerTypes ePlayer)
 				eMilitaryWinner = NO_PLAYER;
 			}
 		}
-		// add military bonus
-		int militaryChangeT100 = 0;
-		// lose by default (go negative by X)
-		militaryChangeT100 -= baseMilitaryInfluence * 100;
-		// double bonus if winner (go positive by X)
-		if (ePlayer == eMilitaryWinner) militaryChangeT100 += 2 * baseMilitaryInfluence * 100;
-		iChangeThisTurn += militaryChangeT100;
 	}
 
-	// Mod everything by game speed
-	iChangeThisTurn *= GC.getGame().getGameSpeedInfo().getGoldGiftMod();
-	iChangeThisTurn /= 100;
+	// military winner
+	if (ePlayer == eMilitaryWinner)
+		iChangeThisTurnT100 += max(defaultChangeT100, baseMilitaryInfluence * 100);
+	else
+	{ // otherwise move toward anchor
+		if (currentValueT100 < iAnchorT100)
+			iChangeThisTurnT100 += defaultChangeT100;
+		else if (currentValueT100 > iAnchorT100)
+			iChangeThisTurnT100 -= defaultChangeT100;
 
-	return iChangeThisTurn;
+		{ // but prevent generic changes from passing anchor
+			const int predictedNewValue = currentValueT100 + iChangeThisTurnT100;
+			if (iChangeThisTurnT100 > 0) // increase
+			{
+				if (predictedNewValue > iAnchorT100) // went past anchor!
+					iChangeThisTurnT100 = iAnchorT100 - currentValueT100; // dont increase past anchor
+			}
+			else if (iChangeThisTurnT100 < 0) // drop
+			{
+				if (predictedNewValue < iAnchorT100) // went past anchor!
+					iChangeThisTurnT100 = iAnchorT100 - currentValueT100; // dont drop past anchor
+			}
+		}
+	}
+
+
+	// Mod everything by game speed
+	iChangeThisTurnT100 *= GC.getGame().getGameSpeedInfo().getGoldGiftMod();
+	iChangeThisTurnT100 /= 100;
+
+
+	return iChangeThisTurnT100;
 }
 
 // What is the level of Friendship between this Minor and the requested Major Civ?
@@ -6020,24 +5968,24 @@ void CvMinorCivAI::SetAlly(PlayerTypes eNewAlly)
 	DoUpdateAlliesResourceBonus(eNewAlly, eOldAlly);
 
 	// Declare war on Ally's enemies
-	if(eNewAlly != NO_PLAYER)
-	{
-		CvPlayerAI& kNewAlly = GET_PLAYER(eNewAlly);
-		CvTeam& kNewAllyTeam = GET_TEAM(kNewAlly.getTeam());
-		CvTeam& kOurTeam = GET_TEAM(GetPlayer()->getTeam());
+	//if(eNewAlly != NO_PLAYER)
+	//{
+	//	CvPlayerAI& kNewAlly = GET_PLAYER(eNewAlly);
+	//	CvTeam& kNewAllyTeam = GET_TEAM(kNewAlly.getTeam());
+	//	CvTeam& kOurTeam = GET_TEAM(GetPlayer()->getTeam());
 
-		TeamTypes eLoopTeam;
-		for(int iTeamLoop = 0; iTeamLoop < MAX_CIV_TEAMS; iTeamLoop++)
-		{
-			eLoopTeam = (TeamTypes) iTeamLoop;
+	//	TeamTypes eLoopTeam;
+	//	for(int iTeamLoop = 0; iTeamLoop < MAX_CIV_TEAMS; iTeamLoop++)
+	//	{
+	//		eLoopTeam = (TeamTypes) iTeamLoop;
 
-			if(!GET_TEAM(eLoopTeam).isAlive())
-				continue;
+	//		if(!GET_TEAM(eLoopTeam).isAlive())
+	//			continue;
 
-			if(kNewAllyTeam.isAtWar(eLoopTeam))
-				kOurTeam.declareWar(eLoopTeam);
-		}
-	}
+	//		if(kNewAllyTeam.isAtWar(eLoopTeam))
+	//			kOurTeam.declareWar(eLoopTeam);
+	//	}
+	//}
 
 	DoTestEndWarsVSMinors(eOldAlly, eNewAlly);
 
@@ -6204,16 +6152,16 @@ void CvMinorCivAI::DoFriendshipChangeEffects(PlayerTypes ePlayer, int iOldFriend
 		// if we are at war with a city state's ally but it didn't declare on us because we were friends and had a special policy 
 		// preventing that declaration, declare war here
 
-		if (GetAlly() != NO_PLAYER)
-		{
-			TeamTypes ePlayerTeam = GET_PLAYER(ePlayer).getTeam();
-			TeamTypes eAllyTeam = GET_PLAYER(GetAlly()).getTeam();
-			TeamTypes eOurTeam = GetPlayer()->getTeam();
-			if (GET_TEAM(ePlayerTeam).isAtWar(eAllyTeam))
-			{
-				GET_TEAM(eOurTeam).declareWar(ePlayerTeam);
-			}
-		}
+		//if (GetAlly() != NO_PLAYER)
+		//{
+		//	TeamTypes ePlayerTeam = GET_PLAYER(ePlayer).getTeam();
+		//	TeamTypes eAllyTeam = GET_PLAYER(GetAlly()).getTeam();
+		//	TeamTypes eOurTeam = GetPlayer()->getTeam();
+		//	if (GET_TEAM(ePlayerTeam).isAtWar(eAllyTeam))
+		//	{
+		//		GET_TEAM(eOurTeam).declareWar(ePlayerTeam);
+		//	}
+		//}
 #endif
 
 		ICvEngineScriptSystem1* pkScriptSystem = gDLL->GetScriptSystem();
@@ -6278,6 +6226,13 @@ void CvMinorCivAI::DoFriendshipChangeEffects(PlayerTypes ePlayer, int iOldFriend
 			LuaSupport::CallHook(pkScriptSystem, "MinorAlliesChanged", args.get(), bResult);
 		}
 
+	}
+
+	// influence dropped into war
+	if (IsInfluenceTooLowForPeace(ePlayer))
+	{
+		CvTeam& kOurTeam = GET_TEAM(GetPlayer()->getTeam());
+		kOurTeam.declareWar(GET_PLAYER(ePlayer).getTeam());
 	}
 
 	// Make changes to bonuses here. Only send notifications if this change is not related to quests (otherwise it is rolled into quest notification)
@@ -9648,26 +9603,23 @@ bool CvMinorCivAI::IsPeaceBlocked(TeamTypes eTeam) const
 		return true;
 
 	// Allies with someone at war with this guy?
-	PlayerTypes eMajor;
-	for(int iMajorLoop = 0; iMajorLoop < MAX_MAJOR_CIVS; iMajorLoop++)
-	{
-		eMajor = (PlayerTypes) iMajorLoop;
+	//PlayerTypes eMajor;
+	//for(int iMajorLoop = 0; iMajorLoop < MAX_MAJOR_CIVS; iMajorLoop++)
+	//{
+	//	eMajor = (PlayerTypes) iMajorLoop;
 
-		// Major must be alive
-		if(!GET_PLAYER(eMajor).isAlive())
-			continue;
+	//	// Major must be alive
+	//	if(!GET_PLAYER(eMajor).isAlive())
+	//		continue;
 
-		// Must be allies
-		if(!IsAllies(eMajor))
-			continue;
+	//	// Must be allies
+	//	if(!IsAllies(eMajor))
+	//		continue;
 
-		// Ally must be at war with this team
-		if(!GET_TEAM(GET_PLAYER(eMajor).getTeam()).isAtWar(eTeam))
-			continue;
-
-		// always allow peace
-		return false;
-	}
+	//	// Ally must be at war with this team
+	//	if(!GET_TEAM(GET_PLAYER(eMajor).getTeam()).isAtWar(eTeam))
+	//		continue;
+	//}
 
 	return false;
 }
