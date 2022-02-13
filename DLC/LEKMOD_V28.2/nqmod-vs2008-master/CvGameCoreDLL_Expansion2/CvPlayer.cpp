@@ -349,6 +349,7 @@ CvPlayer::CvPlayer() :
 	, m_iScenarioScore3("CvPlayer::m_iScenarioScore3", m_syncArchive)
 	, m_iScenarioScore4("CvPlayer::m_iScenarioScore4", m_syncArchive)
 	, m_iDiplomaticInfluence("CvPlayer::m_iScoreFromCityStates", m_syncArchive)
+	, m_iScientificInfluence("CvPlayer::m_iScientificInfluence", m_syncArchive)
 	, m_iScoreFromFutureTech("CvPlayer::m_iScoreFromFutureTech", m_syncArchive)
 	, m_iCombatExperience("CvPlayer::m_iCombatExperience", m_syncArchive)
 	, m_iLifetimeCombatExperience(0)
@@ -1048,6 +1049,7 @@ void CvPlayer::uninit()
 	m_iScenarioScore3 = 0;
 	m_iScenarioScore4 = 0;
 	m_iDiplomaticInfluence = 0;
+	m_iScientificInfluence = 0;
 	m_iScoreFromFutureTech = 0;
 	m_iCombatExperience = 0;
 	m_iLifetimeCombatExperience = 0;
@@ -5813,7 +5815,7 @@ int CvPlayer::GetDiplomaticInfluence() const
 {
 	return m_iDiplomaticInfluence;
 }
-void CvPlayer::ChangeDiplomaticInfluence(int iChange)
+void CvPlayer::ChangeDiplomaticInfluence(const int iChange)
 {
 	if (iChange != 0)
 		m_iDiplomaticInfluence += iChange;
@@ -5836,6 +5838,21 @@ int CvPlayer::GetDiplomaticInfluenceNeeded() const
 	const int influenceNeeded = influencePerTurnPerAlly * expectedAllies * expectedTurnFraction * totalGameTurns;
 	const int truncate = 10;
 	return (influenceNeeded / truncate) * truncate;
+}
+//	--------------------------------------------------------------------------------
+int CvPlayer::GetScientificInfluence() const
+{
+	return m_iScientificInfluence;
+}
+void CvPlayer::ChangeScientificInfluence(const int iChange)
+{
+	if (iChange != 0)
+		m_iScientificInfluence += iChange;
+}
+//	--------------------------------------------------------------------------------
+int CvPlayer::GetScientificInfluenceNeeded() const
+{
+	return 1000;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -24549,6 +24566,7 @@ void CvPlayer::Read(FDataStream& kStream)
 	kStream >> m_iScoreFromFutureTech;
 	kStream >> m_iScenarioScore4;
 	kStream >> m_iDiplomaticInfluence;
+	kStream >> m_iScientificInfluence;
 	kStream >> m_iCombatExperience;
 	kStream >> m_iNavalCombatExperience;
 	kStream >> m_iLifetimeCombatExperience;
@@ -25106,6 +25124,7 @@ void CvPlayer::Write(FDataStream& kStream) const
 	kStream << m_iScoreFromFutureTech;
 	kStream << m_iScenarioScore4;
 	kStream << m_iDiplomaticInfluence;
+	kStream << m_iScientificInfluence;
 	kStream << m_iCombatExperience;
 	kStream << m_iNavalCombatExperience;
 	kStream << m_iLifetimeCombatExperience;

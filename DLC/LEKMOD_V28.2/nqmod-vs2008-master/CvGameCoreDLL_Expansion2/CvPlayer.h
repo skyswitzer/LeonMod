@@ -218,11 +218,16 @@ public:
 	void ChangeScoreFromScenario3(int iChange);
 	int GetScoreFromScenario4() const;
 	void ChangeScoreFromScenario4(int iChange);
-	// (not team calculated)
+
 	int GetDiplomaticInfluence() const;
-	void ChangeDiplomaticInfluence(int iChange);
-	// how much influence would this player need to win (not team calculated)
+	void ChangeDiplomaticInfluence(const int iChange);
+	// how much needed to achieve condition
 	int GetDiplomaticInfluenceNeeded() const;
+
+	int GetScientificInfluence() const;
+	void ChangeScientificInfluence(const int iChange);
+	// how much needed to achieve condition
+	int GetScientificInfluenceNeeded() const;
 	// End Civ 5 Score
 
 	int countCityFeatures(FeatureTypes eFeature) const;
@@ -1994,8 +1999,10 @@ protected:
 	FAutoVariable<int, CvPlayer> m_iScenarioScore2;
 	FAutoVariable<int, CvPlayer> m_iScenarioScore3;
 	FAutoVariable<int, CvPlayer> m_iScenarioScore4;
-	// how much global diplomatic influence does this player have?
+	// diplomatic victory progress
 	FAutoVariable<int, CvPlayer> m_iDiplomaticInfluence;
+	// science victory progress
+	FAutoVariable<int, CvPlayer> m_iScientificInfluence;
 	FAutoVariable<int, CvPlayer> m_iScoreFromFutureTech;
 	FAutoVariable<int, CvPlayer> m_iCombatExperience;
 	int m_iLifetimeCombatExperience;
