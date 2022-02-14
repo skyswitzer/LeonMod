@@ -173,6 +173,20 @@ function GetHelpTextForBuilding(iBuildingID, bExcludeName, bExcludeHeader, bNoMa
 		table.insert(lines, Locale.ConvertTextKey("TXT_KEY_PRODUCTION_BUILDING_CULTURE", iCulture));
 	end
 
+	-- Tourism
+	local iTourism = pBuildingInfo.TechEnhancedTourism;
+	if (iTourism ~= nil and iTourism ~= 0) then
+		table.insert(lines, Locale.ConvertTextKey("TXT_KEY_PRODUCTION_BUILDING_TOURISM", iTourism));
+	end
+	--[[
+	local iTechEnhancedTourism = pBuildingInfo.TechEnhancedTourism;
+	local iEnhancingTech = GameInfoTypes[pBuildingInfo.EnhancedYieldTech];
+	if(iTechEnhancedTourism > 0 and pActiveTeam:GetTeamTechs():HasTech(iEnhancingTech)) then
+		local localizedText = Locale.ConvertTextKey("TXT_KEY_PRODUCTION_BUILDING_TOURISM", iTechEnhancedTourism);
+		table.insert(lines, localizedText);
+	end
+	]]--
+
 	-- Faith
 	local iFaith = Game.GetBuildingYieldChange(iBuildingID, YieldTypes.YIELD_FAITH);
 	if (pCity ~= nil) then
@@ -287,14 +301,32 @@ function GetHelpTextForBuilding(iBuildingID, bExcludeName, bExcludeHeader, bNoMa
 			table.insert(lines, localizedText);
 		end
 	end
-	
-	local iTechEnhancedTourism = pBuildingInfo.TechEnhancedTourism;
-	local iEnhancingTech = GameInfoTypes[pBuildingInfo.EnhancedYieldTech];
-	if(iTechEnhancedTourism > 0 and pActiveTeam:GetTeamTechs():HasTech(iEnhancingTech)) then
-		local localizedText = Locale.ConvertTextKey("TXT_KEY_PRODUCTION_BUILDING_TOURISM", iTechEnhancedTourism);
+
+	-- Resource Requirements
+	local iNumResourcesNeededSoFar = 0;
+	local iNumResourceNeeded;
+	local iResourceID;
+	local localizedText = "";
+	for pResource in GameInfo.Resources() do
+		iResourceID = pResource.ID;
+		iNumResourceNeeded = Game.GetNumResourceRequiredForBuilding(iBuildingID, iResourceID);
+		if (iNumResourceNeeded > 0) then
+			-- First resource required
+			if (iNumResourcesNeededSoFar == 0) then
+				localizedText = localizedText .. Locale.ConvertTextKey("TXT_KEY_PRODUCTION_RESOURCES_REQUIRED");
+				localizedText = localizedText .. " " .. iNumResourceNeeded .. " " .. pResource.IconString .. " " .. Locale.ConvertTextKey(pResource.Description);
+			else
+				localizedText = localizedText .. ", " .. iNumResourceNeeded .. " " .. pResource.IconString .. " " .. Locale.ConvertTextKey(pResource.Description);
+			end
+			
+			-- JON: Not using this for now, the formatting is better when everything is on the same line
+			--iNumResourcesNeededSoFar = iNumResourcesNeededSoFar + 1;
+		end
+ 	end
+	if (localizedText ~= "") then
 		table.insert(lines, localizedText);
-	end	
-	
+	end
+
 	strHelpText = strHelpText .. table.concat(lines, "[NEWLINE]");
 	
 	-- Pre-written Help text
