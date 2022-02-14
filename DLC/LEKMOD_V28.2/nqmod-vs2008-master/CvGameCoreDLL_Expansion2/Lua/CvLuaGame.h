@@ -302,6 +302,7 @@ protected:
 
 	static int lGetBuildingYieldChange(lua_State* L);
 	static int lGetBuildingYieldModifier(lua_State* L);
+	static int lGetAdditionalHelpBuilding(lua_State* L);
 
 	static int lGetWorldNumCitiesUnhappinessPercent(lua_State* L);
 

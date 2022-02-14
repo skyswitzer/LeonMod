@@ -38,6 +38,7 @@ CvBuildingEntry::CvBuildingEntry(void):
 	m_iPrereqAndTech(NO_TECH),
 	m_iPolicyBranchType(NO_POLICY_BRANCH_TYPE),
 	m_iPolicyBranchTypeDisable(NO_POLICY_BRANCH_TYPE),
+	m_iScientificInfluence(0),
 	m_iSpecialistType(NO_SPECIALIST),
 	m_iSpecialistCount(0),
 	m_iSpecialistExtraCulture(0),
@@ -495,6 +496,9 @@ bool CvBuildingEntry::CacheResults(Database::Results& kResults, CvDatabaseUtilit
 
 	szTextVal = kResults.GetText("PolicyBranchTypeDisable");
 	m_iPolicyBranchTypeDisable = GC.getInfoTypeForString(szTextVal, true);
+
+	szTextVal = kResults.GetText("ScientificInfluence");
+	m_iScientificInfluence = GC.getInfoTypeForString(szTextVal, true);
 
 	szTextVal = kResults.GetText("SpecialistType");
 	m_iSpecialistType = GC.getInfoTypeForString(szTextVal, true);
@@ -972,6 +976,11 @@ int CvBuildingEntry::GetPolicyBranchType() const
 int CvBuildingEntry::GetPolicyBranchTypeDisable() const
 {
 	return m_iPolicyBranchTypeDisable;
+}
+
+int CvBuildingEntry::GetScientificInfluencePerTurn() const
+{
+	return m_iScientificInfluence;
 }
 
 /// What SpecialistType is allowed by this Building

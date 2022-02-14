@@ -301,6 +301,14 @@ function GetHelpTextForBuilding(iBuildingID, bExcludeName, bExcludeHeader, bNoMa
 			table.insert(lines, localizedText);
 		end
 	end
+	
+	-- Scientific Influence
+	local iScientificInfluence = pBuildingInfo.ScientificInfluence;
+	local sign = "";
+	if (iScientificInfluence > 0) then sign="+"; end
+	if (iScientificInfluence ~= nil and iScientificInfluence ~= 0) then
+		table.insert(lines, Locale.ConvertTextKey("{TXT_KEY_SCIENTIFIC_INFLUENCE}: ") .. sign .. iScientificInfluence);
+	end
 
 	-- Resource Requirements
 	local iNumResourcesNeededSoFar = 0;
@@ -338,6 +346,10 @@ function GetHelpTextForBuilding(iBuildingID, bExcludeName, bExcludeHeader, bNoMa
 			strHelpText = strHelpText .. strWrittenHelpText;
 		end
 	end
+	
+	-- append some additional help about the building
+	local additionalInfo = Game.GetAdditionalHelpBuilding(iBuildingID);
+	strHelpText = strHelpText .. additionalInfo;
 	
 	return strHelpText;
 	

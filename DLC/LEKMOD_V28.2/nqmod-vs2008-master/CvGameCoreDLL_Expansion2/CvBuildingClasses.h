@@ -102,6 +102,7 @@ public:
 	int GetEra() const;
 	int GetPolicyBranchType() const;
 	int GetPolicyBranchTypeDisable() const;
+	int GetScientificInfluencePerTurn() const;
 	int GetSpecialistType() const;
 	int GetSpecialistCount() const;
 	int GetSpecialistExtraCulture() const;
@@ -343,6 +344,7 @@ private:
 	int m_iPrereqAndTech;
 	int m_iPolicyBranchType;
 	int m_iPolicyBranchTypeDisable;
+	int m_iScientificInfluence;
 	int m_iSpecialistType;
 	int m_iSpecialistCount;
 	int m_iSpecialistExtraCulture;

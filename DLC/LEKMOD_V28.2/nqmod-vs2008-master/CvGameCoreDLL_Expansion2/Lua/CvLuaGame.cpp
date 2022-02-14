@@ -311,7 +311,8 @@ void CvLuaGame::RegisterMembers(lua_State* L)
 
 	Method(GetBuildingYieldChange);
 	Method(GetBuildingYieldModifier);
-
+	Method(GetAdditionalHelpBuilding);
+	
 	Method(GetWorldNumCitiesUnhappinessPercent);
 
 	Method(GetDealDuration);
@@ -2060,19 +2061,46 @@ int CvLuaGame::lGetBuildingYieldChange(lua_State* L)
 //------------------------------------------------------------------------------
 int CvLuaGame::lGetBuildingYieldModifier(lua_State* L)
 {
-	const BuildingTypes eBuilding = (BuildingTypes) luaL_checkint(L, 1);
-	const YieldTypes eYield = (YieldTypes) luaL_checkint(L, 2);
+	const BuildingTypes eBuilding = (BuildingTypes)luaL_checkint(L, 1);
+	const YieldTypes eYield = (YieldTypes)luaL_checkint(L, 2);
 
 	CvBuildingEntry* pkBuildingInfo = GC.getBuildingInfo(eBuilding);
 	CvYieldInfo* pkYieldInfo = GC.getYieldInfo(eYield);
 
 	int iYieldModifier = 0;
-	if(pkBuildingInfo && pkYieldInfo)
+	if (pkBuildingInfo && pkYieldInfo)
 	{
-		iYieldModifier= pkBuildingInfo->GetYieldModifier(eYield);
+		iYieldModifier = pkBuildingInfo->GetYieldModifier(eYield);
 	}
 
 	lua_pushinteger(L, iYieldModifier);
+	return 1;
+}
+//------------------------------------------------------------------------------
+int CvLuaGame::lGetAdditionalHelpBuilding(lua_State* L)
+{
+	const BuildingTypes eBuilding = (BuildingTypes)lua_tointeger(L, 1);
+	string info = "";
+
+
+	// warn about world wonder costs
+	CvBuildingEntry* thisBuildingEntry = GC.getBuildingInfo(eBuilding);
+	if (thisBuildingEntry != NULL)
+	{
+		const CvBuildingClassInfo& kBuildingClassInfo = thisBuildingEntry->GetBuildingClassInfo();
+		if (isWorldWonderClass(kBuildingClassInfo))
+		{
+			const int costIncreasePerWonder = GC.getWONDER_COST_INCREASE();
+			stringstream s;
+			s << "[NEWLINE][NEWLINE]Every World Wonder will cost an additional [COLOR_NEGATIVE_TEXT]+";
+			s << costIncreasePerWonder;
+			s << "% [ENDCOLOR][ICON_PRODUCTION] for each World Wonder already in the City.";
+			info += s.str().c_str();
+		}
+	}
+
+
+	lua_pushstring(L, info.c_str());
 	return 1;
 }
 //------------------------------------------------------------------------------

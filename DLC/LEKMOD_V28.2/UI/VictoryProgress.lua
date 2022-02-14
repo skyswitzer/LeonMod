@@ -468,7 +468,13 @@ function PopulateSpaceRace()
 					numApollo = numApollo + 1;
 				end
 			end
-			Controls.SpaceInfo:LocalizeAndSetText("TXT_KEY_VP_DIPLO_PROJECT_PLAYERS_COMPLETE", numApollo, "TXT_KEY_PROJECT_APOLLO_PROGRAM");
+
+			local have = 69;
+			local needed = 1000;
+			local yourScientificInfluence = Locale.ConvertTextKey("You have " .. have .. " of " .. needed .. " {TXT_KEY_SCIENTIFIC_INFLUENCE} needed.");
+			local apolloProgress = Locale.ConvertTextKey("TXT_KEY_VP_DIPLO_PROJECT_PLAYERS_COMPLETE", numApollo, "TXT_KEY_PROJECT_APOLLO_PROGRAM");
+
+			Controls.SpaceInfo:LocalizeAndSetText(yourScientificInfluence .. "[NEWLINE]" .. apolloProgress);
 		end
 		
 		Controls.ScienceVictoryProgress:SetHide(false);
@@ -560,9 +566,10 @@ function PopulateDiplomatic()
 			local influence = player:GetTeamDiplomaticInfluence();
 			local influenceNeeded = player:GetTeamDiplomaticInfluenceNeeded();
 			Controls.InfluenceHave:SetHide(false);
-			Controls.InfluenceHave:SetText("You have " .. influence .. " of " .. influenceNeeded .. " [ICON_DIPLOMATIC_INFLUENCE] Diplomatic Influence needed.");
+			local diplomaticInfluence = Locale.ConvertTextKey("You have " .. influence .. " of " .. influenceNeeded .. " {TXT_KEY_DIPLOMATIC_INFLUENCE} needed.");
+			Controls.InfluenceHave:SetText();
 			
-			Controls.UNInfo:SetText(sUNInfo);
+			Controls.UNInfo:SetText(diplomaticInfluence .. "[NEWLINE]" .. sUNInfo);
 			Controls.VotesNeeded:SetText(Game.GetVotesNeededForDiploVictory());
 			Controls.VotesHave:SetText(iVotesControlled);
 			Controls.VotesNeededLabel:SetHide(false);

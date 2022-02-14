@@ -3173,6 +3173,16 @@ function SelectBuildingOrWonderArticle( buildingID )
 			Controls.ScienceFrame:SetHide( false );
 		end
 
+		local pBuildingInfo = GameInfo.Buildings[buildingID];
+		-- update the Scientific Influence
+		local iScientificInfluence = pBuildingInfo.ScientificInfluence;
+		local sign = "";
+		if (iScientificInfluence > 0) then sign="+"; end
+		if (iScientificInfluence ~= 0) then
+			Controls.ScientificInfluenceLabel:SetText( sign .. tostring(iScientificInfluence).." [ICON_SCIENTIFIC_INFLUENCE]" );
+			Controls.ScientificInfluenceFrame:SetHide( false );
+		end
+
 		-- update the Production % mods
 		local productionItems = {};
 		local iProduction = GetBuildingYieldModifier(buildingID, "YIELD_PRODUCTION");
@@ -6933,6 +6943,7 @@ function ClearArticle()
 	Controls.GoldChangeFrame:SetHide( true );
 	Controls.GoldFrame:SetHide( true );
 	Controls.ScienceFrame:SetHide( true );
+	Controls.ScientificInfluenceFrame:SetHide( true );
 	Controls.ProductionFrame:SetHide( true );
 	Controls.GreatPeopleFrame:SetHide( true );
 	Controls.CombatFrame:SetHide( true );

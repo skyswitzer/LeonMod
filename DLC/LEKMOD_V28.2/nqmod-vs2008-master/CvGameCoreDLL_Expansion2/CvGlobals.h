@@ -5977,6 +5977,10 @@ public:
 	{
 		return m_iSCORE_WONDER_FACTOR;
 	}
+	inline int getWONDER_COST_INCREASE()
+	{
+		return 15;
+	}
 	inline int getSCORE_TECH_FACTOR()
 	{
 		return m_iSCORE_TECH_FACTOR;

@@ -1830,7 +1830,6 @@ void CvGame::updateScienceCatchup()
 	for (PlayerTypes player = (PlayerTypes)0; player < MAX_CIV_TEAMS; player = (PlayerTypes)(player + 1))
 	{
 		CvPlayer& rPlayer = GET_PLAYER(player);
-		CvTeam& team = GET_TEAM(rPlayer.getTeam());
 		int progress = progresses[player];
 		float beakerDifference = best - progress;
 

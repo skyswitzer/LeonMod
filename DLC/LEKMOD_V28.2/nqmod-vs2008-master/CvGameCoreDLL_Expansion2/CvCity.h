@@ -428,6 +428,9 @@ public:
 
 	int GetJONSCulturePerTurnFromLeagues() const;
 
+	int getScientificInfluence() const;
+	void changeScientificInfluence(int iChange);
+
 	int getCultureRateModifier() const;
 	void changeCultureRateModifier(int iChange);
 
@@ -976,6 +979,7 @@ protected:
 	int m_iFaithPerTurnFromBuildings;
 	int m_iFaithPerTurnFromPolicies;
 	int m_iFaithPerTurnFromReligion;
+	FAutoVariable<int, CvCity> m_iScientificInfluence;
 	FAutoVariable<int, CvCity> m_iCultureRateModifier;
 	FAutoVariable<int, CvCity> m_iNumWorldWonders;
 	FAutoVariable<int, CvCity> m_iNumTeamWonders;

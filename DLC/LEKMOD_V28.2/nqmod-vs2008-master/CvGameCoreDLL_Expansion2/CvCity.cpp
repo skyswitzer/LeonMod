@@ -187,6 +187,7 @@ CvCity::CvCity() :
 	, m_iFaithPerTurnFromBuildings(0)
 	, m_iFaithPerTurnFromPolicies(0)
 	, m_iFaithPerTurnFromReligion(0)
+	, m_iScientificInfluence("CvCity::m_iScientificInfluence", m_syncArchive)
 	, m_iCultureRateModifier("CvCity::m_iCultureRateModifier", m_syncArchive)
 	, m_iNumWorldWonders("CvCity::m_iNumWorldWonders", m_syncArchive)
 	, m_iNumTeamWonders("CvCity::m_iNumTeamWonders", m_syncArchive)
@@ -919,6 +920,7 @@ void CvCity::reset(int iID, PlayerTypes eOwner, int iX, int iY, bool bConstructo
 	m_iFaithPerTurnFromBuildings = 0;
 	m_iFaithPerTurnFromPolicies = 0;
 	m_iFaithPerTurnFromReligion = 0;
+	m_iScientificInfluence = 0;
 	m_iCultureRateModifier = 0;
 	m_iNumWorldWonders = 0;
 	m_iNumTeamWonders = 0;
@@ -1890,6 +1892,10 @@ void CvCity::doTurn()
 		bool bAllowNoProduction = !doCheckProduction();
 
 		doGrowth();
+
+		// add scientific influence to player total
+		CvPlayer& owner = GET_PLAYER(getOwner());
+		owner.ChangeScientificInfluence(getScientificInfluence());
 
 		DoUpdateIndustrialRouteToCapital();
 
@@ -3114,7 +3120,6 @@ bool CvCity::canConstruct(BuildingTypes eBuilding, bool bContinue, bool bTestVis
 
 	return true;
 }
-
 
 //	--------------------------------------------------------------------------------
 bool CvCity::canCreate(ProjectTypes eProject, bool bContinue, bool bTestVisible) const
@@ -5006,6 +5011,8 @@ int CvCity::getProductionNeeded(UnitTypes eUnit) const
 int CvCity::getProductionNeeded(BuildingTypes eBuilding) const
 {
 	VALIDATE_OBJECT
+		
+	CvPlayer& rPlayer = GET_PLAYER(getOwner());
 	int iNumProductionNeeded = GET_PLAYER(getOwner()).getProductionNeeded(eBuilding);
 
 	if(eBuilding != NO_BUILDING)
@@ -5027,6 +5034,14 @@ int CvCity::getProductionNeeded(BuildingTypes eBuilding) const
 				{
 					bWonder = isWorldWonderClass(*pkBuildingClassInfo) || isTeamWonderClass(*pkBuildingClassInfo) || isNationalWonderClass(*pkBuildingClassInfo);
 				}
+			}
+
+			// increase costs 
+			if (bWonder)
+			{
+				const int costIncreasePerWonder = GC.getWONDER_COST_INCREASE();
+				const int iNumWonders = rPlayer.GetNumWonders();
+				iCostMod += iNumWonders * costIncreasePerWonder;
 			}
 
 			if (eBuildingEra == NO_ERA)
@@ -5942,12 +5957,37 @@ int CvCity::getProductionModifier(BuildingTypes eBuilding, CvString* toolTipSink
 	const CvBuildingClassInfo& kBuildingClassInfo = thisBuildingEntry->GetBuildingClassInfo();
 
 	int iTempMod;
+	CvPlayer& rPlayer = GET_PLAYER(getOwner());
 
+	const bool isWorldWonder = ::isWorldWonderClass(kBuildingClassInfo);
 	// Wonder bonus
-	if(::isWorldWonderClass(kBuildingClassInfo) ||
-	        ::isTeamWonderClass(kBuildingClassInfo) ||
-	        ::isNationalWonderClass(kBuildingClassInfo))
+	if
+	( 
+		isWorldWonder ||
+	    ::isTeamWonderClass(kBuildingClassInfo) ||
+	    ::isNationalWonderClass(kBuildingClassInfo)
+	)
 	{
+		// increase costs 
+		if (toolTipSink)
+		{
+			if (isWorldWonder)
+			{
+				const int costIncreasePerWonder = GC.getWONDER_COST_INCREASE();
+				const int iNumWonders = getNumWorldWonders();
+				const int increase = iNumWonders * costIncreasePerWonder;
+				//iMultiplier += // modifies the overall cost elsewhere so that it is multiplicitave
+
+				stringstream s;
+				s << "[NEWLINE][ICON_BULLET][COLOR_NEGATIVE_TEXT]" << "+" << increase << "%[ENDCOLOR] [ICON_PRODUCTION] Cost ";
+				s << "([COLOR_NEGATIVE_TEXT]+";
+				s << costIncreasePerWonder;
+				s << "%[ENDCOLOR] per Wonder)";
+
+				(*toolTipSink) += s.str().c_str();
+			}
+		}
+
 		iTempMod = GetWonderProductionModifier();
 		iMultiplier += iTempMod;
 		if(toolTipSink && iTempMod)
@@ -9217,6 +9257,22 @@ int CvCity::GetFlatFaithOnCitizenBorn() const
 	return iValue;
 }
 #endif
+//	--------------------------------------------------------------------------------
+int CvCity::getScientificInfluence() const
+{
+	VALIDATE_OBJECT
+	return m_iScientificInfluence;
+}
+
+//	--------------------------------------------------------------------------------
+void CvCity::changeScientificInfluence(int iChange)
+{
+	VALIDATE_OBJECT
+	if (iChange != 0)
+	{
+		m_iScientificInfluence = (m_iScientificInfluence + iChange);
+	}
+}
 
 //	--------------------------------------------------------------------------------
 int CvCity::getCultureRateModifier() const
@@ -15866,6 +15922,7 @@ void CvCity::read(FDataStream& kStream)
 
 	kStream >> m_iFaithPerTurnFromReligion;
 
+	kStream >> m_iScientificInfluence;
 	kStream >> m_iCultureRateModifier;
 	kStream >> m_iNumWorldWonders;
 	kStream >> m_iNumTeamWonders;
@@ -16227,6 +16284,7 @@ void CvCity::write(FDataStream& kStream) const
 	kStream << m_iFaithPerTurnFromBuildings;
 	kStream << m_iFaithPerTurnFromPolicies;
 	kStream << m_iFaithPerTurnFromReligion;
+	kStream << m_iScientificInfluence;
 	kStream << m_iCultureRateModifier;
 	kStream << m_iNumWorldWonders;
 	kStream << m_iNumTeamWonders;
