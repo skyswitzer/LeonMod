@@ -4165,25 +4165,29 @@ void CvPlayerPolicies::SetPolicyBranchBlocked(PolicyBranchTypes eBranchType, boo
 /// Accessor: is eBranchType blocked because of branch choices?
 bool CvPlayerPolicies::IsPolicyBranchBlocked(PolicyBranchTypes eBranchType) const
 {
+	// respect ideology restrictions
+	const CvPolicyBranchEntry* pkBranchEntry = m_pPolicies->GetPolicyBranchEntry(eBranchType);
+	if (pkBranchEntry && pkBranchEntry->IsPurchaseByLevel())
+	{
+		CvAssertMsg(eBranchType >= 0, "eIndex is expected to be non-negative (invalid Index)");
+		CvAssertMsg(eBranchType < m_pPolicies->GetNumPolicyBranches(), "eIndex is expected to be within maximum bounds (invalid Index)");
+		return m_pabPolicyBranchBlocked[eBranchType];
+	}
 	return false;
-	//CvAssertMsg(eBranchType >= 0, "eIndex is expected to be non-negative (invalid Index)");
-	//CvAssertMsg(eBranchType < m_pPolicies->GetNumPolicyBranches(), "eIndex is expected to be within maximum bounds (invalid Index)");
-	//return m_pabPolicyBranchBlocked[eBranchType];
 }
 
 /// Accessor: is eType blocked because of  choices?
 bool CvPlayerPolicies::IsPolicyBlocked(PolicyTypes eType) const
 {
-	return false;
-	//CvAssertMsg(eType >= 0, "eIndex is expected to be non-negative (invalid Index)");
-	//CvAssertMsg(eType < m_pPolicies->GetNumPolicies(), "eIndex is expected to be within maximum bounds (invalid Index)");
+	CvAssertMsg(eType >= 0, "eIndex is expected to be non-negative (invalid Index)");
+	CvAssertMsg(eType < m_pPolicies->GetNumPolicies(), "eIndex is expected to be within maximum bounds (invalid Index)");
 
-	//// Get the policy branch we have to check.
-	//PolicyBranchTypes eBranch = m_paePolicyBlockedBranchCheck[eType];
-	//if (eBranch == NO_POLICY_BRANCH_TYPE)
-	//	return false;	// Policy has no branch
+	// Get the policy branch we have to check.
+	PolicyBranchTypes eBranch = m_paePolicyBlockedBranchCheck[eType];
+	if (eBranch == NO_POLICY_BRANCH_TYPE)
+		return false;	// Policy has no branch
 
-	//return IsPolicyBranchBlocked(eBranch);
+	return IsPolicyBranchBlocked(eBranch);
 }
 
 /// Implement a switch of ideologies
