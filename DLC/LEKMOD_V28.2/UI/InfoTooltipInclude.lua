@@ -17,10 +17,17 @@ function GetHelpTextForUnit(iUnitID, bIncludeRequirementsInfo)
 	
 	-- Cost
 	strHelpText = strHelpText .. "[NEWLINE]----------------[NEWLINE]";
-	strHelpText = strHelpText .. Locale.ConvertTextKey("TXT_KEY_PRODUCTION_COST", pActivePlayer:GetUnitProductionNeeded(iUnitID));
+	
+	-- Skip cost if it's 0
+	if(pUnitInfo.Cost > 0) then
+		strHelpText = strHelpText .. Locale.ConvertTextKey("TXT_KEY_PRODUCTION_COST", pActivePlayer:GetUnitProductionNeeded(iUnitID));
+	end
+	
 	-- Moves
-	strHelpText = strHelpText .. "[NEWLINE]";
-	strHelpText = strHelpText .. Locale.ConvertTextKey("TXT_KEY_PRODUCTION_MOVEMENT", pUnitInfo.Moves);
+	if pUnitInfo.Domain ~= "DOMAIN_AIR" then
+		strHelpText = strHelpText .. "[NEWLINE]";
+		strHelpText = strHelpText .. Locale.ConvertTextKey("TXT_KEY_PRODUCTION_MOVEMENT", pUnitInfo.Moves);
+	end
 	
 	-- Range
 	local iRange = pUnitInfo.Range;
@@ -91,18 +98,18 @@ function GetHelpTextForUnit(iUnitID, bIncludeRequirementsInfo)
 end
 
 -- BUILDING
-function GetHelpTextForBuilding(iBuildingID, bExcludeName, bExcludeHeader, bNoMaintenance)
+function GetHelpTextForBuilding(iBuildingID, bExcludeName, bExcludeHeader, bNoMaintenance, pCity)
 	local pBuildingInfo = GameInfo.Buildings[iBuildingID];
-	
+	 
 	local pActivePlayer = Players[Game.GetActivePlayer()];
 	local pActiveTeam = Teams[Game.GetActiveTeam()];
 	
 	local buildingClass = GameInfo.Buildings[iBuildingID].BuildingClass;
 	local buildingClassID = GameInfo.BuildingClasses[buildingClass].ID;
 	
-	
 	local strHelpText = "";
 	
+	local lines = {};
 	if (not bExcludeHeader) then
 		
 		if (not bExcludeName) then
@@ -112,15 +119,27 @@ function GetHelpTextForBuilding(iBuildingID, bExcludeName, bExcludeHeader, bNoMa
 		end
 		
 		-- Cost
-		local iCost = pActivePlayer:GetBuildingProductionNeeded(iBuildingID);
-		strHelpText = strHelpText .. Locale.ConvertTextKey("TXT_KEY_PRODUCTION_COST", iCost);
+		--Only show cost info if the cost is greater than 0.
+		if(pBuildingInfo.Cost > 0) then
+			local iCost = pActivePlayer:GetBuildingProductionNeeded(iBuildingID);
+			table.insert(lines, Locale.ConvertTextKey("TXT_KEY_PRODUCTION_COST", iCost));
+		end
+		
+		if(pBuildingInfo.UnlockedByLeague and Game.GetNumActiveLeagues() > 0 and not Game.IsOption("GAMEOPTION_NO_LEAGUES")) then
+			local pLeague = Game.GetActiveLeague();
+			if (pLeague ~= nil) then
+				local iCostPerPlayer = pLeague:GetProjectBuildingCostPerPlayer(iBuildingID);
+				local sCostPerPlayer = Locale.ConvertTextKey("TXT_KEY_PEDIA_COST_LABEL");
+				sCostPerPlayer = sCostPerPlayer .. " " .. Locale.ConvertTextKey("TXT_KEY_LEAGUE_PROJECT_COST_PER_PLAYER", iCostPerPlayer);
+				table.insert(lines, sCostPerPlayer);
+			end
+		end
 		
 		-- Maintenance
 		if (not bNoMaintenance) then
 			local iMaintenance = pBuildingInfo.GoldMaintenance;
-			if (iMaintenance ~= nil and iMaintenance ~= 0) then
-				strHelpText = strHelpText .. "[NEWLINE]";
-				strHelpText = strHelpText .. Locale.ConvertTextKey("TXT_KEY_PRODUCTION_BUILDING_MAINTENANCE", iMaintenance);
+			if (iMaintenance ~= nil and iMaintenance ~= 0) then		
+				table.insert(lines, Locale.ConvertTextKey("TXT_KEY_PRODUCTION_BUILDING_MAINTENANCE", iMaintenance));
 			end
 		end
 		
@@ -137,30 +156,53 @@ function GetHelpTextForBuilding(iBuildingID, bExcludeName, bExcludeHeader, bNoMa
 		iHappinessTotal = iHappinessTotal + iHappiness;
 	end
 	iHappinessTotal = iHappinessTotal + pActivePlayer:GetExtraBuildingHappinessFromPolicies(iBuildingID);
+	if (pCity ~= nil) then
+		iHappinessTotal = iHappinessTotal + pCity:GetReligionBuildingClassHappiness(buildingClassID) + pActivePlayer:GetPlayerBuildingClassHappiness(buildingClassID);
+	end
 	if (iHappinessTotal ~= 0) then
-		strHelpText = strHelpText .. "[NEWLINE]";
-		strHelpText = strHelpText .. Locale.ConvertTextKey("TXT_KEY_PRODUCTION_BUILDING_HAPPINESS", iHappinessTotal);
+		table.insert(lines, Locale.ConvertTextKey("TXT_KEY_PRODUCTION_BUILDING_HAPPINESS", iHappinessTotal));
 	end
 	
 	-- Culture
-	local iCulture = pBuildingInfo.Culture;
+	local iCulture = Game.GetBuildingYieldChange(iBuildingID, YieldTypes.YIELD_CULTURE);
+	if (pCity ~= nil) then
+		iCulture = iCulture + pCity:GetReligionBuildingClassYieldChange(buildingClassID, YieldTypes.YIELD_CULTURE) + pActivePlayer:GetPlayerBuildingClassYieldChange(buildingClassID, YieldTypes.YIELD_CULTURE);
+		iCulture = iCulture + pCity:GetLeagueBuildingClassYieldChange(buildingClassID, YieldTypes.YIELD_CULTURE);
+	end
 	if (iCulture ~= nil and iCulture ~= 0) then
-		strHelpText = strHelpText .. "[NEWLINE]";
-		strHelpText = strHelpText .. Locale.ConvertTextKey("TXT_KEY_PRODUCTION_BUILDING_CULTURE", iCulture);
+		table.insert(lines, Locale.ConvertTextKey("TXT_KEY_PRODUCTION_BUILDING_CULTURE", iCulture));
+	end
+
+	-- Faith
+	local iFaith = Game.GetBuildingYieldChange(iBuildingID, YieldTypes.YIELD_FAITH);
+	if (pCity ~= nil) then
+		iFaith = iFaith + pCity:GetReligionBuildingClassYieldChange(buildingClassID, YieldTypes.YIELD_FAITH) + pActivePlayer:GetPlayerBuildingClassYieldChange(buildingClassID, YieldTypes.YIELD_FAITH);
+		iFaith = iFaith + pCity:GetLeagueBuildingClassYieldChange(buildingClassID, YieldTypes.YIELD_FAITH);
+	end
+	if (iFaith ~= nil and iFaith ~= 0) then
+		table.insert(lines, Locale.ConvertTextKey("TXT_KEY_PRODUCTION_BUILDING_FAITH", iFaith));
 	end
 	
 	-- Defense
 	local iDefense = pBuildingInfo.Defense;
 	if (iDefense ~= nil and iDefense ~= 0) then
-		strHelpText = strHelpText .. "[NEWLINE]";
-		strHelpText = strHelpText .. Locale.ConvertTextKey("TXT_KEY_PRODUCTION_BUILDING_DEFENSE", iDefense / 100);
+		table.insert(lines, Locale.ConvertTextKey("TXT_KEY_PRODUCTION_BUILDING_DEFENSE", iDefense / 100));
+	end
+	
+	-- Hit Points
+	local iHitPoints = pBuildingInfo.ExtraCityHitPoints;
+	if (iHitPoints ~= nil and iHitPoints ~= 0) then
+		table.insert(lines, Locale.ConvertTextKey("TXT_KEY_PRODUCTION_BUILDING_HITPOINTS", iHitPoints));
 	end
 	
 	-- Food
 	local iFood = Game.GetBuildingYieldChange(iBuildingID, YieldTypes.YIELD_FOOD);
+	if (pCity ~= nil) then
+		iFood = iFood + pCity:GetReligionBuildingClassYieldChange(buildingClassID, YieldTypes.YIELD_FOOD) + pActivePlayer:GetPlayerBuildingClassYieldChange(buildingClassID, YieldTypes.YIELD_FOOD);
+		iFood = iFood + pCity:GetLeagueBuildingClassYieldChange(buildingClassID, YieldTypes.YIELD_FOOD);
+	end
 	if (iFood ~= nil and iFood ~= 0) then
-		strHelpText = strHelpText .. "[NEWLINE]";
-		strHelpText = strHelpText .. Locale.ConvertTextKey("TXT_KEY_PRODUCTION_BUILDING_FOOD", iFood);
+		table.insert(lines, Locale.ConvertTextKey("TXT_KEY_PRODUCTION_BUILDING_FOOD", iFood));
 	end
 	
 	-- Gold Mod
@@ -168,47 +210,51 @@ function GetHelpTextForBuilding(iBuildingID, bExcludeName, bExcludeHeader, bNoMa
 	iGold = iGold + pActivePlayer:GetPolicyBuildingClassYieldModifier(buildingClassID, YieldTypes.YIELD_GOLD);
 	
 	if (iGold ~= nil and iGold ~= 0) then
-		strHelpText = strHelpText .. "[NEWLINE]";
-		strHelpText = strHelpText .. Locale.ConvertTextKey("TXT_KEY_PRODUCTION_BUILDING_GOLD", iGold);
+		table.insert(lines, Locale.ConvertTextKey("TXT_KEY_PRODUCTION_BUILDING_GOLD", iGold));
 	end
 	
 	-- Gold Change
 	iGold = Game.GetBuildingYieldChange(iBuildingID, YieldTypes.YIELD_GOLD);
-	if (iGold ~= nil and iGold ~= 0) then
-		strHelpText = strHelpText .. "[NEWLINE]";
-		strHelpText = strHelpText .. Locale.ConvertTextKey("TXT_KEY_PRODUCTION_BUILDING_GOLD_CHANGE", iGold);
+	if (pCity ~= nil) then
+		iGold = iGold + pCity:GetReligionBuildingClassYieldChange(buildingClassID, YieldTypes.YIELD_GOLD) + pActivePlayer:GetPlayerBuildingClassYieldChange(buildingClassID, YieldTypes.YIELD_GOLD);
+		iGold = iGold + pCity:GetLeagueBuildingClassYieldChange(buildingClassID, YieldTypes.YIELD_GOLD);
 	end
-	
-	
+	if (iGold ~= nil and iGold ~= 0) then
+		table.insert(lines, Locale.ConvertTextKey("TXT_KEY_PRODUCTION_BUILDING_GOLD_CHANGE", iGold));
+	end
 	
 	-- Science
 	local iScience = Game.GetBuildingYieldModifier(iBuildingID, YieldTypes.YIELD_SCIENCE);
 	iScience = iScience + pActivePlayer:GetPolicyBuildingClassYieldModifier(buildingClassID, YieldTypes.YIELD_SCIENCE);
 	if (iScience ~= nil and iScience ~= 0) then
-		strHelpText = strHelpText .. "[NEWLINE]";
-		strHelpText = strHelpText .. Locale.ConvertTextKey("TXT_KEY_PRODUCTION_BUILDING_SCIENCE", iScience);
+		table.insert(lines, Locale.ConvertTextKey("TXT_KEY_PRODUCTION_BUILDING_SCIENCE", iScience));
 	end
 	
 	-- Science
-	local iScienceChange = Game.GetBuildingYieldChange(iBuildingID, YieldTypes.YIELD_SCIENCE);
+	local iScienceChange = Game.GetBuildingYieldChange(iBuildingID, YieldTypes.YIELD_SCIENCE) + pActivePlayer:GetPolicyBuildingClassYieldChange(buildingClassID, YieldTypes.YIELD_SCIENCE);
+	if (pCity ~= nil) then
+		iScienceChange = iScienceChange + pCity:GetReligionBuildingClassYieldChange(buildingClassID, YieldTypes.YIELD_SCIENCE) + pActivePlayer:GetPlayerBuildingClassYieldChange(buildingClassID, YieldTypes.YIELD_SCIENCE);
+		iScienceChange = iScienceChange + pCity:GetLeagueBuildingClassYieldChange(buildingClassID, YieldTypes.YIELD_SCIENCE);
+	end
 	if (iScienceChange ~= nil and iScienceChange ~= 0) then
-		strHelpText = strHelpText .. "[NEWLINE]";
-		strHelpText = strHelpText .. Locale.ConvertTextKey("TXT_KEY_PRODUCTION_BUILDING_SCIENCE_CHANGE", iScienceChange);
+		table.insert(lines, Locale.ConvertTextKey("TXT_KEY_PRODUCTION_BUILDING_SCIENCE_CHANGE", iScienceChange));
 	end
 	
 	-- Production
 	local iProduction = Game.GetBuildingYieldModifier(iBuildingID, YieldTypes.YIELD_PRODUCTION);
 	iProduction = iProduction + pActivePlayer:GetPolicyBuildingClassYieldModifier(buildingClassID, YieldTypes.YIELD_PRODUCTION);
 	if (iProduction ~= nil and iProduction ~= 0) then
-		strHelpText = strHelpText .. "[NEWLINE]";
-		strHelpText = strHelpText .. Locale.ConvertTextKey("TXT_KEY_PRODUCTION_BUILDING_PRODUCTION", iProduction);
+		table.insert(lines, Locale.ConvertTextKey("TXT_KEY_PRODUCTION_BUILDING_PRODUCTION", iProduction));
 	end
 
 	-- Production Change
 	local iProd = Game.GetBuildingYieldChange(iBuildingID, YieldTypes.YIELD_PRODUCTION);
+	if (pCity ~= nil) then
+		iProd = iProd + pCity:GetReligionBuildingClassYieldChange(buildingClassID, YieldTypes.YIELD_PRODUCTION) + pActivePlayer:GetPlayerBuildingClassYieldChange(buildingClassID, YieldTypes.YIELD_PRODUCTION);
+		iProd = iProd + pCity:GetLeagueBuildingClassYieldChange(buildingClassID, YieldTypes.YIELD_PRODUCTION);
+	end
 	if (iProd ~= nil and iProd ~= 0) then
-		strHelpText = strHelpText .. "[NEWLINE]";
-		strHelpText = strHelpText .. Locale.ConvertTextKey("TXT_KEY_PRODUCTION_BUILDING_PRODUCTION_CHANGE", iProd);
+		table.insert(lines, Locale.ConvertTextKey("TXT_KEY_PRODUCTION_BUILDING_PRODUCTION_CHANGE", iProd));
 	end
 	
 	-- Great People
@@ -216,20 +262,40 @@ function GetHelpTextForBuilding(iBuildingID, bExcludeName, bExcludeHeader, bNoMa
 	if specialistType ~= nil then
 		local iNumPoints = pBuildingInfo.GreatPeopleRateChange;
 		if (iNumPoints > 0) then
-			strHelpText = strHelpText .. "[NEWLINE]";
-			strHelpText = strHelpText .. "[ICON_GREAT_PEOPLE] " .. Locale.ConvertTextKey(GameInfo.Specialists[specialistType].GreatPeopleTitle) .. " " .. iNumPoints;
+			table.insert(lines, "[ICON_GREAT_PEOPLE] " .. Locale.ConvertTextKey(GameInfo.Specialists[specialistType].GreatPeopleTitle) .. " " .. iNumPoints); 
+		
 		end
 		
 		if(pBuildingInfo.SpecialistCount > 0) then
-			strHelpText = strHelpText .. "[NEWLINE]";
-			
 			-- Append a key such as TXT_KEY_SPECIALIST_ARTIST_SLOTS
 			local specialistSlotsKey = GameInfo.Specialists[specialistType].Description .. "_SLOTS";
-			strHelpText = strHelpText .. "[ICON_GREAT_PEOPLE] " .. Locale.ConvertTextKey(specialistSlotsKey) .. " " .. pBuildingInfo.SpecialistCount;
+			table.insert(lines, "[ICON_GREAT_PEOPLE] " .. Locale.ConvertTextKey(specialistSlotsKey) .. " " .. pBuildingInfo.SpecialistCount);
 		end
-		
-		
 	end
+	
+	local iNumGreatWorks = pBuildingInfo.GreatWorkCount;
+	if(iNumGreatWorks > 0) then
+		local greatWorksSlotType = GameInfo.GreatWorkSlots[pBuildingInfo.GreatWorkSlotType];
+		local localizedText = Locale.Lookup(greatWorksSlotType.SlotsToolTipText, iNumGreatWorks);
+		table.insert(lines, localizedText);
+	end
+
+	if (pCity ~= nil) then
+		local iTourism = pCity:GetFaithBuildingTourism();
+		if(iTourism > 0 and pBuildingInfo.FaithCost > 0 and pBuildingInfo.UnlockedByBelief and pBuildingInfo.Cost == -1) then
+			local localizedText = Locale.ConvertTextKey("TXT_KEY_PRODUCTION_BUILDING_TOURISM", iTourism);
+			table.insert(lines, localizedText);
+		end
+	end
+	
+	local iTechEnhancedTourism = pBuildingInfo.TechEnhancedTourism;
+	local iEnhancingTech = GameInfoTypes[pBuildingInfo.EnhancedYieldTech];
+	if(iTechEnhancedTourism > 0 and pActiveTeam:GetTeamTechs():HasTech(iEnhancingTech)) then
+		local localizedText = Locale.ConvertTextKey("TXT_KEY_PRODUCTION_BUILDING_TOURISM", iTechEnhancedTourism);
+		table.insert(lines, localizedText);
+	end	
+	
+	strHelpText = strHelpText .. table.concat(lines, "[NEWLINE]");
 	
 	-- Pre-written Help text
 	if (pBuildingInfo.Help ~= nil) then
@@ -282,14 +348,6 @@ function GetHelpTextForImprovement(iImprovementID, bExcludeName, bExcludeHeader,
 end
 
 
-
-
-
-
-
-
-
-
 -- PROJECT
 function GetHelpTextForProject(iProjectID, bIncludeRequirementsInfo)
 	local pProjectInfo = GameInfo.Projects[iProjectID];
@@ -327,69 +385,45 @@ function GetHelpTextForProject(iProjectID, bIncludeRequirementsInfo)
 end
 
 
--- CITY STATE STATUS
-function GetCityStateStatus(pPlayer, iForPlayer, bWar)
+-- PROCESS
+function GetHelpTextForProcess(iProcessID, bIncludeRequirementsInfo)
+	local pProcessInfo = GameInfo.Processes[iProcessID];
+	local pActivePlayer = Players[Game.GetActivePlayer()];
+	local pActiveTeam = Teams[Game.GetActiveTeam()];
 	
-	-- Status
-	local strStatusTT = "";
-	local strShortDescKey = pPlayer:GetCivilizationShortDescriptionKey();
+	local strHelpText = "";
 	
-	local iInfluenceChangeThisTurn = pPlayer:GetFriendshipChangePerTurnTimes100(iForPlayer) / 100;
+	-- Name
+	strHelpText = strHelpText .. Locale.ToUpper(Locale.ConvertTextKey(pProcessInfo.Description));
 	
-	if (pPlayer:IsAllies(iForPlayer)) then		-- Allies
-		strStatusTT = Locale.ConvertTextKey("TXT_KEY_DIPLO_STATUS_TT", Locale.ConvertTextKey(strShortDescKey), Locale.ConvertTextKey("TXT_KEY_ALLIES"),
-										  pPlayer:GetMinorCivFriendshipWithMajor(iForPlayer), 
-										  GameDefines["FRIENDSHIP_THRESHOLD_MAX"] - GameDefines["FRIENDSHIP_THRESHOLD_ALLIES"]); 
-		
-		local strTempTT = Locale.ConvertTextKey("TXT_KEY_ALLIES_CSTATE_TT", strShortDescKey, iInfluenceChangeThisTurn);
-		
-		strStatusTT = strStatusTT .. "[NEWLINE][NEWLINE]" .. strTempTT;
-		
-	elseif (pPlayer:IsFriends(iForPlayer)) then		-- Friends
-		strStatusTT = Locale.ConvertTextKey("TXT_KEY_DIPLO_STATUS_TT", Locale.ConvertTextKey(strShortDescKey), Locale.ConvertTextKey("TXT_KEY_FRIENDS"),
-										    pPlayer:GetMinorCivFriendshipWithMajor(iForPlayer),
-										    GameDefines["FRIENDSHIP_THRESHOLD_ALLIES"] - GameDefines["FRIENDSHIP_THRESHOLD_FRIENDS"]);
-		
-		local strTempTT = Locale.ConvertTextKey("TXT_KEY_FRIENDS_CSTATE_TT", strShortDescKey, iInfluenceChangeThisTurn);
-		
-		strStatusTT = strStatusTT .. "[NEWLINE][NEWLINE]" .. strTempTT;
-		
-	elseif (pPlayer:IsMinorPermanentWar(iActiveTeam)) then		-- Permanent War
-		strStatusTT = Locale.ConvertTextKey("TXT_KEY_DIPLO_STATUS_TT", Locale.ConvertTextKey(strShortDescKey), Locale.ConvertTextKey("TXT_KEY_ANGRY"),
-										    pPlayer:GetMinorCivFriendshipWithMajor(iForPlayer), GameDefines["MINOR_FRIENDSHIP_AT_WAR"]);
-										    
-		strStatusTT = strStatusTT .. "[NEWLINE][NEWLINE]" .. Locale.ConvertTextKey("TXT_KEY_PERMANENT_WAR_CSTATE_TT", strShortDescKey);
-		
-	elseif (pPlayer:IsPeaceBlocked(iActiveTeam)) then		-- Peace blocked by being at war with ally
-		strStatusTT = Locale.ConvertTextKey("TXT_KEY_DIPLO_STATUS_TT", Locale.ConvertTextKey(strShortDescKey), Locale.ConvertTextKey("TXT_KEY_ANGRY"),
-										    pPlayer:GetMinorCivFriendshipWithMajor(iForPlayer), GameDefines["MINOR_FRIENDSHIP_AT_WAR"]);
-										    
-		strStatusTT = strStatusTT .. "[NEWLINE][NEWLINE]" .. Locale.ConvertTextKey("TXT_KEY_PEACE_BLOCKED_CSTATE_TT", strShortDescKey);
-		
-	elseif (bWar) then		-- War
-		strStatusTT = Locale.ConvertTextKey("TXT_KEY_DIPLO_STATUS_TT", Locale.ConvertTextKey(strShortDescKey), Locale.ConvertTextKey("TXT_KEY_ANGRY"),
-										    pPlayer:GetMinorCivFriendshipWithMajor(iForPlayer), GameDefines["MINOR_FRIENDSHIP_AT_WAR"]);
-										    
-		strStatusTT = strStatusTT .. "[NEWLINE][NEWLINE]" ..Locale.ConvertTextKey("TXT_KEY_WAR_CSTATE_TT", strShortDescKey);
-		
-	elseif (pPlayer:GetMinorCivFriendshipWithMajor(iForPlayer) < 0) then		-- Angry
-		strStatusTT = Locale.ConvertTextKey("TXT_KEY_DIPLO_STATUS_TT", Locale.ConvertTextKey(strShortDescKey), Locale.ConvertTextKey("TXT_KEY_ANGRY"),
-										    pPlayer:GetMinorCivFriendshipWithMajor(iForPlayer), GameDefines["MINOR_FRIENDSHIP_AT_WAR"]);
-										    
-		strStatusTT = strStatusTT .. "[NEWLINE][NEWLINE]" .. Locale.ConvertTextKey("TXT_KEY_ANGRY_CSTATE_TT", strShortDescKey, iInfluenceChangeThisTurn);
-		
-	else		-- Neutral
-		strStatusTT = Locale.ConvertTextKey("TXT_KEY_DIPLO_STATUS_TT", Locale.ConvertTextKey(strShortDescKey), Locale.ConvertTextKey("TXT_KEY_CITY_STATE_PERSONALITY_NEUTRAL"),
-										    pPlayer:GetMinorCivFriendshipWithMajor(iForPlayer) - GameDefines["FRIENDSHIP_THRESHOLD_NEUTRAL"], 
-											GameDefines["FRIENDSHIP_THRESHOLD_FRIENDS"] - GameDefines["FRIENDSHIP_THRESHOLD_NEUTRAL"]);
-										    
-		strStatusTT = strStatusTT .. "[NEWLINE][NEWLINE]" .. Locale.ConvertTextKey("TXT_KEY_NEUTRAL_CSTATE_TT", strShortDescKey);
+	-- Pre-written Help text
+	local strWrittenHelpText = Locale.ConvertTextKey(pProcessInfo.Help);
+	if (strWrittenHelpText ~= nil and strWrittenHelpText ~= "") then
+		strHelpText = strHelpText .. "[NEWLINE]----------------[NEWLINE]";
+		strHelpText = strHelpText .. strWrittenHelpText;
 	end
 	
-	return strStatusTT;
-	
-end
+	-- League Project text
+	if (not Game.IsOption("GAMEOPTION_NO_LEAGUES")) then
+		local tProject = nil;
+		
+		for t in GameInfo.LeagueProjects() do
+			if (iProcessID == GameInfo.Processes[t.Process].ID) then
+				tProject = t;
+				break;
+			end
+		end
 
+		local pLeague = Game.GetActiveLeague();
+
+		if (tProject ~= nil and pLeague ~= nil) then
+			strHelpText = strHelpText .. "[NEWLINE][NEWLINE]";
+			strHelpText = strHelpText .. pLeague:GetProjectDetails(GameInfo.LeagueProjects[tProject.Type].ID, Game.GetActivePlayer());
+		end
+	end
+
+	return strHelpText;
+end
 
 -------------------------------------------------
 -- Tooltips for Yield & Similar (e.g. Culture)
@@ -481,107 +515,163 @@ end
 function GetCultureTooltip(pCity)
 	
 	local strCultureToolTip = "";
-	
-	if (not OptionsManager.IsNoBasicHelp()) then
-		strCultureToolTip = strCultureToolTip .. Locale.ConvertTextKey("TXT_KEY_CULTURE_HELP_INFO");
-		strCultureToolTip = strCultureToolTip .. "[NEWLINE][NEWLINE]";
-	end
-	
-	local bFirst = true;
-	
-	-- Culture from Buildings
-	local iCultureFromBuildings = pCity:GetJONSCulturePerTurnFromBuildings();
-	if (iCultureFromBuildings ~= 0) then
-		
-		-- Spacing
-		if (bFirst) then
-			bFirst = false;
-		else
-			strCultureToolTip = strCultureToolTip .. "[NEWLINE]";
+	if (Game.IsOption(GameOptionTypes.GAMEOPTION_NO_POLICIES)) then
+		strCultureToolTip = Locale.ConvertTextKey("TXT_KEY_TOP_PANEL_POLICIES_OFF_TOOLTIP");
+	else
+		if (not OptionsManager.IsNoBasicHelp()) then
+			strCultureToolTip = strCultureToolTip .. Locale.ConvertTextKey("TXT_KEY_CULTURE_HELP_INFO");
+			strCultureToolTip = strCultureToolTip .. "[NEWLINE][NEWLINE]";
 		end
 		
-		strCultureToolTip = strCultureToolTip .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_CULTURE_FROM_BUILDINGS", iCultureFromBuildings);
-	end
-	
-	-- Culture from Policies
-	local iCultureFromPolicies = pCity:GetJONSCulturePerTurnFromPolicies();
-	if (iCultureFromPolicies ~= 0) then
+		local bFirst = true;
 		
-		-- Spacing
-		if (bFirst) then
-			bFirst = false;
-		else
-			strCultureToolTip = strCultureToolTip .. "[NEWLINE]";
+		-- Culture from Buildings
+		local iCultureFromBuildings = pCity:GetJONSCulturePerTurnFromBuildings();
+		if (iCultureFromBuildings ~= 0) then
+			
+			-- Spacing
+			if (bFirst) then
+				bFirst = false;
+			else
+				strCultureToolTip = strCultureToolTip .. "[NEWLINE]";
+			end
+			
+			strCultureToolTip = strCultureToolTip .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_CULTURE_FROM_BUILDINGS", iCultureFromBuildings);
 		end
 		
-		strCultureToolTip = strCultureToolTip .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_CULTURE_FROM_POLICIES", iCultureFromPolicies);
-	end
-	
-	-- Culture from Specialists
-	local iCultureFromSpecialists = pCity:GetJONSCulturePerTurnFromSpecialists();
-	if (iCultureFromSpecialists ~= 0) then
-		
-		-- Spacing
-		if (bFirst) then
-			bFirst = false;
-		else
-			strCultureToolTip = strCultureToolTip .. "[NEWLINE]";
+		-- Culture from Policies
+		local iCultureFromPolicies = pCity:GetJONSCulturePerTurnFromPolicies();
+		if (iCultureFromPolicies ~= 0) then
+			
+			-- Spacing
+			if (bFirst) then
+				bFirst = false;
+			else
+				strCultureToolTip = strCultureToolTip .. "[NEWLINE]";
+			end
+			
+			strCultureToolTip = strCultureToolTip .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_CULTURE_FROM_POLICIES", iCultureFromPolicies);
 		end
 		
-		strCultureToolTip = strCultureToolTip .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_CULTURE_FROM_SPECIALISTS", iCultureFromSpecialists);
-	end
-	
-	-- Culture from Terrain
-	local iCultureFromTerrain = pCity:GetJONSCulturePerTurnFromTerrain();
-	if (iCultureFromTerrain ~= 0) then
-		
-		-- Spacing
-		if (bFirst) then
-			bFirst = false;
-		else
-			strCultureToolTip = strCultureToolTip .. "[NEWLINE]";
+		-- Culture from Specialists
+		local iCultureFromSpecialists = pCity:GetJONSCulturePerTurnFromSpecialists();
+		if (iCultureFromSpecialists ~= 0) then
+			
+			-- Spacing
+			if (bFirst) then
+				bFirst = false;
+			else
+				strCultureToolTip = strCultureToolTip .. "[NEWLINE]";
+			end
+			
+			strCultureToolTip = strCultureToolTip .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_CULTURE_FROM_SPECIALISTS", iCultureFromSpecialists);
 		end
 		
-		strCultureToolTip = strCultureToolTip .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_CULTURE_FROM_TERRAIN", iCultureFromTerrain);
-	end
+		-- Culture from Great Works
+		local iCultureFromGreatWorks = pCity:GetJONSCulturePerTurnFromGreatWorks();
+		if (iCultureFromGreatWorks ~= 0) then
+			
+			-- Spacing
+			if (bFirst) then
+				bFirst = false;
+			else
+				strCultureToolTip = strCultureToolTip .. "[NEWLINE]";
+			end
+			
+			strCultureToolTip = strCultureToolTip .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_CULTURE_FROM_GREAT_WORKS", iCultureFromGreatWorks);
+		end
+		
+		-- Culture from Religion
+		local iCultureFromReligion = pCity:GetJONSCulturePerTurnFromReligion();
+		if ( iCultureFromReligion ~= 0) then
+			
+			-- Spacing
+			if (bFirst) then
+				bFirst = false;
+			else
+				strCultureToolTip = strCultureToolTip .. "[NEWLINE]";
+			end
+			
+			strCultureToolTip = strCultureToolTip .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_CULTURE_FROM_RELIGION", iCultureFromReligion);
+		end
+		
+		-- Culture from Leagues
+		local iCultureFromLeagues = pCity:GetJONSCulturePerTurnFromLeagues();
+		if ( iCultureFromLeagues ~= 0) then
+			
+			-- Spacing
+			if (bFirst) then
+				bFirst = false;
+			else
+				strCultureToolTip = strCultureToolTip .. "[NEWLINE]";
+			end
+			
+			strCultureToolTip = strCultureToolTip .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_CULTURE_FROM_LEAGUES", iCultureFromLeagues);
+		end
+		
+		-- Culture from Terrain
+		local iCultureFromTerrain = pCity:GetBaseYieldRateFromTerrain(YieldTypes.YIELD_CULTURE);
+		if (iCultureFromTerrain ~= 0) then
+			
+			-- Spacing
+			if (bFirst) then
+				bFirst = false;
+			else
+				strCultureToolTip = strCultureToolTip .. "[NEWLINE]";
+			end
+			
+			strCultureToolTip = strCultureToolTip .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_CULTURE_FROM_TERRAIN", iCultureFromTerrain);
+		end
 
-	-- Culture from Traits
-	local iCultureFromTraits = pCity:GetJONSCulturePerTurnFromTraits();
-	if (iCultureFromTraits ~= 0) then
-		
-		-- Spacing
-		if (bFirst) then
-			bFirst = false;
-		else
-			strCultureToolTip = strCultureToolTip .. "[NEWLINE]";
+		-- Culture from Traits
+		local iCultureFromTraits = pCity:GetJONSCulturePerTurnFromTraits();
+		if (iCultureFromTraits ~= 0) then
+			
+			-- Spacing
+			if (bFirst) then
+				bFirst = false;
+			else
+				strCultureToolTip = strCultureToolTip .. "[NEWLINE]";
+			end
+			
+			strCultureToolTip = strCultureToolTip .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_CULTURE_FROM_TRAITS", iCultureFromTraits);
 		end
 		
-		strCultureToolTip = strCultureToolTip .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_CULTURE_FROM_TRAITS", iCultureFromTraits);
-	end
-	
-	-- Empire Culture modifier
-	local iAmount = Players[pCity:GetOwner()]:GetCultureCityModifier();
-	if (iAmount ~= 0) then
-		strCultureToolTip = strCultureToolTip .. "[NEWLINE][NEWLINE]";
-		strCultureToolTip = strCultureToolTip .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_CULTURE_PLAYER_MOD", iAmount);
-	end
-	
-	-- City Culture modifier
-	local iAmount = pCity:GetCultureRateModifier();
-	if (iAmount ~= 0) then
-		strCultureToolTip = strCultureToolTip .. "[NEWLINE][NEWLINE]";
-		strCultureToolTip = strCultureToolTip .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_CULTURE_CITY_MOD", iAmount);
-	end
-	
-	-- Culture Wonders modifier
-	if (pCity:GetNumWorldWonders() > 0) then
-		iAmount = Players[pCity:GetOwner()]:GetCultureWonderMultiplier();
-		
+		-- Empire Culture modifier
+		local iAmount = Players[pCity:GetOwner()]:GetCultureCityModifier();
 		if (iAmount ~= 0) then
 			strCultureToolTip = strCultureToolTip .. "[NEWLINE][NEWLINE]";
-			strCultureToolTip = strCultureToolTip .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_CULTURE_WONDER_BONUS", iAmount);
+			strCultureToolTip = strCultureToolTip .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_CULTURE_PLAYER_MOD", iAmount);
+		end
+		
+		-- City Culture modifier
+		local iAmount = pCity:GetCultureRateModifier();
+		if (iAmount ~= 0) then
+			strCultureToolTip = strCultureToolTip .. "[NEWLINE][NEWLINE]";
+			strCultureToolTip = strCultureToolTip .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_CULTURE_CITY_MOD", iAmount);
+		end
+		
+		-- Culture Wonders modifier
+		if (pCity:GetNumWorldWonders() > 0) then
+			iAmount = Players[pCity:GetOwner()]:GetCultureWonderMultiplier();
+			
+			if (iAmount ~= 0) then
+				strCultureToolTip = strCultureToolTip .. "[NEWLINE][NEWLINE]";
+				strCultureToolTip = strCultureToolTip .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_CULTURE_WONDER_BONUS", iAmount);
+			end
+		end
+		
+		-- Puppet modifier
+		if (pCity:IsPuppet()) then
+			iAmount = GameDefines.PUPPET_CULTURE_MODIFIER;
+			
+			if (iAmount ~= 0) then
+				strCultureToolTip = strCultureToolTip .. "[NEWLINE]";
+				strCultureToolTip = strCultureToolTip .. Locale.ConvertTextKey("TXT_KEY_PRODMOD_PUPPET", iAmount);
+			end
 		end
 	end
+	
 	
 	-- Tile growth
 	local iCulturePerTurn = pCity:GetJONSCulturePerTurn();
@@ -598,6 +688,78 @@ function GetCultureTooltip(pCity)
 	end
 	
 	return strCultureToolTip;
+end
+
+-- FAITH
+function GetFaithTooltip(pCity)
+	
+	local faithTips = {};
+	
+	if (Game.IsOption(GameOptionTypes.GAMEOPTION_NO_RELIGION)) then
+		table.insert(faithTips, Locale.ConvertTextKey("TXT_KEY_TOP_PANEL_RELIGION_OFF_TOOLTIP"));
+	else
+
+		if (not OptionsManager.IsNoBasicHelp()) then
+			table.insert(faithTips, Locale.ConvertTextKey("TXT_KEY_FAITH_HELP_INFO"));
+		end
+	
+		-- Faith from Buildings
+		local iFaithFromBuildings = pCity:GetFaithPerTurnFromBuildings();
+		if (iFaithFromBuildings ~= 0) then
+		
+			table.insert(faithTips, "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_FAITH_FROM_BUILDINGS", iFaithFromBuildings));
+		end
+	
+		-- Faith from Traits
+		local iFaithFromTraits = pCity:GetFaithPerTurnFromTraits();
+		if (iFaithFromTraits ~= 0) then
+				
+			table.insert(faithTips, "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_FAITH_FROM_TRAITS", iFaithFromTraits));
+		end
+	
+		-- Faith from Terrain
+		local iFaithFromTerrain = pCity:GetBaseYieldRateFromTerrain(YieldTypes.YIELD_FAITH);
+		if (iFaithFromTerrain ~= 0) then
+				
+			table.insert(faithTips, "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_FAITH_FROM_TERRAIN", iFaithFromTerrain));
+		end
+
+		-- Faith from Policies
+		local iFaithFromPolicies = pCity:GetFaithPerTurnFromPolicies();
+		if (iFaithFromPolicies ~= 0) then
+					
+			table.insert(faithTips, "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_FAITH_FROM_POLICIES", iFaithFromPolicies));
+		end
+
+		-- Faith from Religion
+		local iFaithFromReligion = pCity:GetFaithPerTurnFromReligion();
+		if (iFaithFromReligion ~= 0) then
+				
+			table.insert(faithTips, "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_FAITH_FROM_RELIGION", iFaithFromReligion));
+		end
+		
+		-- Puppet modifier
+		if (pCity:IsPuppet()) then
+			iAmount = GameDefines.PUPPET_FAITH_MODIFIER;
+		
+			if (iAmount ~= 0) then
+				table.insert(faithTips, Locale.ConvertTextKey("TXT_KEY_PRODMOD_PUPPET", iAmount));
+			end
+		end
+	
+		-- Citizens breakdown
+		table.insert(faithTips, "----------------");
+
+		table.insert(faithTips, GetReligionTooltip(pCity));
+	end
+	
+	local strFaithToolTip = table.concat(faithTips, "[NEWLINE]");
+	return strFaithToolTip;
+end
+
+-- TOURISM
+function GetTourismTooltip(pCity)
+	return pCity:GetTourismTooltip();
 end
 
 -- Yield Tooltip Helper
@@ -685,6 +847,28 @@ function GetYieldTooltip(pCity, iYieldType, iBase, iTotal, strIconString, strMod
 		strYieldBreakdown = strYieldBreakdown .. "[NEWLINE]";
 	end
 	
+	-- Base Yield from Religion
+	local iYieldFromReligion = pCity:GetBaseYieldRateFromReligion(iYieldType);
+	if (iYieldFromReligion ~= 0) then
+		strYieldBreakdown = strYieldBreakdown .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_YIELD_FROM_RELIGION", iYieldFromReligion, strIconString);
+		strYieldBreakdown = strYieldBreakdown .. "[NEWLINE]";
+	end
+
+	-- NQMP GJS: Artistic Genius add support for Science from Great Works
+	local iYieldFromGreatWorks = pCity:GetBaseYieldRateFromGreatWorks(iYieldType);
+	if (iYieldFromGreatWorks ~= 0) then
+		strYieldBreakdown = strYieldBreakdown .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_YIELD_FROM_GREAT_WORKS", iYieldFromGreatWorks, strIconString);
+		strYieldBreakdown = strYieldBreakdown .. "[NEWLINE]";
+	end
+	
+	if (iYieldType == YieldTypes.YIELD_FOOD) then
+		local iYieldFromTrade = pCity:GetYieldRate(YieldTypes.YIELD_FOOD, false) - pCity:GetYieldRate(YieldTypes.YIELD_FOOD, true);
+		if (iYieldFromTrade ~= 0) then
+			strYieldBreakdown = strYieldBreakdown .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_FOOD_FROM_TRADE_ROUTES", iYieldFromTrade);
+			strYieldBreakdown = strYieldBreakdown .. "[NEWLINE]";
+		end
+	end
+		
 	local strExtraBaseString = "";
 	
 	-- Food eaten by pop
@@ -694,11 +878,10 @@ function GetYieldTooltip(pCity, iYieldType, iBase, iTotal, strIconString, strMod
 		if (iYieldEaten ~= 0) then
 			--strModifiers = strModifiers .. "[NEWLINE]";
 			--strModifiers = strModifiers .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_YIELD_EATEN_BY_POP", iYieldEaten, "[ICON_FOOD]");
-			--strModifiers = strModifiers .. "[NEWLINE]----------------[NEWLINE]";
+			--strModifiers = strModifiers .. "[NEWLINE]----------------[NEWLINE]";			
+			strExtraBaseString = strExtraBaseString .. "   " .. Locale.ConvertTextKey("TXT_KEY_FOOD_USAGE", pCity:GetYieldRate(YieldTypes.YIELD_FOOD, false), iYieldEaten);
 			
-			strExtraBaseString = strExtraBaseString .. "   " .. Locale.ConvertTextKey("TXT_KEY_FOOD_USAGE", iBase, iYieldEaten);
-			
-			local iFoodSurplus = pCity:GetYieldRate(YieldTypes.YIELD_FOOD) - iYieldEaten;
+			local iFoodSurplus = pCity:GetYieldRate(YieldTypes.YIELD_FOOD, false) - iYieldEaten;
 			iBase = iFoodSurplus;
 			
 			--if (iFoodSurplus >= 0) then
@@ -752,11 +935,12 @@ function GetMoodInfo(iOtherPlayer)
 	local pActiveTeam = Teams[pActivePlayer:GetTeam()];
 	local pOtherPlayer = Players[iOtherPlayer];
 	local iOtherTeam = pOtherPlayer:GetTeam();
+	local pOtherTeam = Teams[iOtherTeam];
 	
-	local iVisibleApproach = Players[iActivePlayer]:GetApproachTowardsUsGuess(iOtherPlayer);
+	--local iVisibleApproach = Players[iActivePlayer]:GetApproachTowardsUsGuess(iOtherPlayer);
 	
 	-- At war right now
-	if (pActiveTeam:IsAtWar(iOtherTeam)) then
+	--[[if (pActiveTeam:IsAtWar(iOtherTeam)) then
 		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_AT_WAR") .. "[NEWLINE]";
 		
 	-- Not at war right now
@@ -773,138 +957,202 @@ function GetMoodInfo(iOtherPlayer)
 				strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_PAST_WAR_BAD") .. "[NEWLINE]";
 			end
 		end
+	end]]--
 		
-	end
-	
-	-- Good things
-	if (pActivePlayer:IsDoF(iOtherPlayer)) then
-		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_DOF") .. "[NEWLINE]";
-	end
-	if (pActivePlayer:IsPlayerDoFwithAnyFriend(iOtherPlayer)) then		-- Human has a mutual friend with the AI
-		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_MUTUAL_DOF") .. "[NEWLINE]";
-	end
-	if (pActivePlayer:IsPlayerDenouncedEnemy(iOtherPlayer)) then		-- Human has denounced an enemy of the AI
-		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_MUTUAL_ENEMY") .. "[NEWLINE]";
-	end
-	if (pOtherPlayer:GetNumCiviliansReturnedToMe(iActivePlayer) > 0) then
-		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_CIVILIANS_RETURNED") .. "[NEWLINE]";
-	end
-	
 	-- Neutral things
-	if (iVisibleApproach == MajorCivApproachTypes.MAJOR_CIV_APPROACH_AFRAID) then
+	--[[if (iVisibleApproach == MajorCivApproachTypes.MAJOR_CIV_APPROACH_AFRAID) then
 		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_AFRAID") .. "[NEWLINE]";
-	end
+	end]]--
+		
+	-- Good things
+	--[[if (pOtherPlayer:WasResurrectedBy(iActivePlayer)) then
+		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_RESURRECTED") .. "[NEWLINE]";
+	end]]--
+	--[[if (pActivePlayer:IsDoF(iOtherPlayer)) then
+		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_DOF") .. "[NEWLINE]";
+	end]]--
+	--[[if (pActivePlayer:IsPlayerDoFwithAnyFriend(iOtherPlayer)) then		-- Human has a mutual friend with the AI
+		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_MUTUAL_DOF") .. "[NEWLINE]";
+	end]]--
+	--[[if (pActivePlayer:IsPlayerDenouncedEnemy(iOtherPlayer)) then		-- Human has denounced an enemy of the AI
+		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_MUTUAL_ENEMY") .. "[NEWLINE]";
+	end]]--
+	--[[if (pOtherPlayer:GetNumCiviliansReturnedToMe(iActivePlayer) > 0) then
+		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_CIVILIANS_RETURNED") .. "[NEWLINE]";
+	end]]--
+	--[[if (pOtherTeam:HasEmbassyAtTeam(iActivePlayer)) then
+		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_HAS_EMBASSY") .. "[NEWLINE]";
+	end]]--
+	--[[if (pOtherPlayer:GetNumTimesIntrigueSharedBy(iActivePlayer) > 0) then
+		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_SHARED_INTRIGUE") .. "[NEWLINE]";
+	end]]--
+	--[[if (pOtherPlayer:IsPlayerForgivenForSpying(iActivePlayer)) then
+		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_FORGAVE_FOR_SPYING") .. "[NEWLINE]";
+	end]]--
 	
 	-- Bad things
-	if (pOtherPlayer:IsFriendDeclaredWarOnUs(iActivePlayer)) then		-- Human was a friend and declared war on us
+	--[[if (pOtherPlayer:IsFriendDeclaredWarOnUs(iActivePlayer)) then		-- Human was a friend and declared war on us
 		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_HUMAN_FRIEND_DECLARED_WAR") .. "[NEWLINE]";
-	end
-	if (pOtherPlayer:IsFriendDenouncedUs(iActivePlayer)) then			-- Human was a friend and denounced us
+	end]]--
+	--[[if (pOtherPlayer:IsFriendDenouncedUs(iActivePlayer)) then			-- Human was a friend and denounced us
 		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_HUMAN_FRIEND_DENOUNCED") .. "[NEWLINE]";
-	end
-	if (pActivePlayer:GetWeDeclaredWarOnFriendCount() > 0) then		-- Human declared war on friends
+	end]]--
+	--[[if (pActivePlayer:GetWeDeclaredWarOnFriendCount() > 0) then		-- Human declared war on friends
 		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_HUMAN_DECLARED_WAR_ON_FRIENDS") .. "[NEWLINE]";
-	end
-	if (pActivePlayer:GetWeDenouncedFriendCount() > 0) then			-- Human has denounced his friends
+	end]]--
+	--[[if (pActivePlayer:GetWeDenouncedFriendCount() > 0) then			-- Human has denounced his friends
 		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_HUMAN_DENOUNCED_FRIENDS") .. "[NEWLINE]";
-	end
-	if (pActivePlayer:GetNumFriendsDenouncedBy() > 0) then			-- Human has been denounced by friends
+	end]]--
+	--[[if (pActivePlayer:GetNumFriendsDenouncedBy() > 0) then			-- Human has been denounced by friends
 		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_HUMAN_DENOUNCED_BY_FRIENDS") .. "[NEWLINE]";
-	end
-	if (pActivePlayer:IsDenouncedPlayer(iOtherPlayer)) then
+	end]]--
+	--[[if (pActivePlayer:IsDenouncedPlayer(iOtherPlayer)) then
 		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_DENOUNCED_BY_US") .. "[NEWLINE]";
-	end
-	if (pOtherPlayer:IsDenouncedPlayer(iActivePlayer)) then
+	end]]--
+	--[[if (pOtherPlayer:IsDenouncedPlayer(iActivePlayer)) then
 		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_DENOUNCED_BY_THEM") .. "[NEWLINE]";
-	end
-	if (pOtherPlayer:IsPlayerDoFwithAnyEnemy(iActivePlayer)) then
+	end]]--
+	--[[if (pOtherPlayer:IsPlayerDoFwithAnyEnemy(iActivePlayer)) then
 		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_HUMAN_DOF_WITH_ENEMY") .. "[NEWLINE]";
-	end
-	if (pOtherPlayer:IsPlayerDenouncedFriend(iActivePlayer)) then
+	end]]--
+	--[[if (pOtherPlayer:IsPlayerDenouncedFriend(iActivePlayer)) then
 		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_HUMAN_DENOUNCED_FRIEND") .. "[NEWLINE]";
-	end
-	if (pOtherPlayer:IsPlayerNoSettleRequestEverAsked(iActivePlayer)) then
+	end]]--
+	--[[if (pOtherPlayer:IsPlayerNoSettleRequestEverAsked(iActivePlayer)) then
 		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_NO_SETTLE_ASKED") .. "[NEWLINE]";
-	end
-	if (pOtherPlayer:IsDemandEverMade(iActivePlayer)) then
+	end]]--
+	--[[if (pOtherPlayer:IsPlayerStopSpyingRequestEverAsked(iActivePlayer)) then
+		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_STOP_SPYING_ASKED") .. "[NEWLINE]";
+	end]]--
+	--[[if (pOtherPlayer:IsDemandEverMade(iActivePlayer)) then
 		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_TRADE_DEMAND") .. "[NEWLINE]";
-	end
-	if (pOtherPlayer:GetNumTimesCultureBombed(iActivePlayer) > 0) then
+	end]]--
+	--[[if (pOtherPlayer:GetNumTimesRobbedBy(iActivePlayer) > 0) then
+		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_CAUGHT_STEALING") .. "[NEWLINE]";
+	end]]--
+	--[[if (pOtherPlayer:GetNumTimesCultureBombed(iActivePlayer) > 0) then
 		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_CULTURE_BOMB") .. "[NEWLINE]";
-	end
-	if (pOtherPlayer:IsPlayerBrokenMilitaryPromise(iActivePlayer)) then
+	end]]--
+	--[[if (pOtherPlayer:GetNegativeReligiousConversionPoints(iActivePlayer) > 0) then
+		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_RELIGIOUS_CONVERSIONS") .. "[NEWLINE]";
+	end]]--
+	--[[if (pOtherPlayer:HasOthersReligionInMostCities(iActivePlayer)) then
+		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_ADOPTING_MY_RELIGION") .. "[NEWLINE]";
+	end]]--
+	--[[if (pActivePlayer:HasOthersReligionInMostCities(iOtherPlayer)) then
+		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_ADOPTING_HIS_RELIGION") .. "[NEWLINE]";
+	end]]--
+	--[[local myLateGamePolicies = pActivePlayer:GetLateGamePolicyTree();
+	local otherLateGamePolicies = pOtherPlayer:GetLateGamePolicyTree();
+	if (myLateGamePolicies ~= PolicyBranchTypes.NO_POLICY_BRANCH_TYPE and otherLateGamePolicies ~= PolicyBranchTypes.NO_POLICY_BRANCH_TYPE) then
+	    local myPoliciesStr = Locale.ConvertTextKey(GameInfo.PolicyBranchTypes[myLateGamePolicies].Description);
+	    print (myPoliciesStr);
+		if (myLateGamePolicies == otherLateGamePolicies) then
+			strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_SAME_LATE_POLICY_TREES", myPoliciesStr) .. "[NEWLINE]";
+		else
+			local otherPoliciesStr = Locale.ConvertTextKey(GameInfo.PolicyBranchTypes[otherLateGamePolicies].Description);
+			strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_DIFFERENT_LATE_POLICY_TREES", myPoliciesStr, otherPoliciesStr) .. "[NEWLINE]";
+		end
+	end]]--
+	--[[if (pOtherPlayer:IsPlayerBrokenMilitaryPromise(iActivePlayer)) then
 		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_MILITARY_PROMISE") .. "[NEWLINE]";
-	end
-	if (pOtherPlayer:IsPlayerIgnoredMilitaryPromise(iActivePlayer)) then
+	end]]--
+	--[[if (pOtherPlayer:IsPlayerIgnoredMilitaryPromise(iActivePlayer)) then
 		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_MILITARY_PROMISE_IGNORED") .. "[NEWLINE]";
-	end
-	if (pOtherPlayer:IsPlayerBrokenExpansionPromise(iActivePlayer)) then
+	end]]--
+	--[[if (pOtherPlayer:IsPlayerBrokenExpansionPromise(iActivePlayer)) then
 		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_EXPANSION_PROMISE") .. "[NEWLINE]";
-	end
-	if (pOtherPlayer:IsPlayerIgnoredExpansionPromise(iActivePlayer)) then
+	end]]--
+	--[[if (pOtherPlayer:IsPlayerIgnoredExpansionPromise(iActivePlayer)) then
 		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_EXPANSION_PROMISE_IGNORED") .. "[NEWLINE]";
-	end
-	if (pOtherPlayer:IsPlayerBrokenBorderPromise(iActivePlayer)) then
+	end]]--
+	--[[if (pOtherPlayer:IsPlayerBrokenBorderPromise(iActivePlayer)) then
 		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_BORDER_PROMISE") .. "[NEWLINE]";
-	end
-	if (pOtherPlayer:IsPlayerIgnoredBorderPromise(iActivePlayer)) then
+	end]]--
+	--[[if (pOtherPlayer:IsPlayerIgnoredBorderPromise(iActivePlayer)) then
 		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_BORDER_PROMISE_IGNORED") .. "[NEWLINE]";
-	end
-	if (pOtherPlayer:IsPlayerBrokenCityStatePromise(iActivePlayer)) then
+	end]]--
+	--[[if (pOtherPlayer:IsPlayerBrokenAttackCityStatePromise(iActivePlayer)) then
 		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_CITY_STATE_PROMISE") .. "[NEWLINE]";
-	end
-	if (pOtherPlayer:IsPlayerIgnoredCityStatePromise(iActivePlayer)) then
+	end]]--
+	--[[if (pOtherPlayer:IsPlayerIgnoredAttackCityStatePromise(iActivePlayer)) then
 		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_CITY_STATE_PROMISE_IGNORED") .. "[NEWLINE]";
-	end
-	if (pOtherPlayer:IsPlayerBrokenCoopWarPromise(iActivePlayer)) then
+	end]]--
+	--[[if (pOtherPlayer:IsPlayerBrokenBullyCityStatePromise(iActivePlayer)) then
+		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_BULLY_CITY_STATE_PROMISE_BROKEN") .. "[NEWLINE]";
+	end]]--
+	--[[if (pOtherPlayer:IsPlayerIgnoredBullyCityStatePromise(iActivePlayer)) then
+		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_BULLY_CITY_STATE_PROMISE_IGNORED") .. "[NEWLINE]";
+	end]]--
+	--[[if (pOtherPlayer:IsPlayerBrokenSpyPromise(iActivePlayer)) then
+		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_SPY_PROMISE_BROKEN") .. "[NEWLINE]";
+	end]]--
+	--[[if (pOtherPlayer:IsPlayerIgnoredSpyPromise(iActivePlayer)) then
+		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_SPY_PROMISE_IGNORED") .. "[NEWLINE]";
+	end]]--
+	--[[if (pOtherPlayer:IsPlayerBrokenNoConvertPromise(iActivePlayer)) then
+		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_NO_CONVERT_PROMISE_BROKEN") .. "[NEWLINE]";
+	end]]--
+	--[[if (pOtherPlayer:IsPlayerIgnoredNoConvertPromise(iActivePlayer)) then
+		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_NO_CONVERT_PROMISE_IGNORED") .. "[NEWLINE]";
+	end]]--
+	--[[if (pOtherPlayer:IsPlayerBrokenCoopWarPromise(iActivePlayer)) then
 		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_COOP_WAR_PROMISE") .. "[NEWLINE]";
-	end
-	if (pOtherPlayer:IsPlayerRecklessExpander(iActivePlayer)) then
+	end]]--
+	--[[if (pOtherPlayer:IsPlayerRecklessExpander(iActivePlayer)) then
 		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_RECKLESS_EXPANDER") .. "[NEWLINE]";
-	end
-	if (pOtherPlayer:GetNumRequestsRefused(iActivePlayer) > 0) then
+	end]]--
+	--[[if (pOtherPlayer:GetNumRequestsRefused(iActivePlayer) > 0) then
 		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_REFUSED_REQUESTS") .. "[NEWLINE]";
-	end
-	if (pOtherPlayer:GetRecentTradeValue(iActivePlayer) > 0) then
+	end]]--
+	--[[if (pOtherPlayer:GetRecentTradeValue(iActivePlayer) > 0) then
 		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_TRADE_PARTNER") .. "[NEWLINE]";	
-	end
-	if (pOtherPlayer:GetCommonFoeValue(iActivePlayer) > 0) then
+	end]]--
+	--[[if (pOtherPlayer:GetCommonFoeValue(iActivePlayer) > 0) then
 		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_COMMON_FOE") .. "[NEWLINE]";	
-	end
-	if (pOtherPlayer:GetRecentAssistValue(iActivePlayer) > 0) then
+	end]]--
+	--[[if (pOtherPlayer:GetRecentAssistValue(iActivePlayer) > 0) then
 		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_ASSISTANCE_TO_THEM") .. "[NEWLINE]";	
-	end	
-	if (pOtherPlayer:IsLiberatedCapital(iActivePlayer)) then
+	end	]]--
+	--[[if (pOtherPlayer:IsLiberatedCapital(iActivePlayer)) then
 		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_LIBERATED_CAPITAL") .. "[NEWLINE]";	
-	end
-	if (pOtherPlayer:IsLiberatedCity(iActivePlayer)) then
+	end]]--
+	--[[if (pOtherPlayer:IsLiberatedCity(iActivePlayer)) then
 		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_LIBERATED_CITY") .. "[NEWLINE]";	
-	end	
-	if (pOtherPlayer:IsGaveAssistanceTo(iActivePlayer)) then
+	end	]]--
+	--[[if (pOtherPlayer:IsGaveAssistanceTo(iActivePlayer)) then
 		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_ASSISTANCE_FROM_THEM") .. "[NEWLINE]";	
-	end		
-	if (pOtherPlayer:IsHasPaidTributeTo(iActivePlayer)) then
+	end	]]--	
+	--[[if (pOtherPlayer:IsHasPaidTributeTo(iActivePlayer)) then
 		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_PAID_TRIBUTE") .. "[NEWLINE]";	
-	end	
-	if (pOtherPlayer:IsNukedBy(iActivePlayer)) then
+	end	]]--
+	--[[if (pOtherPlayer:IsNukedBy(iActivePlayer)) then
 		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_NUKED") .. "[NEWLINE]";	
-	end		
-	if (pOtherPlayer:IsCapitalCapturedBy(iActivePlayer)) then
+	end]]--	
+	--[[if (pOtherPlayer:IsCapitalCapturedBy(iActivePlayer)) then
 		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_CAPTURED_CAPITAL") .. "[NEWLINE]";	
-	end	
+	end	]]--
 
 	-- Protected Minors
-	if (pOtherPlayer:GetOtherPlayerNumProtectedMinorsKilled(iActivePlayer) > 0) then
+	--[[if (pOtherPlayer:IsAngryAboutProtectedMinorKilled(iActivePlayer)) then
 		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_PROTECTED_MINORS_KILLED") .. "[NEWLINE]";
-	-- Only worry about protected minors ATTACKED if they haven't KILLED any
-	else
-		if (pOtherPlayer:GetOtherPlayerNumProtectedMinorsAttacked(iActivePlayer) > 0) then
-			strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_PROTECTED_MINORS_ATTACKED") .. "[NEWLINE]";
-		end
-	end
+	end]]--
+	--[[if (pOtherPlayer:IsAngryAboutProtectedMinorAttacked(iActivePlayer)) then
+		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_PROTECTED_MINORS_ATTACKED") .. "[NEWLINE]";
+	end]]--
+	--[[if (pOtherPlayer:IsAngryAboutProtectedMinorBullied(iActivePlayer)) then
+		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_PROTECTED_MINORS_BULLIED") .. "[NEWLINE]";
+	end]]--
+	
+	-- Bullied Minors
+	--[[if (pOtherPlayer:IsAngryAboutSidedWithTheirProtectedMinor(iActivePlayer)) then
+		strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_SIDED_WITH_MINOR") .. "[NEWLINE]";
+	end]]--
 	
 	--local iActualApproach = pOtherPlayer:GetMajorCivApproach(iActivePlayer)
 	
+	-- MOVED TO LUAPLAYER
+	--[[
 	-- Bad things we don't want visible if someone is friendly (acting or truthfully)
 	if (iVisibleApproach ~= MajorCivApproachTypes.MAJOR_CIV_APPROACH_FRIENDLY) then-- and
 		--iActualApproach ~= MajorCivApproachTypes.MAJOR_CIV_APPROACH_DECEPTIVE) then
@@ -912,7 +1160,7 @@ function GetMoodInfo(iOtherPlayer)
 			strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_LAND_DISPUTE") .. "[NEWLINE]";
 		end
 		--if (pOtherPlayer:GetVictoryDisputeLevel(iActivePlayer) > DisputeLevelTypes.DISPUTE_LEVEL_NONE) then
-		--	strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_VICTORY_DISPUTE") .. "[NEWLINE]";
+			--strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_VICTORY_DISPUTE") .. "[NEWLINE]";
 		--end
 		if (pOtherPlayer:GetWonderDisputeLevel(iActivePlayer) > DisputeLevelTypes.DISPUTE_LEVEL_NONE) then
 			strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_WONDER_DISPUTE") .. "[NEWLINE]";
@@ -924,7 +1172,16 @@ function GetMoodInfo(iOtherPlayer)
 			strInfo = strInfo .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_DIPLO_WARMONGER_THREAT") .. "[NEWLINE]";
 		end
 	end
+	]]--
 	
+	local aOpinion = pOtherPlayer:GetOpinionTable(iActivePlayer);
+	--local aOpinionList = {};
+	for i,v in ipairs(aOpinion) do
+		--aOpinionList[i] = "[ICON_BULLET]" .. v .. "[NEWLINE]";
+		strInfo = strInfo .. "[ICON_BULLET]" .. v .. "[NEWLINE]";
+	end
+	--strInfo = table.cat(aOpinionList, "[NEWLINE]");
+
 	--  No specific events - let's see what string we should use
 	if (strInfo == "") then
 		
@@ -951,4 +1208,103 @@ function GetMoodInfo(iOtherPlayer)
 	
 	return strInfo;
 	
+end
+------------------------------
+-- Helper function to build religion tooltip string
+function GetReligionTooltip(city)
+
+	local religionToolTip = "";
+	
+	if (Game.IsOption(GameOptionTypes.GAMEOPTION_NO_RELIGION)) then
+		return religionToolTip;
+	end
+
+	local bFoundAFollower = false;
+	local eReligion = city:GetReligiousMajority();
+	local bFirst = true;
+	
+	if (eReligion >= 0) then
+		bFoundAFollower = true;
+		local religion = GameInfo.Religions[eReligion];
+		local strReligion = Locale.ConvertTextKey(Game.GetReligionName(eReligion));
+	    local strIcon = religion.IconString;
+		local strPressure = "";
+			
+		if (city:IsHolyCityForReligion(eReligion)) then
+			if (not bFirst) then
+				religionToolTip = religionToolTip .. "[NEWLINE]";
+			else
+				bFirst = false;
+			end
+			religionToolTip = religionToolTip .. Locale.ConvertTextKey("TXT_KEY_HOLY_CITY_TOOLTIP_LINE", strIcon, strReligion);			
+		end
+
+		local iPressure;
+		local iNumTradeRoutesAddingPressure;
+		iPressure, iNumTradeRoutesAddingPressure = city:GetPressurePerTurn(eReligion);
+		if (iPressure > 0) then
+			strPressure = Locale.ConvertTextKey("TXT_KEY_RELIGIOUS_PRESSURE_STRING", math.floor(iPressure/GameDefines["RELIGION_MISSIONARY_PRESSURE_MULTIPLIER"]));
+		end
+		
+		local iFollowers = city:GetNumFollowers(eReligion)			
+		if (not bFirst) then
+			religionToolTip = religionToolTip .. "[NEWLINE]";
+		else
+			bFirst = false;
+		end
+		
+		--local iNumTradeRoutesAddingPressure = city:GetNumTradeRoutesAddingPressure(eReligion);
+		if (iNumTradeRoutesAddingPressure > 0) then
+			religionToolTip = religionToolTip .. Locale.ConvertTextKey("TXT_KEY_RELIGION_TOOLTIP_LINE_WITH_TRADE", strIcon, iFollowers, strPressure, iNumTradeRoutesAddingPressure);
+		else
+			religionToolTip = religionToolTip .. Locale.ConvertTextKey("TXT_KEY_RELIGION_TOOLTIP_LINE", strIcon, iFollowers, strPressure);
+		end
+	end	
+		
+	local iReligionID;
+	for pReligion in GameInfo.Religions() do
+		iReligionID = pReligion.ID;
+		
+		if (iReligionID >= 0 and iReligionID ~= eReligion and city:GetNumFollowers(iReligionID) > 0) then
+			bFoundAFollower = true;
+			local religion = GameInfo.Religions[iReligionID];
+			local strReligion = Locale.ConvertTextKey(Game.GetReligionName(iReligionID));
+			local strIcon = religion.IconString;
+			local strPressure = "";
+
+			if (city:IsHolyCityForReligion(iReligionID)) then
+				if (not bFirst) then
+					religionToolTip = religionToolTip .. "[NEWLINE]";
+				else
+					bFirst = false;
+				end
+				religionToolTip = religionToolTip .. Locale.ConvertTextKey("TXT_KEY_HOLY_CITY_TOOLTIP_LINE", strIcon, strReligion);			
+			end
+				
+			local iPressure = city:GetPressurePerTurn(iReligionID);
+			if (iPressure > 0) then
+				strPressure = Locale.ConvertTextKey("TXT_KEY_RELIGIOUS_PRESSURE_STRING", math.floor(iPressure/GameDefines["RELIGION_MISSIONARY_PRESSURE_MULTIPLIER"]));
+			end
+			
+			local iFollowers = city:GetNumFollowers(iReligionID)			
+			if (not bFirst) then
+				religionToolTip = religionToolTip .. "[NEWLINE]";
+			else
+				bFirst = false;
+			end
+			
+			local iNumTradeRoutesAddingPressure = city:GetNumTradeRoutesAddingPressure(iReligionID);
+			if (iNumTradeRoutesAddingPressure > 0) then
+				religionToolTip = religionToolTip .. Locale.ConvertTextKey("TXT_KEY_RELIGION_TOOLTIP_LINE_WITH_TRADE", strIcon, iFollowers, strPressure, iNumTradeRoutesAddingPressure);
+			else
+				religionToolTip = religionToolTip .. Locale.ConvertTextKey("TXT_KEY_RELIGION_TOOLTIP_LINE", strIcon, iFollowers, strPressure);
+			end
+		end
+	end
+	
+	if (not bFoundAFollower) then
+		religionToolTip = religionToolTip .. Locale.ConvertTextKey("TXT_KEY_RELIGION_NO_FOLLOWERS");
+	end
+		
+	return religionToolTip;
 end
