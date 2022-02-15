@@ -248,6 +248,8 @@ protected:
 	static int lChangeJONSCulturePerTurnFromReligion(lua_State* L);
 	static int lGetJONSCulturePerTurnFromLeagues(lua_State* L);
 
+	static int lGetScientificInfluence(lua_State* L);
+
 	static int lGetCultureRateModifier(lua_State* L);
 	static int lChangeCultureRateModifier(lua_State* L);
 

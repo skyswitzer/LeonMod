@@ -50,6 +50,13 @@
         <Label ID="SciencePerTurnLabel" Anchor="R,C" String="" Color0="Science.255" Color1="0.0.0.128" Color2="255.255.200.255" Font="TwCenMT20" FontStyle="Shadow"/>
         <Box Anchor="L,B" Color="27.53.64.255" Offset="4,0" Size="240,1"/>
       </Box>
+      <!-- Scientific Influence Info -->
+      <Box Offset="0,0" Anchor="L,T" Size="240,32" Color="255,255,255,0" ID="SIBox">
+        <Label Anchor="L,C" Offset="6,0" String="[ICON_SCIENTIFIC_INFLUENCE]"/>
+        <Label Anchor="L,C" Offset="32,0" String="TXT_KEY_SCIENTIFIC_INFLUENCE_TEXT" Font="TwCenMT20" FontStyle="Shadow"/>
+        <Label ID="SIPerTurnLabel" Anchor="R,C" String="" Font="TwCenMT20" FontStyle="Shadow"/>
+        <Box Anchor="L,B" Color="27.53.64.255" Offset="4,0" Size="240,1"/>
+      </Box>
       <!-- Faith Info -->
       <Box Offset="0,0" Anchor="L,T" Size="240,32" Color="255,255,255,0" ID="FaithBox">
         <Label Anchor="L,C" Offset="6,0" String="[ICON_PEACE]"/>

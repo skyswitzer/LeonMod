@@ -248,6 +248,8 @@ void CvLuaCity::PushMethods(lua_State* L, int t)
 	Method(GetJONSCulturePerTurnFromReligion);
 	Method(GetJONSCulturePerTurnFromLeagues);
 
+	Method(GetScientificInfluence);
+
 	Method(GetCultureRateModifier);
 	Method(ChangeCultureRateModifier);
 
@@ -2169,6 +2171,12 @@ int CvLuaCity::lChangeJONSCulturePerTurnFromReligion(lua_State* L)
 int CvLuaCity::lGetJONSCulturePerTurnFromLeagues(lua_State* L)
 {
 	return BasicLuaMethod(L, &CvCity::GetJONSCulturePerTurnFromLeagues);
+}
+//------------------------------------------------------------------------------
+//int GetJONSCulturePerTurnFromLeagues() const;
+int CvLuaCity::lGetScientificInfluence(lua_State* L)
+{
+	return BasicLuaMethod(L, &CvCity::getScientificInfluence);
 }
 //------------------------------------------------------------------------------
 //int getCultureRateModifier() const;

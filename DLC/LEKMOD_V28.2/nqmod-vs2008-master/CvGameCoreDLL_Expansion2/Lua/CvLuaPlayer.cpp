@@ -557,6 +557,8 @@ void CvLuaPlayer::PushMethods(lua_State* L, int t)
 	Method(ChangeScoreFromScenario4);
 	Method(GetTeamDiplomaticInfluence);
 	Method(GetTeamDiplomaticInfluenceNeeded);
+	Method(GetScientificInfluence);
+	Method(GetScientificInfluenceNeeded);
 
 	Method(IsGoldenAgeCultureBonusDisabled);
 
@@ -6073,6 +6075,22 @@ int CvLuaPlayer::lGetTeamDiplomaticInfluenceNeeded(lua_State* L)
 	CvPlayerAI* pkPlayer = GetInstance(L);
 	const CvTeam& team = GET_TEAM(pkPlayer->getTeam());
 	const int value = team.GetTotalDiplomaticInfluenceNeeded();
+	lua_pushinteger(L, value);
+	return 1;
+}
+//------------------------------------------------------------------------------
+int CvLuaPlayer::lGetScientificInfluence(lua_State* L)
+{
+	CvPlayerAI* pkPlayer = GetInstance(L);
+	const int value = pkPlayer->GetScientificInfluence();
+	lua_pushinteger(L, value);
+	return 1;
+}
+//------------------------------------------------------------------------------
+int CvLuaPlayer::lGetScientificInfluenceNeeded(lua_State* L)
+{
+	CvPlayerAI* pkPlayer = GetInstance(L);
+	const int value = pkPlayer->GetScientificInfluenceNeeded();
 	lua_pushinteger(L, value);
 	return 1;
 }

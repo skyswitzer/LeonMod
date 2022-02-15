@@ -428,6 +428,7 @@ end
 ----------------------------------------------------------------
 ----------------------------------------------------------------
 function PopulateSpaceRace()
+	local pPlayer = Players[Game.GetActivePlayer()];
 	if(PreGame.IsVictory(GameInfo.Victories["VICTORY_SPACE_RACE"].ID))then
 		local apolloProj = GameInfoTypes["PROJECT_APOLLO_PROGRAM"];
 		local strPlayer = Locale.ConvertTextKey("TXT_KEY_CITY_STATE_NOBODY");
@@ -469,8 +470,8 @@ function PopulateSpaceRace()
 				end
 			end
 
-			local have = 69;
-			local needed = 1000;
+			local have = pPlayer:GetScientificInfluence();
+			local needed = pPlayer:GetScientificInfluenceNeeded();
 			local yourScientificInfluence = Locale.ConvertTextKey("You have " .. have .. " of " .. needed .. " {TXT_KEY_SCIENTIFIC_INFLUENCE} needed.");
 			local apolloProgress = Locale.ConvertTextKey("TXT_KEY_VP_DIPLO_PROJECT_PLAYERS_COMPLETE", numApollo, "TXT_KEY_PROJECT_APOLLO_PROGRAM");
 

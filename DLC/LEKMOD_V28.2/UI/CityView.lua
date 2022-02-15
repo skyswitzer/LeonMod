@@ -1669,6 +1669,9 @@ function OnCityViewUpdate()
 		
 		local iTourismPerTurn = pCity:GetBaseTourism();
 		Controls.TourismPerTurnLabel:SetText( Locale.ConvertTextKey("TXT_KEY_CITYVIEW_PERTURN_TEXT", iTourismPerTurn) );
+		
+		local iSI = pCity:GetScientificInfluence();
+		Controls.SIPerTurnLabel:SetText( Locale.ConvertTextKey("TXT_KEY_CITYVIEW_PERTURN_TEXT", iSI) );
 	
 
 		local cityGrowth = pCity:GetFoodTurnsLeft();			
@@ -1963,6 +1966,9 @@ function DoUpdateUpperLeftTooltips()
 	
 	local strTourismToolTip = GetTourismTooltip(pCity);
 	Controls.TourismBox:SetToolTipString(strTourismToolTip);
+	
+	local tooltip = Locale.ConvertTextKey("TXT_KEY_SCIENTIFIC_INFLUENCE_DETAIL");
+	Controls.SIBox:SetToolTipString(tooltip);
 end
 
 -------------------------------------------------
