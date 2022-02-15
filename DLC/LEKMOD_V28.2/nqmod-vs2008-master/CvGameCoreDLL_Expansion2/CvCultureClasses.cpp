@@ -2652,17 +2652,6 @@ CvString CvPlayerCulture::GetTourismModifierWith_Tooltip(PlayerTypes eOtherPlaye
 	//	szRtnValue += "[COLOR_GREY]" + GetLocalizedText("TXT_KEY_CO_PLAYER_TOURISM_TRADE_ROUTE", 0) + "[ENDCOLOR]";
 	//}
 
-
-	{ // technology
-		const int mod = GetTourismModifierTechnologyT100(eOtherPlayer);
-		stringstream s;
-		if (mod > 0)      s << "[COLOR_POSITIVE_TEXT]+";
-		else if (mod < 0) s << "[COLOR_NEGATIVE_TEXT]-";
-		else              s << "[COLOR_GREY]+";
-		s << abs(mod) << "% from Technologies[ENDCOLOR][NEWLINE]";
-		szRtnValue += s.str().c_str();
-	}
-
 	// shared religion
 	ReligionTypes ePlayerReligion = m_pPlayer->GetReligions()->GetReligionInMostCities();
 	if (ePlayerReligion != NO_RELIGION && kPlayer.GetReligions()->HasReligionInMostCities(ePlayerReligion))
@@ -2769,13 +2758,25 @@ CvString CvPlayerCulture::GetTourismModifierWith_Tooltip(PlayerTypes eOtherPlaye
 		szRtnValue += s.str().c_str();
 	}
 
+	szRtnValue += "[COLOR_CYAN]Compounded:[ENDCOLOR][NEWLINE]";
+
+	{ // technology
+		const int mod = GetTourismModifierTechnologyT100(eOtherPlayer);
+		stringstream s;
+		if (mod > 0)      s << "[COLOR_POSITIVE_TEXT]+";
+		else if (mod < 0) s << "[COLOR_NEGATIVE_TEXT]-";
+		else              s << "[COLOR_GREY]+";
+		s << abs(mod) << "% from Technologies[ENDCOLOR][NEWLINE]";
+		szRtnValue += s.str().c_str();
+	}
+
 	{ // adjust for number of cities
 		const int mod = GetTourismModifierCityCountT100(eOtherPlayer);
 		stringstream s;
 		if (mod > 0)      s << "[COLOR_POSITIVE_TEXT]+";
 		else if (mod < 0) s << "[COLOR_NEGATIVE_TEXT]-";
 		else              s << "[COLOR_GREY]+";
-		s << abs(mod) << "% from difference in number of cities[ENDCOLOR][NEWLINE]";
+		s << abs(mod) << "% from difference in cities count[ENDCOLOR][NEWLINE]";
 		szRtnValue += s.str().c_str();
 	}
 
@@ -2808,12 +2809,6 @@ int CvPlayerCulture::GetTourismModifierWithT100(PlayerTypes eOtherPlayer, bool b
 	//		iMultiplier += kCityPlayer.GetCulture()->GetTourismModifierTradeRoute();
 	//	}
 	//}
-
-	// technology
-	{
-		int mod = GetTourismModifierTechnologyT100(eOtherPlayer);
-		iMultiplier += mod;
-	}
 
 	// Shared religion
 	if (!bIgnoreReligion)
@@ -2903,10 +2898,22 @@ int CvPlayerCulture::GetTourismModifierWithT100(PlayerTypes eOtherPlayer, bool b
 	// happiness
 	iMultiplier += GetTourismModifierHappinessT100(eOtherPlayer);
 
-	// adjust for number of cities
-	iMultiplier += GetTourismModifierCityCountT100(eOtherPlayer);
+	// compounding influences
+	int resultT100 = 0;
+	{
+		double factor = GC.toFactor(iMultiplier);
 
-	return iMultiplier;
+		// technology
+		const float internetFactor = GC.toFactor(GetTourismModifierTechnologyT100(eOtherPlayer));
+		factor *= internetFactor;
+		// adjust for number of cities COMPOUNDED
+		const float cityFactor = GetTourismModifierCityCount(eOtherPlayer);
+		factor *= cityFactor;
+
+		resultT100 = GC.toPercentT100(factor);
+	}
+
+	return resultT100;
 }
 
 double CvPlayerCulture::GetTourismModifierGoldenAgeT100(PlayerTypes eOtherPlayer) const
@@ -2915,7 +2922,7 @@ double CvPlayerCulture::GetTourismModifierGoldenAgeT100(PlayerTypes eOtherPlayer
 
 	if (m_pPlayer->isGoldenAge())
 	{
-		modT100 += 5;
+		modT100 += 15;
 		modT100 += m_pPlayer->GetPlayerTraits()->GetGoldenAgeTourismModifier();
 	}
 
@@ -2946,7 +2953,7 @@ float CvPlayerCulture::GetTourismModifierCityCount(PlayerTypes eOtherPlayer) con
 
 int CvPlayerCulture::GetTourismModifierCityCountT100(PlayerTypes eOtherPlayer) const
 {
-	return (int)((GetTourismModifierCityCount(eOtherPlayer) - 1) * 100.0 + 0.5);
+	return GC.toPercentT100(GetTourismModifierCityCount(eOtherPlayer));
 }
 
 int CvPlayerCulture::GetTourismModifierSharedReligion() const
@@ -2956,8 +2963,7 @@ int CvPlayerCulture::GetTourismModifierSharedReligion() const
 
 int CvPlayerCulture::GetTourismModifierTechnologyT100(PlayerTypes eOtherPlayer) const
 {
-	int modT100 = m_pPlayer->GetInfluenceSpreadModifier();
-	double techFactor = 1.0; // default multiply by 1
+	double changeFactor = 1.0; // default multiply by 1
 
 	// for each city
 	CvCity* pLoopCity;
@@ -2982,20 +2988,24 @@ int CvPlayerCulture::GetTourismModifierTechnologyT100(PlayerTypes eOtherPlayer) 
 				const int buildingCount = pLoopCity->GetCityBuildings()->GetNumBuilding(eBuilding);				
 				if (pBuildingEntry != NULL && buildingCount > 0)
 				{
-					double internetDefensePerBuildingT100 = max(0, pBuildingEntry->GetInternetDefense());
+					// 25 internet defense should reduce internet to 75% of previous value
+					const int internetMultiplierT100 = -min(100, max(0, pBuildingEntry->GetInternetDefense()));
+					double defenseFactor = GC.toFactor(internetMultiplierT100);
 					if (pBuildingEntry->NullifyInfluenceModifier())
 					{
-						internetDefensePerBuildingT100 += 1.0; // equivalent to 100% internet defense
+						defenseFactor = 0.0; // equivalent to 100% internet defense
 					}
 
-					techFactor -= (buildingCount * internetDefensePerBuildingT100 / 100.0);
+					changeFactor *= defenseFactor;
 				}
 			}
 		}
 	}
-	modT100 *= techFactor;
 
-	return max(0, modT100 / 100);
+	double internetFactor = GC.toFactor(m_pPlayer->GetInfluenceSpreadModifier());
+	internetFactor *= changeFactor;
+
+	return max(0, GC.toPercentT100(internetFactor));
 
 }
 

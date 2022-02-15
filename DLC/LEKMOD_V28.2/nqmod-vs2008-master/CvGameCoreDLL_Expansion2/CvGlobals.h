@@ -222,6 +222,17 @@ public:
 		return val;
 	}
 
+	// 1.516 -> 52
+	int toPercentT100(double factor)
+	{
+		return ((factor - 1.0) * 100.0) + 0.5;
+	}
+	// 52 -> 1.52
+	double toFactor(const int percentChangeT100)
+	{
+		return 1.0 + ((double)percentChangeT100 / 100.0);
+	}
+
 	// in online turns, indicates the percentage [0,1]
 	float turnsToPercentage(float start, float end);
 	// [0, 1] Number of turns DONE as a percentage of max turns 
