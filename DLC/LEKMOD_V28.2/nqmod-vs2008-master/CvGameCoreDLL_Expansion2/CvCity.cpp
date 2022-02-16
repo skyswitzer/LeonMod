@@ -5652,6 +5652,7 @@ void CvCity::setProduction(int iNewValue)
 	{
 		setOverflowProduction(iNewValue);
 	}
+	DLLUI->setDirty(CityInfo_DIRTY_BIT, true);
 }
 
 
@@ -5679,6 +5680,7 @@ void CvCity::changeProduction(int iChange)
 	{
 		changeOverflowProduction(iChange);
 	}
+	DLLUI->setDirty(CityInfo_DIRTY_BIT, true);
 }
 
 
@@ -5706,6 +5708,7 @@ void CvCity::setProductionTimes100(int iNewValue)
 	{
 		setOverflowProductionTimes100(iNewValue);
 	}
+	DLLUI->setDirty(CityInfo_DIRTY_BIT, true);
 }
 
 
@@ -5737,6 +5740,7 @@ void CvCity::changeProductionTimes100(int iChange)
 	{
 		changeOverflowProductionTimes100(iChange);
 	}
+	DLLUI->setDirty(CityInfo_DIRTY_BIT, true);
 }
 
 
@@ -9570,6 +9574,7 @@ void CvCity::setFoodTimes100(int iNewValue)
 	{
 		m_iFood = iNewValue;
 	}
+	DLLUI->setDirty(CityInfo_DIRTY_BIT, true);
 }
 
 
@@ -12320,6 +12325,7 @@ void CvCity::setDamage(int iValue, bool noMessage)
 			DLLUI->AddPopupText(m_iX, m_iY, text, fDelay);
 		}
 		m_iDamage = iValue;
+		DLLUI->setDirty(CityInfo_DIRTY_BIT, true);
 	}
 }
 
