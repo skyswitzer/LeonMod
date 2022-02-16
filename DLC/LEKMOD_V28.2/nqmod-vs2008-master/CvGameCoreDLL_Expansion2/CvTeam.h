@@ -432,6 +432,7 @@ public:
 	virtual void Write(FDataStream& kStream) const;
 #endif
 
+	VictoryTypes m_eLastVictoryAchieved;
 protected:
 
 	TeamTypes m_eID;
@@ -484,6 +485,7 @@ protected:
 	bool m_bBrokenCityStatePromise;
 
 	EraTypes m_eCurrentEra;
+
 
 	TeamTypes m_eLiberatedByTeam;
 	TeamTypes m_eKilledByTeam;

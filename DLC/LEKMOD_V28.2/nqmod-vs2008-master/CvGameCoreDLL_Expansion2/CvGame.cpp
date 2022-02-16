@@ -9774,7 +9774,7 @@ void CvGame::testVictory()
 		// won enough competitions to win the whole game
 		if (teamCompetitionsComplete >= competitionsNeeded)
 		{
-			const int victoryScreen = GC.rand(4, "");
+			const int victoryScreen = kLoopTeam.m_eLastVictoryAchieved;//GC.rand(4, "");
 			std::vector<int> aWinner;
 			aWinner.push_back(iTeamLoop);
 			aWinner.push_back(victoryScreen);
