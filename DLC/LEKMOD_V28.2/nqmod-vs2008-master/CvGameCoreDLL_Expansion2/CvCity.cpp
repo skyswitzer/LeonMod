@@ -14471,6 +14471,8 @@ bool CvCity::CreateBuilding(BuildingTypes eBuildingType)
 //	--------------------------------------------------------------------------------
 bool CvCity::CreateProject(ProjectTypes eProjectType)
 {
+	const int scientificInfluenceForSpaceShip = 40;
+
 	VALIDATE_OBJECT
 
 	CvPlayer& thisPlayer = GET_PLAYER(getOwner());
@@ -14515,6 +14517,7 @@ bool CvCity::CreateProject(ProjectTypes eProjectType)
 			auto_ptr<ICvPlot1> pDllPlot(new CvDllPlot(plot()));
 			gDLL->GameplaySpaceshipEdited(pDllPlot.get(), eConstructed);
 			gDLL->sendLaunch(getOwner(), eVictory);
+			changeScientificInfluence(+scientificInfluenceForSpaceShip);
 		}
 		else
 		{

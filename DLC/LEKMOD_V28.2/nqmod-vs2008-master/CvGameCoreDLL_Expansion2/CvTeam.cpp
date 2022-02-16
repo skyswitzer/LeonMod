@@ -4643,8 +4643,27 @@ void CvTeam::changeProjectCount(ProjectTypes eIndex, int iChange)
 		{
 			if(pkProject->GetVictoryThreshold(iVictory) > 0)
 			{
-				m_abCanLaunch[iVictory] = GC.getGame().testVictory((VictoryTypes)iVictory, GetID());
-				GC.getGame().testVictory();
+				const VictoryTypes eVictory = (VictoryTypes)iVictory;
+				CvVictoryInfo* pkVictoryInfo = GC.getVictoryInfo(eVictory);
+				if (pkVictoryInfo != NULL)
+				{
+					bool achievedThreshold = true;
+					for (uint iK = 0; iK < GC.getNumProjectInfos(); iK++)
+					{
+						const ProjectTypes eProject = static_cast<ProjectTypes>(iK);
+						CvProjectEntry* pkProjectInfo = GC.getProjectInfo(eProject);
+						if (pkProjectInfo)
+						{
+							if (pkProjectInfo->GetVictoryMinThreshold(eVictory) > getProjectCount(eProject))
+							{
+								achievedThreshold = false;
+								break;
+							}
+						}
+					}
+					m_abCanLaunch[iVictory] = achievedThreshold;
+					GC.getGame().testVictory();
+				}
 			}
 		}
 

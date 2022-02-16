@@ -9437,6 +9437,7 @@ bool CvGame::testVictory(const VictoryTypes eVictory, const TeamTypes eTeam, boo
 		if(pkVictoryInfo->isDiploVote())
 		{
 			bValid = false;
+			// if any player won, award this victory
 			for (int iPlayerLoop = 0; iPlayerLoop < MAX_PLAYERS; iPlayerLoop++)
 			{
 				PlayerTypes ePlayerLoop = (PlayerTypes) iPlayerLoop;
@@ -9603,20 +9604,42 @@ bool CvGame::testVictory(const VictoryTypes eVictory, const TeamTypes eTeam, boo
 	// Projects
 	if(bValid)
 	{
-#ifdef AUI_WARNING_FIXES
-		for (uint iK = 0; iK < GC.getNumProjectInfos(); iK++)
-#else
-		for(int iK = 0; iK < GC.getNumProjectInfos(); iK++)
-#endif
-		{
-			const ProjectTypes eProject = static_cast<ProjectTypes>(iK);
-			CvProjectEntry* pkProjectInfo = GC.getProjectInfo(eProject);
-			if(pkProjectInfo)
+		if (pkVictoryInfo->GetID() != 1) // disallow space race rocket ship star ship
+			for (uint iK = 0; iK < GC.getNumProjectInfos(); iK++)
 			{
-				if(pkProjectInfo->GetVictoryMinThreshold(eVictory) > GET_TEAM(eTeam).getProjectCount(eProject))
+				const ProjectTypes eProject = static_cast<ProjectTypes>(iK);
+				CvProjectEntry* pkProjectInfo = GC.getProjectInfo(eProject);
+				if(pkProjectInfo)
 				{
-					bValid = false;
-					break;
+					if(pkProjectInfo->GetVictoryMinThreshold(eVictory) > GET_TEAM(eTeam).getProjectCount(eProject))
+					{
+						bValid = false;
+						break;
+					}
+				}
+			}
+	}
+
+	// science
+	if (bValid)
+	{
+		if (pkVictoryInfo->GetID() == 1) // space race rocket ship star ship
+		{
+			// every player on team must meet science goal
+			for (int iPlayerLoop = 0; iPlayerLoop < MAX_PLAYERS; iPlayerLoop++)
+			{
+				const PlayerTypes eLoopPlayer = (PlayerTypes)iPlayerLoop;
+				const CvPlayerAI& player = GET_PLAYER(eLoopPlayer);
+				if (player.isAlive())
+				{
+					if (player.getTeam() == eTeam)
+					{
+						if (player.GetScientificInfluence() < player.GetScientificInfluenceNeeded())
+						{
+							bValid = false; // not enough science
+							break;
+						}
+					}
 				}
 			}
 		}
