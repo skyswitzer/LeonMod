@@ -15,6 +15,8 @@
 #include "CvDiplomacyAI.h"
 #include "CvGrandStrategyAI.h"
 #include "CvTypes.h"
+#include <iomanip>
+#include <limits>
 
 #include "LintFree.h"
 
@@ -2622,6 +2624,27 @@ int CvPlayerCulture::GetNetTourismWith(PlayerTypes eOtherPlayer) const
 	return tourismT100 / 100;
 }
 
+void showFactorIncrease(stringstream& s, const int modT100, int& valT100)
+{
+	const int oldValT100 = valT100;
+	const double factor = GC.toFactor(modT100);
+	valT100 *= factor;
+	//if (modT100 > 0)      s << "[COLOR_POSITIVE_TEXT]";
+	//else if (modT100 < 0) s << "[COLOR_NEGATIVE_TEXT]";
+	//else				  s << "[COLOR_GREY]";
+	s << std::fixed << std::setprecision(2) << factor << " x " << (oldValT100 / 100) << " = " << (valT100 / 100);
+}
+void addColoredValue(stringstream& s, const int modT100, const string description)
+{
+	const int absModT100 = abs(modT100);
+	if (modT100 > 0)      s << "[COLOR_POSITIVE_TEXT]+" << absModT100;
+	else if (modT100 < 0) s << "[COLOR_NEGATIVE_TEXT]-" << absModT100;
+	else				  s << "[COLOR_GREY]+" << absModT100;
+	s << "% " << description << "[ENDCOLOR][NEWLINE]";
+}
+
+
+
 /// Tooltip for GetTourismModifierWith()
 CvString CvPlayerCulture::GetTourismModifierWith_Tooltip(PlayerTypes eOtherPlayer) const
 {
@@ -2631,6 +2654,7 @@ CvString CvPlayerCulture::GetTourismModifierWith_Tooltip(PlayerTypes eOtherPlaye
 	PolicyBranchTypes eMyIdeology = m_pPlayer->GetPlayerPolicies()->GetLateGamePolicyTree();
 	PolicyBranchTypes eTheirIdeology = kPlayer.GetPlayerPolicies()->GetLateGamePolicyTree();
 
+	int tourismT100 = GetOurNetTourismT100();
 
 	// Open borders
 	//if (kTeam.IsAllowsOpenBordersToTeam(m_pPlayer->getTeam()))
@@ -2652,133 +2676,127 @@ CvString CvPlayerCulture::GetTourismModifierWith_Tooltip(PlayerTypes eOtherPlaye
 	//	szRtnValue += "[COLOR_GREY]" + GetLocalizedText("TXT_KEY_CO_PLAYER_TOURISM_TRADE_ROUTE", 0) + "[ENDCOLOR]";
 	//}
 
-	// shared religion
-	ReligionTypes ePlayerReligion = m_pPlayer->GetReligions()->GetReligionInMostCities();
-	if (ePlayerReligion != NO_RELIGION && kPlayer.GetReligions()->HasReligionInMostCities(ePlayerReligion))
+	stringstream stream;
 	{
-		szRtnValue += "[COLOR_POSITIVE_TEXT]" + GetLocalizedText("TXT_KEY_CO_PLAYER_TOURISM_RELIGION_NOTE", GetTourismModifierSharedReligion()) + "[ENDCOLOR]";
-	}
-	else
-	{
-		szRtnValue += "[COLOR_GREY]" + GetLocalizedText("TXT_KEY_CO_PLAYER_TOURISM_RELIGION_NOTE", 0) + "[ENDCOLOR]";
-	}
-
-	// no ideology
-	if (eMyIdeology == NO_POLICY_BRANCH_TYPE || eTheirIdeology == NO_POLICY_BRANCH_TYPE) // do we have ideology?
-	{
-		szRtnValue += "[COLOR_GREY]+0% from Ideology[ENDCOLOR][NEWLINE]";
-	}
-	// different ideologies
-	else if (eMyIdeology != eTheirIdeology)
-	{
-		szRtnValue += "[COLOR_NEGATIVE_TEXT]" + GetLocalizedText("TXT_KEY_CO_PLAYER_TOURISM_DIFFERENT_IDEOLOGIES", GC.getTOURISM_MODIFIER_DIFFERENT_IDEOLOGIES()) + "[ENDCOLOR]";
-	}
-	// shared ideology
-	else
-	{
-		int iSharedIdeologyMod = m_pPlayer->GetPlayerPolicies()->GetNumericModifier(POLICYMOD_TOURISM_MOD_SHARED_IDEOLOGY);
-		if (iSharedIdeologyMod > 0)
-		{
-			szRtnValue += "[COLOR_POSITIVE_TEXT]" + GetLocalizedText("TXT_KEY_CO_PLAYER_TOURISM_SHARED_IDEOLOGY", iSharedIdeologyMod) + "[ENDCOLOR]";
+		int totalLinearModT100 = 0;
+		
+		{ // shared religion
+			ReligionTypes ePlayerReligion = m_pPlayer->GetReligions()->GetReligionInMostCities();
+			int mod = 0;
+			if (ePlayerReligion != NO_RELIGION && kPlayer.GetReligions()->HasReligionInMostCities(ePlayerReligion))
+				mod = GetTourismModifierSharedReligion();
+			addColoredValue(stream, mod, "from Shared Religion"); // TXT_KEY_CO_PLAYER_TOURISM_RELIGION_NOTE
+			totalLinearModT100 += mod;
 		}
-	}
 
-	// diplomat bonus
-	if (m_pPlayer->GetEspionage()->IsMyDiplomatVisitingThem(eOtherPlayer))
-	{
-		szRtnValue += "[COLOR_POSITIVE_TEXT]" + GetLocalizedText("TXT_KEY_CO_PLAYER_TOURISM_PROPAGANDA", GC.getTOURISM_MODIFIER_DIPLOMAT()) + "[ENDCOLOR]";
-	}
-	// no diplomat bonus
-	else
-	{
-		szRtnValue += "[COLOR_GREY]" + GetLocalizedText("TXT_KEY_CO_PLAYER_TOURISM_PROPAGANDA", 0) + "[ENDCOLOR]";
-	}
+		{ // ideology
+			int mod = 0;
+			string phrase = "";
 
-	// Cult of personality
-	int iCommonFoeMod = m_pPlayer->GetPlayerPolicies()->GetNumericModifier(POLICYMOD_TOURISM_MOD_COMMON_FOE);
-	if (iCommonFoeMod > 0)
-	{
-		// NQMP GJS - new Cult of Personality BEGIN
-		int rank = 0;
-		int totalEnemies = 0;
-		int myStrength = m_pPlayer->GetMilitaryMight();
-
-		PlayerTypes eLoopPlayer;
-		for (int iPlayerLoop = 0; iPlayerLoop < MAX_MAJOR_CIVS; iPlayerLoop++)
-		{
-			eLoopPlayer = (PlayerTypes)iPlayerLoop;
-			if (eLoopPlayer != m_pPlayer->GetID() && m_pPlayer->GetDiplomacyAI()->IsPlayerValid(eLoopPlayer))
+			// no ideology
+			if (eMyIdeology == NO_POLICY_BRANCH_TYPE || eTheirIdeology == NO_POLICY_BRANCH_TYPE)
 			{
-				totalEnemies++;
-				if (GET_PLAYER(eLoopPlayer).GetMilitaryMight() > myStrength)
+				mod = 0;
+				phrase = "from Ideology";
+			}
+			// different ideologies
+			else if (eMyIdeology != eTheirIdeology)
+			{
+				mod = GC.getTOURISM_MODIFIER_DIFFERENT_IDEOLOGIES();
+				phrase = "from Differing Ideology"; // TXT_KEY_CO_PLAYER_TOURISM_DIFFERENT_IDEOLOGIES
+			}
+			// shared ideology
+			else
+			{
+				mod = m_pPlayer->GetPlayerPolicies()->GetNumericModifier(POLICYMOD_TOURISM_MOD_SHARED_IDEOLOGY);
+				phrase = "from Shared Ideology"; // TXT_KEY_CO_PLAYER_TOURISM_SHARED_IDEOLOGY
+			}
+			addColoredValue(stream, mod, phrase);
+			totalLinearModT100 += mod;
+		}
+
+		{ // diplomat bonus
+			int mod = 0;
+			if (m_pPlayer->GetEspionage()->IsMyDiplomatVisitingThem(eOtherPlayer)) mod = GC.getTOURISM_MODIFIER_DIPLOMAT();
+			addColoredValue(stream, mod, "from Diplomats"); // TXT_KEY_CO_PLAYER_TOURISM_PROPAGANDA
+			totalLinearModT100 += mod;
+		}
+
+		{ // Cult of personality
+			int mod = 0;
+			const int iCommonFoeMod = m_pPlayer->GetPlayerPolicies()->GetNumericModifier(POLICYMOD_TOURISM_MOD_COMMON_FOE);
+			if (iCommonFoeMod > 0)
+			{
+				// NQMP GJS - new Cult of Personality BEGIN
+				int rank = 0;
+				int totalEnemies = 0;
+				const int myStrength = m_pPlayer->GetMilitaryMight();
+
+				PlayerTypes eLoopPlayer;
+				for (int iPlayerLoop = 0; iPlayerLoop < MAX_MAJOR_CIVS; iPlayerLoop++)
 				{
-					rank++;
+					eLoopPlayer = (PlayerTypes)iPlayerLoop;
+					if (eLoopPlayer != m_pPlayer->GetID() && m_pPlayer->GetDiplomacyAI()->IsPlayerValid(eLoopPlayer))
+					{
+						totalEnemies++;
+						if (GET_PLAYER(eLoopPlayer).GetMilitaryMight() > myStrength)
+						{
+							rank++;
+						}
+					}
+				}
+
+				// divide the tourism boost into chunks, so that lowest player gets 0%, highest gets 100%, and the rest are evenly distributed in between
+				// so for example in a 6 player game, based on the player being 6th/5th/4th/3rd/2nd/1st in military strength they get 0%/20%/40%/60%/80%/100% boost
+				if (totalEnemies > 0)
+				{
+					mod = iCommonFoeMod * (totalEnemies - rank) / totalEnemies;
 				}
 			}
+
+			addColoredValue(stream, mod, "from Cult of Personality"); // TXT_KEY_CO_PLAYER_TOURISM_COMMON_FOE
+			totalLinearModT100 += mod;
 		}
 
-		// divide the tourism boost into chunks, so that lowest player gets 0%, highest gets 100%, and the rest are evenly distributed in between
-		// so for example in a 6 player game, based on the player being 6th/5th/4th/3rd/2nd/1st in military strength they get 0%/20%/40%/60%/80%/100% boost
-		if (totalEnemies > 0)
-		{
-			iCommonFoeMod = iCommonFoeMod * (totalEnemies - rank) / totalEnemies;
-			szRtnValue += "[COLOR_POSITIVE_TEXT]" + GetLocalizedText("TXT_KEY_CO_PLAYER_TOURISM_COMMON_FOE", iCommonFoeMod) + "[ENDCOLOR]";
+		{ // happiness
+			const int mod = GetTourismModifierHappinessT100(eOtherPlayer);
+			addColoredValue(stream, mod, "from difference in Empire Happiness");
+			totalLinearModT100 += mod;
 		}
-	}
 
-	{ // happiness
-		const int mod = GetTourismModifierHappinessT100(eOtherPlayer);
-		stringstream s;
-		if (mod > 0)      s << "[COLOR_POSITIVE_TEXT]+";
-		else if (mod < 0) s << "[COLOR_NEGATIVE_TEXT]-";
-		else              s << "[COLOR_GREY]+";
-		s << abs(mod) << "% from difference in Empire Happiness[ENDCOLOR][NEWLINE]";
-		szRtnValue += s.str().c_str();
-	}
+		{ // fair
+			int mod = 0;
+			if (m_pPlayer->GetTourismBonusTurns() > 0) mod = GC.getTEMPORARY_TOURISM_BOOST_MOD();
+			addColoredValue(stream, mod, "from the World Fair");
+			totalLinearModT100 += mod;
+		}
 
-	{ // fair
-		int mod = 0;
-		if (m_pPlayer->GetTourismBonusTurns() > 0)
-			mod += GC.getTEMPORARY_TOURISM_BOOST_MOD();
-		stringstream s;
-		if (mod > 0)      s << "[COLOR_POSITIVE_TEXT]+";
-		else if (mod < 0) s << "[COLOR_NEGATIVE_TEXT]-";
-		else              s << "[COLOR_GREY]+";
-		s << abs(mod) << "% from World Fair[ENDCOLOR][NEWLINE]";
-		szRtnValue += s.str().c_str();
-	}
+		{ // golden age
+			const int mod = GetTourismModifierGoldenAgeT100(eOtherPlayer);
+			addColoredValue(stream, mod, "from your Golden Age");
+			totalLinearModT100 += mod;
+		}
 
-	{ // golden age
-		const int mod = GetTourismModifierGoldenAgeT100(eOtherPlayer);
-		stringstream s;
-		if (mod > 0)      s << "[COLOR_POSITIVE_TEXT]+";
-		else if (mod < 0) s << "[COLOR_NEGATIVE_TEXT]-";
-		else              s << "[COLOR_GREY]+";
-		s << abs(mod) << "% from your Golden Age[ENDCOLOR][NEWLINE]";
-		szRtnValue += s.str().c_str();
+		showFactorIncrease(stream, totalLinearModT100, tourismT100);
+		stream << "[NEWLINE]";
 	}
-
-	szRtnValue += "[COLOR_CYAN]Compounded:[ENDCOLOR][NEWLINE]";
+	
+	stream << "[NEWLINE][COLOR_CYAN]Compounded:[ENDCOLOR][NEWLINE]";
 
 	{ // technology
 		const int mod = GetTourismModifierTechnologyT100(eOtherPlayer);
-		stringstream s;
-		if (mod > 0)      s << "[COLOR_POSITIVE_TEXT]+";
-		else if (mod < 0) s << "[COLOR_NEGATIVE_TEXT]-";
-		else              s << "[COLOR_GREY]+";
-		s << abs(mod) << "% from Technologies[ENDCOLOR][NEWLINE]";
-		szRtnValue += s.str().c_str();
+		addColoredValue(stream, mod, "from Technologies");
+		showFactorIncrease(stream, mod, tourismT100);
+		stream << "[NEWLINE]";
 	}
-
 	{ // adjust for number of cities
 		const int mod = GetTourismModifierCityCountT100(eOtherPlayer);
-		stringstream s;
-		if (mod > 0)      s << "[COLOR_POSITIVE_TEXT]+";
-		else if (mod < 0) s << "[COLOR_NEGATIVE_TEXT]-";
-		else              s << "[COLOR_GREY]+";
-		s << abs(mod) << "% from difference in cities count[ENDCOLOR][NEWLINE]";
-		szRtnValue += s.str().c_str();
+		addColoredValue(stream, mod, "from City Count Difference");
+		showFactorIncrease(stream, mod, tourismT100);
+		stream << "[NEWLINE]";
 	}
+
+	szRtnValue += stream.str().c_str();
 
 	return szRtnValue;
 }
