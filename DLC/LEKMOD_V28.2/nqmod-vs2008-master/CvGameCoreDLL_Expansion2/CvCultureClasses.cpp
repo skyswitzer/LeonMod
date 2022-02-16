@@ -2798,7 +2798,7 @@ CvString CvPlayerCulture::GetTourismModifierWith_Tooltip(PlayerTypes eOtherPlaye
 
 	szRtnValue += stream.str().c_str();
 
-	return szRtnValue;
+	return GetLocalizedText(szRtnValue);
 }
 
 int CvPlayerCulture::GetTourismModifierWithT100(PlayerTypes eOtherPlayer, bool bIgnoreReligion, bool bIgnoreOpenBorders, bool bIgnoreTrade, bool bIgnorePolicies, bool bIgnoreIdeologies) const
@@ -3082,7 +3082,7 @@ CvString CvPlayerCulture::GetOurTourism_Tooltip() const
 		tooltip += s.str().c_str();
 	}
 
-	return tooltip;
+	return GetLocalizedText(tooltip);
 }
 
 int CvPlayerCulture::GetOurNetTourismT100() const
