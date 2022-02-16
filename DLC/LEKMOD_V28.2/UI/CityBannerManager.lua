@@ -334,8 +334,21 @@ function RefreshCityBanner(cityBanner, iActiveTeam, iActivePlayer)
 				controls.GarrisonFrame:SetHide(true);
 			end	
 		end
+
+
+		-- show health
+		local cityHealth = ""..math.floor(city:GetMaxHitPoints()-city:GetDamage());
+		if (string.len(cityHealth) == 2) then
+			cityHealth = "    "..cityHealth;
+		elseif (string.len(cityHealth) == 3) then
+			cityHealth = "  "..cityHealth;
+		end
+		local start = "             ";
+		local seperator = "    ";
+		local cityLabel = start..cityStrengthStr..seperator..cityHealth;
+
 		
-		controls.CityStrength:SetText(cityStrengthStr);
+		controls.CityStrength:SetText(cityLabel);
 		
     	if isActiveTeamCity then
 			controls.EjectGarrison:SetHide(true);
