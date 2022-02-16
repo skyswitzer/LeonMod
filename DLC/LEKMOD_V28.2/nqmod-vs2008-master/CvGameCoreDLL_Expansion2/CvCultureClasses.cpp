@@ -2173,6 +2173,7 @@ ArchaeologyChoiceType CvPlayerCulture::GetArchaeologyChoice(CvPlot *pPlot)
 /// Make things happen at an archaeology dig
 void CvPlayerCulture::DoArchaeologyChoice (ArchaeologyChoiceType eChoice)
 {
+	const int numWorksPerDig = 2;
 	CvGameCulture *pCulture = GC.getGame().GetGameCulture();
 	BuildingClassTypes eBuildingToHouse;
 #ifdef AUI_WARNING_FIXES
@@ -2228,9 +2229,16 @@ void CvPlayerCulture::DoArchaeologyChoice (ArchaeologyChoiceType eChoice)
 				{
 					GET_PLAYER(pPlot->getOwner()).GetDiplomacyAI()->ChangeNegativeArchaeologyPoints(pUnit->getOwner(), 10);
 				}
-				pHousingCity = m_pPlayer->GetCulture()->GetClosestAvailableGreatWorkSlot(pUnit->getX(),pUnit->getY(), eArtArtifactSlot, &eBuildingToHouse, &iSlot);
-				int iGWindex = 	pCulture->CreateGreatWork(eGreatArtifact, eClass, pPlot->GetArchaeologicalRecord().m_ePlayer1, pPlot->GetArchaeologicalRecord().m_eEra, "");
-				pHousingCity->GetCityBuildings()->SetBuildingGreatWork(eBuildingToHouse, iSlot, iGWindex);
+
+				for (int i = 0; i < numWorksPerDig; ++i)
+				{
+					pHousingCity = m_pPlayer->GetCulture()->GetClosestAvailableGreatWorkSlot(pUnit->getX(), pUnit->getY(), eArtArtifactSlot, &eBuildingToHouse, &iSlot);
+					if (pHousingCity != NULL)
+					{
+						int iGWindex = pCulture->CreateGreatWork(eGreatArtifact, eClass, pPlot->GetArchaeologicalRecord().m_ePlayer1, pPlot->GetArchaeologicalRecord().m_eEra, "");
+						pHousingCity->GetCityBuildings()->SetBuildingGreatWork(eBuildingToHouse, iSlot, iGWindex);
+					}
+				}
 				pPlot->setImprovementType(NO_IMPROVEMENT);
 				pUnit->kill(true);
 			}
@@ -2241,9 +2249,16 @@ void CvPlayerCulture::DoArchaeologyChoice (ArchaeologyChoiceType eChoice)
 				{
 					GET_PLAYER(pPlot->getOwner()).GetDiplomacyAI()->ChangeNegativeArchaeologyPoints(pUnit->getOwner(), 10);
 				}
-				pHousingCity = m_pPlayer->GetCulture()->GetClosestAvailableGreatWorkSlot(pUnit->getX(),pUnit->getY(), eArtArtifactSlot, &eBuildingToHouse, &iSlot);
-				int iGWindex = 	pCulture->CreateGreatWork(eGreatArtifact, eClass, pPlot->GetArchaeologicalRecord().m_ePlayer2, pPlot->GetArchaeologicalRecord().m_eEra, "");
-				pHousingCity->GetCityBuildings()->SetBuildingGreatWork(eBuildingToHouse, iSlot, iGWindex);
+
+				for (int i = 0; i < numWorksPerDig; ++i)
+				{
+					pHousingCity = m_pPlayer->GetCulture()->GetClosestAvailableGreatWorkSlot(pUnit->getX(), pUnit->getY(), eArtArtifactSlot, &eBuildingToHouse, &iSlot);
+					if (pHousingCity != NULL)
+					{
+						int iGWindex = pCulture->CreateGreatWork(eGreatArtifact, eClass, pPlot->GetArchaeologicalRecord().m_ePlayer2, pPlot->GetArchaeologicalRecord().m_eEra, "");
+						pHousingCity->GetCityBuildings()->SetBuildingGreatWork(eBuildingToHouse, iSlot, iGWindex);
+					}
+				}
 				pPlot->setImprovementType(NO_IMPROVEMENT);
 				pUnit->kill(true);
 			}
@@ -2255,9 +2270,16 @@ void CvPlayerCulture::DoArchaeologyChoice (ArchaeologyChoiceType eChoice)
 				{
 					GET_PLAYER(pPlot->getOwner()).GetDiplomacyAI()->ChangeNegativeArchaeologyPoints(pUnit->getOwner(), 10);
 				}
-				pHousingCity = m_pPlayer->GetCulture()->GetClosestAvailableGreatWorkSlot(pUnit->getX(),pUnit->getY(), eWritingSlot, &eBuildingToHouse, &iSlot);
-				int iGWindex = 	pCulture->CreateGreatWork(eGreatArtifact, (GreatWorkClass)GC.getInfoTypeForString("GREAT_WORK_LITERATURE"), pPlot->GetArchaeologicalRecord().m_ePlayer1, pPlot->GetArchaeologicalRecord().m_eEra, "");
-				pHousingCity->GetCityBuildings()->SetBuildingGreatWork(eBuildingToHouse, iSlot, iGWindex);
+
+				for (int i = 0; i < numWorksPerDig; ++i)
+				{
+					pHousingCity = m_pPlayer->GetCulture()->GetClosestAvailableGreatWorkSlot(pUnit->getX(), pUnit->getY(), eWritingSlot, &eBuildingToHouse, &iSlot);
+					if (pHousingCity != NULL)
+					{
+						int iGWindex = pCulture->CreateGreatWork(eGreatArtifact, (GreatWorkClass)GC.getInfoTypeForString("GREAT_WORK_LITERATURE"), pPlot->GetArchaeologicalRecord().m_ePlayer1, pPlot->GetArchaeologicalRecord().m_eEra, "");
+						pHousingCity->GetCityBuildings()->SetBuildingGreatWork(eBuildingToHouse, iSlot, iGWindex);
+					}
+				}
 				pPlot->setImprovementType(NO_IMPROVEMENT);
 				pUnit->kill(true);
 			}
