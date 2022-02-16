@@ -474,10 +474,11 @@ function PopulateSpaceRace()
 				end
 			end
 
-			local yourScientificInfluence = Locale.ConvertTextKey("You have " .. have .. " of " .. needed .. " {TXT_KEY_SCIENTIFIC_INFLUENCE} needed.");
+			-- show status
+			local status = Locale.ConvertTextKey("You have " .. have .. " of " .. needed .. " {TXT_KEY_SCIENTIFIC_INFLUENCE} needed.");
 			local apolloProgress = Locale.ConvertTextKey("TXT_KEY_VP_DIPLO_PROJECT_PLAYERS_COMPLETE", numApollo, "TXT_KEY_PROJECT_APOLLO_PROGRAM");
 
-			Controls.SpaceInfo:LocalizeAndSetText(yourScientificInfluence .. "[NEWLINE]" .. apolloProgress);
+			Controls.SpaceInfo:LocalizeAndSetText(status .. "[NEWLINE]" .. apolloProgress);
 		end
 
 		local doneLabel = "";
@@ -577,7 +578,6 @@ function PopulateDiplomatic()
 			-- do influence
 			local have = player:GetTeamDiplomaticInfluence();
 			local needed = player:GetTeamDiplomaticInfluenceNeeded();
-			Controls.InfluenceHave:SetHide(false);
 
 			local doneLabel = "";
 			if (have >= needed) then
@@ -586,10 +586,10 @@ function PopulateDiplomatic()
 			Controls.DiploBoxLabel:SetHide(false);
 			Controls.DiploBoxLabel:LocalizeAndSetText("{TXT_KEY_VICTORYSCREEN_DIPLOMATIC}" .. doneLabel);
 
-			local status = Locale.ConvertTextKey("You have " .. have .. " of " .. needed .. " {TXT_KEY_DIPLOMATIC_INFLUENCE} needed.");
-			Controls.InfluenceHave:SetText();
-			
+			-- show progress
+			local status = Locale.ConvertTextKey("You have " .. have .. " of " .. needed .. " {TXT_KEY_DIPLOMATIC_INFLUENCE} needed.");			
 			Controls.UNInfo:SetText(status .. "[NEWLINE]" .. sUNInfo);
+
 			Controls.VotesNeeded:SetText(Game.GetVotesNeededForDiploVictory());
 			Controls.VotesHave:SetText(iVotesControlled);
 			Controls.VotesNeededLabel:SetHide(false);
@@ -700,10 +700,15 @@ function PopulateCultural()
 			end
 		end
 
+		-- show progress
+		local status = Locale.ConvertTextKey("You have 100% {TXT_KEY_CULTURAL_INFLUENCE} over " .. have .. " of " .. needed .. " Civilizations.");		
+		Controls.CultureInfo:SetText(status);
+
 		local doneLabel = "";
 		if (have >= needed) then
 			doneLabel = doneString;
 		end
+
 		Controls.CultureBoxLabel:SetHide(false);
 		Controls.CultureBoxLabel:LocalizeAndSetText("{TXT_KEY_VICTORYSCREEN_CULTURAL}" .. doneLabel);
 		
