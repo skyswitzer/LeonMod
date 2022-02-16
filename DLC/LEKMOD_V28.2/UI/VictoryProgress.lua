@@ -4,6 +4,8 @@ include( "IconSupport" );
 include( "SupportFunctions"  );
 include( "InstanceManager" );
 
+local doneString = " [ICON_TROPHY_GOLD] [COLOR_POSITIVE_TEXT]DONE[ENDCOLOR]";
+
 -- Domination Variables
 local g_DominationRowsIM = InstanceManager:new( "DominationRow", "RowStack", Controls.DominationStack );
 local g_DominationRowList = {};
@@ -429,6 +431,8 @@ end
 ----------------------------------------------------------------
 function PopulateSpaceRace()
 	local pPlayer = Players[Game.GetActivePlayer()];
+	local have = pPlayer:GetScientificInfluence();
+	local needed = pPlayer:GetScientificInfluenceNeeded();
 	if(PreGame.IsVictory(GameInfo.Victories["VICTORY_SPACE_RACE"].ID))then
 		local apolloProj = GameInfoTypes["PROJECT_APOLLO_PROGRAM"];
 		local strPlayer = Locale.ConvertTextKey("TXT_KEY_CITY_STATE_NOBODY");
@@ -470,13 +474,18 @@ function PopulateSpaceRace()
 				end
 			end
 
-			local have = pPlayer:GetScientificInfluence();
-			local needed = pPlayer:GetScientificInfluenceNeeded();
 			local yourScientificInfluence = Locale.ConvertTextKey("You have " .. have .. " of " .. needed .. " {TXT_KEY_SCIENTIFIC_INFLUENCE} needed.");
 			local apolloProgress = Locale.ConvertTextKey("TXT_KEY_VP_DIPLO_PROJECT_PLAYERS_COMPLETE", numApollo, "TXT_KEY_PROJECT_APOLLO_PROGRAM");
 
 			Controls.SpaceInfo:LocalizeAndSetText(yourScientificInfluence .. "[NEWLINE]" .. apolloProgress);
 		end
+
+		local doneLabel = "";
+		if (have >= needed) then
+			doneLabel = doneString;
+		end
+		Controls.TechBoxLabel:SetHide(false);
+		Controls.TechBoxLabel:LocalizeAndSetText("{TXT_KEY_VICTORYSCREEN_SPACE_RACE}" .. doneLabel);
 		
 		Controls.ScienceVictoryProgress:SetHide(false);
 		Controls.ScienceVictoryDisabled:SetHide(true);
@@ -529,6 +538,7 @@ function PopulateDiplomatic()
 	 
 	if (victoryId ~= nil and PreGame.IsVictory(victoryId))then
 	
+		--[[
 		if(Game.GetVictory() == victoryId) then
 		
 			local team = Teams[Game.GetWinner()];
@@ -545,6 +555,7 @@ function PopulateDiplomatic()
 			Controls.VotesNeeded:SetHide(true);
 			Controls.VotesHave:SetHide(true);	
 		else
+		--]]
 			local iVotesControlled = 0;
 			local sUNInfo = Locale.Lookup("TXT_KEY_VP_DIPLO_UN_INACTIVE");
 			if (Game.GetNumActiveLeagues() > 0) then
@@ -564,13 +575,21 @@ function PopulateDiplomatic()
 			end
 
 			-- do influence
-			local influence = player:GetTeamDiplomaticInfluence();
-			local influenceNeeded = player:GetTeamDiplomaticInfluenceNeeded();
+			local have = player:GetTeamDiplomaticInfluence();
+			local needed = player:GetTeamDiplomaticInfluenceNeeded();
 			Controls.InfluenceHave:SetHide(false);
-			local diplomaticInfluence = Locale.ConvertTextKey("You have " .. influence .. " of " .. influenceNeeded .. " {TXT_KEY_DIPLOMATIC_INFLUENCE} needed.");
+
+			local doneLabel = "";
+			if (have >= needed) then
+				doneLabel = doneString;
+			end
+			Controls.DiploBoxLabel:SetHide(false);
+			Controls.DiploBoxLabel:LocalizeAndSetText("{TXT_KEY_VICTORYSCREEN_DIPLOMATIC}" .. doneLabel);
+
+			local status = Locale.ConvertTextKey("You have " .. have .. " of " .. needed .. " {TXT_KEY_DIPLOMATIC_INFLUENCE} needed.");
 			Controls.InfluenceHave:SetText();
 			
-			Controls.UNInfo:SetText(diplomaticInfluence .. "[NEWLINE]" .. sUNInfo);
+			Controls.UNInfo:SetText(status .. "[NEWLINE]" .. sUNInfo);
 			Controls.VotesNeeded:SetText(Game.GetVotesNeededForDiploVictory());
 			Controls.VotesHave:SetText(iVotesControlled);
 			Controls.VotesNeededLabel:SetHide(false);
@@ -578,7 +597,7 @@ function PopulateDiplomatic()
 	
 			Controls.VotesNeeded:SetHide(false);
 			Controls.VotesHave:SetHide(false);
-		end
+		--end
 	
 		Controls.DiploVictoryProgress:SetHide(false);
 		Controls.DiploVictoryDisabled:SetHide(true);		
@@ -606,6 +625,9 @@ function PopulateCultural()
 		local numItemIM = 0;
 		local curCol = 0;
 		local numItems = 0;	
+
+		local have = 0;
+		local needed = 0;
 		
 		local iActivePlayer = Game.GetActivePlayer();
 		local pActivePlayer = Players[iActivePlayer];
@@ -615,7 +637,7 @@ function PopulateCultural()
 
 			local pPlayer = Players[iPlayerLoop];
 			
-			if(iPlayerLoop ~= iActivePlayer and not pPlayer:IsMinorCiv() and pPlayer:IsEverAlive()) then
+			if(iPlayerLoop ~= iActivePlayer and not pPlayer:IsMinorCiv() and pPlayer:IsAlive()) then
 				-- Create new row if one does not alread exist.
 				if(curRow == nil) then
 					numRows = numRows + 1;
@@ -662,6 +684,10 @@ function PopulateCultural()
 				item.IconDark:SetTextureSizeVal(width, newHeight);
 				item.IconDark:NormalizeTexture();
 			
+				needed = needed + 1;
+				if (influencePercent >= 1) then
+					have = have + 1;
+				end
 				item.IconFrameGlow:SetHide(influencePercent ~= 1);
 				local txt = Locale.Lookup(influenceKey, influencePercent * 100, pPlayer:GetCivilizationShortDescriptionKey());
 				item.IconFrame:SetToolTipString(txt);
@@ -673,6 +699,13 @@ function PopulateCultural()
 				end
 			end
 		end
+
+		local doneLabel = "";
+		if (have >= needed) then
+			doneLabel = doneString;
+		end
+		Controls.CultureBoxLabel:SetHide(false);
+		Controls.CultureBoxLabel:LocalizeAndSetText("{TXT_KEY_VICTORYSCREEN_CULTURAL}" .. doneLabel);
 		
 		Controls.CultureStack:CalculateSize();
 		Controls.CultureStack:ReprocessAnchoring();

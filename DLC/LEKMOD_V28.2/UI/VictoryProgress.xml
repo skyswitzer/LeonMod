@@ -272,7 +272,7 @@
       <!-- TECH -->
       <Box ID="TechBox" Size="618,142" Color="255,255,255,0">
         <Image Size="128,128" Anchor="R,C" Texture="VictoryConditions_128_Shared.dds" TextureOffset="0,0" Color="255,255,255,100"/>
-        <Label Offset="5,5" Font="TwCenMT24" String="TXT_KEY_VICTORYSCREEN_SPACE_RACE" ToolTip="TXT_KEY_VP_TECH_PROGRESS"/>
+        <Label ID="TechBoxLabel" Offset="5,5" Font="TwCenMT24" String="" ToolTip="TXT_KEY_VP_TECH_PROGRESS"/>
         <Label ID="SpaceInfo" Offset="5,5" Anchor="R.T" Font="TwCenMT16"/>
         <Box ID="ScienceVictoryProgress" Size="618,142" Color="0,0,0,0">
           <!-- TechMeter -->
@@ -312,7 +312,7 @@
       <!-- DIPLOMACY  -->
       <Box ID="DiploBox" Size="618,142" Color="255,255,255,0">
         <Image Size="128,128" Anchor="R,C" Texture="VictoryConditions_128_Shared.dds" TextureOffset="0,128" Color="255,255,255,100"/>
-        <Label Offset="5,5" Font="TwCenMT24" String="TXT_KEY_VICTORYSCREEN_DIPLOMATIC" ToolTip="TXT_KEY_VP_DIPLOMATIC_PROGRESS"/>
+        <Label ID="DiploBoxLabel" Offset="5,5" Font="TwCenMT24" String="" ToolTip="TXT_KEY_VP_DIPLOMATIC_PROGRESS"/>
         <Label ID="UNInfo" Offset="5,5" Anchor="R.T" Font="TwCenMT16"/>
         <Box ID="DiploVictoryProgress" Size="618,142" Color="0,0,0,0">
           <Image ID="UNIconFrame" Anchor="L,C" Offset="0,8" Size="128,128" Texture="assets\UI\Art\Icons\LeaderPortraits1024Frame.dds">
@@ -324,7 +324,7 @@
               <Label ID="TurnsUntilSessionLabel" Offset="0,0" Anchor="R,T" String="TXT_KEY_VP_DIPLO_TURNS_UNTIL_SESSION"/>
               <Label ID="VotesNeededLabel" Offset="0,0" Anchor="R,T" String="TXT_KEY_VP_DIPLO_DELEGATES_NEEDED"/>
               <Label ID="VotesHaveLabel" Offset="0,0" Anchor="R,T" String="TXT_KEY_VP_DIPLO_DELEGATES_CONTROLLED"/>
-              <Label ID="InfluenceHave" Offset="0,0" Anchor="R,T" String="GLITCH241"/>
+              <Label ID="InfluenceHave" Offset="0,0" Anchor="R,T" String=""/>
             </Stack>
             <Stack Anchor="R.T" AnchorSide="O.I" Offset="0,0" Padding="12" StackGrowth="Bottom">
               <Label ID="TurnsUntilSession" Offset="0,0" Anchor="R,T" String="10"/>
@@ -339,7 +339,7 @@
       <!-- CULTURE -->
       <Box ID="CultureBox" Size="618,142" Color="255,255,255,0">
         <Image Size="128,128" Anchor="R,C" Texture="VictoryConditions_128_Shared.dds" TextureOffset="128,0" Color="255,255,255,100"/>
-        <Label Offset="5,3" Font="TwCenMT24" String="TXT_KEY_VICTORYSCREEN_CULTURAL" ToolTip="TXT_KEY_VICTORYSCREEN_CULTURAL_DETAILS"/>
+        <Label ID="CultureBoxLabel" Offset="5,3" Font="TwCenMT24" String="" ToolTip="TXT_KEY_VICTORYSCREEN_CULTURAL_DETAILS"/>
         <Label ID="CultureLabel" Offset="5,45" Anchor="C.T" Font="TwCenMT16"/>
         <Box ID="CultureVictoryProgress" Size="618,142" Color="0,0,0,0">
           <ScrollPanel Anchor="L,T" Offset="0,20" Size="596,114" Vertical="1" ID="CultureScrollPanel">
