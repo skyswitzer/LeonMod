@@ -214,7 +214,7 @@ CvString CvGameCulture::GetGreatWorkTooltip(int iIndex, PlayerTypes eOwner) cons
 	iTourismPerWork += GET_PLAYER(eOwner).GetPlayerPolicies()->GetNumericModifier(POLICYMOD_EXTRA_TOURISM_PER_GREAT_WORK); // NQMP GJS - Cultural Exchange
 
 
-	cultureString.Format ("+%d [ICON_CULTURE], +%d [ICON_TOURISM]", iCulturePerWork, iTourismPerWork);
+	cultureString.Format ("+%d [ICON_CULTURE], +%d [ICON_CULTURAL_INFLUENCE]", iCulturePerWork, iTourismPerWork);
 	szTooltip += cultureString;
 
 	return szTooltip;
@@ -3049,7 +3049,7 @@ CvString CvPlayerCulture::GetOurTourism_Tooltip() const
 		s << numPolicyThreshold;
 		s << "th[ENDCOLOR] one will cause [COLOR_CYAN]+";
 		s << percentagePerPolicy;
-		s << "%[ENDCOLOR] of city [ICON_CULTURE] Culture to be added to [ICON_TOURISM] Tourism up to a max of [COLOR_CYAN]+";
+		s << "%[ENDCOLOR] of city [ICON_CULTURE] Culture to be added to {TXT_KEY_CULTURAL_INFLUENCE} up to a max of [COLOR_CYAN]+";
 		s << maxPolicyTourismPercentage;
 		s << "%[ENDCOLOR].[NEWLINE]";
 		tooltip += s.str().c_str();
@@ -3059,7 +3059,7 @@ CvString CvPlayerCulture::GetOurTourism_Tooltip() const
 		stringstream s;
 		s << "[NEWLINE][ICON_BULLET][COLOR_POSITIVE_TEXT]+";
 		s << GetTourismFromCityCultureT100() / 100;
-		s << "[ENDCOLOR] [ICON_TOURISM] from [COLOR_CYAN]";
+		s << "[ENDCOLOR] [ICON_CULTURAL_INFLUENCE] from [COLOR_CYAN]";
 		s << GetTourismFromCulturePercentT100();
 		s << "%[ENDCOLOR] of [COLOR_CYAN]";
 		s << GetCultureFromCitiesT100() / 100;
@@ -3071,13 +3071,13 @@ CvString CvPlayerCulture::GetOurTourism_Tooltip() const
 		stringstream s;
 		s << "[NEWLINE][ICON_BULLET][COLOR_POSITIVE_TEXT]+";
 		s << GetNetTourismFromCitiesT100() / 100;
-		s << "[ENDCOLOR] [ICON_TOURISM] from Cities";
+		s << "[ENDCOLOR] [ICON_CULTURAL_INFLUENCE] from Cities";
 		tooltip += s.str().c_str();
 	}
 
 	{	// tourism from cities
 		stringstream s;
-		s << "[NEWLINE][NEWLINE]Having a stronger [ICON_TOURISM] Tourism percentage than another ";
+		s << "[NEWLINE][NEWLINE]Having a stronger {TXT_KEY_CULTURAL_INFLUENCE} percentage than another ";
 		s << "civilization can grant up to [COLOR_POSITIVE_TEXT]+33%[ENDCOLOR] [ICON_STRENGTH] Strength against that civilization's units.";
 		tooltip += s.str().c_str();
 	}
@@ -4866,7 +4866,7 @@ CvString CvCityCulture::GetTourismTooltip()
 	//{ // city culture to tourism
 	//	szRtnValue += "[NEWLINE][NEWLINE]";
 	//	stringstream s;
-	//	s << (GetTourismFromCultureT100() / 100) << " [ICON_TOURISM] Tourism from " << GetTourismFromCulturePercentT100() << "% of city [ICON_CULTURE] Culture";
+	//	s << (GetTourismFromCultureT100() / 100) << " {TXT_KEY_CULTURAL_INFLUENCE} from " << GetTourismFromCulturePercentT100() << "% of city [ICON_CULTURE] Culture";
 	//	szRtnValue += s.str().c_str();
 	//}
 

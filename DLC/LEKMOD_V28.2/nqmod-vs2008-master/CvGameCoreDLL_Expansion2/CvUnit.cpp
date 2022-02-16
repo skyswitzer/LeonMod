@@ -10026,7 +10026,7 @@ bool CvUnit::blastTourism()
 			strInfluenceText = GetLocalizedText( "TXT_KEY_CO_DOMINANT");
 
  		char text[256] = {0};
-		sprintf_s(text, "[COLOR_WHITE]+%d [ICON_TOURISM][ENDCOLOR]   %s", iTourismBlast, strInfluenceText.c_str());
+		sprintf_s(text, "[COLOR_WHITE]+%d [ICON_CULTURAL_INFLUENCE][ENDCOLOR]   %s", iTourismBlast, strInfluenceText.c_str());
  		float fDelay = 0.0f;
  		DLLUI->AddPopupText(pPlot->getX(), pPlot->getY(), text, fDelay);
  	}
