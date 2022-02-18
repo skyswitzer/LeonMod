@@ -5543,7 +5543,7 @@ void CvLeague::CheckStartSpecialSession(LeagueSpecialSessionTypes eSpecialSessio
 			CvGame& kGame = GC.getGame();
 			CvPlayer& kActivePlayer = GET_PLAYER(kGame.getActivePlayer());
 
-			if(!kGame.isNetworkMultiPlayer() && !kActivePlayer.isObserver()){
+			if(/**!kGame.isNetworkMultiPlayer() &&**/ !kActivePlayer.isObserver()){
 				// Show splash screen
 				CvPopupInfo kPopup(BUTTONPOPUP_LEAGUE_SPLASH, GetID(), GetHostMember(), eSpecialSession, 0, /*bJustFounded*/ false);
 				GC.GetEngineUserInterface()->AddPopup(kPopup);
@@ -6378,7 +6378,7 @@ void CvLeague::CheckProjectsProgress()
 						CvGame& kGame = GC.getGame();
 						CvPlayer& kActivePlayer = GET_PLAYER(kGame.getActivePlayer());
 
-						if(!kGame.isNetworkMultiPlayer() && !kActivePlayer.isObserver())
+						if(/**!kGame.isNetworkMultiPlayer() &&**/ !kActivePlayer.isObserver())
 						{
 							CvPopupInfo kPopup(BUTTONPOPUP_LEAGUE_PROJECT_COMPLETED, GetID(), it->eType);
 							GC.GetEngineUserInterface()->AddPopup(kPopup);
@@ -7369,7 +7369,8 @@ void CvGameLeagues::FoundLeague(PlayerTypes eFounder)
 			CvGame& kGame = GC.getGame();
 			CvPlayer& kActivePlayer = GET_PLAYER(kGame.getActivePlayer());
 
-			if(!kGame.isNetworkMultiPlayer() && !kActivePlayer.isObserver()){
+			if(/**!kGame.isNetworkMultiPlayer() &&**/ !kActivePlayer.isObserver())
+			{
 				// Show splash screen
 #ifdef AUI_LEAGUES_FIX_POSSIBLE_DEALLOCATION_CRASH
 				CvPopupInfo kPopup(BUTTONPOPUP_LEAGUE_SPLASH, m_ActiveLeague->GetID(), m_ActiveLeague->GetHostMember(), eGoverningSpecialSession, 0, /*bJustFounded*/ true);

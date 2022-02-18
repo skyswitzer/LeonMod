@@ -13817,7 +13817,7 @@ void CvPlayer::DoProcessGoldenAge()
 				if(GetID() == GC.getGame().getActivePlayer())
 				{
 					// Don't show in MP
-					if(!GC.getGame().isNetworkMultiPlayer())	// KWG: Candidate for !GC.getGame().isOption(GAMEOPTION_SIMULTANEOUS_TURNS)
+					//if(!GC.getGame().isNetworkMultiPlayer())	// KWG: Candidate for !GC.getGame().isOption(GAMEOPTION_SIMULTANEOUS_TURNS)
 					{
 						CvPopupInfo kPopupInfo(BUTTONPOPUP_GOLDEN_AGE_REWARD);
 						GC.GetEngineUserInterface()->AddPopup(kPopupInfo);
