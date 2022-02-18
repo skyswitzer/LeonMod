@@ -593,6 +593,8 @@ public:
 	int GetDealDuration();
 	int GetPeaceDuration();
 
+	void CreateDigSite(CvPlot* plot);
+
 	CombatPredictionTypes GetCombatPrediction(const CvUnit* pAttackingUnit, const CvUnit* pDefendingUnit);
 
 	void NetMessageStaticsReset();

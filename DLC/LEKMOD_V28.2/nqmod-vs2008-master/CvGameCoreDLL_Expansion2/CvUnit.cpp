@@ -8550,30 +8550,31 @@ bool CvUnit::canDiscover(const CvPlot* /*pPlot*/, bool bTestVisible) const
 //	--------------------------------------------------------------------------------
 int CvUnit::getDiscoverAmount()
 {
-	int iValue = 0;
-	CvPlot* pPlot = plot();
-	if(canDiscover(pPlot))
-	{
-		CvPlayer* pPlayer = &GET_PLAYER(getOwner());
-		CvAssertMsg(pPlayer, "Owner of unit not expected to be NULL. Please send Anton your save file and version.");
-		if (pPlayer)
-		{
-			// Beakers boost based on previous turns
-			//int iPreviousTurnsToCount = m_pUnitInfo->GetBaseBeakersTurnsToCount(); // GJS: commented out
-			//iValue = pPlayer->GetScienceYieldFromPreviousTurns(GC.getGame().getGameTurn(), iPreviousTurnsToCount); // GJS: commented out 
-			iValue = GetResearchBulbAmount();
-			if (pPlayer->GetGreatScientistBeakerMod() != 0)
-			{
-				iValue += (iValue * pPlayer->GetGreatScientistBeakerMod()) / 100;
-				iValue = MAX(iValue, 0); // Cannot be negative
-			}
+	return 40;
+	//int iValue = 0;
+	//CvPlot* pPlot = plot();
+	//if(canDiscover(pPlot))
+	//{
+	//	CvPlayer* pPlayer = &GET_PLAYER(getOwner());
+	//	CvAssertMsg(pPlayer, "Owner of unit not expected to be NULL. Please send Anton your save file and version.");
+	//	if (pPlayer)
+	//	{
+	//		// Beakers boost based on previous turns
+	//		//int iPreviousTurnsToCount = m_pUnitInfo->GetBaseBeakersTurnsToCount(); // GJS: commented out
+	//		//iValue = pPlayer->GetScienceYieldFromPreviousTurns(GC.getGame().getGameTurn(), iPreviousTurnsToCount); // GJS: commented out 
+	//		iValue = GetResearchBulbAmount();
+	//		if (pPlayer->GetGreatScientistBeakerMod() != 0)
+	//		{
+	//			iValue += (iValue * pPlayer->GetGreatScientistBeakerMod()) / 100;
+	//			iValue = MAX(iValue, 0); // Cannot be negative
+	//		}
 
-			// Modify based on game speed
-			iValue *= GC.getGame().getGameSpeedInfo().getResearchPercent();
-			iValue /= 100;
-		}
-	}
-	return iValue;
+	//		// Modify based on game speed
+	//		iValue *= GC.getGame().getGameSpeedInfo().getResearchPercent();
+	//		iValue /= 100;
+	//	}
+	//}
+	//return iValue;
 }
 
 //	--------------------------------------------------------------------------------
@@ -8588,6 +8589,7 @@ bool CvUnit::discover()
 		return false;
 	}
 
+	const int amount = getDiscoverAmount();
 	CvPlayer* pPlayer = &GET_PLAYER(getOwner());
 	CvAssertMsg(pPlayer, "Owner of unit not expected to be NULL. Please send Anton your save file and version.");
 	if (!pPlayer) return false;
@@ -8595,32 +8597,33 @@ bool CvUnit::discover()
 	CvAssertMsg(pTeam, "Owner team of unit not expected to be NULL. Please send Anton your save file and version.");
 	if (!pTeam) return false;
 
-	// Beakers boost based on previous turns
-	int iBeakersBonus = getDiscoverAmount();
-	TechTypes eCurrentTech = pPlayer->GetPlayerTechs()->GetCurrentResearch();
-	if(eCurrentTech == NO_TECH)
-	{
-		pPlayer->changeOverflowResearch(iBeakersBonus);
-	}
-	else
-	{
-		pTeam->GetTeamTechs()->ChangeResearchProgress(eCurrentTech, iBeakersBonus, getOwner());
-	}
+	pPlayer->ChangeScientificInfluence(amount);
+	//// Beakers boost based on previous turns
+	//int iBeakersBonus = getDiscoverAmount();
+	//TechTypes eCurrentTech = pPlayer->GetPlayerTechs()->GetCurrentResearch();
+	//if(eCurrentTech == NO_TECH)
+	//{
+	//	pPlayer->changeOverflowResearch(iBeakersBonus);
+	//}
+	//else
+	//{
+	//	pTeam->GetTeamTechs()->ChangeResearchProgress(eCurrentTech, iBeakersBonus, getOwner());
+	//}
 
-	// Free techs
-	int iNumFreeTechs = m_pUnitInfo->GetNumFreeTechs();
-	if(!isHuman())
-	{
-		for(int iI = 0; iI < iNumFreeTechs; iI++)
-		{
-			pPlayer->AI_chooseFreeTech();
-		}
-	}
-	else
-	{
-		CvString strBuffer = GetLocalizedText("TXT_KEY_MISC_GREAT_PERSON_CHOOSE_TECH");
-		pPlayer->chooseTech(iNumFreeTechs, strBuffer.GetCString());
-	}
+	//// Free techs
+	//int iNumFreeTechs = m_pUnitInfo->GetNumFreeTechs();
+	//if(!isHuman())
+	//{
+	//	for(int iI = 0; iI < iNumFreeTechs; iI++)
+	//	{
+	//		pPlayer->AI_chooseFreeTech();
+	//	}
+	//}
+	//else
+	//{
+	//	CvString strBuffer = GetLocalizedText("TXT_KEY_MISC_GREAT_PERSON_CHOOSE_TECH");
+	//	pPlayer->chooseTech(iNumFreeTechs, strBuffer.GetCString());
+	//}
 
 	if(pPlot->isActiveVisible(false))
 	{

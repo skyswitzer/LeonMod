@@ -7096,7 +7096,8 @@ void CvPlayer::doGoody(CvPlot* pPlot, CvUnit* pUnit)
 				}
 			}
 
-			pPlot->AddArchaeologicalRecord(CvTypes::getARTIFACT_ANCIENT_RUIN(), m_eID, NO_PLAYER);
+			GC.getGame().CreateDigSite(pPlot);
+			//pPlot->AddArchaeologicalRecord(CvTypes::getARTIFACT_ANCIENT_RUIN(), m_eID, NO_PLAYER);
 		}
 	}
 }

@@ -3344,7 +3344,7 @@ void CvGame::handleAction(int iAction)
 					if(pPlot != NULL)
 					{
 						ResourceTypes eArtifactResourceType = static_cast<ResourceTypes>(GC.getARTIFACT_RESOURCE());
-						ResourceTypes eHiddenArtifactResourceType = static_cast<ResourceTypes>(GC.getARTIFACT_RESOURCE());
+						ResourceTypes eHiddenArtifactResourceType = static_cast<ResourceTypes>(GC.getHIDDEN_ARTIFACT_RESOURCE());
 						if (pPlot->getResourceType() == eArtifactResourceType || pPlot->getResourceType() == eHiddenArtifactResourceType)
 						{
 							bShowConfirmPopup = true;
@@ -9662,15 +9662,17 @@ void CvGame::testVictory()
 		LuaSupport::CallHook(pkScriptSystem, "GameCoreTestVictory", args.get(), bResult);
 	}
 
-	if(getVictory() != NO_VICTORY)
-	{
-		return;
-	}
+	// allow victory after victory
+	//if(getVictory() != NO_VICTORY)
+	//{
+	//	return;
+	//}
 
-	if(getGameState() == GAMESTATE_EXTENDED)
-	{
-		return;
-	}
+	// allow victory after victory
+	//if(getGameState() == GAMESTATE_EXTENDED)
+	//{
+	//	return;
+	//}
 
 	updateScore();
 
@@ -12626,16 +12628,7 @@ void CvGame::SpawnArchaeologySitesHistorically()
 		// if this is not a historical dig site
 		if (scratchDigSites[iBestSite].m_eArtifactType == NO_GREAT_WORK_ARTIFACT_CLASS)
 		{
-			// fake the historical data
-			// pick an era before this one			
-			EraTypes eEra = static_cast<EraTypes>(eEraWeights.ChooseByWeight(&fcn, "Choosing an era by weight"));
-			eEra = eEra > static_cast<EraTypes>(0) ? eEra : static_cast<EraTypes>(0);
-
-			// pick a type of artifact
-			GreatWorkArtifactClass eArtifact;
-			eArtifact = aRandomArtifacts[getJonRandNum(aRandomArtifactsCount, "Artifact type for non-historical dig site")];
-
-			PopulateDigSite(*pPlot, eEra, eArtifact);
+			CreateDigSite(pPlot);
 		}
 
 		// If this is a hidden slot getting a writing, override a few things
@@ -12691,6 +12684,31 @@ void CvGame::SpawnArchaeologySitesHistorically()
 			}
 		}
 	}
+}
+
+void CvGame::CreateDigSite(CvPlot* plot)
+{
+	const ResourceTypes eArtifactResourceType = (ResourceTypes)GC.getARTIFACT_RESOURCE();
+	const size_t aRandomArtifactsCount = 7;
+	GreatWorkArtifactClass aRandomArtifacts[aRandomArtifactsCount] = {
+		CvTypes::getARTIFACT_ANCIENT_RUIN(),
+		CvTypes::getARTIFACT_ANCIENT_RUIN(),
+		CvTypes::getARTIFACT_RAZED_CITY(),
+		CvTypes::getARTIFACT_BARBARIAN_CAMP(),
+		CvTypes::getARTIFACT_BARBARIAN_CAMP(),
+		CvTypes::getARTIFACT_BATTLE_MELEE(),
+		CvTypes::getARTIFACT_BATTLE_RANGED()
+	};
+
+	// fake the historical data
+	// pick an era before this one			
+	EraTypes eEra = (EraTypes)GC.rand(4,"Choosing an era by weight");
+
+	// pick a type of artifact
+	GreatWorkArtifactClass eArtifact = aRandomArtifacts[GC.rand(aRandomArtifactsCount, "Artifact type for non-historical dig site")];
+
+	PopulateDigSite(*plot, eEra, eArtifact);
+	plot->setResourceType(eArtifactResourceType, 1);
 }
 
 
