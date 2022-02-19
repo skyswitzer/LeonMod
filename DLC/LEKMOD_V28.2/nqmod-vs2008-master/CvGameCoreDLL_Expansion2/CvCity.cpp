@@ -3089,6 +3089,8 @@ bool CvCity::canConstruct(BuildingTypes eBuilding, bool bContinue, bool bTestVis
 				{
 					if(m_pCityBuildings->GetNumBuilding(eBuildingLoop) > 0)
 					{
+						if (toolTipSink != NULL)
+							(*toolTipSink) += GetLocalizedText("GUILD_CANNOT_BUILD");
 						return false;
 					}
 				}
