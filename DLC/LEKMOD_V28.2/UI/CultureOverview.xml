@@ -20,61 +20,6 @@
         <Box Size="40,34" Color="0,0,0,0">
           <Label Anchor="C,C" String="+22" Color0="Beige.255" Color1="Black.255" Font="TwCenMT20" FontStyle="Stroke" ID="GreatWorks"/>
         </Box>
-        <Box Size="48,34" Color="0,0,0,0">
-          <Button Anchor="C,C" Size="32,32" Offset="0,0" Texture="assets\UI\Art\Icons\GreatWorks.dds" ID="AmphitheaterGreatWork"/>
-          <Image Anchor="C,C" Size="34,34" Offset="0,0" Texture="GreatWorks_Book_HL_34.dds" ID="AmphitheaterGreatWorkHL" Hidden="1"/>
-          <Image Anchor="C,C" Size="32,32" Texture="GreatWorks_DottedFrame_32.dds" ID="AmphitheaterGreatWorkGhost" Hidden="1"/>
-        </Box>
-        <Box Size="48,34" Color="0,0,0,0">
-          <Button Anchor="C,C" Size="32,32" Offset="0,0" Texture="assets\UI\Art\Icons\GreatWorks.dds" ID="OperaHouseGreatWork"/>
-          <Image Anchor="C,C" Size="34,34" Offset="0,0" Texture="GreatWorks_Book_HL_34.dds" ID="OperaHouseGreatWorkHL" Hidden="1"/>
-          <Image Anchor="C,C" Size="32,32" Texture="GreatWorks_DottedFrame_32.dds" ID="OperaHouseGreatWorkGhost" Hidden="1"/>
-        </Box>
-        <Box Size="102,34" Color="0,0,0,0">
-          <Stack Anchor="C,C" StackGrowth="Right" Padding="3">
-            <Box Size="32,32" Anchor="L,C" Color="0,0,0,0">
-              <Button Anchor="L,C" Size="32,32" Offset="0,0" Texture="assets\UI\Art\Icons\GreatWorks.dds" ID="MuseumGreatWork1"/>
-              <Image Anchor="C,C" Size="34,34" Offset="0,0" Texture="GreatWorks_Book_HL_34.dds" ID="MuseumGreatWork1HL" Hidden="1"/>
-              <Image Anchor="C,C" Size="32,32" Texture="GreatWorks_DottedFrame_32.dds" ID="MuseumGreatWork1Ghost" Hidden="1"/>
-            </Box>
-            <Box Size="32,32" Anchor="L,C" Color="0,0,0,0">
-              <Button Anchor="L,C" Size="32,32" Offset="0,0" Texture="assets\UI\Art\Icons\GreatWorks.dds" ID="MuseumGreatWork2"/>
-              <Image Anchor="C,C" Size="34,34" Offset="0,0" Texture="GreatWorks_Book_HL_34.dds" ID="MuseumGreatWork2HL" Hidden="1"/>
-              <Image Anchor="C,C" Size="32,32" Texture="GreatWorks_DottedFrame_32.dds" ID="MuseumGreatWork2Ghost" Hidden="1"/>
-            </Box>
-            <Label Anchor="L,C" Offset="0,0" String="+0" Color0="Beige.255" Color1="Black.255" Font="TwCenMT20" FontStyle="Stroke" ID="MuseumThemeBonus" ToolTip="No Museum Theming bonus"/>
-          </Stack>
-        </Box>
-        <Box Size="48,34" Color="0,0,0,0">
-          <Button Anchor="C,C" Size="32,32" Offset="0,0" Texture="assets\UI\Art\Icons\GreatWorks.dds" ID="BroadcastTowerGreatWork"/>
-          <Image Anchor="C,C" Size="34,34" Offset="0,0" Texture="GreatWorks_Book_HL_34.dds" ID="BroadcastTowerGreatWorkHL" Hidden="1"/>
-          <Image Anchor="C,C" Size="32,32" Texture="GreatWorks_DottedFrame_32.dds" ID="BroadcastTowerGreatWorkGhost" Hidden="1"/>
-        </Box>
-        <Box Size="48,34" Color="0,0,0,0">
-          <Button Anchor="C,C" Size="32,32" Offset="0,0" Texture="assets\UI\Art\Icons\GreatWorks.dds" ID="CathedralGreatWork"/>
-          <Image Anchor="C,C" Size="34,34" Offset="0,0" Texture="GreatWorks_Book_HL_34.dds" ID="CathedralGreatWorkHL" Hidden="1"/>
-          <Image Anchor="C,C" Size="32,32" Texture="GreatWorks_DottedFrame_32.dds" ID="CathedralGreatWorkGhost" Hidden="1"/>
-        </Box>
-        <Box Size="48,34" Color="0,0,0,0">
-          <Button Anchor="C,C" Size="32,32" Offset="0,0" Texture="assets\UI\Art\Icons\GreatWorks.dds" ID="PalaceGreatWork"/>
-          <Image Anchor="C,C" Size="34,34" Offset="0,0" Texture="GreatWorks_Book_HL_34.dds" ID="PalaceGreatWorkHL" Hidden="1"/>
-          <Image Anchor="C,C" Size="32,32" Texture="GreatWorks_DottedFrame_32.dds" ID="PalaceGreatWorkGhost" Hidden="1"/>
-        </Box>
-        <Box Size="48,34" Color="0,0,0,0">
-          <Button Anchor="C,C" Size="32,32" Offset="0,0" Texture="assets\UI\Art\Icons\GreatWorks.dds" ID="NationalEpicGreatWork"/>
-          <Image Anchor="C,C" Size="34,34" Offset="0,0" Texture="GreatWorks_Book_HL_34.dds" ID="NationalEpicGreatWorkHL" Hidden="1"/>
-          <Image Anchor="C,C" Size="32,32" Texture="GreatWorks_DottedFrame_32.dds" ID="NationalEpicGreatWorkGhost" Hidden="1"/>
-        </Box>
-        <Box Size="48,34" Color="0,0,0,0">
-          <Button Anchor="C,C" Size="32,32" Offset="0,0" Texture="assets\UI\Art\Icons\GreatWorks.dds" ID="HeroicEpicGreatWork"/>
-          <Image Anchor="C,C" Size="34,34" Offset="0,0" Texture="GreatWorks_Book_HL_34.dds" ID="HeroicEpicGreatWorkHL" Hidden="1"/>
-          <Image Anchor="C,C" Size="32,32" Texture="GreatWorks_DottedFrame_32.dds" ID="HeroicEpicGreatWorkGhost" Hidden="1"/>
-        </Box>
-        <Box Anchor="L,C" Color="255.255.255.0" Offset="0,0" Size="52,34">
-          <Button Anchor="C,C" AnchorSide="O.I" Size="32,32" Offset="0,0" Texture="assets\UI\Art\Icons\GreatWorks.dds" ID="RoyalLibraryGreatWork"/>
-          <Image Anchor="C,C" Size="34,34" Offset="0,0" Texture="GreatWorks_Book_HL_34.dds" ID="RoyalLibraryGreatWorkHL" Hidden="1"/>
-          <Image Anchor="C,C" Size="32,32" Texture="GreatWorks_DottedFrame_32.dds" ID="RoyalLibraryGreatWorkGhost" Hidden="1"/>
-        </Box>
       </Stack>
       <Image ID="Divider" Anchor="L,B" Offset="0,0" Texture="bar900x2.dds" Size="900.1"/>
     </Box>
@@ -371,23 +316,6 @@
           <Box Anchor="L,T" Size="40,459" Color="1,26,23,255"/>
           <Box Anchor="L,T" Size="1,459" Color="18,108,98,255"/>
           <Box Anchor="L,T" Size="48,459" Color="0,0,0,0"/>
-          <Box Anchor="L,T" Size="1,459" Color="18,108,98,255"/>
-          <Box Anchor="L,T" Size="48,459" Color="1,26,23,255"/>
-          <Box Anchor="L,T" Size="1,459" Color="18,108,98,255"/>
-          <Box Anchor="L,T" Size="102,459" Color="0,0,0,0"/>
-          <Box Anchor="L,T" Size="1,459" Color="18,108,98,255"/>
-          <Box Anchor="L,T" Size="48,459" Color="1,26,23,255"/>
-          <Box Anchor="L,T" Size="1,459" Color="18,108,98,255"/>
-          <Box Anchor="L,T" Size="48,459" Color="0,0,0,0"/>
-          <Box Anchor="L,T" Size="1,459" Color="18,108,98,255"/>
-          <Box Anchor="L,T" Size="48,459" Color="1,26,23,255"/>
-          <Box Anchor="L,T" Size="1,459" Color="18,108,98,255"/>
-          <Box Anchor="L,T" Size="48,459" Color="0,0,0,0"/>
-          <Box Anchor="L,T" Size="1,459" Color="18,108,98,255"/>
-          <Box Anchor="L,T" Size="48,459" Color="1,26,23,255"/>
-          <Box Anchor="L,T" Size="1,459" Color="18,108,98,255"/>
-          <Box Anchor="L,T" Size="48,459" Color="0,0,0,0"/>
-          <Box Anchor="L,T" Size="1,459" Color="18,108,98,255"/>
         </Stack>
         <!-- Column Headers -->
         <Stack Anchor="L,T" StackGrowth="Right" Offset="0,0" Padding="1">
@@ -422,78 +350,6 @@
               </AlphaAnim>
             </ShowOnMouseOver>
             <Label Anchor="C,C" Offset="0,-1" Color0="Beige.255" String="TXT_KEY_CO_GREAT_WORK_HEADER"/>
-          </Button>
-          <Button ID="AmphitheaterButton" Anchor="L,C" Size="48,45">
-            <ShowOnMouseOver>
-              <AlphaAnim Anchor="C,C" Offset="0,0" Size="68,30" Pause="0" Cycle="Bounce" Speed="1" AlphaStart="2" AlphaEnd="1">
-                <Grid Size="68,45" Anchor="C,C" Offset="0,0" Padding="0,0" Style="Grid9FrameTurnsHL"/>
-              </AlphaAnim>
-            </ShowOnMouseOver>
-            <Image Anchor="C,C" Size="45.45" Texture="WonderAtlas360.dds" Hidden="0" ID="AmphitheaterImage"/>
-          </Button>
-          <Button ID="OperaHouseButton" Anchor="L,C" Size="48,45">
-            <ShowOnMouseOver>
-              <AlphaAnim Anchor="C,C" Offset="0,0" Size="68,30" Pause="0" Cycle="Bounce" Speed="1" AlphaStart="2" AlphaEnd="1">
-                <Grid Size="68,45" Anchor="C,C" Offset="0,0" Padding="0,0" Style="Grid9FrameTurnsHL"/>
-              </AlphaAnim>
-            </ShowOnMouseOver>
-            <Image Anchor="C,C" Size="45.45" Texture="WonderAtlas360.dds" Hidden="0" ID="OperaHouseImage"/>
-          </Button>
-          <Button ID="MuseumButton" Anchor="L,C" Size="102,45">
-            <ShowOnMouseOver>
-              <AlphaAnim Anchor="C,C" Offset="0,0" Size="68,30" Pause="0" Cycle="Bounce" Speed="1" AlphaStart="2" AlphaEnd="1">
-                <Grid Size="68,45" Anchor="C,C" Offset="0,0" Padding="0,0" Style="Grid9FrameTurnsHL"/>
-              </AlphaAnim>
-            </ShowOnMouseOver>
-            <Image Anchor="C,C" Size="45.45" Texture="WonderAtlas360.dds" Hidden="0" ID="MuseumImage"/>
-          </Button>
-          <Button ID="BroadcastTowerButton" Anchor="L,C" Size="48,45">
-            <ShowOnMouseOver>
-              <AlphaAnim Anchor="C,C" Offset="0,0" Size="68,30" Pause="0" Cycle="Bounce" Speed="1" AlphaStart="2" AlphaEnd="1">
-                <Grid Size="68,45" Anchor="C,C" Offset="0,0" Padding="0,0" Style="Grid9FrameTurnsHL"/>
-              </AlphaAnim>
-            </ShowOnMouseOver>
-            <Image Anchor="C,C" Size="45.45" Texture="WonderAtlas360.dds" Hidden="0" ID="BroadcastTowerImage"/>
-          </Button>
-          <Button ID="CathedralButton" Anchor="L,C" Size="48,45">
-            <ShowOnMouseOver>
-              <AlphaAnim Anchor="C,C" Offset="0,0" Size="68,30" Pause="0" Cycle="Bounce" Speed="1" AlphaStart="2" AlphaEnd="1">
-                <Grid Size="68,45" Anchor="C,C" Offset="0,0" Padding="0,0" Style="Grid9FrameTurnsHL"/>
-              </AlphaAnim>
-            </ShowOnMouseOver>
-            <Image Anchor="C,C" Size="45.45" Texture="WonderAtlas360.dds" Hidden="0" ID="CathedralImage"/>
-          </Button>
-          <Button ID="PalaceButton" Anchor="L,C" Size="48,45">
-            <ShowOnMouseOver>
-              <AlphaAnim Anchor="C,C" Offset="0,0" Size="68,30" Pause="0" Cycle="Bounce" Speed="1" AlphaStart="2" AlphaEnd="1">
-                <Grid Size="68,45" Anchor="C,C" Offset="0,0" Padding="0,0" Style="Grid9FrameTurnsHL"/>
-              </AlphaAnim>
-            </ShowOnMouseOver>
-            <Image Anchor="C,C" Size="45.45" Texture="WonderAtlas360.dds" Hidden="0" ID="PalaceImage"/>
-          </Button>
-          <Button ID="NationalEpicButton" Anchor="L,C" Size="48,45">
-            <ShowOnMouseOver>
-              <AlphaAnim Anchor="C,C" Offset="0,0" Size="68,30" Pause="0" Cycle="Bounce" Speed="1" AlphaStart="2" AlphaEnd="1">
-                <Grid Size="68,45" Anchor="C,C" Offset="0,0" Padding="0,0" Style="Grid9FrameTurnsHL"/>
-              </AlphaAnim>
-            </ShowOnMouseOver>
-            <Image Anchor="C,C" Size="45.45" Texture="WonderAtlas360.dds" Hidden="0" ID="NationalEpicImage"/>
-          </Button>
-          <Button ID="HeroicEpicButton" Anchor="L,C" Size="48,45">
-            <ShowOnMouseOver>
-              <AlphaAnim Anchor="C,C" Offset="0,0" Size="68,30" Pause="0" Cycle="Bounce" Speed="1" AlphaStart="2" AlphaEnd="1">
-                <Grid Size="68,45" Anchor="C,C" Offset="0,0" Padding="0,0" Style="Grid9FrameTurnsHL"/>
-              </AlphaAnim>
-            </ShowOnMouseOver>
-            <Image Anchor="C,C" Size="45.45" Texture="WonderAtlas360.dds" Hidden="0" ID="HeroicEpicImage"/>
-          </Button>
-          <Button ID="RoyalLibraryButton" Anchor="L,C" Size="48,45">
-            <ShowOnMouseOver>
-              <AlphaAnim Anchor="C,C" Offset="0,0" Size="68,30" Pause="0" Cycle="Bounce" Speed="1" AlphaStart="2" AlphaEnd="1">
-                <Grid Size="68,45" Anchor="C,C" Offset="0,0" Padding="0,0" Style="Grid9FrameTurnsHL"/>
-              </AlphaAnim>
-            </ShowOnMouseOver>
-            <Image Anchor="C,C" Size="45.45" Texture="WonderAtlas360.dds" Hidden="0" ID="RoyalLibraryImage"/>
           </Button>
         </Stack>
         <!-- City List -->

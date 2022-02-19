@@ -562,7 +562,8 @@ function RefreshYourCulture()
 		return entry;
     end
        
-    local buildings = {
+    local buildings = {};
+    --[[
 		BuildingEntry{
 			BuildingClass = "BUILDINGCLASS_AMPHITHEATER",
 			BuildingSortColumn = "AmphitheaterSort",
@@ -582,9 +583,9 @@ function RefreshYourCulture()
 		BuildingEntry{
 			BuildingClass = "BUILDINGCLASS_MUSEUM",
 			BuildingSortColumn = "MuseumSort",
-			IconControlNames = {"MuseumGreatWork1", "MuseumGreatWork2"},
-			HighlightIconControlNames = {"MuseumGreatWork1HL", "MuseumGreatWork2HL"},
-			GhostIconControlNames = {"MuseumGreatWork1Ghost", "MuseumGreatWork2Ghost"},
+			IconControlNames = {"MuseumGreatWork1", "MuseumGreatWork2", "MuseumGreatWork3", "MuseumGreatWork4"},
+			HighlightIconControlNames = {"MuseumGreatWork1HL", "MuseumGreatWork2HL", "MuseumGreatWork3HL", "MuseumGreatWork4HL"},
+			GhostIconControlNames = {"MuseumGreatWork1Ghost", "MuseumGreatWork2Ghost", "MuseumGreatWork3Ghost", "MuseumGreatWork4Ghost"},
 			ThemeBonusControlName = "MuseumThemeBonus";
 			ColumnImageControl = Controls.MuseumImage,
 		},		
@@ -638,12 +639,12 @@ function RefreshYourCulture()
 			ColumnImageControl = Controls.RoyalLibraryImage,
 		},	
 	};
+	--]]
 	
 	local WorldWonders = {};
 	for building in GameInfo.Buildings() do
 		local buildingClass = GameInfo.BuildingClasses[building.BuildingClass];
-		if((buildingClass.MaxGlobalInstances > 0 and building.GreatWorkCount > 0) or
-			building.Type == "BUILDING_HERMITAGE" or building.Type == "BUILDING_OXFORD_UNIVERSITY") then
+		if (building.GreatWorkCount > 0) then
 			table.insert(WorldWonders, {
 				BuildingID = building.ID,
 				BuildingClassID = buildingClass.ID,
@@ -686,8 +687,8 @@ function RefreshYourCulture()
 		cityData.GreatWorks = city:GetNumGreatWorks();
 		cityData.GreatWorksToolTip = city:GetTotalSlotsTooltip();
         
-        
         cityData.Buildings = {};
+        --[[
         for _,v in ipairs(buildings) do
 			
 			local buildingData = {};
@@ -739,6 +740,7 @@ function RefreshYourCulture()
 			
 			table.insert(cityData.Buildings, buildingData);
         end
+        --]]
         
         local cityWonders = {};
         
