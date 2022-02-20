@@ -10020,15 +10020,28 @@ map<BuildingTypes, int> CvPlayer::getBuildingCount() const
 	map<BuildingTypes, int> map;
 
 	int iLoop = 0;
+	// each city
 	for (const CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 	{
+		// each building type
 		const vector<BuildingTypes>& buildings = pLoopCity->GetCityBuildings()->GetAllBuildingsHere();
-		for (vector<BuildingTypes>::const_iterator it = buildings.begin(); it != buildings.end(); ++it)
+		for (int iBuildingLoop = 0; iBuildingLoop < GC.getNumBuildingInfos(); iBuildingLoop++)
 		{
-			if (map.find(*it) == map.end())
-				map.insert(pair<BuildingTypes, int>(*it, 0));
+			const BuildingTypes eBuilding = static_cast<BuildingTypes>(iBuildingLoop);
+			const CvBuildingEntry* pkBuildingInfo = GC.getBuildingInfo(eBuilding);
 
-			map[*it] += 1;
+			if (pkBuildingInfo)
+			{
+				// has any?
+				const int num = pLoopCity->GetCityBuildings()->GetNumBuilding(eBuilding);
+				if (num > 0)
+				{
+					if (map.find(eBuilding) == map.end())
+						map.insert(pair<BuildingTypes, int>(eBuilding, 0));
+
+					map[eBuilding] += num;
+				}
+			}
 		}
 	}
 

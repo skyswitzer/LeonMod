@@ -37,6 +37,104 @@ const int baseTradeInfluence = 0;
 const int maxAnchorT100 = 200 * 100;
 const int minAnchorT100 = -200 * 100;
 
+
+
+enum MessageType
+{
+	// quest begin
+	START_CAPTION = 0,
+	START_DESC,
+	// current status of competition or quest
+	STATUS_DESC,
+	// you have completed, or won
+	WIN_CAPTION,
+	WIN_DESC,
+	// you missed out, or lost
+	LOSE_CAPTION,
+	LOSE_DESC,
+};
+
+struct QuestReward
+{
+	QuestReward()
+	{
+		friendship = 0;
+
+		support = 0;
+		insight = 0;
+		culturalInfluence = 0;
+
+		food = 0;
+		hammers = 0;
+		culture = 0;
+		beakers = 0;
+		militaryUnits = 0;
+		goldenPoints = 0;
+	}
+	int friendship;
+	// vp
+	int support;
+	int insight;
+	int culturalInfluence;
+	// generic
+	int food;
+	int hammers;
+	int culture;
+	int beakers;
+	int militaryUnits;
+	int goldenPoints;
+};
+
+string QUEST_GIFT_GOLD_MESSAGE
+(
+	MessageType type, 
+	string civName, 
+	int influenceT100,
+	int competitionValue,
+	int competitionWinner, 
+	QuestReward rewards
+)
+{
+	if (type == MessageType::START_DESC)
+	{
+
+	}
+	return "";
+}
+
+
+string compileRewards(QuestReward rewards)
+{
+	vector<stringstream> ss;
+	if (rewards.friendship > 0)
+	{
+		ss.push_back(stringstream());
+		ss[ss.size() - 1] << "[COLOR_POSITIVE_TEXT]+" << rewards.friendship << "[ENDCOLOR]{FRIENDSHIP}";
+	}
+	if (rewards.support > 0)
+	{
+		ss.push_back(stringstream());
+		ss[ss.size() - 1] << "[COLOR_POSITIVE_TEXT]+" << rewards.support << "[ENDCOLOR]{DIPLOMATIC_INFLUENCE}";
+	}
+
+	stringstream total;
+	for (int i = 0; i < ss.size(); ++i)
+	{
+		total << ss[i].rdbuf();
+		if (i < ss.size() - 1)
+			total << ", ";
+		if (i == ss.size() - 2)
+			total << "and ";
+	}
+	return total.str();
+}
+
+
+
+
+
+
+
 // Default Constructor
 CvMinorCivQuest::CvMinorCivQuest()
 {
@@ -395,23 +493,6 @@ bool CvMinorCivQuest::IsComplete()
 		return false;
 	}
 
-	//if(m_eType == MINOR_CIV_QUEST_ROUTE)
-	//{
-	//	if (pAssignedPlayer->IsCapitalConnectedToPlayer(m_eMinor))
-	//	{
-	//		return true;
-	//	}
-	//}
-	//else if(m_eType == MINOR_CIV_QUEST_CONNECT_RESOURCE)
-	//{
-	//	ResourceTypes eResource = (ResourceTypes) m_iData1;
-
-	//	// Player has the Resource?
-	//	if(pAssignedPlayer->getNumResourceTotal(eResource, /*bIncludeImport*/ true) > 0)
-	//	{
-	//		return true;
-	//	}
-	//}
 	if(m_eType == QUEST_BUILD_WORLD_WONDER)
 	{
 		const int oldCount = m_iData1;
@@ -424,33 +505,6 @@ bool CvMinorCivQuest::IsComplete()
 	else if (m_eType == QUEST_GIFT_GREAT_PERSON) { }
 	else if (m_eType == QUEST_GIFT_MILITARY) { }
 	else if(m_eType == QUEST_GIFT_WORKER) { }
-	//else if(m_eType == MINOR_CIV_QUEST_KILL_CITY_STATE)
-	//{
-	//	PlayerTypes eTargetCityState = (PlayerTypes) m_iData1;
-	//	CvPlayer* pTargetCityState = &GET_PLAYER(eTargetCityState);
-	//	if(pTargetCityState)
-	//	{
-	//		CvTeam* pTargetCityStateTeam = &GET_TEAM(pTargetCityState->getTeam());
-	//		if(pTargetCityStateTeam)
-	//		{
-	//			// Player killed the City State?
-	//			if(pTargetCityStateTeam->GetKilledByTeam() == pAssignedPlayer->getTeam())
-	//			{
-	//				return true;
-	//			}
-	//		}
-	//	}
-	//}
-	//else if(m_eType == MINOR_CIV_QUEST_FIND_PLAYER)
-	//{
-	//	PlayerTypes ePlayerToFind = (PlayerTypes) m_iData1;
-
-	//	// Player found the target player?
-	//	if(GET_TEAM(pAssignedPlayer->getTeam()).IsHasFoundPlayersTerritory(ePlayerToFind))
-	//	{
-	//		return true;
-	//	}
-	//}
 	else if(m_eType == QUEST_BUILD_NATIONAL_WONDER)
 	{
 		const int oldCount = m_iData1;
@@ -461,44 +515,15 @@ bool CvMinorCivQuest::IsComplete()
 	}
 	else if(m_eType == QUEST_GIFT_GOLD)
 	{
-		int iGoldGiftedBefore = m_iData2;
-		const int minGoldGift = 400;
+		const int minGoldGift = m_iData1;
+		const int iGoldGiftedBefore = m_iData2;
+		const int currentGiven = pMinor->GetMinorCivAI()->GetNumGoldGifted(m_eAssignedPlayer);
 
-		// Has the player given gold since the quest began?
-		if(pMinor->GetMinorCivAI()->GetNumGoldGifted(m_eAssignedPlayer) >= minGoldGift + iGoldGiftedBefore)
+		if(currentGiven >= minGoldGift + iGoldGiftedBefore)
 		{
 			return true;
 		}
 	}
-	//else if(m_eType == MINOR_CIV_QUEST_PLEDGE_TO_PROTECT)
-	//{
-	//	// Has the player pledged?
-	//	//if(pMinor->GetMinorCivAI()->IsProtectedByMajor(m_eAssignedPlayer))
-	//	//{
-	//	//	return true;
-	//	//}
-	//}
-	//else if(m_eType == MINOR_CIV_QUEST_CONTEST_CULTURE)
-	//{
-	//	// Is it time to compare the score?
-	//	if(GetEndTurn() == GC.getGame().getGameTurn())
-	//		if(IsContestLeader(GetPlayerAssignedTo()))
-	//			return true;
-	//}
-	//else if(m_eType == MINOR_CIV_QUEST_CONTEST_FAITH)
-	//{
-	//	// Is it time to compare the score?
-	//	if(GetEndTurn() == GC.getGame().getGameTurn())
-	//		if(IsContestLeader(GetPlayerAssignedTo()))
-	//			return true;
-	//}
-	//else if (m_eType == MINOR_CIV_QUEST_CONTEST_TECHS)
-	//{
-	//	// Is it time to compare the score?
-	//	if (GetEndTurn() == GC.getGame().getGameTurn())
-	//		if (IsContestLeader(GetPlayerAssignedTo()))
-	//			return true;
-	//}
 	else if (m_eType == QUEST_UNREST)
 	{
 		// Is it time to compare the score?
@@ -506,34 +531,6 @@ bool CvMinorCivQuest::IsComplete()
 			if (IsContestLeader(GetPlayerAssignedTo()))
 				return true;
 	}
-	//else if(m_eType == MINOR_CIV_QUEST_INVEST)
-	//{
-	//	if(GetEndTurn() == GC.getGame().getGameTurn())
-	//		return true;
-	//}
-	//else if(m_eType == MINOR_CIV_QUEST_BULLY_CITY_STATE)
-	//{
-	//	// Has the player bullied since the quest began?
-	//	PlayerTypes eTargetMinor = (PlayerTypes) m_iData1;
-	//	CvPlayer* pTargetMinor = &GET_PLAYER(eTargetMinor);
-	//	if(pTargetMinor)
-	//	{
-	//		int iMostRecentBullyTurn = pTargetMinor->GetMinorCivAI()->GetTurnLastBulliedByMajor(m_eAssignedPlayer);
-	//		if(iMostRecentBullyTurn > m_iData2)
-	//			return true;
-	//	}
-	//}
-	//else if(m_eType == MINOR_CIV_QUEST_DENOUNCE_MAJOR)
-	//{
-	//	// Has the player denounced that major yet?
-	//	PlayerTypes eTargetMajor = (PlayerTypes) m_iData1;
-	//	CvPlayer* pTargetMajor = &GET_PLAYER(eTargetMajor);
-	//	if(pTargetMajor)
-	//	{
-	//		if(pAssignedPlayer->GetDiplomacyAI()->IsDenouncedPlayer(eTargetMajor))
-	//			return true;
-	//	}
-	//}
 	else if(m_eType == QUEST_SPREAD_RELIGION)
 	{
 		// Does the CS have the right majority religion?
@@ -623,287 +620,88 @@ void CvMinorCivQuest::DoStartQuest(int iStartTurn)
 	int iNotificationX = -1;
 	int iNotificationY = -1;
 
-	// Build a Route
-	//if(m_eType == MINOR_CIV_QUEST_ROUTE)
-	//{
-	//	strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_START_ROUTE");
-	//	strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_START_ROUTE");
-	//}
-	// Connect a Resource
-	//else if(m_eType == MINOR_CIV_QUEST_CONNECT_RESOURCE)
-	//{
-	//	ResourceTypes eResource = pMinor->GetMinorCivAI()->GetNearbyResourceForQuest(m_eAssignedPlayer);
+	string data1String = "";
+	string data2String = "";
 
-	//	FAssertMsg(eResource != NO_RESOURCE, "MINOR CIV AI: For some reason we got NO_RESOURCE when starting a quest for a major to find a Resource. Please send Jon this with your last 5 autosaves and what changelist # you're playing. Bad things are probably going to happen.");
-
-	//	m_iData1 = eResource;
-
-	//	const char* strResourceName = GC.getResourceInfo(eResource)->GetDescriptionKey();
-
-	//	strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_CONNECT_RESOURCE");
-	//	strMessage << strResourceName;
-	//	strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_CONNECT_RESOURCE");
-	//	strSummary << strResourceName;
-	//}
-	// Construct a Wonder
 	if(m_eType == QUEST_BUILD_WORLD_WONDER)
 	{
-		BuildingTypes eWonder = pMinor->GetMinorCivAI()->GetBestWonderForQuest(m_eAssignedPlayer);
-
-		FAssertMsg(eWonder != NO_BUILDING, "MINOR CIV AI: For some reason we got NO_BUILDING when starting a quest for a major to find a Wonder. Please send Jon this with your last 5 autosaves and what changelist # you're playing. Bad things are probably going to happen.");
-
-		m_iData1 = eWonder;
-
-#ifdef AUI_WARNING_FIXES
-		const char* strBuildingName;
-		CvBuildingEntry* pWonderInfo = GC.getBuildingInfo(eWonder);
-		if (pWonderInfo)
-			strBuildingName = pWonderInfo->GetDescriptionKey();
-#else
-		const char* strBuildingName = GC.getBuildingInfo(eWonder)->GetDescriptionKey();
-#endif
+		const int currentCount = pAssignedPlayer->GetNumWonders();
+		m_iData1 = currentCount;
 
 		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_CONSTRUCT_WONDER");
-		strMessage << strBuildingName;
 		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_CONSTRUCT_WONDER");
-		strSummary << strBuildingName;
 	}
-	// Great Person
 	else if(m_eType == QUEST_GIFT_GREAT_PERSON)
 	{
 		UnitTypes eUnit = pMinor->GetMinorCivAI()->GetBestGreatPersonForQuest(m_eAssignedPlayer);
-
 		FAssertMsg(eUnit != NO_UNIT, "MINOR CIV AI: For some reason we got NO_UNIT when starting a quest for a major to find a Great Person. Please send Jon this with your last 5 autosaves and what changelist # you're playing. Bad things are probably going to happen.");
-
 		m_iData1 = eUnit;
-
-#ifdef AUI_WARNING_FIXES
-		const char* strUnitName;
-		CvUnitEntry* pUnitInfo = GC.getUnitInfo(eUnit);
-		if (pUnitInfo)
-			strUnitName = pUnitInfo->GetDescriptionKey();
-#else
-		const char* strUnitName = GC.getUnitInfo(eUnit)->GetDescriptionKey();
-#endif
+		data1String = GC.getUnitInfo(eUnit)->GetDescriptionKey();
 
 		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_GREAT_PERSON");
-		strMessage << strUnitName;
 		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_GREAT_PERSON");
-		strSummary << strUnitName;
 	}
-	// Kill another City State
-	//else if(m_eType == MINOR_CIV_QUEST_KILL_CITY_STATE)
-	//{
-	//	PlayerTypes eTargetCityState = pMinor->GetMinorCivAI()->GetBestCityStateTarget(m_eAssignedPlayer);
-
-	//	FAssertMsg(eTargetCityState != NO_PLAYER, "MINOR CIV AI: For some reason we got NO_PLAYER when starting a quest for a major to kill a City State. Please send Jon this with your last 5 autosaves and what changelist # you're playing. Bad things are probably going to happen.");
-
-	//	m_iData1 = eTargetCityState;
-
-	//	const char* strTargetNameKey = GET_PLAYER(eTargetCityState).getNameKey();
-
-	//	strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_KILL_CITY_STATE");
-	//	strMessage << strTargetNameKey;
-	//	strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_KILL_CITY_STATE");
-	//	strSummary << strTargetNameKey;
-	//}
-	// Find another player's territory
-	//else if(m_eType == MINOR_CIV_QUEST_FIND_PLAYER)
-	//{
-	//	PlayerTypes ePlayerToFind = pMinor->GetMinorCivAI()->GetBestPlayerToFind(m_eAssignedPlayer);
-
-	//	FAssertMsg(ePlayerToFind != NO_PLAYER, "MINOR CIV AI: For some reason we got NO_PLAYER when starting a quest for a major to find a player. Please send Jon this with your last 5 autosaves and what changelist # you're playing. Bad things are probably going to happen.");
-
-	//	m_iData1 = ePlayerToFind;
-
-	//	const char* strCivKey = GET_PLAYER(ePlayerToFind).getCivilizationShortDescriptionKey();
-
-	//	strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_FIND_PLAYER");
-	//	strMessage << strCivKey;
-	//	strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_FIND_PLAYER");
-	//	strSummary << strCivKey;
-	//}
-	// Find a Natural Wonder
 	else if(m_eType == QUEST_BUILD_NATIONAL_WONDER)
 	{
 		const int currentCount = pAssignedPlayer->getNumNationalWonders();
-
 		m_iData1 = currentCount;
 
 		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_FIND_NATURAL_WONDER");
 		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_FIND_NATURAL_WONDER");
 	}
-	// Give a gift of gold
 	else if(m_eType == QUEST_GIFT_GOLD)
 	{
 		int iGoldAlreadyGiven = pMinor->GetMinorCivAI()->GetNumGoldGifted(m_eAssignedPlayer);
 
+		m_iData1 = 400;
 		m_iData2 = iGoldAlreadyGiven;
 
+		stringstream s;
+		s << m_iData1;
+		data1String = s.str();
 		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_GIVE_GOLD");
 		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_GIVE_GOLD");
-
-		const char* strCivKey = "Nobody";
-		strMessage << strCivKey;
 	}
-	// Pledge to protect them
 	else if(m_eType == QUEST_GIFT_MILITARY)
 	{
-		PlayerTypes eMostRecentBully = pMinor->GetMinorCivAI()->GetMostRecentBullyForQuest();
-
 		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_PLEDGE_TO_PROTECT");
 		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_PLEDGE_TO_PROTECT");
-
-		const char* strCivKey = "Nobody";
-		strMessage << strCivKey;
 	}
-	// Culture contest
 	else if(m_eType == QUEST_GIFT_WORKER)
 	{
 		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_CONTEST_CULTURE");
 		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_CONTEST_CULTURE");
 	}
-	// Faith contest
-	//else if(m_eType == MINOR_CIV_QUEST_CONTEST_FAITH)
-	//{
-	//	int iStartingFaith = pAssignedPlayer->GetFaithEverGenerated();
-
-	//	m_iData1 = iStartingFaith;
-
-	//	int iTurnsRemaining = GetEndTurn() - GC.getGame().getGameTurn();
-	//	int iTurnsDuration = GetEndTurn() - GetStartTurn();
-
-	//	strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_CONTEST_FAITH");
-	//	strMessage << iTurnsRemaining;
-	//	strMessage << iTurnsDuration;
-	//	strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_CONTEST_FAITH");
-	//}
-	// Techs contest
-	//else if (m_eType == MINOR_CIV_QUEST_CONTEST_TECHS)
-	//{
-	//	int iStartingTechs = GET_TEAM(pAssignedPlayer->getTeam()).GetTeamTechs()->GetNumTechsKnown();
-
-	//	m_iData1 = iStartingTechs;
-
-	//	int iTurnsRemaining = GetEndTurn() - GC.getGame().getGameTurn();
-	//	int iTurnsDuration = GetEndTurn() - GetStartTurn();
-
-	//	strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_CONTEST_TECHS");
-	//	strMessage << iTurnsRemaining;
-	//	strMessage << iTurnsDuration;
-	//	strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_CONTEST_TECHS");
-	//}
-	// Techs contest
 	else if (m_eType == QUEST_UNREST)
 	{
 		int iMilitaryStrength = 0;
 
 		m_iData1 = iMilitaryStrength;
 
-		int iTurnsRemaining = GetEndTurn() - GC.getGame().getGameTurn();
-		int iTurnsDuration = GetEndTurn() - GetStartTurn();
-		// include victory points and influence reward
-		const int influence = GetInfluenceReward();
-		const int victoryPoints = scoreFromQuest;
-
 		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_UNREST");
-		strMessage << iTurnsRemaining;
-		strMessage << iTurnsDuration;
-		strMessage << influence;
-		strMessage << victoryPoints;
 		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_UNREST");
 	}
-	// Invest
-	//else if(m_eType == MINOR_CIV_QUEST_INVEST)
-	//{
-	//	int iGoldAlreadyGiven = pMinor->GetMinorCivAI()->GetNumGoldGifted(m_eAssignedPlayer);
-
-	//	m_iData1 = iGoldAlreadyGiven;
-
-	//	int iTurnsRemaining = GetEndTurn() - GC.getGame().getGameTurn();
-	//	int iBoostPercentage = 50;
-
-	//	strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_INVEST");
-	//	strMessage << iTurnsRemaining;
-	//	strMessage << iBoostPercentage;
-	//	strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_INVEST");
-	//}
-	// Bully target City-State
-	//else if(m_eType == MINOR_CIV_QUEST_BULLY_CITY_STATE)
-	//{
-	//	PlayerTypes eTargetMinor = pMinor->GetMinorCivAI()->GetBestCityStateTarget(m_eAssignedPlayer);
-	//	CvAssertMsg(eTargetMinor != NO_PLAYER, "MINOR CIV AI: eTargetMinor should not be NO_PLAYER when giving a Bully CS quest! Please send Anton your save file and version.");
-	//	int iLastBullyTurn = GET_PLAYER(eTargetMinor).GetMinorCivAI()->GetTurnLastBulliedByMajor(m_eAssignedPlayer);
-
-	//	m_iData1 = eTargetMinor;
-	//	m_iData2 = iLastBullyTurn;
-
-	//	strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_BULLY_CITY_STATE");
-	//	strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_BULLY_CITY_STATE");
-
-	//	if(eTargetMinor != NO_PLAYER)
-	//	{
-	//		const char* strCivKey = GET_PLAYER(eTargetMinor).getCivilizationShortDescriptionKey();
-	//		strMessage << strCivKey;
-	//		strSummary << strCivKey;
-	//	}
-	//	else
-	//	{
-	//		const char* strCivKey = "Nobody";
-	//		strMessage << strCivKey;
-	//		strSummary << strCivKey;
-	//	}
-	//}
-	// Denounce target Major
-	//else if(m_eType == MINOR_CIV_QUEST_DENOUNCE_MAJOR)
-	//{
-	//	PlayerTypes eMostRecentBully = pMinor->GetMinorCivAI()->GetMostRecentBullyForQuest();
-
-	//	CvAssertMsg(eMostRecentBully != NO_PLAYER, "MINOR CIV AI: eMostRecentBully should not be NO_PLAYER when giving a Denounce Major quest! Please send Anton your save file and version.");
-
-	//	m_iData1 = eMostRecentBully;
-
-	//	strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_DENOUNCE_MAJOR");
-	//	strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_DENOUNCE_MAJOR");
-
-	//	if(eMostRecentBully != NO_PLAYER)
-	//	{
-	//		const char* strCivKey = GET_PLAYER(eMostRecentBully).getCivilizationShortDescriptionKey();
-	//		strMessage << strCivKey;
-	//		strSummary << strCivKey;
-	//	}
-	//	else
-	//	{
-	//		const char* strCivKey = "Nobody";
-	//		strMessage << strCivKey;
-	//		strSummary << strCivKey;
-	//	}
-	//}
-	// Spread your religion to us
 	else if(m_eType == QUEST_SPREAD_RELIGION)
 	{
 		ReligionTypes eReligion = GC.getGame().GetGameReligions()->GetReligionCreatedByPlayer(m_eAssignedPlayer);
 
 		CvAssertMsg(eReligion != NO_RELIGION, "MINOR CIV AI: eReligion should not be NO_RELIGION when giving a Spread Religion quest! Please send Anton your save file and version.");
-
 		m_iData1 = eReligion;
 
-		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_SPREAD_RELIGION");
-		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_SPREAD_RELIGION");
-
+		string strReligion = "";
 		if(eReligion != NO_RELIGION)
 		{
 			const CvReligion* pkReligion = GC.getGame().GetGameReligions()->GetReligion(eReligion, NO_PLAYER);
-			CvString strReligion = pkReligion->GetName(); // Not a key, already localized (may be custom name)
-			strMessage << strReligion;
-			strSummary << strReligion;
+			if (pkReligion != NULL) strReligion = pkReligion->GetName();
 		}
 		else
 		{
-			const char* strReligion = "No Religion";
-			strMessage << strReligion;
-			strSummary << strReligion;
+			strReligion = "No Religion";
 		}
+
+		data1String = strReligion;
+		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_SPREAD_RELIGION");
+		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_SPREAD_RELIGION");
 	}
 	// Connect a trade Route
 	else if(m_eType == QUEST_TRADE_ROUTE)
@@ -912,7 +710,21 @@ void CvMinorCivQuest::DoStartQuest(int iStartTurn)
 		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_START_TRADE_ROUTE");
 	}
 
-	strMessage << pMinor->getNameKey();
+	{ // insert data into popup
+		const int iTurnsRemaining = GetEndTurn() - GC.getGame().getGameTurn();
+		const int iTurnsDuration = GetEndTurn() - GetStartTurn();
+		// include victory points and influence reward
+		const int influence = GetInfluenceReward();
+		const int victoryPoints = scoreFromQuest;
+
+		strMessage << pMinor->getNameKey(); // 1_name
+		strMessage << influence; // 2_friendship
+		strMessage << victoryPoints; // 3_diplomatic
+		strMessage << iTurnsRemaining; // 4_turns
+		strMessage << data1String.c_str(); // 5_data1
+		strMessage << data2String.c_str(); // 6_data2
+	}
+
 	strSummary << pMinor->getNameKey();
 	pMinor->GetMinorCivAI()->AddQuestNotification(strMessage.toUTF8(), strSummary.toUTF8(), m_eAssignedPlayer, iNotificationX, iNotificationY);
 }
@@ -985,181 +797,46 @@ bool CvMinorCivQuest::DoFinishQuest(const float bonusFactor)
 	Localization::String strSummary;
 	CivsList veNamesToShow;
 
-	// BUILD A ROUTE
-	if(m_eType == MINOR_CIV_QUEST_ROUTE)
+	if(m_eType == QUEST_BUILD_WORLD_WONDER)
 	{
-		// Route exists!
-		pMinor->GetMinorCivAI()->SetRouteConnectionEstablished(m_eAssignedPlayer, true);
-
-		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_MINOR_ROUTE_CONNECTION");
-		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_MINOR_ROUTE_CONNECTION");
-	}
-
-	// CONNECT A RESOURCE
-	else if(m_eType == MINOR_CIV_QUEST_CONNECT_RESOURCE)
-	{
-		ResourceTypes eResource = (ResourceTypes) GetPrimaryData();
-		const char* strResourceName = GC.getResourceInfo(eResource)->GetDescriptionKey();
-
-		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_COMPLETE_CONNECT_RESOURCE");
-		strMessage << strResourceName;
-		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_COMPLETE_CONNECT_RESOURCE");
-		strSummary << strResourceName;
-	}
-
-	// CONSTRUCT A WONDER
-	else if(m_eType == MINOR_CIV_QUEST_CONSTRUCT_WONDER)
-	{
-		BuildingTypes eWonder = (BuildingTypes) GetPrimaryData();
-		const char* strBuildingName = GC.getBuildingInfo(eWonder)->GetDescriptionKey();
-
 		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_COMPLETE_CONSTRUCT_WONDER");
-		strMessage << strBuildingName;
 		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_COMPLETE_CONSTRUCT_WONDER");
-		strSummary << strBuildingName;
 	}
-
-	// GREAT PERSON
-	else if(m_eType == MINOR_CIV_QUEST_GREAT_PERSON)
+	else if(m_eType == QUEST_GIFT_GREAT_PERSON)
 	{
-		UnitTypes eUnit = (UnitTypes) GetPrimaryData();
-		const char* strUnitName = GC.getUnitInfo(eUnit)->GetDescriptionKey();
-
 		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_COMPLETE_GREAT_PERSON");
-		strMessage << strUnitName;
 		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_COMPLETE_GREAT_PERSON");
-		strSummary << strUnitName;
 	}
-
-	// KILL ANOTHER CITY STATE
-	else if(m_eType == MINOR_CIV_QUEST_KILL_CITY_STATE)
-	{
-		PlayerTypes eTargetCityState = (PlayerTypes) GetPrimaryData();
-		const char* strTargetNameKey = GET_PLAYER(eTargetCityState).getNameKey();
-
-		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_COMPLETE_KILL_CITY_STATE");
-		strMessage << strTargetNameKey;
-		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_COMPLETE_KILL_CITY_STATE");
-		strSummary << strTargetNameKey;
-	}
-
-	// FIND ANOTHER PLAYER
-	else if(m_eType == MINOR_CIV_QUEST_FIND_PLAYER)
-	{
-		PlayerTypes ePlayerFound = (PlayerTypes) GetPrimaryData();
-		const char* strCivKey = GET_PLAYER(ePlayerFound).getCivilizationShortDescriptionKey();
-
-		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_COMPLETE_FIND_PLAYER");
-		strMessage << strCivKey;
-		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_COMPLETE_FIND_PLAYER");
-		strSummary << strCivKey;
-	}
-
-	// FIND NATURAL WONDER
-	else if(m_eType == MINOR_CIV_QUEST_FIND_NATURAL_WONDER)
+	else if(m_eType == QUEST_BUILD_NATIONAL_WONDER)
 	{
 		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_COMPLETE_FIND_NATURAL_WONDER");
 		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_COMPLETE_FIND_NATURAL_WONDER");
 	}
-
-	// Give gold
-	else if(m_eType == MINOR_CIV_QUEST_GIVE_GOLD)
+	else if(m_eType == QUEST_GIFT_GOLD)
 	{
-		PlayerTypes eMostRecentBully = (PlayerTypes) GetPrimaryData();
-		const char* strCivKey = "Nobody";
-		if(eMostRecentBully != NO_PLAYER)
-			strCivKey = GET_PLAYER(eMostRecentBully).getCivilizationShortDescriptionKey();
-
 		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_COMPLETE_GIVE_GOLD");
-		strMessage << strCivKey;
 		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_COMPLETE_GIVE_GOLD");
 	}
-
-	// Pledge to protect
-	else if(m_eType == MINOR_CIV_QUEST_PLEDGE_TO_PROTECT)
+	else if(m_eType == QUEST_GIFT_MILITARY)
 	{
-		PlayerTypes eMostRecentBully = (PlayerTypes) GetPrimaryData();
-		const char* strCivKey = "Nobody";
-		if(eMostRecentBully != NO_PLAYER)
-			strCivKey = GET_PLAYER(eMostRecentBully).getCivilizationShortDescriptionKey();
-
 		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_COMPLETE_PLEDGE_TO_PROTECT");
-		strMessage << strCivKey;
 		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_COMPLETE_PLEDGE_TO_PROTECT");
 	}
-
-	// Culture contest
-	else if(m_eType == MINOR_CIV_QUEST_CONTEST_CULTURE)
+	else if(m_eType == QUEST_GIFT_WORKER)
 	{
 		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_COMPLETE_CONTEST_CULTURE");
 		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_COMPLETE_CONTEST_CULTURE");
-		veNamesToShow = GetContestLeaders();
 	}
-
-	// Faith contest
-	else if(m_eType == MINOR_CIV_QUEST_CONTEST_FAITH)
-	{
-		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_COMPLETE_CONTEST_FAITH");
-		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_COMPLETE_CONTEST_FAITH");
-		veNamesToShow = GetContestLeaders();
-	}
-
-	// Techs contest
-	else if (m_eType == MINOR_CIV_QUEST_CONTEST_TECHS)
-	{
-	strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_COMPLETE_CONTEST_TECHS");
-	strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_COMPLETE_CONTEST_TECHS");
-	veNamesToShow = GetContestLeaders();
-	}
-
-	// Techs contest
 	else if (m_eType == QUEST_UNREST)
 	{
-	GET_PLAYER(m_eAssignedPlayer).ChangeDiplomaticInfluence(scoreFromQuest);
+		GET_PLAYER(m_eAssignedPlayer).ChangeDiplomaticInfluence(scoreFromQuest);
 
-	strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_COMPLETE_UNREST");
-	strMessage << scoreFromQuest;
-	strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_COMPLETE_UNREST");
-	veNamesToShow = GetContestLeaders();
+		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_COMPLETE_UNREST");
+		strMessage << scoreFromQuest;
+		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_COMPLETE_UNREST");
+		veNamesToShow = GetContestLeaders();
 	}
-
-	// Invest
-	else if(m_eType == MINOR_CIV_QUEST_INVEST)
-	{
-		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_COMPLETE_INVEST");
-		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_COMPLETE_INVEST");
-	}
-
-	// Bully target City-State
-	else if(m_eType == MINOR_CIV_QUEST_BULLY_CITY_STATE)
-	{
-		PlayerTypes eTargetMinor = (PlayerTypes) GetPrimaryData();
-		const char* strCivKey = "Nobody";
-		if(eTargetMinor != NO_PLAYER)
-			strCivKey = GET_PLAYER(eTargetMinor).getCivilizationShortDescriptionKey();
-
-		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_COMPLETE_BULLY_CITY_STATE");
-		strMessage << strCivKey;
-		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_COMPLETE_BULLY_CITY_STATE");
-		strSummary << strCivKey;
-	}
-
-	// Denounce target Major
-	else if(m_eType == MINOR_CIV_QUEST_DENOUNCE_MAJOR)
-	{
-		PlayerTypes eTargetMajor = (PlayerTypes) GetPrimaryData();
-		const char* strCivKey = "Nobody";
-		if(eTargetMajor != NO_PLAYER)
-			strCivKey = GET_PLAYER(eTargetMajor).getCivilizationShortDescriptionKey();
-
-		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_COMPLETE_DENOUNCE_MAJOR");
-		strMessage << strCivKey;
-		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_COMPLETE_DENOUNCE_MAJOR");
-		strSummary << strCivKey;
-	}
-
-	// Spread your religion to us
-	else if(m_eType == MINOR_CIV_QUEST_SPREAD_RELIGION)
+	else if(m_eType == QUEST_SPREAD_RELIGION)
 	{
 		ReligionTypes eReligion = (ReligionTypes) GetPrimaryData();
 		CvString strReligionKey = "Atheism";
@@ -1177,9 +854,7 @@ bool CvMinorCivQuest::DoFinishQuest(const float bonusFactor)
 		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_COMPLETE_SPREAD_RELIGION");
 		strSummary << strReligionKey.c_str();
 	}
-
-	// Connect A Trade Route
-	if(m_eType == MINOR_CIV_QUEST_TRADE_ROUTE)
+	else if(m_eType == QUEST_TRADE_ROUTE)
 	{
 		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_COMPLETE_TRADE_ROUTE");
 		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_COMPLETE_TRADE_ROUTE");

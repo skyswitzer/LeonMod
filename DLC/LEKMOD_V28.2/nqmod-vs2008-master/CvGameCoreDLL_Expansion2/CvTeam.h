@@ -422,7 +422,7 @@ public:
 #endif
 
 	// Wrapper for giving Players on this Team a notification message
-	void AddNotification(NotificationTypes eNotificationType, const char* strMessage, const char* strSummary, int iX = -1, int iY = -1, int iGameDataIndex = -1, int iExtraGameData = -1);
+	void AddNotification(NotificationTypes eNotificationType, const char* strMessage, const char* strSummary, int iX = -1, int iY = -1, int iGameDataIndex = -1, int iExtraGameData = -1, const bool logOnly = false);
 
 #ifdef AUI_WARNING_FIXES
 	void Read(FDataStream& kStream);

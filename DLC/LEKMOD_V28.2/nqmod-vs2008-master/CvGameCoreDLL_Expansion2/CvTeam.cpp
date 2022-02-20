@@ -3731,7 +3731,7 @@ void CvTeam::makeHasMet(TeamTypes eIndex, bool bSuppressMessages)
 					CvString strBuffer = GetLocalizedText("TXT_KEY_NOTIFICATION_MET_MINOR_CIV", GET_PLAYER(GET_TEAM(eIndex).getLeaderID()).getNameKey());
 					CvString strSummary = GetLocalizedText("TXT_KEY_NOTIFICATION_SUMMARY_MET_MINOR_CIV", GET_PLAYER(GET_TEAM(eIndex).getLeaderID()).getNameKey());
 
-					AddNotification(NOTIFICATION_MET_MINOR, strBuffer, strSummary, iCapitalX, iCapitalY, iCapitalID);
+					AddNotification(NOTIFICATION_MET_MINOR, strBuffer, strSummary, iCapitalX, iCapitalY, iCapitalID, -1, true);
 				}
 			}
 		}
@@ -7793,7 +7793,7 @@ void CvTeam::Write(FDataStream& kStream) const
 
 //	--------------------------------------------------------------------------------
 /// Wrapper for giving Players on this Team a notification message
-void CvTeam::AddNotification(NotificationTypes eNotificationType, const char* strMessage, const char* strSummary, int iX, int iY, int iGameDataIndex, int iExtraGameData)
+void CvTeam::AddNotification(NotificationTypes eNotificationType, const char* strMessage, const char* strSummary, int iX, int iY, int iGameDataIndex, int iExtraGameData, const bool logOnly)
 {
 	PlayerTypes eLoopPlayer;
 
@@ -7811,6 +7811,6 @@ void CvTeam::AddNotification(NotificationTypes eNotificationType, const char* st
 		if(!loopPlayer.GetNotifications())
 			continue;
 
-		loopPlayer.GetNotifications()->Add(eNotificationType, strMessage, strSummary, iX, iY, iGameDataIndex, iExtraGameData);
+		loopPlayer.GetNotifications()->Add(eNotificationType, strMessage, strSummary, iX, iY, iGameDataIndex, iExtraGameData, logOnly);
 	}
 }
