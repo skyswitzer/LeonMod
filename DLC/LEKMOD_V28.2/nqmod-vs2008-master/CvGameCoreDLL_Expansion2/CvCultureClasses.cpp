@@ -1307,6 +1307,9 @@ bool CvPlayerCulture::ThemeBuilding(vector<CvGreatWorkBuildingInMyEmpire>::const
 	for (int iI = 0; iI < pkEntry->GetNumThemingBonuses(); iI++)
 	{
 		CvThemingBonusInfo *pkBonusInfo = pkEntry->GetThemingBonusInfo(iI);
+		if (pkBonusInfo == NULL)
+			continue; // skip this one
+
 		if (pkBonusInfo->IsMustBeArt())
 		{
 			worksToConsider = works1;

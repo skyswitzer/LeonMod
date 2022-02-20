@@ -10014,6 +10014,45 @@ void CvPlayer::ChangeFreeFoodBox(int iChange)
 	}
 }
 
+//	--------------------------------------------------------------------------------
+map<BuildingTypes, int> CvPlayer::getBuildingCount() const
+{
+	map<BuildingTypes, int> map;
+
+	int iLoop = 0;
+	for (const CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
+	{
+		const vector<BuildingTypes>& buildings = pLoopCity->GetCityBuildings()->GetAllBuildingsHere();
+		for (vector<BuildingTypes>::const_iterator it = buildings.begin(); it != buildings.end(); ++it)
+		{
+			if (map.find(*it) == map.end())
+				map.insert(pair<BuildingTypes, int>(*it, 0));
+
+			map[*it] += 1;
+		}
+	}
+
+	return map;
+}
+
+//	--------------------------------------------------------------------------------
+int CvPlayer::getNumNationalWonders() const
+{
+	int count = 0;
+	map<BuildingTypes, int> map = getBuildingCount();
+
+	for (std::map<BuildingTypes, int>::iterator it = map.begin(); it != map.end(); ++it)
+	{
+		CvBuildingEntry* pkBuildingInfo = GC.getBuildingInfo(it->first);
+		if (pkBuildingInfo != NULL)
+		{
+			const CvBuildingClassInfo& buildingClassInfo = pkBuildingInfo->GetBuildingClassInfo();
+			count += isNationalWonderClass(buildingClassInfo) ? 1 : 0;
+		}
+	}
+
+	return count;
+}
 
 //	--------------------------------------------------------------------------------
 int CvPlayer::getTotalLand() const
@@ -19518,7 +19557,7 @@ void CvPlayer::DoIncomingUnits()
 			ChangeIncomingUnitCountdown(eLoopPlayer, -1);
 
 			// Time to spawn a new unit
-			if(GetIncomingUnitCountdown(eLoopPlayer) == 0)
+			if(GetIncomingUnitCountdown(eLoopPlayer) <= 0)
 			{
 				// Must have capital to actually spawn unit
 				CvCity* pCapital = getCapitalCity();

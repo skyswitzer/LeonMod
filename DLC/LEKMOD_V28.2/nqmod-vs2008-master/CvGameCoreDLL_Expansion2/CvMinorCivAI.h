@@ -14,7 +14,7 @@
 
 #define SAFE_ESTIMATE_NUM_XML_WIDGETS 100
 
-#define ENABLE_QUESTS_AT_START false
+#define ENABLE_QUESTS_AT_START true
 #define ENABLE_PERMANENT_WAR false
 #define SAFE_ESTIMATE_NUM_QUESTS_PER_PLAYER (5)
 
@@ -159,7 +159,7 @@ public:
 	// Starting and finishing
 	void DoStartQuest(int iStartTurn);
 	void DoStartQuestUsingExistingData(CvMinorCivQuest* pExistingQuest);
-	bool DoFinishQuest();
+	bool DoFinishQuest(const float bonusFactor = 1.0f);
 	bool DoCancelQuest();
 
 	// Public data

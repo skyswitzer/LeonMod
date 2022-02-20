@@ -4128,31 +4128,21 @@ bool CvUnit::canGift(bool bTestVisible, bool bTestTransport) const
 
 	if(isDelayedDeath())
 		return false;
-
-	if(!(pPlot->isOwned()))
-	{
+	if (!pPlot->isOwned()) // must be in borders
 		return false;
-	}
-
-	if(pPlot->getOwner() == getOwner())
-	{
+	if (pPlot->getOwner() == getOwner()) // must be not our borders
 		return false;
-	}
-
-	if(pPlot->isVisibleEnemyUnit(this))
-	{
+	if (atWar(pPlot->getTeam(), getTeam())) // no war
 		return false;
-	}
-
-	if(pPlot->isVisibleEnemyUnit(pPlot->getOwner()))
-	{
+	if(pPlot->isVisibleEnemyUnit(this)) // no enemy units on this tile
 		return false;
-	}
-
-	if(!pPlot->isValidDomainForLocation(*this) && NULL == pTransport)
-	{
+	if(pPlot->isVisibleEnemyUnit(pPlot->getOwner())) // no enemy units on this tile
 		return false;
-	}
+
+	const bool isAircraft = !pPlot->isValidDomainForLocation(*this); // (WHAT IS THIS CHECKING?)
+	const bool isNotInsideOtherUnit = !isCargo();
+	if(isAircraft && isNotInsideOtherUnit)
+		return false;
 
 	// Minors
 	if(GET_PLAYER(pPlot->getOwner()).isMinorCiv())
@@ -4167,35 +4157,24 @@ bool CvUnit::canGift(bool bTestVisible, bool bTestTransport) const
 			return false;
 
 		// No non-combat units
-		if(!IsCombatUnit())
-		{
-			CvPlayer& kPlayer = GET_PLAYER(m_eOwner);
+		//if(!IsCombatUnit())
+		//{
+		//	CvPlayer& kPlayer = GET_PLAYER(m_eOwner);
 
-			// Unless okay by trait
-			if(kPlayer.GetPlayerTraits()->GetGreatPersonGiftInfluence() == 0 || !IsGreatPerson())
-			{
-				return false;
-			}
-		}
+		//	// Unless okay by trait
+		//	if(kPlayer.GetPlayerTraits()->GetGreatPersonGiftInfluence() == 0 || !IsGreatPerson())
+		//	{
+		//		return false;
+		//	}
+		//}
 	}
-#ifdef NQ_NO_GIFTING_GREAT_PEOPLE_TO_MAJORS
-	// no gifting great people to non-city states
-	else 
+
+	// No for religious units (unless great prophet)
+	const bool isReligious = getUnitInfo().IsSpreadReligion() || getUnitInfo().IsRemoveHeresy();
+	if (isReligious && !IsGreatPerson())
 	{
-		if (IsGreatPerson())
-		{
-			return false;
-		}
+		return false;
 	}
-#endif
-
-	// No for religious units
-	if (getUnitInfo().IsSpreadReligion() || getUnitInfo().IsRemoveHeresy())
-	{
-			return false;
-	}
-
-	// GJS TODO: prevent gifting of Great People
 
 	if(bTestTransport)
 	{
@@ -4218,7 +4197,7 @@ bool CvUnit::canGift(bool bTestVisible, bool bTestTransport) const
 		}
 	}
 
-	return !atWar(pPlot->getTeam(), getTeam());
+	return true;
 }
 
 
@@ -4302,55 +4281,57 @@ bool CvUnit::CanDistanceGift(PlayerTypes eToPlayer) const
 {
 	VALIDATE_OBJECT
 
-	if (eToPlayer == NO_PLAYER)
-		return false;
+	//if (eToPlayer == NO_PLAYER)
+	//	return false;
 
-	// Minors
-	if(GET_PLAYER(eToPlayer).isMinorCiv())
-	{
-		// No settlers
-		if(isFound() || IsFoundAbroad())
-			return false;
+	//// Minors
+	//if(GET_PLAYER(eToPlayer).isMinorCiv())
+	//{
+	//	// No settlers
+	//	if(isFound() || IsFoundAbroad())
+	//		return false;
 
-		// No scouts
-		UnitClassTypes eScoutClass = (UnitClassTypes) GC.getInfoTypeForString("UNITCLASS_SCOUT", true);
-		if (eScoutClass != NO_UNITCLASS && eScoutClass == getUnitClassType())
-			return false;
+	//	// No scouts
+	//	UnitClassTypes eScoutClass = (UnitClassTypes) GC.getInfoTypeForString("UNITCLASS_SCOUT", true);
+	//	if (eScoutClass != NO_UNITCLASS && eScoutClass == getUnitClassType())
+	//		return false;
 
-		// No combat units for city states
-		if(IsCombatUnit() && !canAirAttack())
-		{
-			CvPlayer& kPlayer = GET_PLAYER(m_eOwner);
+	//	// No combat units for city states
+	//	if(IsCombatUnit() && !canAirAttack())
+	//	{
+	//		CvPlayer& kPlayer = GET_PLAYER(m_eOwner);
 
-			// Unless okay by trait
-			if(kPlayer.GetPlayerTraits()->GetGreatPersonGiftInfluence() == 0 || !IsGreatPerson())
-			{
-				return false;
-			}
-		}
+	//		// Unless okay by trait
+	//		if(kPlayer.GetPlayerTraits()->GetGreatPersonGiftInfluence() == 0 || !IsGreatPerson())
+	//		{
+	//			return false;
+	//		}
+	//	}
 
-		// Is there a distance gift from us waiting to be delivered?
-		if (GET_PLAYER(eToPlayer).GetIncomingUnitType(getOwner()) != NO_UNIT)
-		{
-			return false;
-		}
-	}
+	//	// Is there a distance gift from us waiting to be delivered?
+	//	if (GET_PLAYER(eToPlayer).GetIncomingUnitType(getOwner()) != NO_UNIT)
+	//	{
+	//		return false;
+	//	}
+	//}
 
-	// No Majors
-	else
-		return false;
+	//// No Majors
+	//else
+	//	return false;
 
-	TeamTypes eToTeam = GET_PLAYER(eToPlayer).getTeam();
+	//TeamTypes eToTeam = GET_PLAYER(eToPlayer).getTeam();
 
-	// Maxed out unit class for team
-	if(GET_TEAM(eToTeam).isUnitClassMaxedOut(getUnitClassType(), GET_TEAM(eToTeam).getUnitClassMaking(getUnitClassType())))
-		return false;
+	//// Maxed out unit class for team
+	//if(GET_TEAM(eToTeam).isUnitClassMaxedOut(getUnitClassType(), GET_TEAM(eToTeam).getUnitClassMaking(getUnitClassType())))
+	//	return false;
 
-	// Maxed out unit class for Player
-	if(GET_PLAYER(eToPlayer).isUnitClassMaxedOut(getUnitClassType(), GET_PLAYER(eToPlayer).getUnitClassMaking(getUnitClassType())))
-		return false;
+	//// Maxed out unit class for Player
+	//if(GET_PLAYER(eToPlayer).isUnitClassMaxedOut(getUnitClassType(), GET_PLAYER(eToPlayer).getUnitClassMaking(getUnitClassType())))
+	//	return false;
 
-	return !atWar(eToTeam, getTeam());
+	const bool normallyCouldGift = canGift(false, false);
+
+	return normallyCouldGift;
 }
 
 //	--------------------------------------------------------------------------------
@@ -20554,6 +20535,16 @@ bool CvUnit::canRangeStrikeAt(int iX, int iY, bool bNeedWar, bool bNoncombatAllo
 			if(NULL == pDefender)
 			{
 				return false;
+			}
+
+
+			if (atWar(getTeam(), pTargetPlot->getTeam())) // are at war with owner
+			{
+				const ImprovementTypes type = pTargetPlot->getImprovementType();
+				if (type != NO_IMPROVEMENT && !pTargetPlot->IsImprovementPillaged()) // has pillageable tile
+				{
+					return true;
+				}
 			}
 		}
 		// We don't need to be at war (yet) with a Unit here, so let's try to find one

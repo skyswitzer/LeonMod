@@ -347,6 +347,9 @@ public:
 	int GetFreeFoodBox() const;
 	void ChangeFreeFoodBox(int iChange);
 
+	map<BuildingTypes, int> getBuildingCount() const;
+	int getNumNationalWonders() const;
+
 	int getTotalLand() const;
 	void changeTotalLand(int iChange);
 

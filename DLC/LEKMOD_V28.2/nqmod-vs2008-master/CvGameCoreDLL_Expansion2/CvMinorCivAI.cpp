@@ -25,7 +25,7 @@
 //======================================================================================================
 
 // score awarded upon winning the unrest contest
-const int scoreFromUnrestWinner = 40;
+const int scoreFromQuest = 150;
 // score per turn for being an ally
 const int scorePerAllyTurn = 10;
 // minimum military influence needed to gain influence
@@ -34,6 +34,8 @@ const int minMilitaryStrength = 15;
 const int baseMilitaryInfluence = 17;
 // influence gained per turn for having the most local military
 const int baseTradeInfluence = 0;
+const int maxAnchorT100 = 200 * 100;
+const int minAnchorT100 = -200 * 100;
 
 // Default Constructor
 CvMinorCivQuest::CvMinorCivQuest()
@@ -93,27 +95,13 @@ int CvMinorCivQuest::GetEndTurn() const
 	CvAssertMsg(m_iStartTurn != NO_TURN, "GetEndTurn called for a quest, but the start turn was not initialized!");
 
 	int iLength = 0;
-	if (m_eType == QUEST_UNREST)
-	{
-		iLength = (1.5f * GC.getMINOR_QUEST_STANDARD_CONTEST_LENGTH());
-	}
-	else if
-	(
-		m_eType == MINOR_CIV_QUEST_CONTEST_CULTURE ||
-		m_eType == MINOR_CIV_QUEST_CONTEST_FAITH ||
-		m_eType == MINOR_CIV_QUEST_CONTEST_TECHS ||
-		m_eType == MINOR_CIV_QUEST_INVEST ||
-		m_eType == MINOR_CIV_QUEST_GIVE_GOLD ||
-		m_eType == MINOR_CIV_QUEST_PLEDGE_TO_PROTECT ||
-		m_eType == MINOR_CIV_QUEST_BULLY_CITY_STATE ||
-		m_eType == MINOR_CIV_QUEST_DENOUNCE_MAJOR
-	)
+	if (m_eType == QUEST_UNREST) // contests
 	{
 		iLength = GC.getMINOR_QUEST_STANDARD_CONTEST_LENGTH();
 	}
-	else // Other quests are not time-sensitive
+	else // personal quests
 	{
-		return NO_TURN;
+		iLength = GC.getMINOR_QUEST_STANDARD_CONTEST_LENGTH();
 	}
 
 	// Modify for Game Speed
@@ -129,13 +117,10 @@ int CvMinorCivQuest::GetTurnsRemaining(int iCurrentTurn) const
 	int iStartTurn = GetStartTurn();
 	int iEndTurn = GetEndTurn();
 
-	if (iStartTurn == NO_TURN)
+	if (iStartTurn == NO_TURN || iEndTurn == NO_TURN)
 		return NO_TURN;
 
-	if (iEndTurn == NO_TURN)
-		return NO_TURN;
-
-	return (iEndTurn - iCurrentTurn);
+	return iEndTurn - iCurrentTurn;
 }
 
 // Quest-specific data 1
@@ -264,7 +249,7 @@ int getAStrengthNearAllBCities(PlayerTypes a, PlayerTypes b)
 int CvMinorCivQuest::GetContestValueForPlayer(PlayerTypes ePlayer)
 {
 	MinorCivQuestTypes eType = GetType();
-	int iValue = -1;
+	int iValue = -349;
 	CvPlayer* pMinor = &GET_PLAYER(GetMinor());
 	if(!pMinor)
 	{
@@ -293,6 +278,10 @@ int CvMinorCivQuest::GetContestValueForPlayer(PlayerTypes ePlayer)
 		int iStartTechs = pMinor->GetMinorCivAI()->GetQuestData1(ePlayer, eType);
 		int iEndTechs = GET_TEAM(GET_PLAYER(ePlayer).getTeam()).GetTeamTechs()->GetNumTechsKnown();
 		iValue = iEndTechs - iStartTechs;
+	}
+	else if (eType == QUEST_UNREST)
+	{
+		iValue = getAStrengthNearAllBCities(ePlayer, GetMinor());
 	}
 
 	return iValue;
@@ -406,123 +395,110 @@ bool CvMinorCivQuest::IsComplete()
 		return false;
 	}
 
-	if(m_eType == MINOR_CIV_QUEST_ROUTE)
-	{
-		if (pAssignedPlayer->IsCapitalConnectedToPlayer(m_eMinor))
-		{
-			return true;
-		}
-	}
-	else if(m_eType == MINOR_CIV_QUEST_CONNECT_RESOURCE)
-	{
-		ResourceTypes eResource = (ResourceTypes) m_iData1;
+	//if(m_eType == MINOR_CIV_QUEST_ROUTE)
+	//{
+	//	if (pAssignedPlayer->IsCapitalConnectedToPlayer(m_eMinor))
+	//	{
+	//		return true;
+	//	}
+	//}
+	//else if(m_eType == MINOR_CIV_QUEST_CONNECT_RESOURCE)
+	//{
+	//	ResourceTypes eResource = (ResourceTypes) m_iData1;
 
-		// Player has the Resource?
-		if(pAssignedPlayer->getNumResourceTotal(eResource, /*bIncludeImport*/ true) > 0)
-		{
-			return true;
-		}
-	}
-	else if(m_eType == MINOR_CIV_QUEST_CONSTRUCT_WONDER)
+	//	// Player has the Resource?
+	//	if(pAssignedPlayer->getNumResourceTotal(eResource, /*bIncludeImport*/ true) > 0)
+	//	{
+	//		return true;
+	//	}
+	//}
+	if(m_eType == QUEST_BUILD_WORLD_WONDER)
 	{
-		BuildingTypes eWonder = (BuildingTypes) m_iData1;
+		const int oldCount = m_iData1;
+		const int currentCount = pAssignedPlayer->GetNumWonders();
 
-		// Player built the Wonder?
-		if(pAssignedPlayer->countNumBuildings(eWonder) > 0)
-		{
-			return true;
-		}
+		const bool haveMore = currentCount > oldCount;
+		return haveMore;
 	}
-	else if(m_eType == MINOR_CIV_QUEST_GREAT_PERSON)
-	{
-		UnitTypes eUnit = (UnitTypes) m_iData1;
+	// handled in gift code
+	else if (m_eType == QUEST_GIFT_GREAT_PERSON) { }
+	else if (m_eType == QUEST_GIFT_MILITARY) { }
+	else if(m_eType == QUEST_GIFT_WORKER) { }
+	//else if(m_eType == MINOR_CIV_QUEST_KILL_CITY_STATE)
+	//{
+	//	PlayerTypes eTargetCityState = (PlayerTypes) m_iData1;
+	//	CvPlayer* pTargetCityState = &GET_PLAYER(eTargetCityState);
+	//	if(pTargetCityState)
+	//	{
+	//		CvTeam* pTargetCityStateTeam = &GET_TEAM(pTargetCityState->getTeam());
+	//		if(pTargetCityStateTeam)
+	//		{
+	//			// Player killed the City State?
+	//			if(pTargetCityStateTeam->GetKilledByTeam() == pAssignedPlayer->getTeam())
+	//			{
+	//				return true;
+	//			}
+	//		}
+	//	}
+	//}
+	//else if(m_eType == MINOR_CIV_QUEST_FIND_PLAYER)
+	//{
+	//	PlayerTypes ePlayerToFind = (PlayerTypes) m_iData1;
 
-		// Player has the Great Person?
-		int iLoop;
-		for(CvUnit* pLoopUnit = pAssignedPlayer->firstUnit(&iLoop); NULL != pLoopUnit; pLoopUnit = pAssignedPlayer->nextUnit(&iLoop))
-		{
-			if(pLoopUnit->getUnitType() == eUnit)
-			{
-				return true;
-			}
-		}
-	}
-	else if(m_eType == MINOR_CIV_QUEST_KILL_CITY_STATE)
+	//	// Player found the target player?
+	//	if(GET_TEAM(pAssignedPlayer->getTeam()).IsHasFoundPlayersTerritory(ePlayerToFind))
+	//	{
+	//		return true;
+	//	}
+	//}
+	else if(m_eType == QUEST_BUILD_NATIONAL_WONDER)
 	{
-		PlayerTypes eTargetCityState = (PlayerTypes) m_iData1;
-		CvPlayer* pTargetCityState = &GET_PLAYER(eTargetCityState);
-		if(pTargetCityState)
-		{
-			CvTeam* pTargetCityStateTeam = &GET_TEAM(pTargetCityState->getTeam());
-			if(pTargetCityStateTeam)
-			{
-				// Player killed the City State?
-				if(pTargetCityStateTeam->GetKilledByTeam() == pAssignedPlayer->getTeam())
-				{
-					return true;
-				}
-			}
-		}
-	}
-	else if(m_eType == MINOR_CIV_QUEST_FIND_PLAYER)
-	{
-		PlayerTypes ePlayerToFind = (PlayerTypes) m_iData1;
+		const int oldCount = m_iData1;
+		const int currentCount = pAssignedPlayer->getNumNationalWonders();
 
-		// Player found the target player?
-		if(GET_TEAM(pAssignedPlayer->getTeam()).IsHasFoundPlayersTerritory(ePlayerToFind))
-		{
-			return true;
-		}
+		const bool haveMore = currentCount > oldCount;
+		return haveMore;
 	}
-	else if(m_eType == MINOR_CIV_QUEST_FIND_NATURAL_WONDER)
-	{
-		int iNumWondersFoundBefore = m_iData1;
-
-		// Player found a new NW?
-		if(GET_TEAM(pAssignedPlayer->getTeam()).GetNumNaturalWondersDiscovered() > iNumWondersFoundBefore)
-		{
-			return true;
-		}
-	}
-	else if(m_eType == MINOR_CIV_QUEST_GIVE_GOLD)
+	else if(m_eType == QUEST_GIFT_GOLD)
 	{
 		int iGoldGiftedBefore = m_iData2;
+		const int minGoldGift = 400;
 
 		// Has the player given gold since the quest began?
-		if(pMinor->GetMinorCivAI()->GetNumGoldGifted(m_eAssignedPlayer) > iGoldGiftedBefore)
+		if(pMinor->GetMinorCivAI()->GetNumGoldGifted(m_eAssignedPlayer) >= minGoldGift + iGoldGiftedBefore)
 		{
 			return true;
 		}
 	}
-	else if(m_eType == MINOR_CIV_QUEST_PLEDGE_TO_PROTECT)
-	{
-		// Has the player pledged?
-		if(pMinor->GetMinorCivAI()->IsProtectedByMajor(m_eAssignedPlayer))
-		{
-			return true;
-		}
-	}
-	else if(m_eType == MINOR_CIV_QUEST_CONTEST_CULTURE)
-	{
-		// Is it time to compare the score?
-		if(GetEndTurn() == GC.getGame().getGameTurn())
-			if(IsContestLeader(GetPlayerAssignedTo()))
-				return true;
-	}
-	else if(m_eType == MINOR_CIV_QUEST_CONTEST_FAITH)
-	{
-		// Is it time to compare the score?
-		if(GetEndTurn() == GC.getGame().getGameTurn())
-			if(IsContestLeader(GetPlayerAssignedTo()))
-				return true;
-	}
-	else if (m_eType == MINOR_CIV_QUEST_CONTEST_TECHS)
-	{
-		// Is it time to compare the score?
-		if (GetEndTurn() == GC.getGame().getGameTurn())
-			if (IsContestLeader(GetPlayerAssignedTo()))
-				return true;
-	}
+	//else if(m_eType == MINOR_CIV_QUEST_PLEDGE_TO_PROTECT)
+	//{
+	//	// Has the player pledged?
+	//	//if(pMinor->GetMinorCivAI()->IsProtectedByMajor(m_eAssignedPlayer))
+	//	//{
+	//	//	return true;
+	//	//}
+	//}
+	//else if(m_eType == MINOR_CIV_QUEST_CONTEST_CULTURE)
+	//{
+	//	// Is it time to compare the score?
+	//	if(GetEndTurn() == GC.getGame().getGameTurn())
+	//		if(IsContestLeader(GetPlayerAssignedTo()))
+	//			return true;
+	//}
+	//else if(m_eType == MINOR_CIV_QUEST_CONTEST_FAITH)
+	//{
+	//	// Is it time to compare the score?
+	//	if(GetEndTurn() == GC.getGame().getGameTurn())
+	//		if(IsContestLeader(GetPlayerAssignedTo()))
+	//			return true;
+	//}
+	//else if (m_eType == MINOR_CIV_QUEST_CONTEST_TECHS)
+	//{
+	//	// Is it time to compare the score?
+	//	if (GetEndTurn() == GC.getGame().getGameTurn())
+	//		if (IsContestLeader(GetPlayerAssignedTo()))
+	//			return true;
+	//}
 	else if (m_eType == QUEST_UNREST)
 	{
 		// Is it time to compare the score?
@@ -530,45 +506,45 @@ bool CvMinorCivQuest::IsComplete()
 			if (IsContestLeader(GetPlayerAssignedTo()))
 				return true;
 	}
-	else if(m_eType == MINOR_CIV_QUEST_INVEST)
-	{
-		if(GetEndTurn() == GC.getGame().getGameTurn())
-			return true;
-	}
-	else if(m_eType == MINOR_CIV_QUEST_BULLY_CITY_STATE)
-	{
-		// Has the player bullied since the quest began?
-		PlayerTypes eTargetMinor = (PlayerTypes) m_iData1;
-		CvPlayer* pTargetMinor = &GET_PLAYER(eTargetMinor);
-		if(pTargetMinor)
-		{
-			int iMostRecentBullyTurn = pTargetMinor->GetMinorCivAI()->GetTurnLastBulliedByMajor(m_eAssignedPlayer);
-			if(iMostRecentBullyTurn > m_iData2)
-				return true;
-		}
-	}
-	else if(m_eType == MINOR_CIV_QUEST_DENOUNCE_MAJOR)
-	{
-		// Has the player denounced that major yet?
-		PlayerTypes eTargetMajor = (PlayerTypes) m_iData1;
-		CvPlayer* pTargetMajor = &GET_PLAYER(eTargetMajor);
-		if(pTargetMajor)
-		{
-			if(pAssignedPlayer->GetDiplomacyAI()->IsDenouncedPlayer(eTargetMajor))
-				return true;
-		}
-	}
-	else if(m_eType == MINOR_CIV_QUEST_SPREAD_RELIGION)
+	//else if(m_eType == MINOR_CIV_QUEST_INVEST)
+	//{
+	//	if(GetEndTurn() == GC.getGame().getGameTurn())
+	//		return true;
+	//}
+	//else if(m_eType == MINOR_CIV_QUEST_BULLY_CITY_STATE)
+	//{
+	//	// Has the player bullied since the quest began?
+	//	PlayerTypes eTargetMinor = (PlayerTypes) m_iData1;
+	//	CvPlayer* pTargetMinor = &GET_PLAYER(eTargetMinor);
+	//	if(pTargetMinor)
+	//	{
+	//		int iMostRecentBullyTurn = pTargetMinor->GetMinorCivAI()->GetTurnLastBulliedByMajor(m_eAssignedPlayer);
+	//		if(iMostRecentBullyTurn > m_iData2)
+	//			return true;
+	//	}
+	//}
+	//else if(m_eType == MINOR_CIV_QUEST_DENOUNCE_MAJOR)
+	//{
+	//	// Has the player denounced that major yet?
+	//	PlayerTypes eTargetMajor = (PlayerTypes) m_iData1;
+	//	CvPlayer* pTargetMajor = &GET_PLAYER(eTargetMajor);
+	//	if(pTargetMajor)
+	//	{
+	//		if(pAssignedPlayer->GetDiplomacyAI()->IsDenouncedPlayer(eTargetMajor))
+	//			return true;
+	//	}
+	//}
+	else if(m_eType == QUEST_SPREAD_RELIGION)
 	{
 		// Does the CS have the right majority religion?
 		ReligionTypes eReligion = (ReligionTypes) m_iData1;
-		if(pMinor->getCapitalCity())
+		if(eReligion != NO_RELIGION && pMinor->getCapitalCity())
 		{
 			if(pMinor->getCapitalCity()->GetCityReligions()->GetReligiousMajority() == eReligion)
 				return true;
 		}
 	}
-	else if(m_eType == MINOR_CIV_QUEST_TRADE_ROUTE)
+	else if(m_eType == QUEST_TRADE_ROUTE)
 	{
 		if(GC.getGame().GetGameTrade()->IsPlayerConnectedToPlayer(m_eMinor,m_eAssignedPlayer))
 			return true;
@@ -580,34 +556,10 @@ bool CvMinorCivQuest::IsComplete()
 /// Is this quest now revoked (ie. because the player bullied us)?
 bool CvMinorCivQuest::IsRevoked()
 {
+	// always revoke if bullied
 	if(GET_PLAYER(m_eMinor).GetMinorCivAI()->IsRecentlyBulliedByMajor(m_eAssignedPlayer))
 	{
-		if(m_eType == MINOR_CIV_QUEST_ROUTE)
-			return true;
-		if(m_eType == MINOR_CIV_QUEST_CONNECT_RESOURCE)
-			return true;
-		if(m_eType == MINOR_CIV_QUEST_CONSTRUCT_WONDER)
-			return true;
-		if(m_eType == MINOR_CIV_QUEST_GREAT_PERSON)
-			return true;
-		if(m_eType == MINOR_CIV_QUEST_FIND_PLAYER)
-			return true;
-		if(m_eType == MINOR_CIV_QUEST_FIND_NATURAL_WONDER)
-			return true;
-		if(m_eType == MINOR_CIV_QUEST_GIVE_GOLD)
-			return true;
-		if(m_eType == MINOR_CIV_QUEST_PLEDGE_TO_PROTECT)
-			return true;
-		if(m_eType == MINOR_CIV_QUEST_INVEST)
-			return true;
-		if(m_eType == MINOR_CIV_QUEST_BULLY_CITY_STATE)
-			return true;
-		if(m_eType == MINOR_CIV_QUEST_DENOUNCE_MAJOR)
-			return true;
-		if(m_eType == MINOR_CIV_QUEST_SPREAD_RELIGION)
-			return true;
-		if(m_eType == MINOR_CIV_QUEST_TRADE_ROUTE)
-			return true;
+		return true;
 	}
 
 	return false;
@@ -616,170 +568,25 @@ bool CvMinorCivQuest::IsRevoked()
 /// Is this quest now expired (ie. time limit is up or condition is no longer valid)?
 bool CvMinorCivQuest::IsExpired()
 {
-	// If this quest type has an end turn, have we passed it?
-	if(GetEndTurn() != NO_TURN && GC.getGame().getGameTurn() > GetEndTurn())
-	{
-		return true;
-	}
-
-	// Build a Route
-	if(m_eType == MINOR_CIV_QUEST_ROUTE)
-	{
-	}
-
-	// Connect a resource
-	if(m_eType == MINOR_CIV_QUEST_CONNECT_RESOURCE)
-	{
-	}
-
-	// CONSTRUCT A WONDER
-	else if(m_eType == MINOR_CIV_QUEST_CONSTRUCT_WONDER)
-	{
-		BuildingTypes eWonder = (BuildingTypes) GetPrimaryData();
-		CvBuildingEntry* pkBuildingInfo = GC.getBuildingInfo(eWonder);
-		CvAssertMsg(pkBuildingInfo, "Building info not expected to be FALSE! Please send Anton your save file and version.");
-		if(!pkBuildingInfo) return false;
-
-		for(int iPlayerLoop = 0; iPlayerLoop < MAX_CIV_PLAYERS; iPlayerLoop++)
-		{
-			const PlayerTypes eLoopPlayer = (PlayerTypes) iPlayerLoop;
-			CvPlayer* pLoopPlayer = &GET_PLAYER(eLoopPlayer);
-
-			if(pLoopPlayer)
-			{
-				// Someone built the wonder, and it wasn't us
-				if(m_eAssignedPlayer != eLoopPlayer && pLoopPlayer->countNumBuildings(eWonder) > 0)
-				{
-					return true;
-				}
-			}
-		}
-	}
-
-	// Spawn a Great Person
-	else if(m_eType == MINOR_CIV_QUEST_GREAT_PERSON)
-	{
-	}
-
-	// KILL ANOTHER CITY STATE
-	else if(m_eType == MINOR_CIV_QUEST_KILL_CITY_STATE)
-	{
-		PlayerTypes eTargetCityState = (PlayerTypes) GetPrimaryData();
-		CvPlayer* pTargetCityState = &GET_PLAYER(eTargetCityState);
-
-		if(pTargetCityState)
-		{
-			CvTeam* pTargetCityStateTeam = &GET_TEAM(pTargetCityState->getTeam());
-			if(pTargetCityStateTeam)
-			{
-				// Someone killed the City State, and it wasn't us
-				if(!pTargetCityState->isAlive() && pTargetCityStateTeam->GetKilledByTeam() != GET_PLAYER(m_eAssignedPlayer).getTeam())
-				{
-					return true;
-				}
-			}
-		}
-	}
-
-	// Find a Player
-	else if(m_eType == MINOR_CIV_QUEST_FIND_PLAYER)
-	{
-		PlayerTypes eTargetPlayer = (PlayerTypes) GetPrimaryData();
-		CvPlayer* pTargetPlayer = &GET_PLAYER(eTargetPlayer);
-
-		if(pTargetPlayer)
-		{
-			// Someone killed the Player
-			if(!GET_PLAYER(eTargetPlayer).isAlive())
-				return true;
-		}
-	}
-
-	// Find a Natural Wonder
-	else if(m_eType == MINOR_CIV_QUEST_FIND_NATURAL_WONDER)
-	{
-	}
-
-	// Give Gold
-	else if(m_eType == MINOR_CIV_QUEST_GIVE_GOLD)
-	{
-	}
-
-	// Pledge to Protect
-	else if(m_eType == MINOR_CIV_QUEST_PLEDGE_TO_PROTECT)
-	{
-	}
-
-	// Contest Culture
-	else if(m_eType == MINOR_CIV_QUEST_CONTEST_CULTURE)
-	{
-		if(GC.getGame().getGameTurn() == GetEndTurn() && !IsComplete())
-			return true;
-	}
-
-	// Contest Faith
-	else if(m_eType == MINOR_CIV_QUEST_CONTEST_FAITH)
-	{
-		if(GC.getGame().getGameTurn() == GetEndTurn() && !IsComplete())
-			return true;
-	}
-
-	// Contest Techs
-	else if (m_eType == MINOR_CIV_QUEST_CONTEST_TECHS)
-	{
-		if (GC.getGame().getGameTurn() == GetEndTurn() && !IsComplete())
-			return true;
-	}
-
-	// Contest Unrest
-	else if (m_eType == QUEST_UNREST)
-	{
-		if (GC.getGame().getGameTurn() == GetEndTurn() && !IsComplete())
-			return true;
-	}
-
-	// Invest
-	else if(m_eType == MINOR_CIV_QUEST_INVEST)
-	{
-	}
-
-	// Bully target City-State
-	else if(m_eType == MINOR_CIV_QUEST_BULLY_CITY_STATE)
-	{
-		PlayerTypes eTargetCityState = (PlayerTypes) GetPrimaryData();
-		CvPlayer* pTargetCityState = &GET_PLAYER(eTargetCityState);
-
-		if(pTargetCityState)
-		{
-			// Someone killed the City State...ouch
-			if(!pTargetCityState->isAlive())
-				return true;
-		}
-	}
-
-	// Denounce target Major
-	else if(m_eType == MINOR_CIV_QUEST_DENOUNCE_MAJOR)
-	{
-		PlayerTypes eTargetPlayer = (PlayerTypes) GetPrimaryData();
-		CvPlayer* pTargetPlayer = &GET_PLAYER(eTargetPlayer);
-
-		if(pTargetPlayer)
-		{
-			// Someone killed the Major
-			if(!pTargetPlayer->isAlive())
-				return true;
-		}
-	}
-
-	// Spread your religion to us
-	else if(m_eType == MINOR_CIV_QUEST_SPREAD_RELIGION)
-	{
-		//antonjs: consider: if holy city is lost
-	}
+	return false;
+	// new quests intentionally never expire
 	
-	// Trade Route
-	else if(m_eType == MINOR_CIV_QUEST_TRADE_ROUTE)
+	// If this quest type has an end turn, have we passed it?
+	if(GetEndTurn() != NO_TURN)
 	{
+		if (GC.getGame().getGameTurn() > GetEndTurn())
+			return true;
+	}
+
+
+	if (m_eType == QUEST_UNREST)
+	{
+		if (GC.getGame().getGameTurn() == GetEndTurn() && !IsComplete())
+			return true;
+	}
+	else if(m_eType == QUEST_SPREAD_RELIGION)
+	{
+		// TODO consider: if holy city is lost
 	}
 
 	return false;
@@ -817,29 +624,29 @@ void CvMinorCivQuest::DoStartQuest(int iStartTurn)
 	int iNotificationY = -1;
 
 	// Build a Route
-	if(m_eType == MINOR_CIV_QUEST_ROUTE)
-	{
-		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_START_ROUTE");
-		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_START_ROUTE");
-	}
+	//if(m_eType == MINOR_CIV_QUEST_ROUTE)
+	//{
+	//	strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_START_ROUTE");
+	//	strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_START_ROUTE");
+	//}
 	// Connect a Resource
-	else if(m_eType == MINOR_CIV_QUEST_CONNECT_RESOURCE)
-	{
-		ResourceTypes eResource = pMinor->GetMinorCivAI()->GetNearbyResourceForQuest(m_eAssignedPlayer);
+	//else if(m_eType == MINOR_CIV_QUEST_CONNECT_RESOURCE)
+	//{
+	//	ResourceTypes eResource = pMinor->GetMinorCivAI()->GetNearbyResourceForQuest(m_eAssignedPlayer);
 
-		FAssertMsg(eResource != NO_RESOURCE, "MINOR CIV AI: For some reason we got NO_RESOURCE when starting a quest for a major to find a Resource. Please send Jon this with your last 5 autosaves and what changelist # you're playing. Bad things are probably going to happen.");
+	//	FAssertMsg(eResource != NO_RESOURCE, "MINOR CIV AI: For some reason we got NO_RESOURCE when starting a quest for a major to find a Resource. Please send Jon this with your last 5 autosaves and what changelist # you're playing. Bad things are probably going to happen.");
 
-		m_iData1 = eResource;
+	//	m_iData1 = eResource;
 
-		const char* strResourceName = GC.getResourceInfo(eResource)->GetDescriptionKey();
+	//	const char* strResourceName = GC.getResourceInfo(eResource)->GetDescriptionKey();
 
-		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_CONNECT_RESOURCE");
-		strMessage << strResourceName;
-		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_CONNECT_RESOURCE");
-		strSummary << strResourceName;
-	}
+	//	strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_CONNECT_RESOURCE");
+	//	strMessage << strResourceName;
+	//	strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_CONNECT_RESOURCE");
+	//	strSummary << strResourceName;
+	//}
 	// Construct a Wonder
-	else if(m_eType == MINOR_CIV_QUEST_CONSTRUCT_WONDER)
+	if(m_eType == QUEST_BUILD_WORLD_WONDER)
 	{
 		BuildingTypes eWonder = pMinor->GetMinorCivAI()->GetBestWonderForQuest(m_eAssignedPlayer);
 
@@ -862,7 +669,7 @@ void CvMinorCivQuest::DoStartQuest(int iStartTurn)
 		strSummary << strBuildingName;
 	}
 	// Great Person
-	else if(m_eType == MINOR_CIV_QUEST_GREAT_PERSON)
+	else if(m_eType == QUEST_GIFT_GREAT_PERSON)
 	{
 		UnitTypes eUnit = pMinor->GetMinorCivAI()->GetBestGreatPersonForQuest(m_eAssignedPlayer);
 
@@ -885,140 +692,107 @@ void CvMinorCivQuest::DoStartQuest(int iStartTurn)
 		strSummary << strUnitName;
 	}
 	// Kill another City State
-	else if(m_eType == MINOR_CIV_QUEST_KILL_CITY_STATE)
-	{
-		PlayerTypes eTargetCityState = pMinor->GetMinorCivAI()->GetBestCityStateTarget(m_eAssignedPlayer);
+	//else if(m_eType == MINOR_CIV_QUEST_KILL_CITY_STATE)
+	//{
+	//	PlayerTypes eTargetCityState = pMinor->GetMinorCivAI()->GetBestCityStateTarget(m_eAssignedPlayer);
 
-		FAssertMsg(eTargetCityState != NO_PLAYER, "MINOR CIV AI: For some reason we got NO_PLAYER when starting a quest for a major to kill a City State. Please send Jon this with your last 5 autosaves and what changelist # you're playing. Bad things are probably going to happen.");
+	//	FAssertMsg(eTargetCityState != NO_PLAYER, "MINOR CIV AI: For some reason we got NO_PLAYER when starting a quest for a major to kill a City State. Please send Jon this with your last 5 autosaves and what changelist # you're playing. Bad things are probably going to happen.");
 
-		m_iData1 = eTargetCityState;
+	//	m_iData1 = eTargetCityState;
 
-		const char* strTargetNameKey = GET_PLAYER(eTargetCityState).getNameKey();
+	//	const char* strTargetNameKey = GET_PLAYER(eTargetCityState).getNameKey();
 
-		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_KILL_CITY_STATE");
-		strMessage << strTargetNameKey;
-		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_KILL_CITY_STATE");
-		strSummary << strTargetNameKey;
-	}
+	//	strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_KILL_CITY_STATE");
+	//	strMessage << strTargetNameKey;
+	//	strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_KILL_CITY_STATE");
+	//	strSummary << strTargetNameKey;
+	//}
 	// Find another player's territory
-	else if(m_eType == MINOR_CIV_QUEST_FIND_PLAYER)
-	{
-		PlayerTypes ePlayerToFind = pMinor->GetMinorCivAI()->GetBestPlayerToFind(m_eAssignedPlayer);
+	//else if(m_eType == MINOR_CIV_QUEST_FIND_PLAYER)
+	//{
+	//	PlayerTypes ePlayerToFind = pMinor->GetMinorCivAI()->GetBestPlayerToFind(m_eAssignedPlayer);
 
-		FAssertMsg(ePlayerToFind != NO_PLAYER, "MINOR CIV AI: For some reason we got NO_PLAYER when starting a quest for a major to find a player. Please send Jon this with your last 5 autosaves and what changelist # you're playing. Bad things are probably going to happen.");
+	//	FAssertMsg(ePlayerToFind != NO_PLAYER, "MINOR CIV AI: For some reason we got NO_PLAYER when starting a quest for a major to find a player. Please send Jon this with your last 5 autosaves and what changelist # you're playing. Bad things are probably going to happen.");
 
-		m_iData1 = ePlayerToFind;
+	//	m_iData1 = ePlayerToFind;
 
-		const char* strCivKey = GET_PLAYER(ePlayerToFind).getCivilizationShortDescriptionKey();
+	//	const char* strCivKey = GET_PLAYER(ePlayerToFind).getCivilizationShortDescriptionKey();
 
-		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_FIND_PLAYER");
-		strMessage << strCivKey;
-		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_FIND_PLAYER");
-		strSummary << strCivKey;
-	}
+	//	strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_FIND_PLAYER");
+	//	strMessage << strCivKey;
+	//	strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_FIND_PLAYER");
+	//	strSummary << strCivKey;
+	//}
 	// Find a Natural Wonder
-	else if(m_eType == MINOR_CIV_QUEST_FIND_NATURAL_WONDER)
+	else if(m_eType == QUEST_BUILD_NATIONAL_WONDER)
 	{
-		int iNumWondersAlreadyFound = GET_TEAM(pAssignedPlayer->getTeam()).GetNumNaturalWondersDiscovered();
+		const int currentCount = pAssignedPlayer->getNumNationalWonders();
 
-		m_iData1 = iNumWondersAlreadyFound;
+		m_iData1 = currentCount;
 
 		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_FIND_NATURAL_WONDER");
 		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_FIND_NATURAL_WONDER");
 	}
 	// Give a gift of gold
-	else if(m_eType == MINOR_CIV_QUEST_GIVE_GOLD)
+	else if(m_eType == QUEST_GIFT_GOLD)
 	{
-		PlayerTypes eMostRecentBully = pMinor->GetMinorCivAI()->GetMostRecentBullyForQuest();
 		int iGoldAlreadyGiven = pMinor->GetMinorCivAI()->GetNumGoldGifted(m_eAssignedPlayer);
 
-		CvAssertMsg(eMostRecentBully != NO_PLAYER, "MINOR CIV AI: eMostRecentBully should not be NO_PLAYER when giving a Give Gold quest! Please send Anton your save file and version.");
-
-		m_iData1 = eMostRecentBully;
 		m_iData2 = iGoldAlreadyGiven;
 
 		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_GIVE_GOLD");
 		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_GIVE_GOLD");
 
-		if(eMostRecentBully != NO_PLAYER)
-		{
-			const char* strCivKey = GET_PLAYER(eMostRecentBully).getCivilizationShortDescriptionKey();
-			strMessage << strCivKey;
-		}
-		else
-		{
-			const char* strCivKey = "Nobody";
-			strMessage << strCivKey;
-		}
+		const char* strCivKey = "Nobody";
+		strMessage << strCivKey;
 	}
 	// Pledge to protect them
-	else if(m_eType == MINOR_CIV_QUEST_PLEDGE_TO_PROTECT)
+	else if(m_eType == QUEST_GIFT_MILITARY)
 	{
 		PlayerTypes eMostRecentBully = pMinor->GetMinorCivAI()->GetMostRecentBullyForQuest();
-
-		CvAssertMsg(eMostRecentBully != NO_PLAYER, "MINOR CIV AI: eMostRecentBully should not be NO_PLAYER when giving a Pledge to Protect quest! Please send Anton your save file and version.");
-
-		m_iData1 = eMostRecentBully;
 
 		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_PLEDGE_TO_PROTECT");
 		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_PLEDGE_TO_PROTECT");
 
-		if(eMostRecentBully != NO_PLAYER)
-		{
-			const char* strCivKey = GET_PLAYER(eMostRecentBully).getCivilizationShortDescriptionKey();
-			strMessage << strCivKey;
-		}
-		else
-		{
-			const char* strCivKey = "Nobody";
-			strMessage << strCivKey;
-		}
+		const char* strCivKey = "Nobody";
+		strMessage << strCivKey;
 	}
 	// Culture contest
-	else if(m_eType == MINOR_CIV_QUEST_CONTEST_CULTURE)
+	else if(m_eType == QUEST_GIFT_WORKER)
 	{
-		int iStartingCulture = pAssignedPlayer->GetJONSCultureEverGenerated();
-
-		m_iData1 = iStartingCulture;
-
-		int iTurnsRemaining = GetEndTurn() - GC.getGame().getGameTurn();
-		int iTurnsDuration = GetEndTurn() - GetStartTurn();
-
 		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_CONTEST_CULTURE");
-		strMessage << iTurnsRemaining;
-		strMessage << iTurnsDuration;
 		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_CONTEST_CULTURE");
 	}
 	// Faith contest
-	else if(m_eType == MINOR_CIV_QUEST_CONTEST_FAITH)
-	{
-		int iStartingFaith = pAssignedPlayer->GetFaithEverGenerated();
+	//else if(m_eType == MINOR_CIV_QUEST_CONTEST_FAITH)
+	//{
+	//	int iStartingFaith = pAssignedPlayer->GetFaithEverGenerated();
 
-		m_iData1 = iStartingFaith;
+	//	m_iData1 = iStartingFaith;
 
-		int iTurnsRemaining = GetEndTurn() - GC.getGame().getGameTurn();
-		int iTurnsDuration = GetEndTurn() - GetStartTurn();
+	//	int iTurnsRemaining = GetEndTurn() - GC.getGame().getGameTurn();
+	//	int iTurnsDuration = GetEndTurn() - GetStartTurn();
 
-		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_CONTEST_FAITH");
-		strMessage << iTurnsRemaining;
-		strMessage << iTurnsDuration;
-		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_CONTEST_FAITH");
-	}
+	//	strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_CONTEST_FAITH");
+	//	strMessage << iTurnsRemaining;
+	//	strMessage << iTurnsDuration;
+	//	strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_CONTEST_FAITH");
+	//}
 	// Techs contest
-	else if (m_eType == MINOR_CIV_QUEST_CONTEST_TECHS)
-	{
-		int iStartingTechs = GET_TEAM(pAssignedPlayer->getTeam()).GetTeamTechs()->GetNumTechsKnown();
+	//else if (m_eType == MINOR_CIV_QUEST_CONTEST_TECHS)
+	//{
+	//	int iStartingTechs = GET_TEAM(pAssignedPlayer->getTeam()).GetTeamTechs()->GetNumTechsKnown();
 
-		m_iData1 = iStartingTechs;
+	//	m_iData1 = iStartingTechs;
 
-		int iTurnsRemaining = GetEndTurn() - GC.getGame().getGameTurn();
-		int iTurnsDuration = GetEndTurn() - GetStartTurn();
+	//	int iTurnsRemaining = GetEndTurn() - GC.getGame().getGameTurn();
+	//	int iTurnsDuration = GetEndTurn() - GetStartTurn();
 
-		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_CONTEST_TECHS");
-		strMessage << iTurnsRemaining;
-		strMessage << iTurnsDuration;
-		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_CONTEST_TECHS");
-	}
+	//	strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_CONTEST_TECHS");
+	//	strMessage << iTurnsRemaining;
+	//	strMessage << iTurnsDuration;
+	//	strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_CONTEST_TECHS");
+	//}
 	// Techs contest
 	else if (m_eType == QUEST_UNREST)
 	{
@@ -1030,7 +804,7 @@ void CvMinorCivQuest::DoStartQuest(int iStartTurn)
 		int iTurnsDuration = GetEndTurn() - GetStartTurn();
 		// include victory points and influence reward
 		const int influence = GetInfluenceReward();
-		const int victoryPoints = scoreFromUnrestWinner;
+		const int victoryPoints = scoreFromQuest;
 
 		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_UNREST");
 		strMessage << iTurnsRemaining;
@@ -1040,73 +814,73 @@ void CvMinorCivQuest::DoStartQuest(int iStartTurn)
 		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_UNREST");
 	}
 	// Invest
-	else if(m_eType == MINOR_CIV_QUEST_INVEST)
-	{
-		int iGoldAlreadyGiven = pMinor->GetMinorCivAI()->GetNumGoldGifted(m_eAssignedPlayer);
+	//else if(m_eType == MINOR_CIV_QUEST_INVEST)
+	//{
+	//	int iGoldAlreadyGiven = pMinor->GetMinorCivAI()->GetNumGoldGifted(m_eAssignedPlayer);
 
-		m_iData1 = iGoldAlreadyGiven;
+	//	m_iData1 = iGoldAlreadyGiven;
 
-		int iTurnsRemaining = GetEndTurn() - GC.getGame().getGameTurn();
-		int iBoostPercentage = 50;//antonjs: todo: XML
+	//	int iTurnsRemaining = GetEndTurn() - GC.getGame().getGameTurn();
+	//	int iBoostPercentage = 50;
 
-		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_INVEST");
-		strMessage << iTurnsRemaining;
-		strMessage << iBoostPercentage;
-		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_INVEST");
-	}
+	//	strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_INVEST");
+	//	strMessage << iTurnsRemaining;
+	//	strMessage << iBoostPercentage;
+	//	strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_INVEST");
+	//}
 	// Bully target City-State
-	else if(m_eType == MINOR_CIV_QUEST_BULLY_CITY_STATE)
-	{
-		PlayerTypes eTargetMinor = pMinor->GetMinorCivAI()->GetBestCityStateTarget(m_eAssignedPlayer);
-		CvAssertMsg(eTargetMinor != NO_PLAYER, "MINOR CIV AI: eTargetMinor should not be NO_PLAYER when giving a Bully CS quest! Please send Anton your save file and version.");
-		int iLastBullyTurn = GET_PLAYER(eTargetMinor).GetMinorCivAI()->GetTurnLastBulliedByMajor(m_eAssignedPlayer);
+	//else if(m_eType == MINOR_CIV_QUEST_BULLY_CITY_STATE)
+	//{
+	//	PlayerTypes eTargetMinor = pMinor->GetMinorCivAI()->GetBestCityStateTarget(m_eAssignedPlayer);
+	//	CvAssertMsg(eTargetMinor != NO_PLAYER, "MINOR CIV AI: eTargetMinor should not be NO_PLAYER when giving a Bully CS quest! Please send Anton your save file and version.");
+	//	int iLastBullyTurn = GET_PLAYER(eTargetMinor).GetMinorCivAI()->GetTurnLastBulliedByMajor(m_eAssignedPlayer);
 
-		m_iData1 = eTargetMinor;
-		m_iData2 = iLastBullyTurn;
+	//	m_iData1 = eTargetMinor;
+	//	m_iData2 = iLastBullyTurn;
 
-		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_BULLY_CITY_STATE");
-		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_BULLY_CITY_STATE");
+	//	strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_BULLY_CITY_STATE");
+	//	strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_BULLY_CITY_STATE");
 
-		if(eTargetMinor != NO_PLAYER)
-		{
-			const char* strCivKey = GET_PLAYER(eTargetMinor).getCivilizationShortDescriptionKey();
-			strMessage << strCivKey;
-			strSummary << strCivKey;
-		}
-		else
-		{
-			const char* strCivKey = "Nobody";
-			strMessage << strCivKey;
-			strSummary << strCivKey;
-		}
-	}
+	//	if(eTargetMinor != NO_PLAYER)
+	//	{
+	//		const char* strCivKey = GET_PLAYER(eTargetMinor).getCivilizationShortDescriptionKey();
+	//		strMessage << strCivKey;
+	//		strSummary << strCivKey;
+	//	}
+	//	else
+	//	{
+	//		const char* strCivKey = "Nobody";
+	//		strMessage << strCivKey;
+	//		strSummary << strCivKey;
+	//	}
+	//}
 	// Denounce target Major
-	else if(m_eType == MINOR_CIV_QUEST_DENOUNCE_MAJOR)
-	{
-		PlayerTypes eMostRecentBully = pMinor->GetMinorCivAI()->GetMostRecentBullyForQuest();
+	//else if(m_eType == MINOR_CIV_QUEST_DENOUNCE_MAJOR)
+	//{
+	//	PlayerTypes eMostRecentBully = pMinor->GetMinorCivAI()->GetMostRecentBullyForQuest();
 
-		CvAssertMsg(eMostRecentBully != NO_PLAYER, "MINOR CIV AI: eMostRecentBully should not be NO_PLAYER when giving a Denounce Major quest! Please send Anton your save file and version.");
+	//	CvAssertMsg(eMostRecentBully != NO_PLAYER, "MINOR CIV AI: eMostRecentBully should not be NO_PLAYER when giving a Denounce Major quest! Please send Anton your save file and version.");
 
-		m_iData1 = eMostRecentBully;
+	//	m_iData1 = eMostRecentBully;
 
-		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_DENOUNCE_MAJOR");
-		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_DENOUNCE_MAJOR");
+	//	strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_DENOUNCE_MAJOR");
+	//	strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_DENOUNCE_MAJOR");
 
-		if(eMostRecentBully != NO_PLAYER)
-		{
-			const char* strCivKey = GET_PLAYER(eMostRecentBully).getCivilizationShortDescriptionKey();
-			strMessage << strCivKey;
-			strSummary << strCivKey;
-		}
-		else
-		{
-			const char* strCivKey = "Nobody";
-			strMessage << strCivKey;
-			strSummary << strCivKey;
-		}
-	}
+	//	if(eMostRecentBully != NO_PLAYER)
+	//	{
+	//		const char* strCivKey = GET_PLAYER(eMostRecentBully).getCivilizationShortDescriptionKey();
+	//		strMessage << strCivKey;
+	//		strSummary << strCivKey;
+	//	}
+	//	else
+	//	{
+	//		const char* strCivKey = "Nobody";
+	//		strMessage << strCivKey;
+	//		strSummary << strCivKey;
+	//	}
+	//}
 	// Spread your religion to us
-	else if(m_eType == MINOR_CIV_QUEST_SPREAD_RELIGION)
+	else if(m_eType == QUEST_SPREAD_RELIGION)
 	{
 		ReligionTypes eReligion = GC.getGame().GetGameReligions()->GetReligionCreatedByPlayer(m_eAssignedPlayer);
 
@@ -1132,7 +906,7 @@ void CvMinorCivQuest::DoStartQuest(int iStartTurn)
 		}
 	}
 	// Connect a trade Route
-	else if(m_eType == MINOR_CIV_QUEST_TRADE_ROUTE)
+	else if(m_eType == QUEST_TRADE_ROUTE)
 	{
 		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_START_TRADE_ROUTE");
 		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_START_TRADE_ROUTE");
@@ -1176,30 +950,36 @@ void CvMinorCivQuest::DoStartQuestUsingExistingData(CvMinorCivQuest* pExistingQu
 
 // Awards influence and sends notification to player.
 // Should only be called once.
-bool CvMinorCivQuest::DoFinishQuest()
+bool CvMinorCivQuest::DoFinishQuest(const float bonusFactor)
 {
-	if (!IsComplete())
-		return false;
-
 	if (IsHandled())
 		return false;
 
 	SetHandled(true); // We are handling the end of the quest, and this should only happen once
 
 	CvPlayer* pMinor = &GET_PLAYER(m_eMinor);
+	const int friendshipRewardT100 = 100 * GetInfluenceReward() * bonusFactor;
+	const int diplomaticSupportReward = scoreFromQuest * bonusFactor;
 
+
+	// apply rewards
+	pMinor->GetMinorCivAI()->ChangeFriendshipWithMajorTimes100Instant(m_eAssignedPlayer, friendshipRewardT100, /*bFromQuest*/ true);
+	GET_PLAYER(m_eAssignedPlayer).ChangeDiplomaticInfluence(diplomaticSupportReward);
+	
+
+	// do notifications
 	bool bWasFriends = pMinor->GetMinorCivAI()->IsFriends(m_eAssignedPlayer);
 	bool bWasAllies = pMinor->GetMinorCivAI()->IsAllies(m_eAssignedPlayer);
 	PlayerTypes eOldAlly = pMinor->GetMinorCivAI()->GetAlly();
 	int iOldInf = pMinor->GetMinorCivAI()->GetEffectiveFriendshipWithMajor(m_eAssignedPlayer);
-
-	pMinor->GetMinorCivAI()->ChangeFriendshipWithMajor(m_eAssignedPlayer, GetInfluenceReward(), /*bFromQuest*/ true);
-
 	bool bNowFriends = pMinor->GetMinorCivAI()->IsFriends(m_eAssignedPlayer);
 	bool bNowAllies = pMinor->GetMinorCivAI()->IsAllies(m_eAssignedPlayer);
 	PlayerTypes eNewAlly = pMinor->GetMinorCivAI()->GetAlly();
 	int iNewInf = pMinor->GetMinorCivAI()->GetEffectiveFriendshipWithMajor(m_eAssignedPlayer);
 	int iInfChange = iNewInf - iOldInf;
+	
+	// log?
+	//GET_PLAYER(m_eAssignedPlayer).GetDiplomacyAI()->LogMinorCivQuestFinished(GetPlayer()->GetID(), iOldFriendshipTimes100, iNewFriendshipTimes100, itr_quest->GetType());
 
 	Localization::String strMessage;
 	Localization::String strSummary;
@@ -1335,10 +1115,10 @@ bool CvMinorCivQuest::DoFinishQuest()
 	// Techs contest
 	else if (m_eType == QUEST_UNREST)
 	{
-	GET_PLAYER(m_eAssignedPlayer).ChangeDiplomaticInfluence(scoreFromUnrestWinner);
+	GET_PLAYER(m_eAssignedPlayer).ChangeDiplomaticInfluence(scoreFromQuest);
 
 	strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_COMPLETE_UNREST");
-	strMessage << scoreFromUnrestWinner;
+	strMessage << scoreFromQuest;
 	strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_COMPLETE_UNREST");
 	veNamesToShow = GetContestLeaders();
 	}
@@ -1685,7 +1465,7 @@ void CvMinorCivAI::Reset()
 
 void CvMinorCivAI::ResetQuestList()
 {
-	//antonjs: todo: this is called when PlayerTypes is -1, why? does it cause inefficiency or unused memory?
+	// this is called when PlayerTypes is -1, why? does it cause inefficiency or unused memory?
 
 	for(uint iPlayerEntry = 0; iPlayerEntry < m_QuestsGiven.size(); iPlayerEntry++)
 	{
@@ -2126,14 +1906,14 @@ void CvMinorCivAI::DoFirstContactWithMajor(TeamTypes eTeam, bool bSuppressMessag
 			{
 				iGoldGift = /*60*/ GC.getMINOR_CIV_CONTACT_GOLD_FIRST();
 				if(GetTrait() == MINOR_CIV_TRAIT_RELIGIOUS)
-					iFaithGift = 0; // GJS - lowered from 8; //antonjs: todo: XML
+					iFaithGift = 0;
 				bFirstMajorCiv = true;
 			}
 			else
 			{
 				iGoldGift = /*30*/ GC.getMINOR_CIV_CONTACT_GOLD_OTHER();
 				if(GetTrait() == MINOR_CIV_TRAIT_RELIGIOUS)
-					iFaithGift = 0; // GJS - lowered from 4; //antonjs: todo: XML
+					iFaithGift = 0;
 			}
 		}
 
@@ -2847,6 +2627,7 @@ void CvMinorCivAI::DoTurnQuests()
 		DoTestSeedGlobalQuestCountdown();
 	}
 
+	// TODO schedule global quests
 	if(GC.getGame().getElapsedGameTurns() > iFirstTurnForGlobalQuests || ENABLE_QUESTS_AT_START)
 	{
 		DoTestStartGlobalQuest();
@@ -2855,7 +2636,6 @@ void CvMinorCivAI::DoTurnQuests()
 	// ********************
 	// Give Personal Quests
 	// ********************
-	int iFirstTurnForPersonalQuests = GetFirstPossibleTurnForPersonalQuests();
 	PlayerTypes ePlayer;
 	for(int iPlayerLoop = 0; iPlayerLoop < MAX_MAJOR_CIVS; iPlayerLoop++)
 	{
@@ -2864,24 +2644,12 @@ void CvMinorCivAI::DoTurnQuests()
 		if(IsHasMetPlayer(ePlayer))
 		{
 			// Increment turns since last quest
-			if(GetQuestCountdownForPlayer(ePlayer) > 0)
+			if (GetQuestCountdownForPlayer(ePlayer) > 0)
 			{
 				ChangeQuestCountdownForPlayer(ePlayer, -1);
 			}
 
-			// Unlock turn - seed the counter
-			if(GC.getGame().getElapsedGameTurns() == iFirstTurnForPersonalQuests)
-			{
-				DoTestSeedQuestCountdownForPlayer(ePlayer);
-			}
-			// Can't start a quest too early
-			else if(GC.getGame().getElapsedGameTurns() > iFirstTurnForPersonalQuests || ENABLE_QUESTS_AT_START)
-			{
-				if(!IsAtWarWithPlayersTeam(ePlayer))
-				{
-					DoTestStartPersonalQuest(ePlayer);
-				}
-			}
+			DoTestStartPersonalQuest(ePlayer);
 		}
 	}
 
@@ -2908,13 +2676,13 @@ int CvMinorCivAI::GetFirstPossibleTurnForGlobalQuests() const
 /// What is the maximum number of player-specific quests a player can have at one time?
 int CvMinorCivAI::GetMaxActivePersonalQuestsForPlayer() const
 {
-	return 2; //antonjs: todo: constant/XML, link with size of typedef vectors in header file
+	return 2; // XML
 }
 
 /// What is the maximum number of global (multiple player) quests this minor can have active at one time?
 int CvMinorCivAI::GetMaxActiveGlobalQuests() const
 {
-	return 1; //antonjs: todo: constant/XML, link with size of typedef vectors in header file
+	return 1; // XML
 }
 
 /// See if it is time to start a global (multiple player) quest
@@ -2993,52 +2761,62 @@ void CvMinorCivAI::DoTestStartPersonalQuest(PlayerTypes ePlayer)
 	CvAssertMsg(ePlayer >= 0, "ePlayer is expected to be non-negative (invalid Index)");
 	CvAssertMsg(ePlayer < MAX_MAJOR_CIVS, "ePlayer is expected to be within maximum bounds (invalid Index)");
 
-	// Can't start a new quest too quickly after an old one has ended
-	if(GetQuestCountdownForPlayer(ePlayer) > 0)
+
+	// too early?
+	if (!ENABLE_QUESTS_AT_START)
 	{
-		return;
+		const int iFirstTurnForPersonalQuests = GetFirstPossibleTurnForPersonalQuests();
+		if (GC.getGame().getElapsedGameTurns() == iFirstTurnForPersonalQuests)
+		{
+			DoTestSeedQuestCountdownForPlayer(ePlayer);
+			return;
+		}
+		if (GC.getGame().getElapsedGameTurns() < iFirstTurnForPersonalQuests)
+		{
+			return;
+		}
+		// too early
+		//if(GetQuestCountdownForPlayer(ePlayer) > 0)
+		//{
+		//	return;
+		//}
 	}
 
-	// Can't start a new quest if we already have several active ones
+	// war prevents quests
+	if (IsAtWarWithPlayersTeam(ePlayer))
+		return;
+	// max quests active?
 	if(GetNumActivePersonalQuestsForPlayer(ePlayer) >= GetMaxActivePersonalQuestsForPlayer())
-	{
 		return;
-	}
 
+
+	// find valid quests
 	FStaticVector<MinorCivQuestTypes, NUM_MINOR_CIV_QUEST_TYPES, true, c_eCiv5GameplayDLL, 0> veValidQuests;
-
-	int iCount, iCountLoop;
-
-	MinorCivQuestTypes eQuest;
 	for(int iQuestLoop = 0; iQuestLoop < NUM_MINOR_CIV_QUEST_TYPES; iQuestLoop++)
 	{
-		eQuest = (MinorCivQuestTypes) iQuestLoop;
-
+		const MinorCivQuestTypes eQuest = (MinorCivQuestTypes) iQuestLoop;
 		if(IsValidQuestForPlayer(ePlayer, eQuest) && IsPersonalQuest(eQuest))
 		{
-			// What is the bias for this player wanting this particular quest? Queue up multiple copies (default is 10)
-			iCount = GetPersonalityQuestBias(eQuest);
-
-			for(iCountLoop = 0; iCountLoop < iCount; iCountLoop++)
+			const int iCount = GetPersonalityQuestBias(eQuest);
+			for(int iCountLoop = 0; iCountLoop < iCount; iCountLoop++)
 			{
 				veValidQuests.push_back(eQuest);
 			}
 		}
 	}
 
-	// No valid Quests
-	if(veValidQuests.size() == 0)
+
+	// pick and start valid quest
+	if (veValidQuests.size() > 0)
 	{
-		return;
+		const int iRandIndex = GC.getGame().getJonRandNum(veValidQuests.size(), "Picking random quest for Minor to give to a player.");
+		const MinorCivQuestTypes eQuest = veValidQuests[iRandIndex];
+
+		AddQuestForPlayer(ePlayer, eQuest, GC.getGame().getGameTurn());
+
+		// Check if we need to seed the countdown timer to allow for another quest
+		DoTestSeedQuestCountdownForPlayer(ePlayer);
 	}
-
-	int iRandIndex = GC.getGame().getJonRandNum(veValidQuests.size(), "Picking random quest for Minor to give to a player.");
-	eQuest = veValidQuests[iRandIndex];
-
-	AddQuestForPlayer(ePlayer, eQuest, GC.getGame().getGameTurn());
-
-	// Check if we need to seed the countdown timer to allow for another quest
-	DoTestSeedQuestCountdownForPlayer(ePlayer);
 }
 
 /// Begin a quest, initializing it with data
@@ -3214,7 +2992,8 @@ void CvMinorCivAI::DoCompletedQuestsForPlayer(PlayerTypes ePlayer, MinorCivQuest
 			if (itr_quest->IsComplete())
 			{
 				int iOldFriendshipTimes100 = GetEffectiveFriendshipWithMajorTimes100(ePlayer);
-				bool bCompleted = itr_quest->DoFinishQuest();
+				const bool bCompleted = itr_quest->IsComplete();
+				if (bCompleted) itr_quest->DoFinishQuest();
 				int iNewFriendshipTimes100 = GetEffectiveFriendshipWithMajorTimes100(ePlayer);
 				
 				if (bCompleted)
@@ -3340,135 +3119,9 @@ bool CvMinorCivAI::IsEnabledQuest(MinorCivQuestTypes eQuest)
 		eQuest == QUEST_TRADE_ROUTE ||
 		eQuest == QUEST_UNREST
 	)
-	{
 		return true;
-	}
-	else
-	{
-		return false; // disallow all other quest types
-	}
 
-	// BUILD A ROUTE
-	if(eQuest == MINOR_CIV_QUEST_ROUTE)
-	{
-		if(GC.getQUEST_DISABLED_ROUTE() == 1)
-			return false;
-	}
-	// CONNECT A RESOURCE
-	else if(eQuest == MINOR_CIV_QUEST_CONNECT_RESOURCE)
-	{
-		if(GC.getQUEST_DISABLED_CONNECT_RESOURCE() == 1)
-			return false;
-	}
-	// CONSTRUCT A WONDER
-	else if(eQuest == MINOR_CIV_QUEST_CONSTRUCT_WONDER)
-	{
-		if(GC.getQUEST_DISABLED_CONSTRUCT_WONDER() == 1)
-			return false;
-	}
-	// GREAT PERSON
-	else if(eQuest == MINOR_CIV_QUEST_GREAT_PERSON)
-	{
-		if(GC.getQUEST_DISABLED_GREAT_PERSON() == 1)
-			return false;
-	}
-	// KILL ANOTHER CITY STATE
-	else if(eQuest == MINOR_CIV_QUEST_KILL_CITY_STATE)
-	{
-		if(GC.getQUEST_DISABLED_KILL_CITY_STATE() == 1)
-			return false;
-	}
-	// FIND ANOTHER PLAYER
-	else if(eQuest == MINOR_CIV_QUEST_FIND_PLAYER)
-	{
-		if(GC.getQUEST_DISABLED_FIND_PLAYER() == 1)
-			return false;
-	}
-	// FIND NATURAL WONDER
-	else if(eQuest == MINOR_CIV_QUEST_FIND_NATURAL_WONDER)
-	{
-		if(GC.getQUEST_DISABLED_NATURAL_WONDER() == 1)
-			return false;
-	}
-	// GOLD GIFT
-	else if(eQuest == MINOR_CIV_QUEST_GIVE_GOLD)
-	{
-		if(GC.getQUEST_DISABLED_GIVE_GOLD() == 1)
-			return false;
-	}
-	// PLEDGE TO PROTECT
-	else if(eQuest == MINOR_CIV_QUEST_PLEDGE_TO_PROTECT)
-	{
-		if(GC.getQUEST_DISABLED_PLEDGE_TO_PROTECT() == 1)
-			return false;
-	}
-	// CONTEST CULTURE
-	else if(eQuest == MINOR_CIV_QUEST_CONTEST_CULTURE)
-	{
-		if(GC.getGame().isOption(GAMEOPTION_NO_POLICIES))
-			return false;
-
-		if(GC.getQUEST_DISABLED_CONTEST_CULTURE() == 1)
-			return false;
-	}
-	// CONTEST FAITH
-	else if(eQuest == MINOR_CIV_QUEST_CONTEST_FAITH)
-	{
-		if(GC.getGame().isOption(GAMEOPTION_NO_RELIGION))
-			return false;
-
-		if(GC.getQUEST_DISABLED_CONTEST_FAITH() == 1)
-			return false;
-	}
-	// CONTEST TECHS
-	else if (eQuest == MINOR_CIV_QUEST_CONTEST_TECHS)
-	{
-		if (GC.getGame().isOption(GAMEOPTION_NO_SCIENCE))
-			return false;
-
-		if (GC.getQUEST_DISABLED_CONTEST_TECHS() == 1)
-			return false;
-	}
-	// CONTEST TECHS
-	else if (eQuest == QUEST_UNREST)
-	{
-		return true;
-	}
-	// Invest
-	else if(eQuest == MINOR_CIV_QUEST_INVEST)
-	{
-		if(GC.getQUEST_DISABLED_INVEST() == 1)
-			return false;
-	}
-	// Bully target City-State
-	else if(eQuest == MINOR_CIV_QUEST_BULLY_CITY_STATE)
-	{
-		if(GC.getQUEST_DISABLED_BULLY_CITY_STATE() == 1)
-			return false;
-	}
-	// Denounce target Major
-	else if(eQuest == MINOR_CIV_QUEST_DENOUNCE_MAJOR)
-	{
-		if(GC.getQUEST_DISABLED_DENOUNCE_MAJOR() == 1)
-			return false;
-	}
-	// Spread your religion to us
-	else if(eQuest == MINOR_CIV_QUEST_SPREAD_RELIGION)
-	{
-		if(GC.getGame().isOption(GAMEOPTION_NO_RELIGION))
-			return false;
-
-		if(GC.getQUEST_DISABLED_SPREAD_RELIGION() == 1)
-			return false;
-	}
-	// Trade Route
-	else if(eQuest == MINOR_CIV_QUEST_TRADE_ROUTE)
-	{
-		if(GC.getQUEST_DISABLED_TRADE_ROUTE() == 1)
-			return false;
-	}
-
-	return true;
+	return false; // disallow all other quest types
 }
 
 /// Is eQuest valid for this minor to give to ePlayer?
@@ -3486,12 +3139,16 @@ bool CvMinorCivAI::IsValidQuestForPlayer(PlayerTypes ePlayer, MinorCivQuestTypes
 	if(IsAtWarWithPlayersTeam(ePlayer))
 		return false;
 
-	// No quests are valid if we don't know you yet
+	// must know them
 	if(!IsHasMetPlayer(ePlayer))
 		return false;
 
-	// This player cannot already have an active quest of the same type
+	// no duplicate
 	if(IsActiveQuestForPlayer(ePlayer, eQuest))
+		return false;
+
+	// no bullies
+	if (IsRecentlyBulliedByMajor(ePlayer))
 		return false;
 
 	// Both players must have a capital
@@ -3500,275 +3157,19 @@ bool CvMinorCivAI::IsValidQuestForPlayer(PlayerTypes ePlayer, MinorCivQuestTypes
 	if(pMinorsCapital == NULL || pMajorsCapital == NULL)
 		return false;
 
-	// BUILD A ROUTE
-	if(eQuest == MINOR_CIV_QUEST_ROUTE)
+	if (eQuest == QUEST_SPREAD_RELIGION)
 	{
-		// This player must not have bullied us recently
-		if(IsRecentlyBulliedByMajor(ePlayer))
-			return false;
-
-		// Must have been friends at some point
-		if(!IsEverFriends(ePlayer))
-			return false;
-
-		// Cannot already have a route
-		// ALLOW ALREADY HAVE ROUTE
-		//if (GET_PLAYER(ePlayer).IsCapitalConnectedToPlayer(GetPlayer()->GetID()))
-		//	return false;
-
-		// Can't have completed this Quest already
-		// ALLOW ALREADY COMPLETED PREVIOUSLY
-		//if(IsRouteConnectionEstablished(ePlayer))
-		//	return false;
-
-		// Must have a city close to the minor in the same Area
-		const int iMaxRouteDistance = 15; //antonjs: todo: xml
-		CvPlot* pMinorsPlot = pMinorsCapital->plot();
-		if(pMinorsPlot == NULL)
-			return false;
-
-		int iLoop;
-		CvCity* pLoopCity;
-		bool bInRange = false;
-		for(pLoopCity = GET_PLAYER(ePlayer).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER(ePlayer).nextCity(&iLoop))
-		{
-			if(pMinorsPlot->getArea() != pLoopCity->getArea())
-				continue;
-			int iDistance = plotDistance(pMinorsPlot->getX(), pMinorsPlot->getY(), pLoopCity->getX(), pLoopCity->getY());
-			if(iDistance < iMaxRouteDistance)
-				bInRange = true;
-		}
-
-		if(!bInRange)
-			return false;
-	}
-	// CONNECT A RESOURCE
-	else if(eQuest == MINOR_CIV_QUEST_CONNECT_RESOURCE)
-	{
-		// This player must not have bullied us recently
-		if(IsRecentlyBulliedByMajor(ePlayer))
-			return false;
-
-		ResourceTypes eResource = GetNearbyResourceForQuest(ePlayer);
-
-		if(eResource == NO_RESOURCE)
-			return false;
-	}
-	// CONSTRUCT A WONDER
-	else if(eQuest == MINOR_CIV_QUEST_CONSTRUCT_WONDER)
-	{
-		// This player must not have bullied us recently
-		if(IsRecentlyBulliedByMajor(ePlayer))
-			return false;
-
-		BuildingTypes eWonder = GetBestWonderForQuest(ePlayer);
-
-		if(eWonder == NO_BUILDING)
-			return false;
-	}
-	// GREAT PERSON
-	else if(eQuest == MINOR_CIV_QUEST_GREAT_PERSON)
-	{
-		// This player must not have bullied us recently
-		if(IsRecentlyBulliedByMajor(ePlayer))
-			return false;
-
-		UnitTypes eUnit = GetBestGreatPersonForQuest(ePlayer);
-
-		if(eUnit == NO_UNIT)
-			return false;
-	}
-	// KILL ANOTHER CITY STATE
-	else if(eQuest == MINOR_CIV_QUEST_KILL_CITY_STATE)
-	{
-		// Friendly City States don't give out this quest
-		if(GetPersonality() == MINOR_CIV_PERSONALITY_FRIENDLY)
-			return false;
-
-		PlayerTypes eTargetCityState = GetBestCityStateTarget(ePlayer);
-
-		if(eTargetCityState == NO_PLAYER)
-			return false;
-	}
-	// FIND ANOTHER PLAYER
-	else if(eQuest == MINOR_CIV_QUEST_FIND_PLAYER)
-	{
-		// This player must not have bullied us recently
-		if(IsRecentlyBulliedByMajor(ePlayer))
-			return false;
-
-		PlayerTypes eTarget = GetBestPlayerToFind(ePlayer);
-
-		if(eTarget == NO_PLAYER)
-			return false;
-	}
-	// FIND NATURAL WONDER
-	else if(eQuest == MINOR_CIV_QUEST_FIND_NATURAL_WONDER)
-	{
-		// This player must not have bullied us recently
-		if(IsRecentlyBulliedByMajor(ePlayer))
-			return false;
-
-		if(!IsGoodTimeForNaturalWonderQuest(ePlayer))
-			return false;
-	}
-	// GOLD GIFT
-	else if(eQuest == MINOR_CIV_QUEST_GIVE_GOLD)
-	{
-		// We don't need help if we've never been bullied
-		if(!IsEverBulliedByAnyMajor())
-			return false;
-
-		// This player must not have bullied us recently
-		if(IsRecentlyBulliedByMajor(ePlayer))
-			return false;
-
-		// This player must not be the most recent bully
-		if(GetMostRecentBullyForQuest() == ePlayer)
-			return false;
-
-		if(!IsGoodTimeForGiveGoldQuest())
-			return false;
-	}
-	// PLEDGE TO PROTECT
-	else if(eQuest == MINOR_CIV_QUEST_PLEDGE_TO_PROTECT)
-	{
-		// We don't need help if we've never been bullied
-		if(!IsEverBulliedByAnyMajor())
-			return false;
-
-		// This player must not have bullied us recently
-		if(IsRecentlyBulliedByMajor(ePlayer))
-			return false;
-
-		// This player must not be the most recent bully
-		if(GetMostRecentBullyForQuest() == ePlayer)
-			return false;
-
-		// Only if we aren't already protected by this major, and the major is allowed to start
-		if(!CanMajorStartProtection(ePlayer))
-			return false;
-
-		if(!IsGoodTimeForPledgeToProtectQuest())
-			return false;
-	}
-	// CONTEST CULTURE
-	else if(eQuest == MINOR_CIV_QUEST_CONTEST_CULTURE)
-	{
-	}
-	// CONTEST FAITH
-	else if(eQuest == MINOR_CIV_QUEST_CONTEST_FAITH)
-	{
-	}
-	// CONTEST TECHS
-	else if (eQuest == MINOR_CIV_QUEST_CONTEST_TECHS)
-	{
-	}
-	// CONTEST UNREST
-	else if (eQuest == QUEST_UNREST)
-	{
-		// always valid
-		return true;
-	}
-	// Invest
-	else if(eQuest == MINOR_CIV_QUEST_INVEST)
-	{
-		// This player must not have bullied us recently
-		if(IsRecentlyBulliedByMajor(ePlayer))
-			return false;
-	}
-	// Bully target City-State
-	else if(eQuest == MINOR_CIV_QUEST_BULLY_CITY_STATE)
-	{
-		// This player must not have bullied us recently
-		if(IsRecentlyBulliedByMajor(ePlayer))
-			return false;
-
-		PlayerTypes eTargetCityState = GetBestCityStateTarget(ePlayer);
-
-		if(eTargetCityState == NO_PLAYER)
-			return false;
-	}
-	// Denounce target Major
-	else if(eQuest == MINOR_CIV_QUEST_DENOUNCE_MAJOR)
-	{
-		// We don't need help if we've never been bullied
-		if(!IsEverBulliedByAnyMajor())
-			return false;
-
-		// This player must not have bullied us recently
-		if(IsRecentlyBulliedByMajor(ePlayer))
-			return false;
-
-		// Is there a recent bully?
-		if(!IsGoodTimeForDenounceMajorQuest())
-			return false;
-
-		// Don't ask in always war games
-		if(GC.getGame().isOption(GAMEOPTION_ALWAYS_WAR))
-			return false;
-		
-		PlayerTypes eMostRecentBully = GetMostRecentBullyForQuest();
-
-		if(eMostRecentBully == NO_PLAYER)
-			return false;
-
-		// This player must not be the most recent bully
-		if(eMostRecentBully == ePlayer)
-			return false;
-
-		// This player must not be teammates with the most recent bully (cannot denounce)
-		if(GET_PLAYER(ePlayer).getTeam() == GET_PLAYER(eMostRecentBully).getTeam())
-			return false;
-
-		// This player must have met the most recent bully
-		if(!GET_TEAM(GET_PLAYER(ePlayer).getTeam()).isHasMet(GET_PLAYER(eMostRecentBully).getTeam()))
-			return false;
-
-		// This player must not be at war with the most recent bully (cannot denounce)
-		if(GET_TEAM(GET_PLAYER(ePlayer).getTeam()).isAtWar(GET_PLAYER(eMostRecentBully).getTeam()))
-			return false;
-
-		// Humans are unable to denounce each other
-		if(GET_PLAYER(ePlayer).isHuman() && GET_PLAYER(eMostRecentBully).isHuman())
-			return false;
-
-		// This player must not have already denounced the most recent bully
-		if(GET_PLAYER(ePlayer).GetDiplomacyAI()->IsDenouncedPlayer(GetMostRecentBullyForQuest()))
-			return false;
-	}
-	// Spread your religion to us
-	else if(eQuest == MINOR_CIV_QUEST_SPREAD_RELIGION)
-	{
-		// This player must not have bullied us recently
-		if(IsRecentlyBulliedByMajor(ePlayer))
-			return false;
-
 		// Player must have founded a religion
-		if(!GC.getGame().GetGameReligions()->HasCreatedReligion(ePlayer))
+		if (!GC.getGame().GetGameReligions()->HasCreatedReligion(ePlayer))
 			return false;
 
 		// Minor must not already share player's religion
-		if(IsSameReligionAsMajor(ePlayer))
+		if (IsSameReligionAsMajor(ePlayer))
 			return false;
 	}
-	// Trade route
-	else if(eQuest == MINOR_CIV_QUEST_TRADE_ROUTE)
-	{
-		// This player must not have bullied us recently
-		if(IsRecentlyBulliedByMajor(ePlayer))
-			return false;
 
-		// This player must not already be connected
-		// ALLOW TRADE ROUTE IF ALREADY TRADING
-		//if(GC.getGame().GetGameTrade()->IsPlayerConnectedToPlayer(ePlayer, GetPlayer()->GetID()))
-		//	return false;
+	// TODO check to see if they already have all national wonders OR all world wonders are built
 
-		// This player must be able to build a trade route either by land or sea
-		if(!GC.getGame().GetGameTrade()->CanCreateTradeRoute(ePlayer,GetPlayer()->GetID(), DOMAIN_LAND) &&
-			!GC.getGame().GetGameTrade()->CanCreateTradeRoute(ePlayer,GetPlayer()->GetID(), DOMAIN_SEA))
-			return false;
-	}
 	return true;
 }
 
@@ -3781,82 +3182,12 @@ bool CvMinorCivAI::IsValidQuestCopyForPlayer(PlayerTypes ePlayer, CvMinorCivQues
 		return false;
 	}
 
-	MinorCivQuestTypes eQuestType = pQuest->GetType();
-
-	// The quest type must be enabled
-	if(!IsEnabledQuest(eQuestType))
-		return false;
-
-	// Somebody's dead, that's no good
-	if(!GET_PLAYER(ePlayer).isAlive() || !GetPlayer()->isAlive())
-		return false;
-
-	// No quests are valid if we are at war
-	if(IsAtWarWithPlayersTeam(ePlayer))
-		return false;
-
-	// antonjs: todo: dehackify
-	if(!IsHasMetPlayer(ePlayer) && !GET_TEAM(GET_PLAYER(ePlayer).getTeam()).isHasMet(GET_TEAM(GetPlayer()->getTeam()).GetID()))
-		return false;
-
-	// This player cannot already have an active quest of the same type
-	if(IsActiveQuestForPlayer(ePlayer, eQuestType))
-		return false;
-
-	// Both players must have a capital
-	CvCity* pMinorsCapital = GetPlayer()->getCapitalCity();
-	CvCity* pMajorsCapital = GET_PLAYER(ePlayer).getCapitalCity();
-	if(pMinorsCapital == NULL || pMajorsCapital == NULL)
-		return false;
-
-	// CONTEST CULTURE
-	if(eQuestType == MINOR_CIV_QUEST_CONTEST_CULTURE)
-	{
-	}
-	// CONTEST FAITH
-	else if(eQuestType == MINOR_CIV_QUEST_CONTEST_FAITH)
-	{
-	}
-	// CONTEST TECHS
-	else if (eQuestType == MINOR_CIV_QUEST_CONTEST_TECHS)
-	{
-	}
-	// CONTEST UNREST
-	else if (eQuestType == QUEST_UNREST)
-	{
-	}
-	// Invest
-	else if(eQuestType == MINOR_CIV_QUEST_INVEST)
-	{
-		// This player must not have bullied us recently
-		if(IsRecentlyBulliedByMajor(ePlayer))
-			return false;
-	}
-	// Personal quests - This should not be done, just create a new quest from scratch!!
-	else
-	{
-		CvAssertMsg(false, "Checking validity of copying a personal quest using existing quest data.  This should not be done.  Please send Anton your save file and version.");
-		return IsValidQuestForPlayer(ePlayer, eQuestType);
-	}
-
-	return true;
+	return IsValidQuestForPlayer(ePlayer, pQuest->GetType());
 }
 
 
 bool CvMinorCivAI::IsGlobalQuest(MinorCivQuestTypes eQuest) const
 {
-	if(eQuest == MINOR_CIV_QUEST_CONTEST_CULTURE)
-		return true;
-
-	if(eQuest == MINOR_CIV_QUEST_CONTEST_FAITH)
-		return true;
-
-	if(eQuest == MINOR_CIV_QUEST_CONTEST_TECHS)
-		return true;
-
-	if (eQuest == MINOR_CIV_QUEST_INVEST)
-		return true;
-
 	if (eQuest == QUEST_UNREST)
 		return true;
 	
@@ -3870,37 +3201,7 @@ bool CvMinorCivAI::IsPersonalQuest(MinorCivQuestTypes eQuest) const
 
 int CvMinorCivAI::GetMinPlayersNeededForQuest(MinorCivQuestTypes eQuest) const
 {
-	int iPlayersNeeded = 1;
-
-	if(eQuest == MINOR_CIV_QUEST_CONTEST_CULTURE)
-	{
-		iPlayersNeeded = 3; //antonjs: todo: XML
-	}
-
-	else if(eQuest == MINOR_CIV_QUEST_CONTEST_FAITH)
-	{
-		iPlayersNeeded = 3; //antonjs: todo: XML
-	}
-
-	else if(eQuest == MINOR_CIV_QUEST_CONTEST_TECHS)
-	{
-		iPlayersNeeded = 3; //antonjs: todo: XML
-	}
-
-	else if (eQuest == QUEST_UNREST)
-	{
-		iPlayersNeeded = 1;
-	}
-
-	else if(eQuest == MINOR_CIV_QUEST_INVEST)
-	{
-		iPlayersNeeded = 2; //antonjs: todo: XML
-	}
-
-	int iMajorsEverAlive = GC.getGame().countMajorCivsEverAlive();
-	iPlayersNeeded = min(iPlayersNeeded, iMajorsEverAlive);
-
-	return iPlayersNeeded;
+	return 1;
 }
 
 /// How more or less likely is this minor to offer a particular quest type based on its personality?
@@ -3909,293 +3210,12 @@ int CvMinorCivAI::GetPersonalityQuestBias(MinorCivQuestTypes eQuest)
 	// Multiply by 10 to give us some more fidelity. We'll remove it at the bottom
 	int iCount = 10 * /*10*/ GC.getMINOR_CIV_QUEST_WEIGHT_DEFAULT();
 
-	MinorCivPersonalityTypes ePersonality = GetPersonality();
-	MinorCivTraitTypes eTrait = GetTrait();
-
-	// ******************
-	// Personal Quests
-	// ******************
-
-	// ROUTE
-	if(eQuest == MINOR_CIV_QUEST_ROUTE)
-	{
-		if(ePersonality == MINOR_CIV_PERSONALITY_FRIENDLY)		// Friendly
-		{
-			iCount *= /*200*/ GC.getMINOR_CIV_QUEST_WEIGHT_MULTIPLIER_FRIENDLY_ROUTE();
-			iCount /= 100;
-		}
-		if(ePersonality == MINOR_CIV_PERSONALITY_HOSTILE)		// Hostile
-		{
-			iCount *= /*20*/ GC.getMINOR_CIV_QUEST_WEIGHT_MULTIPLIER_HOSTILE_ROUTE();
-			iCount /= 100;
-		}
-		if(eTrait == MINOR_CIV_TRAIT_MARITIME)						// Maritime
-		{
-			iCount *= /*120*/ GC.getMINOR_CIV_QUEST_WEIGHT_MULTIPLIER_MARITIME_ROUTE();
-			iCount /= 100;
-		}
-		if(eTrait == MINOR_CIV_TRAIT_MERCANTILE)
-		{
-			iCount *= /*150*/ GC.getMINOR_CIV_QUEST_WEIGHT_MULTIPLIER_MERCANTILE_ROUTE();
-			iCount /= 100;
-		}
-	}
-
-	// CONNECT A RESOURCE
-	else if(eQuest == MINOR_CIV_QUEST_CONNECT_RESOURCE)
-	{
-		if(eTrait == MINOR_CIV_TRAIT_MARITIME)						// Maritime
-		{
-			iCount *= /*200*/ GC.getMINOR_CIV_QUEST_WEIGHT_MULTIPLIER_MARITIME_CONNECT_RESOURCE();
-			iCount /= 100;
-		}
-		if(eTrait == MINOR_CIV_TRAIT_MERCANTILE)
-		{
-			iCount *= /*300*/ GC.getMINOR_CIV_QUEST_WEIGHT_MULTIPLIER_MERCANTILE_CONNECT_RESOURCE();
-			iCount /= 100;
-		}
-	}
-
-	// CONSTRUCT A WONDER
-	else if(eQuest == MINOR_CIV_QUEST_CONSTRUCT_WONDER)
-	{
-		if(eTrait == MINOR_CIV_TRAIT_CULTURED)						// Cultured
-		{
-			iCount *= /*300*/ GC.getMINOR_CIV_QUEST_WEIGHT_MULTIPLIER_CULTURED_CONSTRUCT_WONDER();
-			iCount /= 100;
-		}
-	}
-
-	// GREAT PERSON
-	else if(eQuest == MINOR_CIV_QUEST_GREAT_PERSON)
-	{
-		if(eTrait == MINOR_CIV_TRAIT_CULTURED)						// Cultured
-		{
-			iCount *= /*300*/ GC.getMINOR_CIV_QUEST_WEIGHT_MULTIPLIER_CULTURED_GREAT_PERSON();
-			iCount /= 100;
-		}
-	}
-
-	// KILL ANOTHER CITY STATE
-	else if(eQuest == MINOR_CIV_QUEST_KILL_CITY_STATE)
-	{
-		if(eTrait == MINOR_CIV_TRAIT_MILITARISTIC)					// Militaristic
-		{
-			iCount *= /*200*/ GC.getMINOR_CIV_QUEST_WEIGHT_MULTIPLIER_MILITARISTIC_KILL_CITY_STATE();
-			iCount /= 100;
-		}
-		if(ePersonality == MINOR_CIV_PERSONALITY_HOSTILE)		// Hostile
-		{
-			iCount *= /*200*/ GC.getMINOR_CIV_QUEST_WEIGHT_MULTIPLIER_HOSTILE_KILL_CITY_STATE();
-			iCount /= 100;
-		}
-		if(ePersonality == MINOR_CIV_PERSONALITY_NEUTRAL)		// Neutral
-		{
-			iCount *= /*40*/ GC.getMINOR_CIV_QUEST_WEIGHT_MULTIPLIER_NEUTRAL_KILL_CITY_STATE();
-			iCount /= 100;
-		}
-	}
-
-	// FIND ANOTHER PLAYER
-	else if(eQuest == MINOR_CIV_QUEST_FIND_PLAYER)
-	{
-		if(eTrait == MINOR_CIV_TRAIT_MARITIME)						// Maritime
-		{
-			iCount *= /*300*/ GC.getMINOR_CIV_QUEST_WEIGHT_MULTIPLIER_MARITIME_FIND_PLAYER();
-			iCount /= 100;
-		}
-		if(eTrait == MINOR_CIV_TRAIT_MERCANTILE)
-		{
-			iCount *= /*200*/ GC.getMINOR_CIV_QUEST_WEIGHT_MULTIPLIER_MERCANTILE_FIND_PLAYER();
-			iCount /= 100;
-		}
-	}
-
-	// FIND NATURAL WONDER
-	else if(eQuest == MINOR_CIV_QUEST_FIND_NATURAL_WONDER)
-	{
-		if(eTrait == MINOR_CIV_TRAIT_MILITARISTIC)					// Militaristic
-		{
-			iCount *= /*50*/ GC.getMINOR_CIV_QUEST_WEIGHT_MULTIPLIER_MILITARISTIC_FIND_NATURAL_WONDER();
-			iCount /= 100;
-		}
-		if(ePersonality == MINOR_CIV_PERSONALITY_HOSTILE)		// Hostile
-		{
-			iCount *= /*30*/ GC.getMINOR_CIV_QUEST_WEIGHT_MULTIPLIER_HOSTILE_FIND_NATURAL_WONDER();
-			iCount /= 100;
-		}
-	}
-
-	// GOLD GIFT
-	else if(eQuest == MINOR_CIV_QUEST_GIVE_GOLD)
-	{
-		//antonjs: consider: split quest bias into two categories, so that we can guarantee a support quest when a CS is bullied recently
-
-		if(eTrait == MINOR_CIV_TRAIT_MILITARISTIC)  // We are tough, we don't need your charity
-		{
-			iCount *= /*200*/ GC.getMINOR_CIV_QUEST_WEIGHT_MULTIPLIER_MILITARISTIC_GIVE_GOLD();
-			iCount /= 100;
-		}
-		else if(eTrait == MINOR_CIV_TRAIT_MERCANTILE)  // Money is the answer to everything!
-		{
-			iCount *= /*350*/ GC.getMINOR_CIV_QUEST_WEIGHT_MULTIPLIER_MERCANTILE_GIVE_GOLD();
-			iCount /= 100;
-		}
-		else
-		{
-			iCount *= /*300*/ GC.getMINOR_CIV_QUEST_WEIGHT_MULTIPLIER_OTHER_GIVE_GOLD();
-			iCount /= 100;
-		}
-	}
-
-	// PLEDGE TO PROTECT
-	else if(eQuest == MINOR_CIV_QUEST_PLEDGE_TO_PROTECT)
-	{
-		if(eTrait == MINOR_CIV_TRAIT_MILITARISTIC)  // We are tough, we don't need your charity
-		{
-			iCount *= /*200*/ GC.getMINOR_CIV_QUEST_WEIGHT_MULTIPLIER_MILITARISTIC_PLEDGE_TO_PROTECT();
-			iCount /= 100;
-		}
-		else if(eTrait == MINOR_CIV_TRAIT_CULTURED)  // Military?  We don't have one of those!
-		{
-			iCount *= /*350*/ GC.getMINOR_CIV_QUEST_WEIGHT_MULTIPLIER_CULTURED_PLEDGE_TO_PROTECT();
-			iCount /= 100;
-		}
-		else
-		{
-			iCount *= /*300*/ GC.getMINOR_CIV_QUEST_WEIGHT_MULTIPLIER_OTHER_PLEDGE_TO_PROTECT();
-			iCount /= 100;
-		}
-	}
-
-	// Bully target City-State
-	else if(eQuest == MINOR_CIV_QUEST_BULLY_CITY_STATE)
-	{
-		if(ePersonality == MINOR_CIV_PERSONALITY_HOSTILE)
-		{
-			iCount *= 200; //antonjs: todo: XML
-			iCount /= 100;
-		}
-		else if(ePersonality == MINOR_CIV_PERSONALITY_IRRATIONAL)
-		{
-			iCount *= 150; //antonjs: todo: xml
-			iCount /= 100;
-		}
-		else if(ePersonality == MINOR_CIV_PERSONALITY_FRIENDLY)
-		{
-			iCount *= 30; //antonjs: todo: xml
-			iCount /= 100;
-		}
-	}
-
-	// Denounce target Major
-	else if(eQuest == MINOR_CIV_QUEST_DENOUNCE_MAJOR)
-	{
-		if(eTrait == MINOR_CIV_TRAIT_RELIGIOUS)
-		{
-			iCount *= 250; //antonjs: todo: xml
-			iCount /= 100;
-		}
-		else if(eTrait == MINOR_CIV_TRAIT_MARITIME)
-		{
-			iCount *= 200; //antonjs: todo: xml
-			iCount /= 100;
-		}
-		else
-		{
-			iCount *= 150; //antonjs: todo: xml
-			iCount /= 100;
-		}
-	}
-
-	// Spread your religion to us
-	else if(eQuest == MINOR_CIV_QUEST_SPREAD_RELIGION)
-	{
-		if(eTrait == MINOR_CIV_TRAIT_RELIGIOUS)
-		{
-			iCount *= 300; //antonjs: todo: xml
-			iCount /= 100;
-		}
-	}
-
-	// Trade Route
-	else if(eQuest == MINOR_CIV_QUEST_TRADE_ROUTE)
-	{
-		if(eTrait == MINOR_CIV_TRAIT_MARITIME)
-		{
-			iCount *= 200; //xml
-			iCount /= 100;
-		}
-		else if(eTrait == MINOR_CIV_TRAIT_MERCANTILE)
-		{
-			iCount *= 200; //xml
-			iCount /= 100;
-		}
-	}
-
-	// ******************
-	// Global Quests
-	// ******************
-
-	// CONTEST CULTURE
-	else if(eQuest == MINOR_CIV_QUEST_CONTEST_CULTURE)
-	{
-		if(eTrait == MINOR_CIV_TRAIT_CULTURED)
-		{
-			iCount *= 200; //antonjs: todo: XML
-			iCount /= 100;
-		}
-	}
-	// CONTEST FAITH
-	else if(eQuest == MINOR_CIV_QUEST_CONTEST_FAITH)
-	{
-		if(eTrait == MINOR_CIV_TRAIT_RELIGIOUS)
-		{
-			iCount *= 200; //antonjs: todo: XML
-			iCount /= 100;
-		}
-		else
-		{
-			iCount *= 50; //antonjs: todo: XML
-			iCount /= 100;
-		}
-	}
-	// CONTEST TECHS
-	else if (eQuest == MINOR_CIV_QUEST_CONTEST_TECHS)
-	{
-		if (eTrait == MINOR_CIV_TRAIT_RELIGIOUS)
-		{
-			iCount *= 50; //antonjs: todo: XML
-			iCount /= 100;
-		}
-	}
-
-	// CONTEST UNREST
-	else if (eQuest == QUEST_UNREST)
-	{
-		// always prefer
-		iCount *= 600;
-		iCount /= 100;
-	}
-
-	// Invest
-	else if(eQuest == MINOR_CIV_QUEST_INVEST)
-	{
-		if(eTrait == MINOR_CIV_TRAIT_MERCANTILE)
-		{
-			iCount *= 150; //antonjs: todo: XML
-			iCount /= 100;
-		}
-	}
-
 	return iCount / 10;
 }
 
 /// ASSUMPTION: There is no more than one active quest of any given MinorCivQuestTypes
 int CvMinorCivAI::GetNumActiveGlobalQuests() const
 {
-	//antonjs: todo: reevaluate this for efficiency and for use of std::set
-
 	std::set<MinorCivQuestTypes> setGlobalQuests;
 
 	for(uint iPlayerLoop = 0; iPlayerLoop < m_QuestsGiven.size(); iPlayerLoop++)
@@ -5294,12 +4314,10 @@ void CvMinorCivAI::DoFriendship()
 			int iNewFriendship = iOldFriendship + (iChangeThisTurnT100 / 100);
 
 			// stay in range
-			const int maxFriendship = 100;
-			const int minFriendship = -300;
-			if (iNewFriendship < minFriendship)
-				iNewFriendship = minFriendship;
-			else if (iNewFriendship > maxFriendship)
-				iNewFriendship = maxFriendship;
+			if (iNewFriendship < minAnchorT100)
+				iNewFriendship = minAnchorT100;
+			else if (iNewFriendship > maxAnchorT100)
+				iNewFriendship = maxAnchorT100;
 
 			// friendship changed
 			if (iNewFriendship != iOldFriendship)
@@ -5354,6 +4372,24 @@ void CvMinorCivAI::DoFriendship()
 	}
 }
 
+
+int newCappedChange(const int currentT100, const int newT100, const int anchorT100)
+{
+	if (newT100 > currentT100) // increase
+	{
+		if (currentT100 < anchorT100 && newT100 > anchorT100) // went past anchor
+			return anchorT100;
+	}
+	else if (currentT100) // drop
+	{
+		if (currentT100 > anchorT100 && newT100 < anchorT100) // went past anchor
+			return anchorT100;
+	}
+	return newT100;
+}
+
+
+
 /// How much does friendship drop per turn with ePlayer?
 /// Note that this does not pay attention to whether ePlayer is at war
 /// with this minor, in which case there is no friendship change per turn.
@@ -5365,67 +4401,88 @@ int CvMinorCivAI::GetFriendshipChangePerTurnTimes100(const PlayerTypes ePlayer)
 		return 0;
 	}
 
-
-	const int defaultChangeT100 = baseMilitaryInfluence * 100 / 2;
 	const int currentValueT100 = GetEffectiveFriendshipWithMajorTimes100(ePlayer);
-	const int iAnchorT100 = GetFriendshipAnchorWithMajor(ePlayer) * 100;
-	int iChangeThisTurnT100 = 0;
+	int newPredictedT100 = currentValueT100;
 
-	PlayerTypes eMilitaryWinner = NO_PLAYER;
-	if (!IsAtWarWithPlayersTeam(ePlayer)) // cant gain this influence if at war
-	{ // find military winner
-		int highestStrength = minMilitaryStrength;
-		for (int iPlayerLoop = 0; iPlayerLoop < MAX_MAJOR_CIVS; iPlayerLoop++)
+	// move toward anchor
+	{
+		const int baseAnchorT100 = GetFriendshipAnchorWithMajor(ePlayer) * 100;
+		const int defaultChangeT100 = -GC.getMINOR_FRIENDSHIP_DROP_PER_TURN();
+		int changeT100 = 0;
+		if (currentValueT100 < baseAnchorT100)
+			changeT100 += defaultChangeT100;
+		else if (currentValueT100 > baseAnchorT100)
+			changeT100 -= defaultChangeT100;
+
+		// Mod everything by game speed
+		changeT100 *= GC.getGame().getGameSpeedInfo().getGoldGiftMod();
+		changeT100 /= 100;
+
+		newPredictedT100 = newCappedChange(newPredictedT100, newPredictedT100 + changeT100, baseAnchorT100);
+	}
+
+	// handle military
+	{
+		const int militaryAnchorLowT100 = 100 * 100;
+		const int militaryAnchorHighT100 = maxAnchorT100;
+
+		PlayerTypes eMilitaryWinner = NO_PLAYER;
+		if (!IsAtWarWithPlayersTeam(ePlayer)) // cant gain this influence if at war
+		{ // find military winner
+			int highestStrength = minMilitaryStrength;
+			for (int iPlayerLoop = 0; iPlayerLoop < MAX_MAJOR_CIVS; iPlayerLoop++)
+			{
+				const PlayerTypes loopPlayer = (PlayerTypes)iPlayerLoop;
+				if (!GET_PLAYER(loopPlayer).isAlive()) continue; // must be alive
+				if (GET_PLAYER(loopPlayer).isMinorCiv()) continue; // must be major civ
+
+				const int tempStrength = getAStrengthNearAllBCities(loopPlayer, m_pPlayer->GetID());
+				if (tempStrength > highestStrength)
+				{
+					highestStrength = tempStrength;
+					eMilitaryWinner = loopPlayer;
+				}
+				else if (tempStrength == highestStrength)
+				{
+					eMilitaryWinner = NO_PLAYER;
+				}
+			}
+		}
+
+		int changeT100 = 0;
+		int anchor = 0;
+		// military winner
+		if (ePlayer == eMilitaryWinner)
 		{
-			const PlayerTypes loopPlayer = (PlayerTypes)iPlayerLoop;
-			if (!GET_PLAYER(loopPlayer).isAlive()) continue; // must be alive
-			if (GET_PLAYER(loopPlayer).isMinorCiv()) continue; // must be major civ
-
-			const int tempStrength = getAStrengthNearAllBCities(loopPlayer, m_pPlayer->GetID());
-			if (tempStrength > highestStrength)
-			{
-				highestStrength = tempStrength;
-				eMilitaryWinner = loopPlayer;
-			}
-			else if (tempStrength == highestStrength)
-			{
-				eMilitaryWinner = NO_PLAYER;
-			}
+			changeT100 = +baseMilitaryInfluence * 100;			
+			changeT100 *= GC.getGame().getGameSpeedInfo().getGoldGiftMod();
+			changeT100 /= 100; // Mod everything by game speed
+			anchor = militaryAnchorHighT100;
 		}
-	}
-
-	// military winner
-	if (ePlayer == eMilitaryWinner)
-		iChangeThisTurnT100 += max(defaultChangeT100, baseMilitaryInfluence * 100);
-	else
-	{ // otherwise move toward anchor
-		if (currentValueT100 < iAnchorT100)
-			iChangeThisTurnT100 += defaultChangeT100;
-		else if (currentValueT100 > iAnchorT100)
-			iChangeThisTurnT100 -= defaultChangeT100;
-
-		{ // but prevent generic changes from passing anchor
-			const int predictedNewValue = currentValueT100 + iChangeThisTurnT100;
-			if (iChangeThisTurnT100 > 0) // increase
-			{
-				if (predictedNewValue > iAnchorT100) // went past anchor!
-					iChangeThisTurnT100 = iAnchorT100 - currentValueT100; // dont increase past anchor
-			}
-			else if (iChangeThisTurnT100 < 0) // drop
-			{
-				if (predictedNewValue < iAnchorT100) // went past anchor!
-					iChangeThisTurnT100 = iAnchorT100 - currentValueT100; // dont drop past anchor
-			}
+		// military loser
+		else if (eMilitaryWinner != NO_PLAYER)
+		{
+			changeT100 = -baseMilitaryInfluence * 100;
+			changeT100 *= GC.getGame().getGameSpeedInfo().getGoldGiftMod();
+			changeT100 /= 100; // Mod everything by game speed
+			anchor = militaryAnchorLowT100;
 		}
+		// no military person
+		else
+		{
+
+		}
+		newPredictedT100 = newCappedChange(newPredictedT100, newPredictedT100 + changeT100, anchor);
 	}
 
 
-	// Mod everything by game speed
-	iChangeThisTurnT100 *= GC.getGame().getGameSpeedInfo().getGoldGiftMod();
-	iChangeThisTurnT100 /= 100;
+	// prevent moving past min or max
+	if (newPredictedT100 < currentValueT100) // drop
+		newPredictedT100 = newCappedChange(currentValueT100, newPredictedT100, minAnchorT100);
+	if (newPredictedT100 > currentValueT100) // increase
+		newPredictedT100 = newCappedChange(currentValueT100, newPredictedT100, maxAnchorT100);
 
-
-	return iChangeThisTurnT100;
+	return newPredictedT100 - currentValueT100;
 }
 
 // What is the level of Friendship between this Minor and the requested Major Civ?
@@ -6621,7 +5678,7 @@ bool CvMinorCivAI::CanMajorProtect(PlayerTypes eMajor)
 	// Must not be too soon after a previous pledge was broken
 	int iCurrentTurn = GC.getGame().getGameTurn();
 	int iLastPledgeBrokenTurn = GetTurnLastPledgeBrokenByMajor(eMajor);
-	const int iGracePeriod = 20; //antonjs: todo: xml
+	const int iGracePeriod = 20; // xml
 	if(iLastPledgeBrokenTurn >= 0 && iLastPledgeBrokenTurn + iGracePeriod > iCurrentTurn)
 		return false;
 
@@ -6649,7 +5706,7 @@ bool CvMinorCivAI::CanMajorWithdrawProtection(PlayerTypes eMajor)
 	// Pledge is locked in for a certain time
 	int iCurrentTurn = GC.getGame().getGameTurn();
 	int iLastPledgeTurn = GetTurnLastPledgedProtectionByMajor(eMajor);
-	const int iGracePeriod = 10; //antonjs: todo: xml
+	const int iGracePeriod = 10; // XML
 	if (iLastPledgeTurn >= 0 && iLastPledgeTurn + iGracePeriod > iCurrentTurn)
 		return false;
 
@@ -8045,7 +7102,7 @@ void CvMinorCivAI::DoAcquire(PlayerTypes eMajor, int &iNumUnits, int& iCapitalX,
 int CvMinorCivAI::GetBullyGoldAmount(PlayerTypes /*eBullyPlayer*/)
 {
 	int iGold = GC.getMINOR_BULLY_GOLD();
-	int iGoldGrowthFactor = 350; //antonjs: todo: XML
+	int iGoldGrowthFactor = 350; // XML
 
 	// Add gold, more if later in game
 	float fGameProgressFactor = ((float) GC.getGame().getElapsedGameTurns() / (float) GC.getGame().getEstimateEndTurn());
@@ -8559,7 +7616,7 @@ CvString CvMinorCivAI::GetMajorBullyUnitDetails(PlayerTypes ePlayer)
 	CvString sFactors = "";
 	int iScore = CalculateBullyMetric(ePlayer, /*bForUnit*/true, &sFactors);
 	bool bCanBully = CanMajorBullyUnit(ePlayer, iScore);
-	UnitTypes eUnitType = (UnitTypes) GC.getInfoTypeForString("UNIT_WORKER"); //antonjs: todo: XML/function
+	UnitTypes eUnitType = (UnitTypes) GC.getInfoTypeForString("UNIT_WORKER"); // XML/function
 	CvUnitEntry* pUnitInfo = GC.getUnitInfo(eUnitType);
 	CvAssert(pUnitInfo);
 	if (!pUnitInfo)
@@ -8780,7 +7837,7 @@ bool CvMinorCivAI::IsRecentlyBulliedByMajor(PlayerTypes ePlayer) const
 	CvAssertMsg(ePlayer < MAX_MAJOR_CIVS, "ePlayer is expected to be within maximum bounds (invalid Index)");
 	if(ePlayer < 0 || ePlayer >= MAX_MAJOR_CIVS) return false;
 
-	const int iRecentlyBulliedTurnInterval = 20; //antonjs: todo: constant/XML
+	const int iRecentlyBulliedTurnInterval = 20; // constant/XML
 	return (m_aiTurnLastBullied[ePlayer] >= 0 && m_aiTurnLastBullied[ePlayer] >= (GC.getGame().getGameTurn() - iRecentlyBulliedTurnInterval)); // -1 means never bullied
 }
 
@@ -9002,9 +8059,43 @@ void CvMinorCivAI::DoUnitGiftFromMajor(PlayerTypes eFromPlayer, CvUnit* pGiftUni
 
 	ChangeNumUnitsGifted(eFromPlayer, 1);
 
-	// Influence
+
+	// Influence (even if no quest)
 	int iInfluence = GetFriendshipFromUnitGift(eFromPlayer, pGiftUnit->IsGreatPerson(), bDistanceGift);
 	ChangeFriendshipWithMajor(eFromPlayer, iInfluence);
+
+	const bool isGreat = pGiftUnit->IsGreatPerson();
+	const bool isWorker = !isGreat && pGiftUnit->IsWork();
+	const bool isMilitary = pGiftUnit->GetBaseCombatStrengthConsideringDamage();
+
+	// check gift completion
+	QuestListForPlayer::iterator itr_quest;
+	for (itr_quest = m_QuestsGiven[eFromPlayer].begin(); itr_quest != m_QuestsGiven[eFromPlayer].end(); itr_quest++)
+	{
+		const MinorCivQuestTypes thisType = itr_quest->GetType();
+		float rewardFactor = 1.0f;
+		bool thisSatisfied =
+		(
+			(thisType == QUEST_GIFT_GREAT_PERSON && isGreat) ||
+			(thisType == QUEST_GIFT_MILITARY && isMilitary) ||
+			(thisType == QUEST_GIFT_WORKER && isWorker)
+		);
+
+		// great person
+		if (thisType == QUEST_GIFT_GREAT_PERSON && isGreat)
+		{
+			// but is this the right great person type?
+			thisSatisfied = true;
+			const bool isGreatCorrect = pGiftUnit->getUnitType() == itr_quest->m_iData1;
+			if (!isGreatCorrect) rewardFactor = 0.70f;
+		}
+
+		if (thisSatisfied)
+		{
+			itr_quest->DoFinishQuest(rewardFactor);
+			break; // only satisfy one quest per gift!
+		}
+	}
 
 	// We can't keep Great Person units
 	if(pGiftUnit->IsGreatPerson())
@@ -9154,10 +8245,9 @@ int CvMinorCivAI::GetFriendshipFromGoldGift(PlayerTypes eMajor, int iGold)
 	iFriendship *= GC.getGame().getGameSpeedInfo().getGoldGiftMod();
 	iFriendship /= 100;
 
-	//antonjs: todo: refine
 	if(IsActiveQuestForPlayer(eMajor, MINOR_CIV_QUEST_INVEST))
 	{
-		int iBoostPercentage = 50; //antonjs: todo: xml
+		int iBoostPercentage = 50; // XML
 		iFriendship *= 100 + iBoostPercentage;
 		iFriendship /= 100;
 	}
@@ -9507,7 +8597,7 @@ void CvMinorCivAI::DoTeamDeclaredWarOnMe(TeamTypes eEnemyTeam)
 		SetFriendshipWithMajor(eEnemyMajorLoop, GC.getMINOR_FRIENDSHIP_AT_WAR());
 	}
 
-	//antonjs: todo: xml, rename xml to indicate it is for WaryOf, not Permanent War
+	// xml, rename xml to indicate it is for WaryOf, not Permanent War
 	// Minor Civ Warmonger
 	if(pEnemyTeam->IsMinorCivWarmonger())
 	{
@@ -9641,7 +8731,7 @@ void CvMinorCivAI::DoTeamDeclaredWarOnMe(TeamTypes eEnemyTeam)
 
 	if(veMinorsNowWary.size() > 0)
 	{
-		int iMinimumFriendshipMod = 20; //antonjs: todo: xml
+		int iMinimumFriendshipMod = 20; // xml
 		Localization::String strTemp;
 
 		strTemp = Localization::Lookup("TXT_KEY_NOTIFICATION_MINORS_NOW_WARY");
