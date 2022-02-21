@@ -53,7 +53,7 @@
       <!-- Scientific Influence Info -->
       <Box Offset="0,0" Anchor="L,T" Size="240,32" Color="255,255,255,0" ID="SIBox">
         <Label Anchor="L,C" Offset="6,0" String="[ICON_SCIENTIFIC_INFLUENCE]"/>
-        <Label Anchor="L,C" Offset="32,0" String="TXT_KEY_SCIENTIFIC_INFLUENCE_TEXT" Font="TwCenMT20" FontStyle="Shadow"/>
+        <Label Anchor="L,C" Offset="32,0" String="SCIENTIFIC_INFLUENCE_TEXT" Font="TwCenMT20" FontStyle="Shadow"/>
         <Label ID="SIPerTurnLabel" Anchor="R,C" String="" Font="TwCenMT20" FontStyle="Shadow"/>
         <Box Anchor="L,B" Color="27.53.64.255" Offset="4,0" Size="240,1"/>
       </Box>

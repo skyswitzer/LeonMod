@@ -85,42 +85,33 @@ struct QuestReward
 	int goldenPoints;
 };
 
-string QUEST_GIFT_GOLD_MESSAGE
-(
-	MessageType type, 
-	string civName, 
-	int influenceT100,
-	int competitionValue,
-	int competitionWinner, 
-	QuestReward rewards
-)
+string txtTurnsRemain(int turns)
 {
-	if (type == MessageType::START_DESC)
-	{
-
-	}
-	return "";
+	stringstream s;
+	s << "[COLOR_WARNING_TEXT]Turns remaining: " << turns << "[ENDCOLOR]";
+	return s.str();
 }
-
 
 string compileRewards(QuestReward rewards)
 {
-	vector<stringstream> ss;
+	vector<string> ss;
 	if (rewards.friendship > 0)
 	{
-		ss.push_back(stringstream());
-		ss[ss.size() - 1] << "[COLOR_POSITIVE_TEXT]+" << rewards.friendship << "[ENDCOLOR]{FRIENDSHIP}";
+		stringstream s;
+		s << "[COLOR_POSITIVE_TEXT]+" << rewards.friendship << "[ENDCOLOR]{FRIENDSHIP}";
+		ss.push_back(s.str());
 	}
 	if (rewards.support > 0)
 	{
-		ss.push_back(stringstream());
-		ss[ss.size() - 1] << "[COLOR_POSITIVE_TEXT]+" << rewards.support << "[ENDCOLOR]{DIPLOMATIC_INFLUENCE}";
+		stringstream s;
+		s << "[COLOR_POSITIVE_TEXT]+" << rewards.support << "[ENDCOLOR]{DIPLOMATIC_INFLUENCE}";
+		ss.push_back(s.str());
 	}
 
 	stringstream total;
 	for (int i = 0; i < ss.size(); ++i)
 	{
-		total << ss[i].rdbuf();
+		total << ss[i];
 		if (i < ss.size() - 1)
 			total << ", ";
 		if (i == ss.size() - 2)
@@ -128,6 +119,107 @@ string compileRewards(QuestReward rewards)
 	}
 	return total.str();
 }
+
+string QUEST_MESSAGE
+(
+	MinorCivQuestTypes quest,
+	MessageType messageType,
+	string civName,
+	int turnsRemaining,
+	QuestReward rewards,
+	int m_iData1, // competition value us / details
+	int m_iData2, // competition value winner / 
+	string value3 // competition value winner / 
+)
+{
+	if (quest == QUEST_UNREST)
+	{
+		stringstream s;
+		if (messageType == MessageType::START_CAPTION)
+		{
+			s << civName << " seeks {MILITARY_ASSISTANCE}!";
+		}
+		if (messageType == MessageType::START_DESC)
+		{
+			s << "We are having local uprisings and need {MILITARY_ASSISTANCE}. ";
+			s << "We'll reward whoever can provide the most nearby [ICON_STRENGTH] Military Strength: ";
+			s << compileRewards(rewards);
+			s << txtTurnsRemain(turnsRemaining);
+		}
+		if (messageType == MessageType::STATUS_DESC)
+		{
+			s << "We'll reward whoever can provide the most nearby [ICON_STRENGTH] Military Strength: ";
+			s << compileRewards(rewards);
+			s << txtTurnsRemain(turnsRemaining);
+		}
+		if (messageType == MessageType::WIN_CAPTION)
+		{
+			s << civName << " is thankful for your {MILITARY_ASSISTANCE}!";
+		}
+		if (messageType == MessageType::WIN_DESC)
+		{
+			s << "You have quelled the uprisings! You have been awarded ";
+			s << compileRewards(rewards);
+		}
+		if (messageType == MessageType::LOSE_CAPTION)
+		{
+			s << civName << " looks elsewhere for {MILITARY_ASSISTANCE}.";
+		}
+		if (messageType == MessageType::LOSE_DESC)
+		{
+			s << "Another civilization assisted us. They have been awarded ";
+			s << compileRewards(rewards);
+		}
+		return s.str();
+	}
+
+
+	if (quest == QUEST_GIFT_GOLD)
+	{
+		stringstream s;
+		if (messageType == MessageType::START_CAPTION)
+		{
+			s << civName << " seeks a {GOLD_INVESTMENT}!";
+		}
+		if (messageType == MessageType::START_DESC)
+		{
+			s << "We are attempting a new public works project. If you could provide us with a " << m_iData1;
+			s << "{GOLD_INVESTMENT} to help with it, we would be very grateful. {QUEST_WELL_REWARD_YOU} ";
+			s << compileRewards(rewards);
+			s << txtTurnsRemain(turnsRemaining);
+		}
+		if (messageType == MessageType::STATUS_DESC)
+		{
+			s << "[NEWLINE]Could you gift us " << m_iData1;
+			s << "[ICON_INVEST] {GOLD_TEXT} to help fund our project? {QUEST_WELL_REWARD_YOU} ";
+			s << compileRewards(rewards);
+			s << txtTurnsRemain(turnsRemaining);
+		}
+		if (messageType == MessageType::WIN_CAPTION)
+		{
+			s << civName << " is thankful for the {GOLD_INVESTMENT}!";
+		}
+		if (messageType == MessageType::WIN_DESC)
+		{
+			s << "Thank you for the {GOLD_INVESTMENT}! ";
+			s << compileRewards(rewards);
+		}
+		if (messageType == MessageType::LOSE_CAPTION)
+		{
+			s << civName << " looks elsewhere for the {GOLD_INVESTMENT}.";
+		}
+		if (messageType == MessageType::LOSE_DESC)
+		{
+			s << "We'll find a {GOLD_INVESTMENT} from another civilization. We would have given you ";
+			s << compileRewards(rewards);
+		}
+		return s.str();
+	}
+
+	return civName + " has a new quest for you. (also, bug report this message)";
+}
+
+
 
 
 
@@ -623,7 +715,7 @@ void CvMinorCivQuest::DoStartQuest(int iStartTurn)
 	string data1String = "";
 	string data2String = "";
 
-	if(m_eType == QUEST_BUILD_WORLD_WONDER)
+	if (m_eType == QUEST_BUILD_WORLD_WONDER)
 	{
 		const int currentCount = pAssignedPlayer->GetNumWonders();
 		m_iData1 = currentCount;
@@ -631,7 +723,7 @@ void CvMinorCivQuest::DoStartQuest(int iStartTurn)
 		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_CONSTRUCT_WONDER");
 		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_CONSTRUCT_WONDER");
 	}
-	else if(m_eType == QUEST_GIFT_GREAT_PERSON)
+	else if (m_eType == QUEST_GIFT_GREAT_PERSON)
 	{
 		UnitTypes eUnit = pMinor->GetMinorCivAI()->GetBestGreatPersonForQuest(m_eAssignedPlayer);
 		FAssertMsg(eUnit != NO_UNIT, "MINOR CIV AI: For some reason we got NO_UNIT when starting a quest for a major to find a Great Person. Please send Jon this with your last 5 autosaves and what changelist # you're playing. Bad things are probably going to happen.");
@@ -641,7 +733,7 @@ void CvMinorCivQuest::DoStartQuest(int iStartTurn)
 		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_GREAT_PERSON");
 		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_GREAT_PERSON");
 	}
-	else if(m_eType == QUEST_BUILD_NATIONAL_WONDER)
+	else if (m_eType == QUEST_BUILD_NATIONAL_WONDER)
 	{
 		const int currentCount = pAssignedPlayer->getNumNationalWonders();
 		m_iData1 = currentCount;
@@ -649,25 +741,19 @@ void CvMinorCivQuest::DoStartQuest(int iStartTurn)
 		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_FIND_NATURAL_WONDER");
 		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_FIND_NATURAL_WONDER");
 	}
-	else if(m_eType == QUEST_GIFT_GOLD)
+	else if (m_eType == QUEST_GIFT_GOLD)
 	{
 		int iGoldAlreadyGiven = pMinor->GetMinorCivAI()->GetNumGoldGifted(m_eAssignedPlayer);
-
-		m_iData1 = 400;
+		const int goldNeeded = 400; // XML
+		m_iData1 = goldNeeded;
 		m_iData2 = iGoldAlreadyGiven;
-
-		stringstream s;
-		s << m_iData1;
-		data1String = s.str();
-		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_GIVE_GOLD");
-		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_GIVE_GOLD");
 	}
-	else if(m_eType == QUEST_GIFT_MILITARY)
+	else if (m_eType == QUEST_GIFT_MILITARY)
 	{
 		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_PLEDGE_TO_PROTECT");
 		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_PLEDGE_TO_PROTECT");
 	}
-	else if(m_eType == QUEST_GIFT_WORKER)
+	else if (m_eType == QUEST_GIFT_WORKER)
 	{
 		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_CONTEST_CULTURE");
 		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_CONTEST_CULTURE");
@@ -681,7 +767,7 @@ void CvMinorCivQuest::DoStartQuest(int iStartTurn)
 		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_UNREST");
 		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_UNREST");
 	}
-	else if(m_eType == QUEST_SPREAD_RELIGION)
+	else if (m_eType == QUEST_SPREAD_RELIGION)
 	{
 		ReligionTypes eReligion = GC.getGame().GetGameReligions()->GetReligionCreatedByPlayer(m_eAssignedPlayer);
 
@@ -689,7 +775,7 @@ void CvMinorCivQuest::DoStartQuest(int iStartTurn)
 		m_iData1 = eReligion;
 
 		string strReligion = "";
-		if(eReligion != NO_RELIGION)
+		if (eReligion != NO_RELIGION)
 		{
 			const CvReligion* pkReligion = GC.getGame().GetGameReligions()->GetReligion(eReligion, NO_PLAYER);
 			if (pkReligion != NULL) strReligion = pkReligion->GetName();
@@ -698,20 +784,19 @@ void CvMinorCivQuest::DoStartQuest(int iStartTurn)
 		{
 			strReligion = "No Religion";
 		}
-
 		data1String = strReligion;
 		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_SPREAD_RELIGION");
 		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_SPREAD_RELIGION");
 	}
 	// Connect a trade Route
-	else if(m_eType == QUEST_TRADE_ROUTE)
+	else if (m_eType == QUEST_TRADE_ROUTE)
 	{
 		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_START_TRADE_ROUTE");
 		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_START_TRADE_ROUTE");
 	}
 
+	const int turnsRemaining = GetEndTurn() - GC.getGame().getGameTurn();
 	{ // insert data into popup
-		const int iTurnsRemaining = GetEndTurn() - GC.getGame().getGameTurn();
 		const int iTurnsDuration = GetEndTurn() - GetStartTurn();
 		// include victory points and influence reward
 		const int influence = GetInfluenceReward();
@@ -720,12 +805,16 @@ void CvMinorCivQuest::DoStartQuest(int iStartTurn)
 		strMessage << pMinor->getNameKey(); // 1_name
 		strMessage << influence; // 2_friendship
 		strMessage << victoryPoints; // 3_diplomatic
-		strMessage << iTurnsRemaining; // 4_turns
+		strMessage << turnsRemaining; // 4_turns
 		strMessage << data1String.c_str(); // 5_data1
 		strMessage << data2String.c_str(); // 6_data2
 	}
 
-	strSummary << pMinor->getNameKey();
+	QuestReward rewards;
+	const string civName = Localization::Lookup(pMinor->getNameKey()).toUTF8();
+	strMessage = GetLocalizedText(QUEST_MESSAGE(m_eType, MessageType::START_DESC, civName, turnsRemaining, rewards, m_iData1, m_iData2, "").c_str());
+	strSummary = GetLocalizedText(QUEST_MESSAGE(m_eType, MessageType::START_CAPTION, civName, turnsRemaining, rewards, m_iData1, m_iData2, "").c_str());
+
 	pMinor->GetMinorCivAI()->AddQuestNotification(strMessage.toUTF8(), strSummary.toUTF8(), m_eAssignedPlayer, iNotificationX, iNotificationY);
 }
 
