@@ -45,6 +45,54 @@ enum MinorCivPersonalityTypes
 FDataStream& operator<<(FDataStream&, const MinorCivPersonalityTypes&);
 FDataStream& operator>>(FDataStream&, MinorCivPersonalityTypes&);
 
+enum MessageType
+{
+	// quest begin
+	START_CAPTION = 0,
+	START_DESC,
+	// current status of competition or quest
+	STATUS_DESC = 2,
+	// you have completed, or won
+	WIN_CAPTION,
+	WIN_DESC,
+	// you missed out, or lost
+	LOSE_CAPTION,
+	LOSE_DESC,
+};
+
+struct QuestReward
+{
+	QuestReward()
+	{
+		friendship = 0;
+
+		support = 0;
+		insight = 0;
+		culturalInfluence = 0;
+
+		food = 0;
+		hammers = 0;
+		culture = 0;
+		beakers = 0;
+		militaryUnits = 0;
+		goldenPoints = 0;
+	}
+	int friendship;
+	// vp
+	int support;
+	int insight;
+	int culturalInfluence;
+	// generic
+	int food;
+	int hammers;
+	int culture;
+
+	int beakers;
+	int militaryUnits;
+	int goldenPoints;
+};
+FDataStream& operator>>(FDataStream&, QuestReward&);
+FDataStream& operator<<(FDataStream&, const QuestReward&);
 
 #define QUEST_UNREST MINOR_CIV_QUEST_KILL_CAMP // text updated
 #define QUEST_BUILD_WORLD_WONDER MINOR_CIV_QUEST_CONSTRUCT_WONDER // text updated
@@ -125,6 +173,8 @@ public:
 	static const int NO_QUEST_DATA = -1;
 	static const int NO_TURN = -1;
 
+	string GetCompetitionStatusText(const PlayerTypes ePlayer) const;
+	string GetStatusMessage(const CvPlayer* pMinor, const CvPlayer* pMajor, MessageType messageType, string value3) const;
 	// Functions
 
 	CvMinorCivQuest();
@@ -143,8 +193,8 @@ public:
 	int GetInfluenceReward() const;
 
 	// Contest helper functions
-	int GetContestValueForPlayer(PlayerTypes ePlayer);
-	int GetContestValueForLeader();
+	int GetContestValueForPlayer(PlayerTypes ePlayer) const;
+	int GetContestValueForLeader() const;
 	CivsList GetContestLeaders();
 
 	// Quest status for assigned player
@@ -166,6 +216,7 @@ public:
 	PlayerTypes m_eMinor;
 	PlayerTypes m_eAssignedPlayer;
 	MinorCivQuestTypes m_eType;
+	QuestReward m_rewards;
 	int m_iStartTurn;
 	int m_iData1;
 	int m_iData2;
@@ -308,6 +359,7 @@ public:
 	bool IsActiveQuestForPlayer(PlayerTypes ePlayer, MinorCivQuestTypes eType);
 	void EndAllActiveQuestsForPlayer(PlayerTypes ePlayer);
 
+	string GetQuestDescription(const PlayerTypes eMajor, const MinorCivQuestTypes eType, const MessageType messageType) const;
 	int GetNumDisplayedQuestsForPlayer(PlayerTypes ePlayer);
 	bool IsDisplayedQuestForPlayer(PlayerTypes ePlayer, MinorCivQuestTypes eType);
 
@@ -534,7 +586,7 @@ public:
 	void ChangeNumUnitsGifted(PlayerTypes ePlayer, int iChange);
 
 	void DoUnitGiftFromMajor(PlayerTypes eFromPlayer, CvUnit* pGiftUnit, bool bDistanceGift);
-	int GetFriendshipFromUnitGift(PlayerTypes eFromPlayer, bool bGreatPerson, bool bDistanceGift);
+	int GetFriendshipFromUnitGift(PlayerTypes eFromPlayer, bool bGreatPerson, bool bDistanceGift, const bool isCombat = false);
 
 	int GetNumGoldGifted(PlayerTypes ePlayer) const;
 	void SetNumGoldGifted(PlayerTypes ePlayer, int iValue);

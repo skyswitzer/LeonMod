@@ -39,116 +39,120 @@ const int minAnchorT100 = -200 * 100;
 
 
 
-enum MessageType
-{
-	// quest begin
-	START_CAPTION = 0,
-	START_DESC,
-	// current status of competition or quest
-	STATUS_DESC,
-	// you have completed, or won
-	WIN_CAPTION,
-	WIN_DESC,
-	// you missed out, or lost
-	LOSE_CAPTION,
-	LOSE_DESC,
-};
 
-struct QuestReward
+
+string religionToReligionName(const ReligionTypes eReligion)
 {
-	QuestReward()
+	string strReligionName = "";
+	if (eReligion != NO_RELIGION)
 	{
-		friendship = 0;
+		const CvReligion* pkReligion = GC.getGame().GetGameReligions()->GetReligion(eReligion, NO_PLAYER);
+		if (pkReligion != NULL)
+		{
+			const string religionNameKey = pkReligion->GetName();
+			const CvReligionEntry* pInfo = GC.getReligionInfo(eReligion);
 
-		support = 0;
-		insight = 0;
-		culturalInfluence = 0;
+			size_t numBytes;
+			stringstream s;
+			s << pInfo->GetIconString();
+			s << " ";
+			s << Localization::Lookup(religionNameKey.c_str()).GetBaseString(numBytes);
 
-		food = 0;
-		hammers = 0;
-		culture = 0;
-		beakers = 0;
-		militaryUnits = 0;
-		goldenPoints = 0;
+			strReligionName = s.str();
+		}
 	}
-	int friendship;
-	// vp
-	int support;
-	int insight;
-	int culturalInfluence;
-	// generic
-	int food;
-	int hammers;
-	int culture;
-	int beakers;
-	int militaryUnits;
-	int goldenPoints;
-};
+	else
+		strReligionName = "Atheism";
+
+	return strReligionName;
+}
 
 string txtTurnsRemain(int turns)
 {
 	stringstream s;
-	s << "[COLOR_WARNING_TEXT]Turns remaining: " << turns << "[ENDCOLOR]";
+	s << "[NEWLINE][COLOR_WARNING_TEXT]" << turns << "[ENDCOLOR] Turns Remaining[NEWLINE]";
 	return s.str();
 }
 
+string CvMinorCivQuest::GetCompetitionStatusText(const PlayerTypes ePlayer) const
+{
+	const int winner = GetContestValueForPlayer(ePlayer);
+	const int you = GetContestValueForPlayer(ePlayer);
+	stringstream s;
+	if (winner <= 0) // nobody winning
+		s << "Nobody is impressing us currently.";
+	else if (winner > you) // losing
+		s << "You're [COLOR_NEGATIVE_TEXT]losing with " << you << "[ENDCOLOR] while the leader has " << winner << ".";
+	else // winning
+		s << "You're [COLOR_POSITIVE_TEXT]winning with " << you << "[ENDCOLOR].";
+	return s.str();
+}
+
+string reward(const string colorBegin, const int amount, const string unit)
+{
+	stringstream s;
+	string colorEnd = "";
+	if (colorBegin != "")
+		colorEnd = "[ENDCOLOR]";
+
+	string sign = "+";
+	if (amount < 0)
+		sign = "-";
+
+	s << colorBegin << sign << abs(amount) << colorEnd << unit;
+	return s.str();
+}
 string compileRewards(QuestReward rewards)
 {
 	vector<string> ss;
+	const string colorBegin = "";
 	if (rewards.friendship > 0)
 	{
-		stringstream s;
-		s << "[COLOR_POSITIVE_TEXT]+" << rewards.friendship << "[ENDCOLOR]{FRIENDSHIP}";
-		ss.push_back(s.str());
+		ss.push_back(reward(colorBegin, rewards.friendship, " {FRIENDSHIP}"));
 	}
 	if (rewards.support > 0)
 	{
-		stringstream s;
-		s << "[COLOR_POSITIVE_TEXT]+" << rewards.support << "[ENDCOLOR]{DIPLOMATIC_INFLUENCE}";
-		ss.push_back(s.str());
+		ss.push_back(reward(colorBegin, rewards.support, "{DIPLOMATIC_INFLUENCE}"));
 	}
 
 	stringstream total;
 	for (int i = 0; i < ss.size(); ++i)
 	{
-		total << ss[i];
-		if (i < ss.size() - 1)
-			total << ", ";
-		if (i == ss.size() - 2)
-			total << "and ";
+		total << "[NEWLINE]" << ss[i];
+		// combine into comma delimited list
+		//if (i < ss.size() - 1)
+		//	total << ", ";
+		//if (i == ss.size() - 2)
+		//	total << "and ";
 	}
 	return total.str();
 }
 
-string QUEST_MESSAGE
-(
-	MinorCivQuestTypes quest,
-	MessageType messageType,
-	string civName,
-	int turnsRemaining,
-	QuestReward rewards,
-	int m_iData1, // competition value us / details
-	int m_iData2, // competition value winner / 
-	string value3 // competition value winner / 
-)
+string CvMinorCivQuest::GetStatusMessage(const CvPlayer* pMinor, const CvPlayer* pMajor, MessageType messageType, string value3) const
 {
+	const int turnsRemaining = GetEndTurn() - GC.getGame().getGameTurn();
+	const QuestReward rewards = m_rewards;
+	const MinorCivQuestTypes quest = m_eType;
+	const string civName = Localization::Lookup(pMinor->getNameKey()).toUTF8();
+	stringstream s;
+
 	if (quest == QUEST_UNREST)
 	{
-		stringstream s;
 		if (messageType == MessageType::START_CAPTION)
 		{
 			s << civName << " seeks {MILITARY_ASSISTANCE}!";
 		}
 		if (messageType == MessageType::START_DESC)
 		{
-			s << "We are having local uprisings and need {MILITARY_ASSISTANCE}. ";
+			s << "We are having local uprisings and need {MILITARY_ASSISTANCE}! ";
 			s << "We'll reward whoever can provide the most nearby [ICON_STRENGTH] Military Strength: ";
 			s << compileRewards(rewards);
 			s << txtTurnsRemain(turnsRemaining);
 		}
 		if (messageType == MessageType::STATUS_DESC)
 		{
-			s << "We'll reward whoever can provide the most nearby [ICON_STRENGTH] Military Strength: ";
+			s << "Support our government by stationing nearby [ICON_WAR] Military Strength. ";
+			s << GetCompetitionStatusText(pMajor->GetID()) << " Winner will receive: ";
 			s << compileRewards(rewards);
 			s << txtTurnsRemain(turnsRemaining);
 		}
@@ -158,7 +162,7 @@ string QUEST_MESSAGE
 		}
 		if (messageType == MessageType::WIN_DESC)
 		{
-			s << "You have quelled the uprisings! You have been awarded ";
+			s << "You have quelled the uprisings! You have been awarded: ";
 			s << compileRewards(rewards);
 		}
 		if (messageType == MessageType::LOSE_CAPTION)
@@ -167,16 +171,124 @@ string QUEST_MESSAGE
 		}
 		if (messageType == MessageType::LOSE_DESC)
 		{
-			s << "Another civilization assisted us. They have been awarded ";
+			s << "Another civilization assisted us. They have been awarded: ";
 			s << compileRewards(rewards);
 		}
-		return s.str();
 	}
-
-
-	if (quest == QUEST_GIFT_GOLD)
+	else if (quest == QUEST_BUILD_WORLD_WONDER)
 	{
-		stringstream s;
+		if (messageType == MessageType::START_CAPTION)
+		{
+			s << civName << " would be impressed by a {WORLD_WONDER}!";
+		}
+		if (messageType == MessageType::START_DESC)
+		{
+			s << "Our citizens are looking for inspiration. If you are able to construct any {WORLD_WONDER}, ";
+			s << "we'll pay handsomely for the achievement: ";
+			s << compileRewards(rewards);
+			s << txtTurnsRemain(turnsRemaining);
+		}
+		if (messageType == MessageType::STATUS_DESC)
+		{
+			s << "Inspire us by building any {WORLD_WONDER}, and we'll pay you handsomely for the achievement: ";
+			s << compileRewards(rewards);
+			s << txtTurnsRemain(turnsRemaining);
+		}
+		if (messageType == MessageType::WIN_CAPTION)
+		{
+			s << civName << " is awed by your {WORLD_WONDER}!";
+		}
+		if (messageType == MessageType::WIN_DESC)
+		{
+			s << "Your taste in architecture is unmatched and our citizens notice: ";
+			s << compileRewards(rewards);
+		}
+		if (messageType == MessageType::LOSE_CAPTION)
+		{
+			s << civName << " notes you did not construct a new {WORLD_WONDER}.";
+		}
+		if (messageType == MessageType::LOSE_DESC)
+		{
+			s << "Our citizens are unimpressed by your civilization. You could have earned: ";
+			s << compileRewards(rewards);
+		}
+	}
+	else if (quest == QUEST_GIFT_GREAT_PERSON)
+	{
+		if (messageType == MessageType::START_CAPTION)
+		{
+			s << civName << " wants to witness a {GREAT_PERSON}!";
+		}
+		if (messageType == MessageType::START_DESC)
+		{
+			s << "We seek the wisdom of a {GREAT_PERSON}. If you could send one to our lands, our people would never forget: ";
+			s << compileRewards(rewards);
+			s << txtTurnsRemain(turnsRemaining);
+		}
+		if (messageType == MessageType::STATUS_DESC)
+		{
+			s << "Gift us any {GREAT_PERSON} and our people will remember it for all time: ";
+			s << compileRewards(rewards);
+			s << txtTurnsRemain(turnsRemaining);
+		}
+		if (messageType == MessageType::WIN_CAPTION)
+		{
+			s << civName << " receives your {GREAT_PERSON} with open arms!";
+		}
+		if (messageType == MessageType::WIN_DESC)
+		{
+			s << "Your institutions produce incredible minds! Let us reward you: ";
+			s << compileRewards(rewards);
+		}
+		if (messageType == MessageType::LOSE_CAPTION)
+		{
+			s << civName << " never witnessed a {GREAT_PERSON}.";
+		}
+		if (messageType == MessageType::LOSE_DESC)
+		{
+			s << "It has been too long since a {GREAT_PERSON} of yours has visited our empire. You could have earned: ";
+			s << compileRewards(rewards);
+		}
+	}
+	else if (quest == QUEST_BUILD_NATIONAL_WONDER)
+	{
+		if (messageType == MessageType::START_CAPTION)
+		{
+			s << civName << " wants to see a {NATIONAL_WONDER}!";
+		}
+		if (messageType == MessageType::START_DESC)
+		{
+			s << "If your engineers and architects are impressive as the rumors, surely you could construct a {NATIONAL_WONDER}. We would reward you: ";
+			s << compileRewards(rewards);
+			s << txtTurnsRemain(turnsRemaining);
+		}
+		if (messageType == MessageType::STATUS_DESC)
+		{
+			s << "Awe us by constructing any {NATIONAL_WONDER} and we'll reward you: ";
+			s << compileRewards(rewards);
+			s << txtTurnsRemain(turnsRemaining);
+		}
+		if (messageType == MessageType::WIN_CAPTION)
+		{
+			s << civName << " is amazed by your {NATIONAL_WONDER}!";
+		}
+		if (messageType == MessageType::WIN_DESC)
+		{
+			s << "The rumors of your engineers and architects are true! Your {NATIONAL_WONDER} is truly a sight to behold. Please accept these gifts: ";
+			s << compileRewards(rewards);
+		}
+		if (messageType == MessageType::LOSE_CAPTION)
+		{
+			s << civName << " sees you never constructed a new {NATIONAL_WONDER}.";
+		}
+		if (messageType == MessageType::LOSE_DESC)
+		{
+			s << "It appears the rumors were just that, as you never constructed a {NATIONAL_WONDER}. We would have awarded you with: ";
+			s << compileRewards(rewards);
+		}
+	}
+	else if (quest == QUEST_GIFT_GOLD)
+	{
 		if (messageType == MessageType::START_CAPTION)
 		{
 			s << civName << " seeks a {GOLD_INVESTMENT}!";
@@ -184,20 +296,20 @@ string QUEST_MESSAGE
 		if (messageType == MessageType::START_DESC)
 		{
 			s << "We are attempting a new public works project. If you could provide us with a " << m_iData1;
-			s << "{GOLD_INVESTMENT} to help with it, we would be very grateful. {QUEST_WELL_REWARD_YOU} ";
+			s << "{GOLD_INVESTMENT} to help with it, we would be very grateful. We'd make an investment of our own: ";
 			s << compileRewards(rewards);
 			s << txtTurnsRemain(turnsRemaining);
 		}
 		if (messageType == MessageType::STATUS_DESC)
 		{
-			s << "[NEWLINE]Could you gift us " << m_iData1;
-			s << "[ICON_INVEST] {GOLD_TEXT} to help fund our project? {QUEST_WELL_REWARD_YOU} ";
+			s << "Could you gift us " << m_iData1;
+			s << "[ICON_INVEST] {GOLD_TEXT} to help fund our project? We'd make an investment of our own: ";
 			s << compileRewards(rewards);
 			s << txtTurnsRemain(turnsRemaining);
 		}
 		if (messageType == MessageType::WIN_CAPTION)
 		{
-			s << civName << " is thankful for the {GOLD_INVESTMENT}!";
+			s << civName << " and its citizens are thankful for the {GOLD_INVESTMENT}!";
 		}
 		if (messageType == MessageType::WIN_DESC)
 		{
@@ -206,17 +318,170 @@ string QUEST_MESSAGE
 		}
 		if (messageType == MessageType::LOSE_CAPTION)
 		{
-			s << civName << " looks elsewhere for the {GOLD_INVESTMENT}.";
+			s << civName << " looks elsewhere for a {GOLD_INVESTMENT}.";
 		}
 		if (messageType == MessageType::LOSE_DESC)
 		{
-			s << "We'll find a {GOLD_INVESTMENT} from another civilization. We would have given you ";
+			s << "We'll find a {GOLD_INVESTMENT} from another civilization. We would have given you: ";
 			s << compileRewards(rewards);
 		}
-		return s.str();
+	}
+	else if (quest == QUEST_GIFT_MILITARY)
+	{
+		if (messageType == MessageType::START_CAPTION)
+		{
+			s << civName << " would like a {MILITARY_UNIT}!";
+		}
+		if (messageType == MessageType::START_DESC)
+		{
+			s << "Our military is very weak. Would you be able to gift us a {MILITARY_UNIT}? We'll make it worth the effort: ";
+			s << compileRewards(rewards);
+			s << txtTurnsRemain(turnsRemaining);
+		}
+		if (messageType == MessageType::STATUS_DESC)
+		{
+			s << "Support our sovereignty by gifting us any {MILITARY_UNIT} and we'll give you: ";
+			s << compileRewards(rewards);
+			s << txtTurnsRemain(turnsRemaining);
+		}
+		if (messageType == MessageType::WIN_CAPTION)
+		{
+			s << civName << " is thankful for the {MILITARY_UNIT}!";
+		}
+		if (messageType == MessageType::WIN_DESC)
+		{
+			s << "The {MILITARY_UNIT} you granted will make all the difference. Please accept this payment: ";
+			s << compileRewards(rewards);
+		}
+		if (messageType == MessageType::LOSE_CAPTION)
+		{
+			s << civName << " never received a {MILITARY_UNIT}.";
+		}
+		if (messageType == MessageType::LOSE_DESC)
+		{
+			s << "We never got that {MILITARY_UNIT}. We would have awarded you: ";
+			s << compileRewards(rewards);
+		}
+	}
+	else if (quest == QUEST_GIFT_WORKER)
+	{
+		if (messageType == MessageType::START_CAPTION)
+		{
+			s << civName << " needs a {WORKER_UNIT}!";
+		}
+		if (messageType == MessageType::START_DESC)
+		{
+			s << "We need more manpower for developing infrastructure. Could you gift us a {WORKER_UNIT}? We'll make it worth your time: ";
+			s << compileRewards(rewards);
+			s << txtTurnsRemain(turnsRemaining);
+		}
+		if (messageType == MessageType::STATUS_DESC)
+		{
+			s << "Gift us any {WORKER_UNIT} to help with our infrastructure and we'll give you: ";
+			s << compileRewards(rewards);
+			s << txtTurnsRemain(turnsRemaining);
+		}
+		if (messageType == MessageType::WIN_CAPTION)
+		{
+			s << civName << " is grateful for the extra {WORKER_UNIT}!";
+		}
+		if (messageType == MessageType::WIN_DESC)
+		{
+			s << "The {WORKER_UNIT} you gifted will be very useful. Please accept this: ";
+			s << compileRewards(rewards);
+		}
+		if (messageType == MessageType::LOSE_CAPTION)
+		{
+			s << civName << " never received a {WORKER_UNIT}.";
+		}
+		if (messageType == MessageType::LOSE_DESC)
+		{
+			s << "Our infrastructure work was completed without your {WORKER_UNIT}. We would have awarded you: ";
+			s << compileRewards(rewards);
+		}
+	}
+	else if (quest == QUEST_SPREAD_RELIGION)
+	{
+		const string religionName = religionToReligionName((ReligionTypes)m_iData1);
+		if (messageType == MessageType::START_CAPTION)
+		{
+			s << civName << " hears of " << religionName << "!";
+		}
+		if (messageType == MessageType::START_DESC)
+		{
+			s << "We have heard of " << religionName << " and would like for it to become the majority belief in our city. ";
+			s << "This would benefit you as well: ";
+			s << compileRewards(rewards);
+			s << txtTurnsRemain(turnsRemaining);
+		}
+		if (messageType == MessageType::STATUS_DESC)
+		{
+			s << "Make " << religionName << " the majority belief in our city so we may understand this world. We'll give you: ";
+			s << compileRewards(rewards);
+			s << txtTurnsRemain(turnsRemaining);
+		}
+		if (messageType == MessageType::WIN_CAPTION)
+		{
+			s << civName << " now follows " << religionName << "!";
+		}
+		if (messageType == MessageType::WIN_DESC)
+		{
+			s << religionName << " is truth! Please send these gifts to the holy city: ";
+			s << compileRewards(rewards);
+		}
+		if (messageType == MessageType::LOSE_CAPTION)
+		{
+			s << civName << " never knew " << religionName << ".";
+		}
+		if (messageType == MessageType::LOSE_DESC)
+		{
+			s << "We'll never understand " << religionName << " or follow its tenets. We would have awarded you: ";
+			s << compileRewards(rewards);
+		}
+	}
+	else if (quest == QUEST_TRADE_ROUTE)
+	{
+		if (messageType == MessageType::START_CAPTION)
+		{
+			s << civName << " is interested in a {TRADE_ROUTE}!";
+		}
+		if (messageType == MessageType::START_DESC)
+		{
+			s << "Your economy is booming. Please set up a {TRADE_ROUTE} with our civilization. Surely we could both derive gains from trade! ";
+			s << compileRewards(rewards);
+			s << txtTurnsRemain(turnsRemaining);
+		}
+		if (messageType == MessageType::STATUS_DESC)
+		{
+			s << "Establish a {TRADE_ROUTE} with us so our citizens can prosper. You will benefit as well: ";
+			s << compileRewards(rewards);
+			s << txtTurnsRemain(turnsRemaining);
+		}
+		if (messageType == MessageType::WIN_CAPTION)
+		{
+			s << civName << " acknowledges the prosperous {TRADE_ROUTE}!";
+		}
+		if (messageType == MessageType::WIN_DESC)
+		{
+			s << "The {TRADE_ROUTE} between us benefits our economies greatly. Here are some of your benefits: ";
+			s << compileRewards(rewards);
+		}
+		if (messageType == MessageType::LOSE_CAPTION)
+		{
+			s << civName << " gives up on a {TRADE_ROUTE}.";
+		}
+		if (messageType == MessageType::LOSE_DESC)
+		{
+			s << "We established a {TRADE_ROUTE} with another civilization. Your empire has missed out on: ";
+			s << compileRewards(rewards);
+		}
+	}
+	else
+	{
+		s << civName + " has a new quest for you. (also, bug report this message)";
 	}
 
-	return civName + " has a new quest for you. (also, bug report this message)";
+	return GetLocalizedText(s.str().c_str());
 }
 
 
@@ -233,6 +498,7 @@ CvMinorCivQuest::CvMinorCivQuest()
 	m_eMinor = NO_PLAYER;
 	m_eAssignedPlayer = NO_PLAYER;
 	m_eType = NO_MINOR_CIV_QUEST_TYPE;
+	m_rewards = QuestReward();
 	m_iStartTurn = NO_TURN; /* -1 */
 	m_iData1 = NO_QUEST_DATA; /* -1 */
 	m_iData2 = NO_QUEST_DATA; /* -1 */
@@ -245,6 +511,7 @@ CvMinorCivQuest::CvMinorCivQuest(PlayerTypes eMinor, PlayerTypes eAssignedPlayer
 	m_eMinor = eMinor;
 	m_eAssignedPlayer = eAssignedPlayer;
 	m_eType = eType;
+	m_rewards = QuestReward();
 	m_iStartTurn = NO_TURN; /* -1 */
 	m_iData1 = NO_QUEST_DATA; /* -1 */
 	m_iData2 = NO_QUEST_DATA; /* -1 */
@@ -436,7 +703,7 @@ int getAStrengthNearAllBCities(PlayerTypes a, PlayerTypes b)
 
 // Assumes that only one contest of a particular Type is active from this minor at any given time.
 // Otherwise, the results across different spans of contest will be calculated together here.
-int CvMinorCivQuest::GetContestValueForPlayer(PlayerTypes ePlayer)
+int CvMinorCivQuest::GetContestValueForPlayer(PlayerTypes ePlayer) const
 {
 	MinorCivQuestTypes eType = GetType();
 	int iValue = -349;
@@ -477,10 +744,10 @@ int CvMinorCivQuest::GetContestValueForPlayer(PlayerTypes ePlayer)
 	return iValue;
 }
 
-int CvMinorCivQuest::GetContestValueForLeader()
+int CvMinorCivQuest::GetContestValueForLeader() const
 {
 	MinorCivQuestTypes eType = GetType();
-	int iHighestValue = -1;
+	int iHighestValue = 0;
 
 	if
 	(
@@ -521,7 +788,7 @@ CivsList CvMinorCivQuest::GetContestLeaders()
 			PlayerTypes ePlayerLoop = (PlayerTypes) iPlayerLoop;
 			int iPlayerValue = GetContestValueForPlayer(ePlayerLoop);
 			CvAssertMsg(iPlayerValue <= iHighestValue, "Calculation error for calculating the leaders of a contest! Please send Anton your save file and version.");
-			if(iPlayerValue == iHighestValue)
+			if(iPlayerValue == iHighestValue && iPlayerValue != 0) // don't allow 0 to count for ties
 				veTiedForLead.push_back(ePlayerLoop);
 		}
 	}
@@ -703,43 +970,33 @@ void CvMinorCivQuest::SetHandled(bool bValue)
 void CvMinorCivQuest::DoStartQuest(int iStartTurn)
 {
 	m_iStartTurn = iStartTurn;
+	m_rewards = QuestReward();
+	m_rewards.support = 150;
+	m_rewards.friendship = 40;
 
 	CvPlayer* pMinor = &GET_PLAYER(m_eMinor);
-	CvPlayer* pAssignedPlayer = &GET_PLAYER(m_eAssignedPlayer);
+	CvPlayer* pMajor = &GET_PLAYER(m_eAssignedPlayer);
 
 	Localization::String strMessage;
 	Localization::String strSummary;
 	int iNotificationX = -1;
 	int iNotificationY = -1;
 
-	string data1String = "";
-	string data2String = "";
-
 	if (m_eType == QUEST_BUILD_WORLD_WONDER)
 	{
-		const int currentCount = pAssignedPlayer->GetNumWonders();
+		const int currentCount = pMajor->GetNumWonders();
 		m_iData1 = currentCount;
-
-		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_CONSTRUCT_WONDER");
-		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_CONSTRUCT_WONDER");
 	}
 	else if (m_eType == QUEST_GIFT_GREAT_PERSON)
 	{
 		UnitTypes eUnit = pMinor->GetMinorCivAI()->GetBestGreatPersonForQuest(m_eAssignedPlayer);
 		FAssertMsg(eUnit != NO_UNIT, "MINOR CIV AI: For some reason we got NO_UNIT when starting a quest for a major to find a Great Person. Please send Jon this with your last 5 autosaves and what changelist # you're playing. Bad things are probably going to happen.");
 		m_iData1 = eUnit;
-		data1String = GC.getUnitInfo(eUnit)->GetDescriptionKey();
-
-		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_GREAT_PERSON");
-		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_GREAT_PERSON");
 	}
 	else if (m_eType == QUEST_BUILD_NATIONAL_WONDER)
 	{
-		const int currentCount = pAssignedPlayer->getNumNationalWonders();
+		const int currentCount = pMajor->getNumNationalWonders();
 		m_iData1 = currentCount;
-
-		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_FIND_NATURAL_WONDER");
-		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_FIND_NATURAL_WONDER");
 	}
 	else if (m_eType == QUEST_GIFT_GOLD)
 	{
@@ -748,24 +1005,10 @@ void CvMinorCivQuest::DoStartQuest(int iStartTurn)
 		m_iData1 = goldNeeded;
 		m_iData2 = iGoldAlreadyGiven;
 	}
-	else if (m_eType == QUEST_GIFT_MILITARY)
-	{
-		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_PLEDGE_TO_PROTECT");
-		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_PLEDGE_TO_PROTECT");
-	}
-	else if (m_eType == QUEST_GIFT_WORKER)
-	{
-		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_CONTEST_CULTURE");
-		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_CONTEST_CULTURE");
-	}
 	else if (m_eType == QUEST_UNREST)
 	{
-		int iMilitaryStrength = 0;
-
+		const int iMilitaryStrength = 0;
 		m_iData1 = iMilitaryStrength;
-
-		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_UNREST");
-		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_UNREST");
 	}
 	else if (m_eType == QUEST_SPREAD_RELIGION)
 	{
@@ -773,48 +1016,13 @@ void CvMinorCivQuest::DoStartQuest(int iStartTurn)
 
 		CvAssertMsg(eReligion != NO_RELIGION, "MINOR CIV AI: eReligion should not be NO_RELIGION when giving a Spread Religion quest! Please send Anton your save file and version.");
 		m_iData1 = eReligion;
-
-		string strReligion = "";
-		if (eReligion != NO_RELIGION)
-		{
-			const CvReligion* pkReligion = GC.getGame().GetGameReligions()->GetReligion(eReligion, NO_PLAYER);
-			if (pkReligion != NULL) strReligion = pkReligion->GetName();
-		}
-		else
-		{
-			strReligion = "No Religion";
-		}
-		data1String = strReligion;
-		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_SPREAD_RELIGION");
-		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_SPREAD_RELIGION");
-	}
-	// Connect a trade Route
-	else if (m_eType == QUEST_TRADE_ROUTE)
-	{
-		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_START_TRADE_ROUTE");
-		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_START_TRADE_ROUTE");
 	}
 
-	const int turnsRemaining = GetEndTurn() - GC.getGame().getGameTurn();
-	{ // insert data into popup
-		const int iTurnsDuration = GetEndTurn() - GetStartTurn();
-		// include victory points and influence reward
-		const int influence = GetInfluenceReward();
-		const int victoryPoints = scoreFromQuest;
-
-		strMessage << pMinor->getNameKey(); // 1_name
-		strMessage << influence; // 2_friendship
-		strMessage << victoryPoints; // 3_diplomatic
-		strMessage << turnsRemaining; // 4_turns
-		strMessage << data1String.c_str(); // 5_data1
-		strMessage << data2String.c_str(); // 6_data2
-	}
-
-	QuestReward rewards;
 	const string civName = Localization::Lookup(pMinor->getNameKey()).toUTF8();
-	strMessage = GetLocalizedText(QUEST_MESSAGE(m_eType, MessageType::START_DESC, civName, turnsRemaining, rewards, m_iData1, m_iData2, "").c_str());
-	strSummary = GetLocalizedText(QUEST_MESSAGE(m_eType, MessageType::START_CAPTION, civName, turnsRemaining, rewards, m_iData1, m_iData2, "").c_str());
 
+	strMessage = GetStatusMessage(pMinor, pMajor, START_DESC, "").c_str();
+	strSummary = GetStatusMessage(pMinor, pMajor, START_CAPTION, "").c_str();
+	
 	pMinor->GetMinorCivAI()->AddQuestNotification(strMessage.toUTF8(), strSummary.toUTF8(), m_eAssignedPlayer, iNotificationX, iNotificationY);
 }
 
@@ -859,6 +1067,7 @@ bool CvMinorCivQuest::DoFinishQuest(const float bonusFactor)
 	SetHandled(true); // We are handling the end of the quest, and this should only happen once
 
 	CvPlayer* pMinor = &GET_PLAYER(m_eMinor);
+	const CvPlayer* pMajor = &GET_PLAYER(m_eAssignedPlayer);
 	const int friendshipRewardT100 = 100 * GetInfluenceReward() * bonusFactor;
 	const int diplomaticSupportReward = scoreFromQuest * bonusFactor;
 
@@ -882,72 +1091,7 @@ bool CvMinorCivQuest::DoFinishQuest(const float bonusFactor)
 	// log?
 	//GET_PLAYER(m_eAssignedPlayer).GetDiplomacyAI()->LogMinorCivQuestFinished(GetPlayer()->GetID(), iOldFriendshipTimes100, iNewFriendshipTimes100, itr_quest->GetType());
 
-	Localization::String strMessage;
-	Localization::String strSummary;
 	CivsList veNamesToShow;
-
-	if(m_eType == QUEST_BUILD_WORLD_WONDER)
-	{
-		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_COMPLETE_CONSTRUCT_WONDER");
-		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_COMPLETE_CONSTRUCT_WONDER");
-	}
-	else if(m_eType == QUEST_GIFT_GREAT_PERSON)
-	{
-		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_COMPLETE_GREAT_PERSON");
-		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_COMPLETE_GREAT_PERSON");
-	}
-	else if(m_eType == QUEST_BUILD_NATIONAL_WONDER)
-	{
-		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_COMPLETE_FIND_NATURAL_WONDER");
-		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_COMPLETE_FIND_NATURAL_WONDER");
-	}
-	else if(m_eType == QUEST_GIFT_GOLD)
-	{
-		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_COMPLETE_GIVE_GOLD");
-		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_COMPLETE_GIVE_GOLD");
-	}
-	else if(m_eType == QUEST_GIFT_MILITARY)
-	{
-		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_COMPLETE_PLEDGE_TO_PROTECT");
-		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_COMPLETE_PLEDGE_TO_PROTECT");
-	}
-	else if(m_eType == QUEST_GIFT_WORKER)
-	{
-		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_COMPLETE_CONTEST_CULTURE");
-		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_COMPLETE_CONTEST_CULTURE");
-	}
-	else if (m_eType == QUEST_UNREST)
-	{
-		GET_PLAYER(m_eAssignedPlayer).ChangeDiplomaticInfluence(scoreFromQuest);
-
-		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_COMPLETE_UNREST");
-		strMessage << scoreFromQuest;
-		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_COMPLETE_UNREST");
-		veNamesToShow = GetContestLeaders();
-	}
-	else if(m_eType == QUEST_SPREAD_RELIGION)
-	{
-		ReligionTypes eReligion = (ReligionTypes) GetPrimaryData();
-		CvString strReligionKey = "Atheism";
-		if(eReligion != NO_RELIGION)
-		{
-			const CvReligion* pReligion = GC.getGame().GetGameReligions()->GetReligion(eReligion, NO_PLAYER);
-			if(pReligion != NULL)
-			{
-				strReligionKey = pReligion->GetName();
-			}	
-		}
-
-		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_COMPLETE_SPREAD_RELIGION");
-		strMessage << strReligionKey.c_str();
-		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_COMPLETE_SPREAD_RELIGION");
-		strSummary << strReligionKey.c_str();
-	}
-	else if(m_eType == QUEST_TRADE_ROUTE)
-	{
-		strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_COMPLETE_TRADE_ROUTE");
-		strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_COMPLETE_TRADE_ROUTE");
-	}
 
 	// Update the UI with the changed data, in case it is open
 	if(m_eAssignedPlayer == GC.getGame().getActivePlayer())
@@ -955,12 +1099,8 @@ bool CvMinorCivQuest::DoFinishQuest(const float bonusFactor)
 		GC.GetEngineUserInterface()->setDirty(GameData_DIRTY_BIT, true);
 	}
 
-	strMessage << pMinor->getNameKey();
-	strMessage << iInfChange;
-	strSummary << pMinor->getNameKey();
-
-	CvString sMessage = strMessage.toUTF8();
-	CvString sSummary = strSummary.toUTF8();
+	CvString sMessage = GetStatusMessage(pMinor, pMajor, WIN_DESC, "").c_str();
+	CvString sSummary = GetStatusMessage(pMinor, pMajor, WIN_CAPTION, "").c_str();
 
 	// This quest involved multiple minors, so grab their names for the notification
 	if(veNamesToShow.size() > 0)
@@ -989,6 +1129,7 @@ bool CvMinorCivQuest::DoCancelQuest()
 	SetHandled(true); // We are handling the end of the quest, and this should only happen once
 
 	CvPlayer* pMinor = &GET_PLAYER(m_eMinor);
+	const CvPlayer* pMajor = &GET_PLAYER(m_eAssignedPlayer);
 
 	// Why is the quest cancelled?  Will affect which notification message we send
 	bool bRevoked = IsRevoked();
@@ -1005,86 +1146,8 @@ bool CvMinorCivQuest::DoCancelQuest()
 	// If quest expired "naturally", send a notification particular to the expiration conditions of the quest
 	else if(bExpired)
 	{
-		// CONSTRUCT A WONDER
-		if(m_eType == MINOR_CIV_QUEST_CONSTRUCT_WONDER)
-		{
-			BuildingTypes eWonder = (BuildingTypes) GetPrimaryData();
-			CvBuildingEntry* pkBuildingInfo = GC.getBuildingInfo(eWonder);
-			CvAssertMsg(pkBuildingInfo, "Building info not expected to be FALSE! Please send Anton your save file and version.");
-			if(!pkBuildingInfo) 
-				return false;
-
-			const char* strBuildingName = pkBuildingInfo->GetDescriptionKey();
-
-			strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_ENDED_CONSTRUCT_WONDER");
-			strMessage << strBuildingName;
-			strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_ENDED_CONSTRUCT_WONDER");
-			strSummary << strBuildingName;
-		}
-
-		// KILL ANOTHER CITY STATE
-		else if(m_eType == MINOR_CIV_QUEST_KILL_CITY_STATE)
-		{
-			PlayerTypes eTargetCityState = (PlayerTypes) GetPrimaryData();
-
-			const char* strTargetNameKey = GET_PLAYER(eTargetCityState).getNameKey();
-
-			strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_ENDED_KILL_CITY_STATE");
-			strMessage << strTargetNameKey;
-			strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_ENDED_KILL_CITY_STATE");
-			strSummary << strTargetNameKey;
-		}
-
-		// Contest Culture
-		else if(m_eType == MINOR_CIV_QUEST_CONTEST_CULTURE)
-		{
-			strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_ENDED_CONTEST_CULTURE");
-			strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_ENDED_CONTEST_CULTURE");
-			veNamesToShow = GetContestLeaders();
-		}
-
-		// Contest Faith
-		else if(m_eType == MINOR_CIV_QUEST_CONTEST_FAITH)
-		{
-			strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_ENDED_CONTEST_FAITH");
-			strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_ENDED_CONTEST_FAITH");
-			veNamesToShow = GetContestLeaders();
-		}
-
-		// Contest Techs
-		else if (m_eType == MINOR_CIV_QUEST_CONTEST_TECHS)
-		{
-			strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_ENDED_CONTEST_TECHS");
-			strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_ENDED_CONTEST_TECHS");
-			veNamesToShow = GetContestLeaders();
-		}
-
-		// Contest Unrest
-		else if (m_eType == QUEST_UNREST)
-		{
-			strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_ENDED_UNREST");
-			strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_ENDED_UNREST");
-			veNamesToShow = GetContestLeaders();
-		}
-
-		// General "Quest Expired" catch statement
-		else
-		{
-			strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_ENDED_OTHER");
-			strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_ENDED_OTHER");
-		}
-
-		strMessage << pMinor->getNameKey();
-		strSummary << pMinor->getNameKey();
-
-		CvString sMessage = strMessage.toUTF8();
-		CvString sSummary = strSummary.toUTF8();
-
-		// This quest involved multiple winners, so grab their names for the notification
-		if(veNamesToShow.size() > 0)
-		{
-			sMessage = sMessage + pMinor->GetMinorCivAI()->GetNamesListAsString(veNamesToShow);
-		}
+		CvString sMessage = GetStatusMessage(pMinor, pMajor, LOSE_DESC, "").c_str();
+		CvString sSummary = GetStatusMessage(pMinor, pMajor, LOSE_CAPTION, "").c_str();
 
 		pMinor->GetMinorCivAI()->AddQuestNotification(sMessage, sSummary, m_eAssignedPlayer);
 	}
@@ -1099,6 +1162,7 @@ FDataStream& operator>>(FDataStream& loadFrom, CvMinorCivQuest& writeTo)
 	loadFrom >> uiVersion;
 
 	loadFrom >> writeTo.m_eType;
+	loadFrom >> writeTo.m_rewards;
 	loadFrom >> writeTo.m_iStartTurn;
 	loadFrom >> writeTo.m_iData1;
 	loadFrom >> writeTo.m_iData2;
@@ -1121,6 +1185,7 @@ FDataStream& operator<<(FDataStream& saveTo, const CvMinorCivQuest& readFrom)
 	saveTo << uiVersion;
 
 	saveTo << readFrom.m_eType;
+	saveTo << readFrom.m_rewards;
 	saveTo << readFrom.m_iStartTurn;
 	saveTo << readFrom.m_iData1;
 	saveTo << readFrom.m_iData2;
@@ -2540,10 +2605,10 @@ void CvMinorCivAI::DoTestStartPersonalQuest(PlayerTypes ePlayer)
 			return;
 		}
 		// too early
-		//if(GetQuestCountdownForPlayer(ePlayer) > 0)
-		//{
-		//	return;
-		//}
+		if(GetQuestCountdownForPlayer(ePlayer) > 0)
+		{
+			return;
+		}
 	}
 
 	// war prevents quests
@@ -2818,9 +2883,12 @@ void CvMinorCivAI::DoObsoleteQuestsForPlayer(PlayerTypes ePlayer, MinorCivQuestT
 	// If quest(s) were revoked because of bullying, send out a notification
 	if(bQuestRevokedFromBullying)
 	{
+		const int minQuestFriendship = GC.getMINOR_FRIENDSHIP_ANCHOR_MOD_WARY_OF();
+
 		Localization::String strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_QUEST_ENDED_REVOKED");
 		Localization::String strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_QUEST_ENDED_REVOKED");
 		strMessage << GetPlayer()->getNameKey();
+		strMessage << minQuestFriendship;
 		strSummary << GetPlayer()->getNameKey();
 		AddQuestNotification(strMessage.toUTF8(), strSummary.toUTF8(), ePlayer);
 	}
@@ -2889,7 +2957,7 @@ bool CvMinorCivAI::IsEnabledQuest(MinorCivQuestTypes eQuest)
 }
 
 /// Is eQuest valid for this minor to give to ePlayer?
-bool CvMinorCivAI::IsValidQuestForPlayer(PlayerTypes ePlayer, MinorCivQuestTypes eQuest)
+bool CvMinorCivAI::IsValidQuestForPlayer(const PlayerTypes ePlayer, const MinorCivQuestTypes eQuest)
 {
 	// The quest type must be enabled
 	if(!IsEnabledQuest(eQuest))
@@ -2913,6 +2981,11 @@ bool CvMinorCivAI::IsValidQuestForPlayer(PlayerTypes ePlayer, MinorCivQuestTypes
 
 	// no bullies
 	if (IsRecentlyBulliedByMajor(ePlayer))
+		return false;
+
+	const int currentFriendship = GetBaseFriendshipWithMajorTimes100(ePlayer);
+	const int minQuestFriendship = GC.getMINOR_FRIENDSHIP_ANCHOR_MOD_WARY_OF();
+	if (currentFriendship < minQuestFriendship)
 		return false;
 
 	// Both players must have a capital
@@ -2973,6 +3046,11 @@ int CvMinorCivAI::GetPersonalityQuestBias(MinorCivQuestTypes eQuest)
 {
 	// Multiply by 10 to give us some more fidelity. We'll remove it at the bottom
 	int iCount = 10 * /*10*/ GC.getMINOR_CIV_QUEST_WEIGHT_DEFAULT();
+
+
+	if (eQuest == QUEST_GIFT_GOLD)
+		iCount *= GC.getMINOR_CIV_QUEST_WEIGHT_MULTIPLIER_OTHER_GIVE_GOLD() / 100.f;
+
 
 	return iCount / 10;
 }
@@ -3054,6 +3132,20 @@ void CvMinorCivAI::EndAllActiveQuestsForPlayer(PlayerTypes ePlayer)
 	//antonjs: todo: instead, call for cancel quest (with flag for no notif)
 	if(GetNumActiveQuestsForPlayer(ePlayer) > 0)
 		m_QuestsGiven[ePlayer].clear();
+}
+
+string CvMinorCivAI::GetQuestDescription(const PlayerTypes eMajor, const MinorCivQuestTypes eType, const MessageType messageType) const
+{
+	for (uint iQuestLoop = 0; iQuestLoop < m_QuestsGiven[eMajor].size(); iQuestLoop++)
+	{
+		const CvMinorCivQuest quest = m_QuestsGiven[eMajor][iQuestLoop];
+		if (quest.GetType() == eType)
+		{
+			return quest.GetStatusMessage(m_pPlayer, &GET_PLAYER(eMajor), messageType, "");
+		}
+	}
+
+	return "ERROR 1537";
 }
 
 int CvMinorCivAI::GetNumDisplayedQuestsForPlayer(PlayerTypes ePlayer)
@@ -7824,8 +7916,9 @@ void CvMinorCivAI::DoUnitGiftFromMajor(PlayerTypes eFromPlayer, CvUnit* pGiftUni
 	ChangeNumUnitsGifted(eFromPlayer, 1);
 
 
+	const bool isCombat = pGiftUnit->GetBaseCombatStrength() > 4;
 	// Influence (even if no quest)
-	int iInfluence = GetFriendshipFromUnitGift(eFromPlayer, pGiftUnit->IsGreatPerson(), bDistanceGift);
+	int iInfluence = GetFriendshipFromUnitGift(eFromPlayer, pGiftUnit->IsGreatPerson(), bDistanceGift, isCombat);
 	ChangeFriendshipWithMajor(eFromPlayer, iInfluence);
 
 	const bool isGreat = pGiftUnit->IsGreatPerson();
@@ -7851,7 +7944,7 @@ void CvMinorCivAI::DoUnitGiftFromMajor(PlayerTypes eFromPlayer, CvUnit* pGiftUni
 			// but is this the right great person type?
 			thisSatisfied = true;
 			const bool isGreatCorrect = pGiftUnit->getUnitType() == itr_quest->m_iData1;
-			if (!isGreatCorrect) rewardFactor = 0.70f;
+			if (!isGreatCorrect) rewardFactor = 1.0f;
 		}
 
 		if (thisSatisfied)
@@ -7868,7 +7961,7 @@ void CvMinorCivAI::DoUnitGiftFromMajor(PlayerTypes eFromPlayer, CvUnit* pGiftUni
 	}
 }
 
-int CvMinorCivAI::GetFriendshipFromUnitGift(PlayerTypes eFromPlayer, bool bGreatPerson, bool /*bDistanceGift*/)
+int CvMinorCivAI::GetFriendshipFromUnitGift(PlayerTypes eFromPlayer, bool bGreatPerson, bool /*bDistanceGift*/, const bool isCombat)
 {
 	CvAssertMsg(eFromPlayer >= 0, "eFromPlayer is expected to be non-negative (invalid Index)");
 	CvAssertMsg(eFromPlayer < MAX_MAJOR_CIVS, "eFromPlayer is expected to be within maximum bounds (invalid Index)");
@@ -7891,9 +7984,9 @@ int CvMinorCivAI::GetFriendshipFromUnitGift(PlayerTypes eFromPlayer, bool bGreat
 		iInfluence += GC.getFRIENDSHIP_PER_UNIT_GIFTED();
 
 		// War state
-		if (IsProxyWarActiveForMajor(eFromPlayer))
+		if (isCombat && IsProxyWarActiveForMajor(eFromPlayer))
 		{
-			iInfluence += GC.getFRIENDSHIP_PER_UNIT_GIFTED();
+			iInfluence *= 2; // XML
 		}
 		
 		// Policies
@@ -7934,7 +8027,7 @@ void CvMinorCivAI::ChangeNumGoldGifted(PlayerTypes ePlayer, int iChange)
 
 
 /// Major Civ gifted some Gold to this Minor
-void CvMinorCivAI::DoGoldGiftFromMajor(PlayerTypes ePlayer, int iGold)
+void CvMinorCivAI::DoGoldGiftFromMajor(const PlayerTypes ePlayer, const int iGold)
 {
 #ifdef NQ_NUM_TURNS_BEFORE_MINOR_ALLIES_REFUSE_BRIBES_FROM_TRAIT
 	PlayerTypes iAlly = GetAlly();
@@ -7949,21 +8042,29 @@ void CvMinorCivAI::DoGoldGiftFromMajor(PlayerTypes ePlayer, int iGold)
 #endif
 
 	// dont allow purchases beyond a certain level
-	iGold = GetCappedGoldGift(ePlayer, iGold);
 	if (iGold > 0)
 	{
 		const bool canAfford = GET_PLAYER(ePlayer).GetTreasury()->GetGold() >= iGold;
 		if (canAfford)
 		{
-			int iFriendshipChange = GetFriendshipFromGoldGift(ePlayer, iGold);
-			if (iFriendshipChange > 0)
+			int iFriendshipChangeT100 = GetFriendshipFromGoldGift(ePlayer, iGold) * 100;
+			if (iFriendshipChangeT100 > 0)
 				GET_PLAYER(ePlayer).GetTreasury()->LogExpenditure(GetPlayer()->GetMinorCivAI()->GetNamesListAsString(0), iGold, 4);
 
 			GET_PLAYER(ePlayer).GetTreasury()->ChangeGold(-iGold);
 
 			ChangeNumGoldGifted(ePlayer, iGold);
 
-			ChangeFriendshipWithMajorTimes100Instant(ePlayer, iFriendshipChange * 100);
+			// cap friendship from gold
+			const int maxGoldFriendshipT100 = GC.getMINOR_CIV_MAX_GOLD_FRIENDSHIP() * 100;
+			const int currentT100 = GetBaseFriendshipWithMajorTimes100(ePlayer);
+			if (currentT100 + iFriendshipChangeT100 > maxGoldFriendshipT100)
+			{
+				iFriendshipChangeT100 = maxGoldFriendshipT100 - currentT100;
+			}
+
+
+			ChangeFriendshipWithMajorTimes100Instant(ePlayer, iFriendshipChangeT100);
 
 			// In case we had a Gold Gift quest active, complete it now
 			DoTestActiveQuestsForPlayer(ePlayer, /*bTestComplete*/ true, /*bTestObsolete*/ false, MINOR_CIV_QUEST_GIVE_GOLD);
@@ -9302,5 +9403,43 @@ FDataStream& operator>>(FDataStream& loadFrom, MinorCivQuestTypes& writeTo)
 	int v;
 	loadFrom >> v;
 	writeTo = static_cast<MinorCivQuestTypes>(v);
+
 	return loadFrom;
 }
+FDataStream& operator<<(FDataStream& saveTo, const QuestReward& readFrom)
+{
+	saveTo << readFrom.beakers;
+	saveTo << readFrom.culturalInfluence;
+	saveTo << readFrom.culture;
+
+	saveTo << readFrom.food;
+	saveTo << readFrom.friendship;
+	saveTo << readFrom.goldenPoints;
+
+	saveTo << readFrom.hammers;
+	saveTo << readFrom.insight;
+	saveTo << readFrom.militaryUnits;
+
+	saveTo << readFrom.support;
+
+	return saveTo;
+}
+FDataStream& operator>>(FDataStream& loadFrom, QuestReward& writeTo)
+{
+	loadFrom >> writeTo.beakers;
+	loadFrom >> writeTo.culturalInfluence;
+	loadFrom >> writeTo.culture;
+
+	loadFrom >> writeTo.food;
+	loadFrom >> writeTo.friendship;
+	loadFrom >> writeTo.goldenPoints;
+
+	loadFrom >> writeTo.hammers;
+	loadFrom >> writeTo.insight;
+	loadFrom >> writeTo.militaryUnits;
+
+	loadFrom >> writeTo.support;
+
+	return loadFrom;
+}
+

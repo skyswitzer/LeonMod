@@ -307,7 +307,7 @@ function GetHelpTextForBuilding(iBuildingID, bExcludeName, bExcludeHeader, bNoMa
 	local sign = "";
 	if (iScientificInfluence > 0) then sign="+"; end
 	if (iScientificInfluence ~= nil and iScientificInfluence ~= 0) then
-		table.insert(lines, Locale.ConvertTextKey("{TXT_KEY_SCIENTIFIC_INFLUENCE}: ") .. sign .. iScientificInfluence);
+		table.insert(lines, Locale.ConvertTextKey("{SCIENTIFIC_INFLUENCE}: ") .. sign .. iScientificInfluence);
 	end
 
 	-- Resource Requirements

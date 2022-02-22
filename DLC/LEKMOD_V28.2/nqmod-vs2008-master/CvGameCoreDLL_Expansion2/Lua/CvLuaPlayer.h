@@ -572,6 +572,7 @@ protected:
 	static int lIsMinorCivActiveQuestForPlayer(lua_State* L);
 	static int lGetMinorCivNumActiveQuestsForPlayer(lua_State* L);
 	static int lIsMinorCivDisplayedQuestForPlayer(lua_State* L);
+	static int lGetQuestDescription(lua_State* L);
 	static int lGetMinorCivNumDisplayedQuestsForPlayer(lua_State* L);
 	static int lGetQuestData1(lua_State* L);
 	static int lGetQuestData2(lua_State* L);

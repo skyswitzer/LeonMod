@@ -845,7 +845,29 @@ function PopulateGiftChoices()
 	end
 	Controls.SmallGift:SetText(buttonText);
 	SetButtonSize(Controls.SmallGift, Controls.SmallGiftButton, Controls.SmallGiftAnim, Controls.SmallGiftButtonHL);
-		
+
+	-- Invest Gold
+	buttonText = "Invest 400 [ICON_GOLD] Gold";
+	local mouseoverText = Locale.ConvertTextKey("Complete the [ICON_INVEST] Investment quest and gain {FRIENDSHIP}");
+	local QUEST_GIFT_GOLD = 8;
+	local isInvestQuestActive = pPlayer:IsMinorCivActiveQuestForPlayer(iActivePlayer, QUEST_GIFT_GOLD);
+	if (not isInvestQuestActive) then
+		buttonText = "[COLOR_WARNING_TEXT]" .. buttonText .. "[ENDCOLOR]";
+		mouseoverText = "[COLOR_WARNING_TEXT]You do not have an [ICON_INVEST] Investment quest active.[ENDCOLOR]";
+		Controls.InvestAnim:SetHide(true);
+		Controls.InvestButton:ClearCallback(Mouse.eLClick);
+	elseif (iNumGoldPlayerHas < 400) then
+		buttonText = "[COLOR_WARNING_TEXT]" .. buttonText .. "[ENDCOLOR]";
+		mouseoverText = "[COLOR_WARNING_TEXT]You do not have enough [ICON_GOLD] Gold[ENDCOLOR]";
+		Controls.InvestAnim:SetHide(true);
+		Controls.InvestButton:ClearCallback(Mouse.eLClick);
+	else
+		Controls.InvestAnim:SetHide(false);
+		Controls.InvestButton:RegisterCallback( Mouse.eLClick, OnInvestGold );
+	end
+	Controls.Invest:SetText(buttonText);
+	Controls.InvestButton:SetToolTipString(mouseoverText);
+	SetButtonSize(Controls.Invest, Controls.InvestButton, Controls.InvestAnim, Controls.InvestButtonHL);
 	
 	-- Unit
 	local iInfluence = pPlayer:GetFriendshipFromUnitGift(iActivePlayer, false, true);
@@ -916,6 +938,16 @@ function OnSmallGold ()
 	end
 end
 Controls.SmallGiftButton:RegisterCallback( Mouse.eLClick, OnSmallGold );
+
+----------------------------------------------------------------
+-- Invest
+----------------------------------------------------------------
+function OnInvestGold ()
+	Game.DoMinorGoldGift(g_iMinorCivID, 400);
+	m_iLastAction = kiGiftedGold;
+	OnCloseGive();
+end
+Controls.InvestButton:RegisterCallback( Mouse.eLClick, OnInvestGold );
 
 ----------------------------------------------------------------
 -- Gift Unit

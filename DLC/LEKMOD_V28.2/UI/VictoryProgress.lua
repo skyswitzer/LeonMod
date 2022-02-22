@@ -475,7 +475,7 @@ function PopulateSpaceRace()
 			end
 
 			-- show status
-			local status = Locale.ConvertTextKey("You have " .. have .. " of " .. needed .. " {TXT_KEY_SCIENTIFIC_INFLUENCE} needed.");
+			local status = Locale.ConvertTextKey("You have " .. have .. " of " .. needed .. " {SCIENTIFIC_INFLUENCE} needed.");
 			local apolloProgress = Locale.ConvertTextKey("TXT_KEY_VP_DIPLO_PROJECT_PLAYERS_COMPLETE", numApollo, "TXT_KEY_PROJECT_APOLLO_PROGRAM");
 
 			Controls.SpaceInfo:LocalizeAndSetText(status .. "[NEWLINE]" .. apolloProgress);
