@@ -593,6 +593,12 @@ public:
 	int GetDealDuration();
 	int GetPeaceDuration();
 
+	int GetVpAcceleration() const;
+	void ChangeVpAcceleration(const int change);
+
+	bool GetIsTechDiscovered(const int techId) const;
+	void SetTechDiscovered(const int techId);
+
 	void CreateDigSite(CvPlot* plot);
 
 	CombatPredictionTypes GetCombatPrediction(const CvUnit* pAttackingUnit, const CvUnit* pDefendingUnit);
@@ -747,6 +753,10 @@ protected:
 	ReplayMessageList m_listReplayMessages;
 
 	int m_iNumSessions;
+	// accelerates the end of the game by reducing VP requirements, and increasing output
+	int m_iNumVpAcceleration;
+	// for a given tech id, has it been discovered yet by anyone?
+	std::vector<bool> m_bTechsDiscovered;
 
 	std::vector<PlotExtraYield> m_aPlotExtraYields;
 	std::vector<PlotExtraCost> m_aPlotExtraCosts;

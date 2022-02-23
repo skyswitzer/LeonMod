@@ -60,6 +60,9 @@
 #include "CvInfosSerializationHelper.h"
 #include "CvCityManager.h"
 
+const int MAX_TECHS = 200;
+
+
 // Public Functions...
 // must be included after all other headers
 #include "LintFree.h"
@@ -1365,6 +1368,8 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 	m_jonRand.reset();
 
 	m_iNumSessions = 1;
+	m_iNumVpAcceleration = 0;
+	m_bTechsDiscovered = std::vector<bool>(MAX_TECHS, false);
 
 	m_AdvisorMessagesViewed.clear();
 
@@ -10432,6 +10437,14 @@ void CvGame::Read(FDataStream& kStream)
 	{
 		++m_iNumSessions;
 	}
+	kStream >> m_iNumVpAcceleration;
+
+	for (int i = 0; i < MAX_TECHS; ++i)
+	{
+		bool val;
+		kStream >> val;
+		m_bTechsDiscovered[i] = val;
+	}
 
 	kStream >> m_aPlotExtraYields;
 	kStream >> m_aPlotExtraCosts;
@@ -10640,6 +10653,12 @@ void CvGame::Write(FDataStream& kStream) const
 	}
 
 	kStream << m_iNumSessions;
+	kStream << m_iNumVpAcceleration;
+	for (int i = 0; i < MAX_TECHS; ++i)
+	{
+		const bool val = m_bTechsDiscovered[i];
+		kStream << val;
+	}
 
 	kStream << m_aPlotExtraYields;
 	kStream << m_aPlotExtraCosts;
@@ -12134,6 +12153,25 @@ int CvGame::GetDealDuration()
 int CvGame::GetPeaceDuration()
 {
 	return getGameSpeedInfo().getPeaceDealDuration();
+}
+
+int CvGame::GetVpAcceleration() const
+{
+	return m_iNumVpAcceleration;
+}
+void CvGame::ChangeVpAcceleration(const int change)
+{
+	if (change != 0)
+		m_iNumVpAcceleration += change;
+}
+bool CvGame::GetIsTechDiscovered(const int techId) const
+{
+	return m_bTechsDiscovered[techId];
+}
+void CvGame::SetTechDiscovered(const int techId)
+{
+	if (techId > 0 && techId < MAX_TECHS)
+		m_bTechsDiscovered[techId] = true;
 }
 
 //	--------------------------------------------------------------------------------
