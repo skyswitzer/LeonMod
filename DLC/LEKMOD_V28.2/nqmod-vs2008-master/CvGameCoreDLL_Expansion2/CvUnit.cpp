@@ -20525,34 +20525,34 @@ bool CvUnit::canRangeStrikeAt(int iX, int iY, bool bNeedWar, bool bNoncombatAllo
 	}
 
 	CvPlot* pTargetPlot = GC.getMap().plot(iX, iY);
+	const bool isCity = pTargetPlot->isCity();
 
-	// If it's NOT a city, see if there are any units to aim for
-	if(!pTargetPlot->isCity())
+	if (isCity)
 	{
+		CvAssert(pTargetPlot->getPlotCity() != NULL);
+		// Don't need to be at war with this City's owner (yet)
+		const bool isAtWar = atWar(getTeam(), pTargetPlot->getPlotCity()->getTeam());
+		const bool canDeclareWar = GET_TEAM(getTeam()).canDeclareWar(pTargetPlot->getPlotCity()->getTeam());
+		const bool canAttackStuff = isAtWar || (bNeedWar && canDeclareWar);
+		if (canAttackStuff)
+		{
+			return true;
+		}
+	}
+	else // anything else to attack?
+	{
+		// find enemy unit to attack
 		if(bNeedWar)
 		{
 			const CvUnit* pDefender = airStrikeTarget(*pTargetPlot, bNoncombatAllowed);
-			if(NULL == pDefender)
-			{
-				return false;
-			}
-
-
-			if (atWar(getTeam(), pTargetPlot->getTeam())) // are at war with owner
-			{
-				const ImprovementTypes type = pTargetPlot->getImprovementType();
-				if (type != NO_IMPROVEMENT && !pTargetPlot->IsImprovementPillaged()) // has pillageable tile
-				{
-					return true;
-				}
-			}
+			if(pDefender != NULL)
+				return true;
 		}
-		// We don't need to be at war (yet) with a Unit here, so let's try to find one
+		// find unit to declare war on
 		else
 		{
 			const IDInfo* pUnitNode = pTargetPlot->headUnitNode();
 			const CvUnit* pLoopUnit;
-			bool bFoundUnit = false;
 
 			CvTeam& myTeam = GET_TEAM(getTeam());
 
@@ -20565,44 +20565,25 @@ bool CvUnit::canRangeStrikeAt(int iX, int iY, bool bNeedWar, bool bNoncombatAllo
 
 				TeamTypes loopTeam = pLoopUnit->getTeam();
 
-				// Make sure it's a valid Team
 				if(myTeam.isAtWar(loopTeam) || myTeam.canDeclareWar(loopTeam))
 				{
-					bFoundUnit = true;
-					break;
+					return true;
 				}
 			}
-
-			if(!bFoundUnit)
-			{
-				return false;
-			}
 		}
-	}
-	// If it is a City, only consider those we're at war with
-	else
-	{
-		CvAssert(pTargetPlot->getPlotCity() != NULL);
 
-		// If you're already at war don't need to check
-		if(!atWar(getTeam(), pTargetPlot->getPlotCity()->getTeam()))
+		const bool isAtWar = atWar(getTeam(), pTargetPlot->getTeam());
+		// see if we can attack the improvement
+		if (isAtWar || pTargetPlot->getTeam() == NO_TEAM) // are at war with owner
 		{
-			if(bNeedWar)
+			if (pTargetPlot->CanBeRangePillaged())
 			{
-				return false;
-			}
-			// Don't need to be at war with this City's owner (yet)
-			else
-			{
-				if(!GET_TEAM(getTeam()).canDeclareWar(pTargetPlot->getPlotCity()->getTeam()))
-				{
-					return false;
-				}
+				return true;
 			}
 		}
 	}
 
-	return true;
+	return false;
 }
 
 // Optimized function to evaluate free plots for move and fire.

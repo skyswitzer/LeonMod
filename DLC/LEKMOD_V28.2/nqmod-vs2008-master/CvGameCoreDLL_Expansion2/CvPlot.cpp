@@ -7465,6 +7465,20 @@ void CvPlot::updateCityRoute()
 	}
 }
 
+bool CvPlot::CanBeRangePillaged() const
+{
+	if (getImprovementType() != NO_IMPROVEMENT && !IsImprovementPillaged()) return true;
+
+	if (getRouteType() != NO_ROUTE && !IsRoutePillaged()) return true;
+
+	return false;
+}
+void CvPlot::SetAllPillaged()
+{
+	SetImprovementPillaged(true);
+	SetRoutePillaged(true);
+}
+
 //	--------------------------------------------------------------------------------
 /// Who built this Improvement?  Could be NO_PLAYER
 PlayerTypes CvPlot::GetPlayerThatBuiltImprovement() const

@@ -632,73 +632,76 @@ void CvUnitCombat::GenerateRangedCombatInfo(CvUnit& kAttacker, CvUnit* pkDefende
 	const CvPlot* pFromPlot = kAttacker.plot();
 	const int iMaxHP = GC.getMAX_HIT_POINTS();
 #endif
-	PlayerTypes eDefenderOwner;
+	PlayerTypes eDefenderOwner = plot.getOwner();
 	if(!plot.isCity())
 	{
 		CvAssert(pkDefender != NULL);
 
-		eDefenderOwner = pkDefender->getOwner();
+		if (pkDefender != NULL)
+		{
+			eDefenderOwner = pkDefender->getOwner();
 
-		iExperience = /*2*/ GC.getEXPERIENCE_ATTACKING_UNIT_RANGED();
-		if(pkDefender->isBarbarian())
-			bBarbarian = true;
-		iMaxXP = pkDefender->maxXPValue();
+			iExperience = /*2*/ GC.getEXPERIENCE_ATTACKING_UNIT_RANGED();
+			if (pkDefender->isBarbarian())
+				bBarbarian = true;
+			iMaxXP = pkDefender->maxXPValue();
 
-		//CvAssert(pkDefender->IsCanDefend());
+			//CvAssert(pkDefender->IsCanDefend());
 
-		iDamage = kAttacker.GetRangeCombatDamage(pkDefender, /*pCity*/ NULL, /*bIncludeRand*/ true);
+			iDamage = kAttacker.GetRangeCombatDamage(pkDefender, /*pCity*/ NULL, /*bIncludeRand*/ true);
 #ifdef DEL_RANGED_COUNTERATTACKS
-		iTotalDamage = pkDefender->getDamage() + iDamage;
+			iTotalDamage = pkDefender->getDamage() + iDamage;
 
-		if (GC.getGame().isOption("GAMEOPTION_ENABLE_RANGED_COUNTERATTACKS"))
-		{
-			if (!kAttacker.isRangedSupportFire() && !pkDefender->IsCityAttackOnly() &&
-				// Ranged unit counterattacks
-				(pkDefender->canRangeStrike() && pkDefender->canEverRangeStrikeAt(pFromPlot->getX(), pFromPlot->getY())) || 
-				// Melee unit counterattacks
-				(pkDefender->IsCanAttackWithMove() && plot.isAdjacent(pFromPlot) && pkDefender->PlotValid(pFromPlot) && pkDefender->PlotValid(&plot)))
+			if (GC.getGame().isOption("GAMEOPTION_ENABLE_RANGED_COUNTERATTACKS"))
 			{
-				if (pkDefender->IsCanAttackRanged())
+				if (!kAttacker.isRangedSupportFire() && !pkDefender->IsCityAttackOnly() &&
+					// Ranged unit counterattacks
+					(pkDefender->canRangeStrike() && pkDefender->canEverRangeStrikeAt(pFromPlot->getX(), pFromPlot->getY())) ||
+					// Melee unit counterattacks
+					(pkDefender->IsCanAttackWithMove() && plot.isAdjacent(pFromPlot) && pkDefender->PlotValid(pFromPlot) && pkDefender->PlotValid(&plot)))
 				{
-					iDamageToAttacker = pkDefender->GetRangeCombatDamage(&kAttacker, NULL, true);
+					if (pkDefender->IsCanAttackRanged())
+					{
+						iDamageToAttacker = pkDefender->GetRangeCombatDamage(&kAttacker, NULL, true);
+					}
+					else if (iTotalDamage < iMaxHP)
+					{
+						// Melee unit (defender) is counterattacking by attacking into the plot from which they were bombarded, where the attacker is
+						int iAttackerStrength = kAttacker.GetMaxDefenseStrength(pFromPlot, pkDefender);
+						int iDefenderStrength = pkDefender->GetMaxAttackStrength(&plot, pFromPlot, &kAttacker);
+						iDamageToAttacker = pkDefender->getCombatDamage(iDefenderStrength, iAttackerStrength, iTotalDamage, /*bIncludeRand*/ true, /*bAttackerIsCity*/ false, /*bDefenderIsCity*/ false);
+					}
 				}
-				else if (iTotalDamage < iMaxHP)
+
+				iTotalDamageToAttacker = iDamageToAttacker + kAttacker.getDamage();
+
+				// Will both units be killed by this? If so, take drastic corrective measures
+				if (iTotalDamage >= iMaxHP && iTotalDamageToAttacker >= iMaxHP)
 				{
-					// Melee unit (defender) is counterattacking by attacking into the plot from which they were bombarded, where the attacker is
-					int iAttackerStrength = kAttacker.GetMaxDefenseStrength(pFromPlot, pkDefender);
-					int iDefenderStrength = pkDefender->GetMaxAttackStrength(&plot, pFromPlot, &kAttacker);
-					iDamageToAttacker = pkDefender->getCombatDamage(iDefenderStrength, iAttackerStrength, iTotalDamage, /*bIncludeRand*/ true, /*bAttackerIsCity*/ false, /*bDefenderIsCity*/ false);
+					// He who hath the least amount of damage survives with 1 HP left
+					if (iTotalDamage > iTotalDamageToAttacker)
+					{
+						iDamageToAttacker = iMaxHP - kAttacker.getDamage() - 1;
+						iTotalDamageToAttacker = iMaxHP - 1;
+						iTotalDamage = iMaxHP;
+					}
+					else
+					{
+						iDamage = iMaxHP - pkDefender->getDamage() - 1;
+						iTotalDamage = iMaxHP - 1;
+						iTotalDamageToAttacker = iMaxHP;
+					}
 				}
 			}
-
-			iTotalDamageToAttacker = iDamageToAttacker + kAttacker.getDamage();
-
-			// Will both units be killed by this? If so, take drastic corrective measures
-			if (iTotalDamage >= iMaxHP && iTotalDamageToAttacker >= iMaxHP)
-			{
-				// He who hath the least amount of damage survives with 1 HP left
-				if (iTotalDamage > iTotalDamageToAttacker)
-				{
-					iDamageToAttacker = iMaxHP - kAttacker.getDamage() - 1;
-					iTotalDamageToAttacker = iMaxHP - 1;
-					iTotalDamage = iMaxHP;
-				}
-				else
-				{
-					iDamage = iMaxHP - pkDefender->getDamage() - 1;
-					iTotalDamage = iMaxHP - 1;
-					iTotalDamageToAttacker = iMaxHP;
-				}
-			}
-		}
 #else
-		if(iDamage + pkDefender->getDamage() > GC.getMAX_HIT_POINTS())
-		{
-			iDamage = GC.getMAX_HIT_POINTS() - pkDefender->getDamage();
-		}
+			if (iDamage + pkDefender->getDamage() > GC.getMAX_HIT_POINTS())
+			{
+				iDamage = GC.getMAX_HIT_POINTS() - pkDefender->getDamage();
+			}
 
-		iTotalDamage = std::max(pkDefender->getDamage(), pkDefender->getDamage() + iDamage);
+			iTotalDamage = std::max(pkDefender->getDamage(), pkDefender->getDamage() + iDamage);
 #endif
+		}
 	}
 	else
 	{
@@ -765,10 +768,14 @@ void CvUnitCombat::GenerateRangedCombatInfo(CvUnit& kAttacker, CvUnit* pkDefende
 	pkCombatInfo->setMaxExperienceAllowed(BATTLE_UNIT_ATTACKER, iMaxXP);
 	pkCombatInfo->setInBorders(BATTLE_UNIT_ATTACKER, plot.getOwner() == eDefenderOwner);
 #ifdef NQ_NO_GG_POINTS_FROM_CS_OR_BARBS
-	bool bIsGlobalXPAwarded = !kAttacker.isBarbarian() && !GET_PLAYER(kAttacker.getOwner()).isMinorCiv() && 
-		(plot.isCity() || (!pkDefender->isBarbarian() && !GET_PLAYER(pkDefender->getOwner()).isMinorCiv())) &&
-		(!plot.isCity() || (!plot.getPlotCity()->isBarbarian() && !GET_PLAYER(plot.getPlotCity()->getOwner()).isMinorCiv()));
-	pkCombatInfo->setUpdateGlobal(BATTLE_UNIT_ATTACKER, bIsGlobalXPAwarded);
+	bool bIsGlobalXPAwarded = false;
+	if (pkDefender != NULL)
+	{
+		bIsGlobalXPAwarded = !kAttacker.isBarbarian() && !GET_PLAYER(kAttacker.getOwner()).isMinorCiv() &&
+			(plot.isCity() || (!pkDefender->isBarbarian() && !GET_PLAYER(pkDefender->getOwner()).isMinorCiv())) &&
+			(!plot.isCity() || (!plot.getPlotCity()->isBarbarian() && !GET_PLAYER(plot.getPlotCity()->getOwner()).isMinorCiv()));
+		pkCombatInfo->setUpdateGlobal(BATTLE_UNIT_ATTACKER, bIsGlobalXPAwarded);
+	}
 #else
 	pkCombatInfo->setUpdateGlobal(BATTLE_UNIT_ATTACKER, !kAttacker.isBarbarian());
 #endif
@@ -938,6 +945,30 @@ void CvUnitCombat::GenerateRangedCombatInfo(CvCity& kAttacker, CvUnit* pkDefende
 	GC.GetEngineUserInterface()->setDirty(UnitInfo_DIRTY_BIT, true);
 }
 
+void DoRangePillage(const CvUnit* attacker, CvPlot* plot)
+{
+	plot->SetAllPillaged();
+	const PlayerTypes owner = plot->getOwner();
+	const CvImprovementEntry* pkImprovement = GC.getImprovementInfo(plot->getImprovementType());
+	if (pkImprovement != NULL)
+	{
+		stringstream s;
+		s << "Your bombardment destroyed a ";
+		s << pkImprovement->GetTextKey();
+		s << ".";
+		GC.messagePlayer(attacker->getOwner(), s.str().c_str());
+
+		if (owner != NO_PLAYER)
+		{
+			stringstream s;
+			s << "Your ";
+			s << pkImprovement->GetTextKey();
+			s << " was destroyed by enemy bombardment.";
+			GC.messagePlayer(owner, s.str().c_str());
+		}
+	}
+}
+
 //	---------------------------------------------------------------------------
 //	Function: ResolveRangedUnitVsCombat
 //	Resolve ranged combat where the attacker is a unit.  This will handle
@@ -973,6 +1004,11 @@ void CvUnitCombat::ResolveRangedUnitVsCombat(const CvCombatInfo& kCombatInfo, ui
 			// Unit
 			CvUnit* pkDefender = kCombatInfo.getUnit(BATTLE_UNIT_DEFENDER);
 			CvAssert_Debug(pkDefender != NULL);
+			if (pkDefender == NULL)
+			{
+				DoRangePillage(pkAttacker, pkTargetPlot);
+			}
+
 			if(pkDefender)
 			{
 				bBarbarian = pkDefender->isBarbarian();
@@ -1599,47 +1635,47 @@ void CvUnitCombat::GenerateAirCombatInfo(CvUnit& kAttacker, CvUnit* pkDefender, 
 	bool bBarbarian = false;
 	int iMaxXP = 0;
 
-	int iAttackerDamageInflicted;
-	int iDefenderDamageInflicted;
+	int iAttackerDamageInflicted = 0;
+	int iDefenderDamageInflicted = 0;
 
-	int iAttackerTotalDamageInflicted;
-	int iDefenderTotalDamageInflicted;
+	int iAttackerTotalDamageInflicted = 0;
+	int iDefenderTotalDamageInflicted = 0;
 
-	PlayerTypes eDefenderOwner;
+	PlayerTypes eDefenderOwner = plot.getOwner();
 
 	// Target is a Unit
-	if(!plot.isCity())
+	if (!plot.isCity())
 	{
-		CvAssert(pkDefender != NULL);
-		if(!pkDefender)
-			return;
-
-		eDefenderOwner = pkDefender->getOwner();
-
-		iExperience = /*4*/ GC.getEXPERIENCE_ATTACKING_UNIT_AIR();
-		if(pkDefender->isBarbarian())
-			bBarbarian = true;
-		iMaxXP = pkDefender->maxXPValue();
-
-		// Calculate attacker damage
-		iAttackerDamageInflicted = kAttacker.GetAirCombatDamage(pkDefender, /*pCity*/ NULL, /*bIncludeRand*/ true, iInterceptionDamage);
-
-		if(iAttackerDamageInflicted + pkDefender->getDamage() > GC.getMAX_HIT_POINTS())
+		//CvAssert(pkDefender != NULL);
+		if (pkDefender)
 		{
-			iAttackerDamageInflicted = GC.getMAX_HIT_POINTS() - pkDefender->getDamage();
+			eDefenderOwner = pkDefender->getOwner();
+
+			iExperience = /*4*/ GC.getEXPERIENCE_ATTACKING_UNIT_AIR();
+			if (pkDefender->isBarbarian())
+				bBarbarian = true;
+			iMaxXP = pkDefender->maxXPValue();
+
+			// Calculate attacker damage
+			iAttackerDamageInflicted = kAttacker.GetAirCombatDamage(pkDefender, /*pCity*/ NULL, /*bIncludeRand*/ true, iInterceptionDamage);
+
+			if (iAttackerDamageInflicted + pkDefender->getDamage() > GC.getMAX_HIT_POINTS())
+			{
+				iAttackerDamageInflicted = GC.getMAX_HIT_POINTS() - pkDefender->getDamage();
+			}
+
+			iAttackerTotalDamageInflicted = std::max(pkDefender->getDamage(), pkDefender->getDamage() + iAttackerDamageInflicted);
+
+			// Calculate defense damage
+			iDefenderDamageInflicted = pkDefender->GetAirStrikeDefenseDamage(&kAttacker);
+
+			if (iDefenderDamageInflicted + kAttacker.getDamage() > GC.getMAX_HIT_POINTS())
+			{
+				iDefenderDamageInflicted = GC.getMAX_HIT_POINTS() - kAttacker.getDamage();
+			}
+
+			iDefenderTotalDamageInflicted = std::max(kAttacker.getDamage(), kAttacker.getDamage() + (iDefenderDamageInflicted + iInterceptionDamage));
 		}
-
-		iAttackerTotalDamageInflicted = std::max(pkDefender->getDamage(), pkDefender->getDamage() + iAttackerDamageInflicted);
-
-		// Calculate defense damage
-		iDefenderDamageInflicted = pkDefender->GetAirStrikeDefenseDamage(&kAttacker);
-
-		if(iDefenderDamageInflicted + kAttacker.getDamage() > GC.getMAX_HIT_POINTS())
-		{
-			iDefenderDamageInflicted = GC.getMAX_HIT_POINTS() - kAttacker.getDamage();
-		}
-
-		iDefenderTotalDamageInflicted = std::max(kAttacker.getDamage(), kAttacker.getDamage() + (iDefenderDamageInflicted + iInterceptionDamage));
 	}
 	// Target is a City
 	else
@@ -1707,10 +1743,14 @@ void CvUnitCombat::GenerateAirCombatInfo(CvUnit& kAttacker, CvUnit* pkDefender, 
 	pkCombatInfo->setMaxExperienceAllowed(BATTLE_UNIT_ATTACKER, iMaxXP);
 	pkCombatInfo->setInBorders(BATTLE_UNIT_ATTACKER, plot.getOwner() == eDefenderOwner);
 #ifdef NQ_NO_GG_POINTS_FROM_CS_OR_BARBS
-	bool bIsGlobalXPAwarded = !kAttacker.isBarbarian() && !GET_PLAYER(kAttacker.getOwner()).isMinorCiv() &&
-		(plot.isCity() || (!pkDefender->isBarbarian() && !GET_PLAYER(pkDefender->getOwner()).isMinorCiv())) &&
-		(!plot.isCity() || (!plot.getPlotCity()->isBarbarian() && !GET_PLAYER(plot.getPlotCity()->getOwner()).isMinorCiv()));
-	pkCombatInfo->setUpdateGlobal(BATTLE_UNIT_ATTACKER, bIsGlobalXPAwarded);
+	bool bIsGlobalXPAwarded = false;
+	if (pkDefender)
+	{
+		bIsGlobalXPAwarded = !kAttacker.isBarbarian() && !GET_PLAYER(kAttacker.getOwner()).isMinorCiv() &&
+			(plot.isCity() || (!pkDefender->isBarbarian() && !GET_PLAYER(pkDefender->getOwner()).isMinorCiv())) &&
+			(!plot.isCity() || (!plot.getPlotCity()->isBarbarian() && !GET_PLAYER(plot.getPlotCity()->getOwner()).isMinorCiv()));
+		pkCombatInfo->setUpdateGlobal(BATTLE_UNIT_ATTACKER, bIsGlobalXPAwarded);
+	}
 #else
 	pkCombatInfo->setUpdateGlobal(BATTLE_UNIT_ATTACKER, !kAttacker.isBarbarian());
 #endif
@@ -1896,8 +1936,6 @@ void CvUnitCombat::GenerateAirCombatInfo(CvUnit& kAttacker, CvUnit* pkDefender, 
 //}
 
 
-
-
 //	ResolveAirUnitVsCombat
 //	Function: ResolveRangedUnitVsCombat
 //	Resolve air combat where the attacker is a unit.  This will handle
@@ -1994,6 +2032,11 @@ void CvUnitCombat::ResolveAirUnitVsCombat(const CvCombatInfo& kCombatInfo, uint 
 		{
 			CvUnit* defender = kCombatInfo.getUnit(BATTLE_UNIT_DEFENDER);
 			CvAssert_Debug(defender != NULL);
+
+			if (defender == NULL && interceptor == NULL)
+			{
+				DoRangePillage(attacker, pkTargetPlot);
+			}
 
 			if (defender)
 			{
@@ -3412,9 +3455,17 @@ CvUnitCombat::ATTACK_RESULT CvUnitCombat::AttackRanged(CvUnit& kAttacker, int iX
 	{
 		CvUnit* pDefender = kAttacker.airStrikeTarget(*pPlot, true);
 		CvAssert(pDefender != NULL);
-		if(!pDefender) return ATTACK_ABORTED;
+		if (!pDefender)
+		{
+			if (pPlot->CanBeRangePillaged())
+			{
 
-		pDefender->SetAutomateType(NO_AUTOMATE);
+			}
+			else
+				return CvUnitCombat::ATTACK_ABORTED;
+		}
+
+		if (pDefender != NULL) pDefender->SetAutomateType(NO_AUTOMATE);
 
 		CvCombatInfo kCombatInfo;
 		CvUnitCombat::GenerateRangedCombatInfo(kAttacker, pDefender, *pPlot, &kCombatInfo);
@@ -3437,7 +3488,7 @@ CvUnitCombat::ATTACK_RESULT CvUnitCombat::AttackRanged(CvUnit& kAttacker, int iX
 
 			// Set the combat units so that other missions do not continue until combat is over.
 			kAttacker.setCombatUnit(pDefender, true);
-			pDefender->setCombatUnit(&kAttacker, false);
+			if (pDefender != NULL) pDefender->setCombatUnit(&kAttacker, false);
 			eResult = ATTACK_QUEUED;
 		}
 		else
@@ -3511,13 +3562,21 @@ CvUnitCombat::ATTACK_RESULT CvUnitCombat::AttackAir(CvUnit& kAttacker, CvPlot& t
 	{
 		CvUnit* pDefender = kAttacker.airStrikeTarget(targetPlot, true);
 		CvAssert(pDefender != NULL);
-		if(!pDefender) return CvUnitCombat::ATTACK_ABORTED;
+		if (!pDefender)
+		{
+			if (targetPlot.CanBeRangePillaged()) // has pillageable tile
+			{
 
-		pDefender->SetAutomateType(NO_AUTOMATE);
+			}
+			else
+				return CvUnitCombat::ATTACK_ABORTED;
+		}
+
+		if (pDefender) pDefender->SetAutomateType(NO_AUTOMATE);
 
 		CvCombatInfo kCombatInfo;
 		CvUnitCombat::GenerateAirCombatInfo(kAttacker, pDefender, targetPlot, &kCombatInfo);
-		CvAssertMsg(!kAttacker.isDelayedDeath() && !pDefender->isDelayedDeath(), "Trying to battle and one of the units is already dead!");
+		//CvAssertMsg(!kAttacker.isDelayedDeath() && !pDefender->isDelayedDeath(), "Trying to battle and one of the units is already dead!");
 
 		uint uiParentEventID = 0;
 		if(!bDoImmediate)
@@ -3536,7 +3595,7 @@ CvUnitCombat::ATTACK_RESULT CvUnitCombat::AttackAir(CvUnit& kAttacker, CvPlot& t
 
 			// Set the combat units so that other missions do not continue until combat is over.
 			kAttacker.setCombatUnit(pDefender, true);
-			pDefender->setCombatUnit(&kAttacker, false);
+			if (pDefender) pDefender->setCombatUnit(&kAttacker, false);
 			CvUnit* pDefenderSupport = kCombatInfo.getUnit(BATTLE_UNIT_INTERCEPTOR);
 			if(pDefenderSupport)
 				pDefenderSupport->setCombatUnit(&kAttacker, false);

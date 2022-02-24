@@ -557,6 +557,9 @@ public:
 	void setRouteType(RouteTypes eNewValue);
 	void updateCityRoute();
 
+	bool CanBeRangePillaged() const;
+	void SetAllPillaged();
+
 	bool IsRoutePillaged() const;
 	void SetRoutePillaged(bool bPillaged);
 
