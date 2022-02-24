@@ -510,7 +510,7 @@ function AddBuildingButton( pCity, building )
 			local warning = "";
 			if (not pCity:CanAddOneMoreSpecialist()) then
 				local numNeeded = pCity:NeededPopForOneMoreSpecialist();
-				warning = "[COLOR_WARNING_TEXT]You need " .. numNeeded .. " more Population to support another specialist![ENDCOLOR][NEWLINE]";
+				warning = "[COLOR_WARNING_TEXT]You need " .. numNeeded .. " more [ICON_CITIZEN] Population to support another specialist![ENDCOLOR][NEWLINE]";
 			end
 
 			ToolTipString = warning..emptySlotString.."[NEWLINE]("..ToolTipString..")";

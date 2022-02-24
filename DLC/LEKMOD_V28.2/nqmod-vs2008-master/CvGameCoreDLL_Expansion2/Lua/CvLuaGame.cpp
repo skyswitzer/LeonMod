@@ -2092,7 +2092,7 @@ int CvLuaGame::lGetAdditionalHelpBuilding(lua_State* L)
 		{
 			const int costIncreasePerWonder = GC.getWONDER_COST_INCREASE();
 			stringstream s;
-			s << "[NEWLINE][NEWLINE]Every World Wonder will cost an additional [COLOR_NEGATIVE_TEXT]+";
+			s << "[NEWLINE][NEWLINE]Every {WORLD_WONDER} will cost an additional [COLOR_NEGATIVE_TEXT]+";
 			s << costIncreasePerWonder;
 			s << "% [ENDCOLOR][ICON_PRODUCTION] for each World Wonder already in the City.";
 			info += s.str().c_str();
