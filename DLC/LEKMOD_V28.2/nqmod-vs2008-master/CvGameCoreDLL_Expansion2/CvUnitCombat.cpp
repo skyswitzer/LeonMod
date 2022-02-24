@@ -950,22 +950,25 @@ void DoRangePillage(const CvUnit* attacker, CvPlot* plot)
 	plot->SetAllPillaged();
 	const PlayerTypes owner = plot->getOwner();
 	const CvImprovementEntry* pkImprovement = GC.getImprovementInfo(plot->getImprovementType());
+	string name = plot->getRouteType() == ROUTE_ROAD ? "Road" : "Railroad";
 	if (pkImprovement != NULL)
 	{
-		stringstream s;
-		s << "Your bombardment destroyed a ";
-		s << pkImprovement->GetTextKey();
-		s << ".";
-		GC.messagePlayer(attacker->getOwner(), s.str().c_str());
+		name = pkImprovement->GetTextKey();
+	}
 
-		if (owner != NO_PLAYER)
-		{
-			stringstream s;
-			s << "Your ";
-			s << pkImprovement->GetTextKey();
-			s << " was destroyed by enemy bombardment.";
-			GC.messagePlayer(owner, s.str().c_str());
-		}
+	stringstream s;
+	s << "Your bombardment destroyed a ";
+	s << name;
+	s << ".";
+	GC.messagePlayer(attacker->getOwner(), s.str().c_str());
+
+	if (owner != NO_PLAYER)
+	{
+		stringstream s;
+		s << "Your ";
+		s << name;
+		s << " was destroyed by enemy bombardment.";
+		GC.messagePlayer(owner, s.str().c_str());
 	}
 }
 
