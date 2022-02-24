@@ -46,8 +46,9 @@ public:
 	int GetFirstFreeUnitClass() const;
 	int GetFirstFreeTechs() const;
 	int GetEmbarkedMoveChange() const;
-	int GetNumInternationalTradeRoutesChange() const;;
-	int GetInfluenceSpreadModifier() const;;
+	int GetNumInternationalTradeRoutesChange() const;
+	int GetInfluenceSpreadModifier() const;
+	int GetVpAcceleration() const;
 	int GetExtraVotesPerDiplomat() const;
 
 	int GetGridX() const;
@@ -113,6 +114,7 @@ private:
 	int m_iEmbarkedMoveChange;
 	int m_iInternationalTradeRoutesChange;
 	int m_iInfluenceSpreadModifier;
+	int m_iVpAcceleration;
 	int m_iExtraVotesPerDiplomat;
 
 	int m_iGridX;

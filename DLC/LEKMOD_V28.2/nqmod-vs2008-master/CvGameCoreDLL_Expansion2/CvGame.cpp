@@ -1368,6 +1368,7 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 	m_jonRand.reset();
 
 	m_iNumSessions = 1;
+	m_iVpAdjustment = 0;
 	m_iNumVpAcceleration = 0;
 	m_bTechsDiscovered = std::vector<bool>(MAX_TECHS, false);
 
@@ -8264,8 +8265,11 @@ void CvGame::doTurn()
 	testVictory();
 
 
-	updateScienceCatchup();
 #endif
+
+	ChangeVpAdjustment(GetVpAcceleration());
+
+	updateScienceCatchup();
 
 	// Who's Winning
 	if(GET_PLAYER(getActivePlayer()).isAlive() && !IsStaticTutorialActive())
@@ -10437,6 +10441,8 @@ void CvGame::Read(FDataStream& kStream)
 	{
 		++m_iNumSessions;
 	}
+
+	kStream >> m_iVpAdjustment;
 	kStream >> m_iNumVpAcceleration;
 
 	for (int i = 0; i < MAX_TECHS; ++i)
@@ -10653,6 +10659,8 @@ void CvGame::Write(FDataStream& kStream) const
 	}
 
 	kStream << m_iNumSessions;
+
+	kStream << m_iVpAdjustment;
 	kStream << m_iNumVpAcceleration;
 	for (int i = 0; i < MAX_TECHS; ++i)
 	{
@@ -12153,6 +12161,16 @@ int CvGame::GetDealDuration()
 int CvGame::GetPeaceDuration()
 {
 	return getGameSpeedInfo().getPeaceDealDuration();
+}
+
+int CvGame::GetVpAdjustment() const
+{
+	return m_iVpAdjustment;
+}
+void CvGame::ChangeVpAdjustment(const int change)
+{
+	if (change != 0)
+		m_iVpAdjustment += change;
 }
 
 int CvGame::GetVpAcceleration() const

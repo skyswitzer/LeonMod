@@ -593,6 +593,8 @@ public:
 	int GetDealDuration();
 	int GetPeaceDuration();
 
+	int GetVpAdjustment() const;
+	void ChangeVpAdjustment(const int change);
 	int GetVpAcceleration() const;
 	void ChangeVpAcceleration(const int change);
 
@@ -753,6 +755,8 @@ protected:
 	ReplayMessageList m_listReplayMessages;
 
 	int m_iNumSessions;
+	// total expected vp adjustment
+	int m_iVpAdjustment;
 	// accelerates the end of the game by reducing VP requirements, and increasing output
 	int m_iNumVpAcceleration;
 	// for a given tech id, has it been discovered yet by anyone?

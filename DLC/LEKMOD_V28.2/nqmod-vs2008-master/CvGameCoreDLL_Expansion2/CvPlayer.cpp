@@ -5835,7 +5835,9 @@ int CvPlayer::GetDiplomaticInfluenceNeeded() const
 	const float expectedAllies = (numCityStates / effectiveNumCivs) * toWinBoost; // fair share + some percentage
 	const float influencePerTurnPerAlly = 10;
 
-	const int influenceNeeded = influencePerTurnPerAlly * expectedAllies * expectedTurnFraction * totalGameTurns;
+	int influenceNeeded = influencePerTurnPerAlly * expectedAllies * expectedTurnFraction * totalGameTurns;
+	influenceNeeded -= ((float)influenceNeeded / 1000.0f * (float)GC.getGame().GetVpAdjustment());
+
 	const int truncate = 10;
 	return (influenceNeeded / truncate) * truncate;
 }
@@ -5852,7 +5854,9 @@ void CvPlayer::ChangeScientificInfluence(const int iChange)
 //	--------------------------------------------------------------------------------
 int CvPlayer::GetScientificInfluenceNeeded() const
 {
-	return 1000;
+	int targetValue = 1000;
+	targetValue -= ((float)targetValue / 1000.0f * (float)GC.getGame().GetVpAdjustment());
+	return targetValue;
 }
 
 //////////////////////////////////////////////////////////////////////////

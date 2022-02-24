@@ -395,9 +395,9 @@ function AddSmallButtonsToTechButton( thisTechButtonInstance, tech, maxSmallButt
 		local buttonName = "B"..tostring(buttonNum);
 		local thisButton = thisTechButtonInstance[buttonName];
 		if thisButton then
-			IconHookup( 0, textureSize, "GENERIC_FUNC_ATLAS", thisButton );
+			IconHookup( 4, textureSize, "EXPANSION2_UNIT_ATLAS", thisButton );
 			thisButton:SetHide( false );
-			thisButton:SetToolTipString( Locale.ConvertTextKey( "TXT_KEY_ADDITIONAL_INTERNATIONAL_TRADE_ROUTE" ) );
+			thisButton:SetToolTipString( Locale.ConvertTextKey( "TXT_KEY_ADDITIONAL_INTERNATIONAL_TRADE_ROUTE", tech.InternationalTradeRoutesChange ) );
 			buttonNum = buttonNum + 1;
 		end	
 	end
@@ -466,6 +466,17 @@ function AddSmallButtonsToTechButton( thisTechButtonInstance, tech, maxSmallButt
 			IconHookup( 0, textureSize, "GENERIC_FUNC_ATLAS", thisButton );
 			thisButton:SetHide( false );
 			thisButton:SetToolTipString( Locale.ConvertTextKey( "Allows infantry to pillage" ) );
+			buttonNum = buttonNum + 1;
+		end
+	end
+
+	if (tech.VpAcceleration > 0) then
+		local buttonName = "B"..tostring(buttonNum);
+		local thisButton = thisTechButtonInstance[buttonName];
+		if thisButton then
+			IconHookup( 0, textureSize, "GENERIC_FUNC_ATLAS", thisButton );
+			thisButton:SetHide( false );
+			thisButton:SetToolTipString( Locale.ConvertTextKey( "Accelerates victory progress [COLOR_WARNING_TEXT]for all players[ENDCOLOR] by [COLOR_POSITIVE_TEXT]" .. (0.1 * tech.VpAcceleration) .. "%[ENDCOLOR] upon first discovery" ) );
 			buttonNum = buttonNum + 1;
 		end
 	end

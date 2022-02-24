@@ -33,6 +33,7 @@ CvTechEntry::CvTechEntry(void):
 	m_iEmbarkedMoveChange(0),
 	m_iInternationalTradeRoutesChange(0),
 	m_iInfluenceSpreadModifier(0),
+	m_iVpAcceleration(0),
 	m_iExtraVotesPerDiplomat(0),
 	m_iGridX(0),
 	m_iGridY(0),
@@ -99,6 +100,7 @@ bool CvTechEntry::CacheResults(Database::Results& kResults, CvDatabaseUtility& k
 	m_iEmbarkedMoveChange = kResults.GetInt("EmbarkedMoveChange");
 	m_iInternationalTradeRoutesChange = kResults.GetInt("InternationalTradeRoutesChange");
 	m_iInfluenceSpreadModifier = kResults.GetInt("InfluenceSpreadModifier");
+	m_iVpAcceleration = kResults.GetInt("VpAcceleration");
 	m_iExtraVotesPerDiplomat = kResults.GetInt("ExtraVotesPerDiplomat");
 	m_bEndsGame = kResults.GetBool("EndsGame");
 	m_bAllowsEmbarking = kResults.GetBool("AllowsEmbarking");
@@ -295,6 +297,12 @@ int CvTechEntry::GetNumInternationalTradeRoutesChange (void) const
 int CvTechEntry::GetInfluenceSpreadModifier() const
 {
 	return m_iInfluenceSpreadModifier;
+}
+
+/// Boost to all vp output
+int CvTechEntry::GetVpAcceleration() const
+{
+	return m_iVpAcceleration;
 }
 
 /// Number of votes gained from each Diplomat

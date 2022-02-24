@@ -2659,13 +2659,16 @@ void showFactorIncrease(stringstream& s, const int modT100, int& valT100)
 	//else				  s << "[COLOR_GREY]";
 	s << std::fixed << std::setprecision(2) << factor << " x " << (oldValT100 / 100) << " = " << (valT100 / 100);
 }
-void addColoredValue(stringstream& s, const int modT100, const string description)
+void addColoredValue(stringstream& s, const int modT100, const string description, const bool includePercent = true)
 {
 	const int absModT100 = abs(modT100);
 	if (modT100 > 0)      s << "[COLOR_POSITIVE_TEXT]+" << absModT100;
 	else if (modT100 < 0) s << "[COLOR_NEGATIVE_TEXT]-" << absModT100;
 	else				  s << "[COLOR_GREY]+" << absModT100;
-	s << "% " << description << "[ENDCOLOR][NEWLINE]";
+
+	string perc = "";
+	if (includePercent) perc = "% ";
+	s << perc << description << "[ENDCOLOR][NEWLINE]";
 }
 
 
@@ -2820,6 +2823,16 @@ CvString CvPlayerCulture::GetTourismModifierWith_Tooltip(PlayerTypes eOtherPlaye
 		showFactorIncrease(stream, mod, tourismT100);
 		stream << "[NEWLINE]";
 	}
+	{ // adjust for previous progress
+		const int modT100 = GetInfluenceOn(eOtherPlayer) * ((float)GC.getGame().GetVpAdjustment() / 1000.f);
+		string color = "[COLOR_POSITIVE_TEXT]";
+		if (modT100 <= 0) color = "[COLOR_GREY]";
+		stream << color << "+" << modT100 << " net from VP Acceleration[ENDCOLOR]";
+		stream << "[NEWLINE]" << (modT100 / 100) << " + " << (tourismT100 / 100) << " = " << (tourismT100 + modT100) / 100;
+		tourismT100 += modT100;
+	}
+
+
 
 	szRtnValue += stream.str().c_str();
 
@@ -2956,6 +2969,11 @@ int CvPlayerCulture::GetTourismModifierWithT100(PlayerTypes eOtherPlayer, bool b
 		resultT100 = GC.toPercentT100(factor);
 	}
 
+	{ // vp catchup
+		const int mod = 100 * GetInfluenceOn(eOtherPlayer) * ((float)GC.getGame().GetVpAdjustment() / 1000.f);
+		resultT100 += mod;
+	}
+
 	return resultT100;
 }
 
@@ -3004,7 +3022,7 @@ int CvPlayerCulture::GetTourismModifierSharedReligion() const
 	return GC.getTOURISM_MODIFIER_SHARED_RELIGION() + m_pPlayer->GetPlayerPolicies()->GetNumericModifier(POLICYMOD_SHARED_RELIGION_TOURISM_MODIFIER);
 }
 
-int CvPlayerCulture::GetTourismModifierTechnologyT100(PlayerTypes eOtherPlayer) const
+int CvPlayerCulture::GetTourismModifierTechnologyT100(const PlayerTypes eOtherPlayer) const
 {
 	double changeFactor = 1.0; // default multiply by 1
 
@@ -3045,7 +3063,7 @@ int CvPlayerCulture::GetTourismModifierTechnologyT100(PlayerTypes eOtherPlayer) 
 		}
 	}
 
-	double internetFactor = GC.toFactor(m_pPlayer->GetInfluenceSpreadModifier());
+	double internetFactor = GC.toFactor(m_pPlayer->GetInfluenceSpreadModifier()) + (GC.getGame().GetVpAdjustment() / 1000.f);
 	internetFactor *= changeFactor;
 
 	return max(0, GC.toPercentT100(internetFactor));
