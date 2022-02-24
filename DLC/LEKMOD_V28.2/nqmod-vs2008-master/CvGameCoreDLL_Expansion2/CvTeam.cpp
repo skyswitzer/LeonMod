@@ -6821,6 +6821,18 @@ void CvTeam::processTech(TechTypes eTech, int iChange)
 	{
 		GC.getGame().SetEndGameTechResearched(true);
 	}
+
+	CvGame& game = GC.getGame();
+
+	const int techId = (int)eTech;
+	if (!game.GetIsTechDiscovered(techId) || pTech->GetType() == "TECH_FUTURE_TECH")
+	{
+		// first time discovery logic
+		game.ChangeVpAcceleration(pTech->GetVpAcceleration());
+
+		game.SetTechDiscovered(techId);
+	}
+
 }
 
 
