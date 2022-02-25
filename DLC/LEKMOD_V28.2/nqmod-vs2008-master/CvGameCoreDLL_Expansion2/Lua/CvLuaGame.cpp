@@ -2095,7 +2095,7 @@ int CvLuaGame::lGetAdditionalHelpBuilding(lua_State* L)
 			s << "[NEWLINE][NEWLINE]Every {WORLD_WONDER} will cost an additional [COLOR_NEGATIVE_TEXT]+";
 			s << costIncreasePerWonder;
 			s << "% [ENDCOLOR][ICON_PRODUCTION] for each World Wonder already in the City.";
-			info += s.str().c_str();
+			info += GetLocalizedText(s.str().c_str());
 		}
 	}
 

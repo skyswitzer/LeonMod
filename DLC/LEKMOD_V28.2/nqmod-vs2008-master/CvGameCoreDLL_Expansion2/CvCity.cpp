@@ -7374,6 +7374,9 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst, 
 			}
 		}
 
+
+		changeScientificInfluence(pBuildingInfo->GetScientificInfluencePerTurn());
+
 		YieldTypes eYield;
 		
 		changeMountainScienceYield(pBuildingInfo->GetMountainScienceYield()); // NQMP GJS - mountain science yield

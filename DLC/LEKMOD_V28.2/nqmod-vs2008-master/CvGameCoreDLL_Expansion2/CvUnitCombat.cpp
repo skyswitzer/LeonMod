@@ -1203,11 +1203,11 @@ void CvUnitCombat::ResolveRangedUnitVsCombat(const CvCombatInfo& kCombatInfo, ui
 					if(pCity->getOwner() == GC.getGame().getActivePlayer())
 					{
 						// active player city was bombarded by an enemy unit
-						stringstream message;
-						message << "Your city of " << pCity->getNameKey();
-						message << " was bombarded by an enemy " << pkAttacker->getNameKey();
-						message << " for " << iDamage << " damage!";
-						GC.messagePlayer(uiParentEventID, pCity->getOwner(), false, GC.getEVENT_MESSAGE_TIME(), message.str().c_str());
+						stringstream s;
+						s << "Your city of " << pCity->getNameKey();
+						s << " was bombarded by an enemy " << pkAttacker->getNameKey();
+						s << " for " << iDamage << " damage!";
+						GC.messagePlayer(uiParentEventID, pCity->getOwner(), false, GC.getEVENT_MESSAGE_TIME(), GetLocalizedText(s.str().c_str()));
 					}
 #ifdef DEL_RANGED_COUNTERATTACKS
 						if (GC.getGame().getActivePlayer() == pkAttacker->getOwner())

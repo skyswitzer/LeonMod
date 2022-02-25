@@ -5786,7 +5786,8 @@ void CvDiplomacyAI::DoMakePeaceWithMinors()
 				{
 					if(IsWantsPeaceWithPlayer(eLoopPlayer) && GET_TEAM(GetPlayer()->getTeam()).GetNumTurnsLockedIntoWar(GET_PLAYER(eLoopPlayer).getTeam()) == 0)	// Locked into war for a period of time? (coop war, war deal, etc.)
 					{
-						if(!GET_PLAYER(eLoopPlayer).GetMinorCivAI()->IsPeaceBlocked(GetPlayer()->getTeam()))
+						const CvMinorCivAI* pMinor = GET_PLAYER(eLoopPlayer).GetMinorCivAI();
+						if(!pMinor->IsPeaceBlocked(GetPlayer()->getTeam()) && !pMinor->IsPeaceBlocked(GetPlayer()->GetID()))
 						{
 							GET_TEAM(GetTeam()).makePeace(GET_PLAYER(eLoopPlayer).getTeam());
 

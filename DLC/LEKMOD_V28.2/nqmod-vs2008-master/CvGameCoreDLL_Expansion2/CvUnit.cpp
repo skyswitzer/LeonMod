@@ -20572,9 +20572,14 @@ bool CvUnit::canRangeStrikeAt(int iX, int iY, bool bNeedWar, bool bNoncombatAllo
 			}
 		}
 
+
+		const bool hasIndirectFire = !isHasPromotion((PromotionTypes)24); // indirect fire
+		const bool isAirUnit = getDomainType() == DOMAIN_AIR;
+		const bool isBombardCapable = isAirUnit || hasIndirectFire;
+
 		const bool isAtWar = atWar(getTeam(), pTargetPlot->getTeam());
 		// see if we can attack the improvement
-		if (isAtWar || pTargetPlot->getTeam() == NO_TEAM) // are at war with owner
+		if (isBombardCapable && (isAtWar || pTargetPlot->getTeam() == NO_TEAM)) // are at war with owner
 		{
 			if (pTargetPlot->CanBeRangePillaged())
 			{

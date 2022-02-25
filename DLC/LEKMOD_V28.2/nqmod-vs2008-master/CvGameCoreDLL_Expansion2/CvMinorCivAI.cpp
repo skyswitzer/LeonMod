@@ -2505,7 +2505,7 @@ int CvMinorCivAI::GetFirstPossibleTurnForGlobalQuests() const
 /// What is the maximum number of player-specific quests a player can have at one time?
 int CvMinorCivAI::GetMaxActivePersonalQuestsForPlayer() const
 {
-	return 2; // XML
+	return 1; // XML
 }
 
 /// What is the maximum number of global (multiple player) quests this minor can have active at one time?
@@ -8405,6 +8405,10 @@ void CvMinorCivAI::DoNowPeaceWithTeam(TeamTypes eTeam)
 	GC.GetEngineUserInterface()->setDirty(GameData_DIRTY_BIT, true);
 }
 
+bool CvMinorCivAI::IsPeaceBlocked(PlayerTypes ePlayer) const
+{
+	return IsInfluenceTooLowForPeace(ePlayer);
+}
 /// Will this AI allow peace with ePlayer?
 bool CvMinorCivAI::IsPeaceBlocked(TeamTypes eTeam) const
 {
@@ -8435,7 +8439,7 @@ bool CvMinorCivAI::IsPeaceBlocked(TeamTypes eTeam) const
 }
 
 #ifdef NQ_PEACE_BLOCKED_IF_INFLUENCE_TOO_LOW
-bool CvMinorCivAI::IsInfluenceTooLowForPeace(PlayerTypes ePlayer)
+bool CvMinorCivAI::IsInfluenceTooLowForPeace(PlayerTypes ePlayer) const
 {
 	return GetBaseFriendshipWithMajor(ePlayer) < -50;
 }
