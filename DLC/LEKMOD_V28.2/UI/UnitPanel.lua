@@ -1211,7 +1211,7 @@ function TipHandler( control )
 		
 		if (not bDisabled) then
 			strToolTip = strToolTip .. "[NEWLINE]----------------[NEWLINE]";
-			strToolTip = strToolTip .. "+" .. unit:GetDiscoverAmount() .. "[ICON_RESEARCH]";
+			strToolTip = strToolTip .. Locale.ConvertTextKey("+" .. unit:GetDiscoverAmount() .. "{SCIENTIFIC_INFLUENCE}");
 		end
 		
 	-- Great Engineer
