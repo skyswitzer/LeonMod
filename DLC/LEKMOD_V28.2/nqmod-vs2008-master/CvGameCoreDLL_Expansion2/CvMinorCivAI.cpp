@@ -416,7 +416,7 @@ string CvMinorCivQuest::GetStatusMessage(const CvPlayer* pMinor, const CvPlayer*
 		}
 		if (messageType == MessageType::STATUS_DESC)
 		{
-			s << "Make " << religionName << " the majority belief in our city so we may understand this world. We'll give you: ";
+			s << "Make " << religionName << " the majority belief in our city so we may understand. We'll give you: ";
 			s << compileRewards(rewards);
 			s << txtTurnsRemain(turnsRemaining);
 		}

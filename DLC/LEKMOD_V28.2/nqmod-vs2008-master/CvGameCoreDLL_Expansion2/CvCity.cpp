@@ -14482,7 +14482,7 @@ bool CvCity::CreateBuilding(BuildingTypes eBuildingType)
 //	--------------------------------------------------------------------------------
 bool CvCity::CreateProject(ProjectTypes eProjectType)
 {
-	const int scientificInfluenceForSpaceShip = 40;
+	const int scientificInfluenceForSpaceShip = 30;
 
 	VALIDATE_OBJECT
 

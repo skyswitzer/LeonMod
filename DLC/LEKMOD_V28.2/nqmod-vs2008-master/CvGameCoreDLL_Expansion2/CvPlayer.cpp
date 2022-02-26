@@ -5830,7 +5830,7 @@ int CvPlayer::GetDiplomaticInfluenceNeeded() const
 	const float effectiveNumCivs = (numHumanPlayers + numHumanPlayers + numTotalPlayers) / 3.0;
 
 	const float toWinBoost = 1.10;
-	const float expectedTurnFraction = 0.39;
+	const float expectedTurnFraction = 0.50;
 	const float totalGameTurns = GC.getGamePointer()->getMaxTurns();
 	const float expectedAllies = (numCityStates / effectiveNumCivs) * toWinBoost; // fair share + some percentage
 	const float influencePerTurnPerAlly = 10;
