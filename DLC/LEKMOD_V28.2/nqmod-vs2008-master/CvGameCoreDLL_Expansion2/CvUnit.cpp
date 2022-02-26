@@ -11042,7 +11042,7 @@ void CvUnit::DoTestBarbarianThreatToMinorsWithThisUnitsDeath(PlayerTypes eKillin
 		if(GET_PLAYER(eMinor).isAlive())
 		{
 			if(IsBarbarianUnitThreateningMinor(eMinor))
-				GET_PLAYER(eMinor).GetMinorCivAI()->DoThreateningBarbKilled(eKillingPlayer, getX(), getY());
+				GET_PLAYER(eMinor).GetMinorCivAI()->DoThreateningBarbKilled(eKillingPlayer, getX(), getY(), false);
 		}
 	}
 }
@@ -15438,7 +15438,7 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 						pNewPlot->SetPlayerThatClearedBarbCampHere(getOwner());
 
 						// give extra city state gold
-						const int cityEncampmentDistance = 5;
+						const int cityEncampmentDistance = 7;
 						float extraGoldPercent = 0;
 						if (getOwner() < MAX_MAJOR_CIVS)
 						{
@@ -15461,6 +15461,7 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 								if (cityEncampmentDistance >= plotDistance(capital->getX(), capital->getY(), pNewPlot->getX(), pNewPlot->getY()))
 								{
 									extraGoldPercent += 0.5f;
+									pMinorCivAI->DoThreateningBarbKilled(getOwner(), pNewPlot->getX(), pNewPlot->getY(), true);
 								}
 							}
 

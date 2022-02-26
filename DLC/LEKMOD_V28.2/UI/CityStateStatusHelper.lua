@@ -598,7 +598,8 @@ function GetGreatPersonQuestIconText(iUnitType)
 	return sIconText;
 end
 
-local friendshipDoubleBarb = GameDefines["FRIENDSHIP_PER_BARB_KILLED"];
+local friendshipPerBarb = GameDefines["FRIENDSHIP_PER_BARB_KILLED"];
+local friendshipCampMult = 5;
 
 function GetActiveQuestToolTip(iMajor, iMinor)
 	local iMajor = Game.GetActivePlayer();
@@ -632,7 +633,7 @@ function GetActiveQuestToolTip(iMajor, iMinor)
 			sToolTipText = sToolTipText .. "[NEWLINE]";
 		end
 		sToolTipText = sToolTipText .. "[ICON_BULLET]";
-		sToolTipText = sToolTipText .. Locale.Lookup("TXT_KEY_CITY_STATE_QUEST_INVADING_BARBS_FORMAL", friendshipDoubleBarb);
+		sToolTipText = sToolTipText .. Locale.Lookup("TXT_KEY_CITY_STATE_QUEST_INVADING_BARBS_FORMAL", friendshipPerBarb, friendshipPerBarb * friendshipCampMult);
 	end
 	
 	-- Proxy War event

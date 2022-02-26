@@ -306,7 +306,7 @@ public:
 	void DoTestThreatenedAnnouncementForPlayer(PlayerTypes ePlayer);
 	bool IsPlayerCloseEnoughForThreatenedAnnouncement(PlayerTypes eMajor);
 	
-	void DoThreateningBarbKilled(PlayerTypes eKillingPlayer, int iX, int iY);
+	void DoThreateningBarbKilled(PlayerTypes eKillingPlayer, int iX, int iY, const bool isCamp);
 
 	// ******************************
 	// Proxy War event

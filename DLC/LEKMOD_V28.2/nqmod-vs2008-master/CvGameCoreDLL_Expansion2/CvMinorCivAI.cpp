@@ -2285,16 +2285,16 @@ bool CvMinorCivAI::IsPlayerCloseEnoughForThreatenedAnnouncement(PlayerTypes eMaj
 
 /// Player killed a threatening barb, so reward him!
 /// NOTE: Player can get credit even if we haven't sent him a notification (ex. is only one barb, player is far away)
-void CvMinorCivAI::DoThreateningBarbKilled(PlayerTypes eKillingPlayer, int iX, int iY)
+void CvMinorCivAI::DoThreateningBarbKilled(PlayerTypes eKillingPlayer, int iX, int iY, const bool isCamp)
 {
 	CvAssertMsg(eKillingPlayer >= 0, "eMajor is expected to be non-negative (invalid Index)");
 	CvAssertMsg(eKillingPlayer < MAX_MAJOR_CIVS, "eMajor is expected to be within maximum bounds (invalid Index)");
 
 
 	int amountFriendship = GC.getFRIENDSHIP_PER_BARB_KILLED() * 100;
-	if (IsThreateningBarbariansEventActiveForPlayer(eKillingPlayer))
+	if (isCamp)
 	{
-		amountFriendship *= 2; // double friendship if extra threatening
+		amountFriendship *= 5;
 	}
 
 	ChangeFriendshipWithMajorTimes100Instant(eKillingPlayer, amountFriendship);
