@@ -2453,7 +2453,7 @@ uint CvGlobals::messageUnit(
 	);
 
 	// add to log
-	messagePlayer(ePlayer, strString);
+	logSpecificMessage(ePlayer, strString);
 	return value;
 }
 uint CvGlobals::messagePlot(
@@ -2469,7 +2469,7 @@ uint CvGlobals::messagePlot(
 	);
 
 	// add to log
-	messagePlayer(ePlayer, strString);
+	logSpecificMessage(ePlayer, strString);
 	return value;
 }
 uint CvGlobals::messageCity(
@@ -2485,8 +2485,12 @@ uint CvGlobals::messageCity(
 	);
 
 	// add to log
-	messagePlayer(ePlayer, strString);
+	logSpecificMessage(ePlayer, strString);
 	return value;
+}
+void CvGlobals::messagePlayer(const PlayerTypes ePlayer, const char* strString)
+{
+	messagePlayer(0, ePlayer, false, GC.getEVENT_MESSAGE_TIME(), strString);
 }
 void CvGlobals::messagePlayer(
 	uint uiParentEvent, PlayerTypes ePlayer, bool bForce, 
@@ -2504,9 +2508,9 @@ void CvGlobals::messagePlayer(
 	);
 
 	// add to log
-	messagePlayer(ePlayer, strString);
+	logSpecificMessage(ePlayer, strString);
 }
-void CvGlobals::messagePlayer(PlayerTypes ePlayer, const char* strString)
+void CvGlobals::logSpecificMessage(PlayerTypes ePlayer, const char* strString)
 {
 	// add to log
 	if (ePlayer != NO_PLAYER)
@@ -7113,35 +7117,35 @@ const CvGlobals::InfosMap& CvGlobals::GetInfoTypes() const
 	return m_infosMap;
 }
 //------------------------------------------------------------------------------
-int CvGlobals::getInfoTypeForString(const char* szType, bool hideAssert) const
+int CvGlobals::getInfoTypeForString(const char* szType, const bool hideAssert, const int defaultValue) const
 {
-	if(!hideAssert)
+	if (!hideAssert)
 	{
 		CvAssertMsg(szType, "null info type string");
 	}
 
-	if(szType == NULL)
-		return -1;
+	if (szType == NULL)
+		return defaultValue;
 
 
 	InfosMap::const_iterator it = m_infosMap.find(szType);
-	if(it!=m_infosMap.end())
+	if (it != m_infosMap.end())
 	{
 		return it->second;
 	}
 
-	if(!hideAssert)
+	if (!hideAssert)
 	{
 		//
 		// *** EFB: Need to restore this logging??? ***
 		//
 		CvString strError;
 		strError.Format("Info type %s not found.", szType);
-		CvAssertMsg(strcmp(szType, "NONE")==0 || strcmp(szType, "")==0, strError.c_str());
-//		gDLL->logMsg("xml.log", szError);
+		CvAssertMsg(strcmp(szType, "NONE") == 0 || strcmp(szType, "") == 0, strError.c_str());
+		//		gDLL->logMsg("xml.log", szError);
 	}
 
-	return -1;
+	return defaultValue;
 }
 
 void CvGlobals::setInfoTypeFromString(const char* szType, int idx)

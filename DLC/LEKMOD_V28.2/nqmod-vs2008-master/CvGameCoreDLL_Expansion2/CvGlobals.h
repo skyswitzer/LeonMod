@@ -244,6 +244,7 @@ public:
 	// online: 0.5,  normal: 1,  etc
 	float adjustForSpeed(YieldTypes type);
 	// puts a message in the players log and on the screen
+	void messagePlayer(const PlayerTypes ePlayer, const char* strString);
 	void messagePlayer(
 		uint uiParentEvent, PlayerTypes ePlayer, bool bForce, int iLength, const char* strString, LPCTSTR pszSound = NULL,
 		InterfaceMessageTypes eType = MESSAGE_TYPE_INFO, LPCSTR pszIcon = NULL, ColorTypes eFlashColor = NO_COLOR,
@@ -265,7 +266,7 @@ public:
 		int iFlashX = -1, int iFlashY = -1, bool bShowOffScreenArrows = false, bool bShowOnScreenArrows = false
 	);
 	// adds only to the log
-	void messagePlayer(PlayerTypes ePlayer, const char* strString);
+	void logSpecificMessage(PlayerTypes ePlayer, const char* strString);
 
 	CvRandom& getASyncRand();
 	CvTwoLayerPathFinder& getPathFinder();
@@ -347,7 +348,9 @@ public:
 	const Database::Connection* GetGameDatabase() const;
 
 	const InfosMap& GetInfoTypes() const;
-	int getInfoTypeForString(const char* szType, bool hideAssert = false) const;			// returns the infos index, use this when searching for an info type string
+	// converts "TECH_PHILOSOPHY" into something like 16
+	// for loading STRINGS
+	int getInfoTypeForString(const char* szType, const bool hideAssert = false, const int defaultValue = -1) const;			// returns the infos index, use this when searching for an info type string
 	int getInfoTypeForHash(uint uiHash, bool hideAssert = false) const;			// returns the infos index, use this when searching for an info type string
 	void setInfoTypeFromString(const char* szType, int idx);
 	void infoTypeFromStringReset();

@@ -459,7 +459,7 @@ public:
 	bool isHuman() const;
 
 	void DoTestBarbarianThreatToMinorsWithThisUnitsDeath(PlayerTypes eKillingPlayer);
-	bool IsBarbarianUnitThreateningMinor(PlayerTypes eMinor);
+	bool IsBarbarianUnitThreateningMinor(const PlayerTypes eMinor);
 
 	int visibilityRange() const;
 	bool canChangeVisibility() const;

@@ -798,6 +798,7 @@ local iGoldGiftLarge = GameDefines["MINOR_GOLD_GIFT_LARGE"];
 local iGoldGiftMedium = GameDefines["MINOR_GOLD_GIFT_MEDIUM"];
 local iGoldGiftSmall = GameDefines["MINOR_GOLD_GIFT_SMALL"];
 local maxFriendshipFromGold = GameDefines["MINOR_CIV_MAX_GOLD_FRIENDSHIP"];
+local minGoldGift = 25;
 
 function PopulateGiftChoices()
 	
@@ -832,12 +833,10 @@ function PopulateGiftChoices()
 	if (bRefusesBribes) then
 		buttonText = "[COLOR_WARNING_TEXT]" .. Locale.ConvertTextKey("TXT_KEY_POPUP_MINOR_REFUSES_BRIBES") .. "[ENDCOLOR]";
 		Controls.SmallGiftAnim:SetHide(true);
-	elseif (iNumGoldPlayerHas < iGold) then
-		 buttonText = "[COLOR_WARNING_TEXT]" .. "You need at least " .. iGold .. " [ICON_GOLD] Gold.[ENDCOLOR]";
+	elseif (iNumGoldPlayerHas < minGoldGift) then
+		 buttonText = "[COLOR_WARNING_TEXT]" .. "You need at least " .. minGoldGift .. " [ICON_GOLD] Gold.[ENDCOLOR]";
 		Controls.SmallGiftAnim:SetHide(true);
-	elseif (iFriendshipAmount < 1) then
-	--if (iNumGoldPlayerHas < iGold) then
-	-- end NQ_NUM_TURNS_BEFORE_MINOR_ALLIES_REFUSE_BRIBES_FROM_TRAIT
+	elseif (iFriendshipAmount >= maxFriendshipFromGold or iGold == 0) then
 		 buttonText = "[COLOR_WARNING_TEXT]" .. "You cannot give [ICON_GOLD] Gold gifts beyond " .. maxFriendshipFromGold .. " [ICON_INFLUENCE] " .. " Influence." .. "[ENDCOLOR]";
 		Controls.SmallGiftAnim:SetHide(true);
 	else

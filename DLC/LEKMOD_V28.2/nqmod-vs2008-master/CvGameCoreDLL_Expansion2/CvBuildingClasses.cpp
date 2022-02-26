@@ -497,8 +497,7 @@ bool CvBuildingEntry::CacheResults(Database::Results& kResults, CvDatabaseUtilit
 	szTextVal = kResults.GetText("PolicyBranchTypeDisable");
 	m_iPolicyBranchTypeDisable = GC.getInfoTypeForString(szTextVal, true);
 
-	szTextVal = kResults.GetText("ScientificInfluence");
-	m_iScientificInfluence = GC.getInfoTypeForString(szTextVal, true);
+	m_iScientificInfluence = kResults.GetInt("ScientificInfluence");
 
 	szTextVal = kResults.GetText("SpecialistType");
 	m_iSpecialistType = GC.getInfoTypeForString(szTextVal, true);

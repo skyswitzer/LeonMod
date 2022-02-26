@@ -2290,19 +2290,24 @@ void CvMinorCivAI::DoThreateningBarbKilled(PlayerTypes eKillingPlayer, int iX, i
 	CvAssertMsg(eKillingPlayer >= 0, "eMajor is expected to be non-negative (invalid Index)");
 	CvAssertMsg(eKillingPlayer < MAX_MAJOR_CIVS, "eMajor is expected to be within maximum bounds (invalid Index)");
 
+
+	int amountFriendship = GC.getFRIENDSHIP_PER_BARB_KILLED();
 	if (IsThreateningBarbariansEventActiveForPlayer(eKillingPlayer))
 	{
-		ChangeFriendshipWithMajor(eKillingPlayer, /*12*/ GC.getFRIENDSHIP_PER_BARB_KILLED());
-
-		ChangeAngerFreeIntrusionCounter(eKillingPlayer, 5);
-
-		Localization::String strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_MINOR_BARB_KILLED");
-		strMessage << GetPlayer()->getNameKey();
-		Localization::String strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SM_MINOR_BARB_KILLED");
-		strSummary << GetPlayer()->getNameKey();
-
-		AddNotification(strMessage.toUTF8(), strSummary.toUTF8(), eKillingPlayer, iX, iY);
+		amountFriendship *= 2; // double friendship if extra threatening
 	}
+
+	ChangeFriendshipWithMajor(eKillingPlayer, amountFriendship);
+
+	ChangeAngerFreeIntrusionCounter(eKillingPlayer, 5);
+
+	Localization::String strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_MINOR_BARB_KILLED");
+	strMessage << GetPlayer()->getNameKey();
+	strMessage << amountFriendship;
+	Localization::String strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SM_MINOR_BARB_KILLED");
+	strSummary << GetPlayer()->getNameKey();
+
+	AddNotification(strMessage.toUTF8(), strSummary.toUTF8(), eKillingPlayer, iX, iY);
 }
 
 
@@ -4326,7 +4331,10 @@ int CvMinorCivAI::GetFriendshipChangePerTurnTimes100(const PlayerTypes ePlayer)
 		// no military person
 		else
 		{
-
+			changeT100 = -(baseMilitaryInfluence * 100) / 2;
+			changeT100 *= GC.getGame().getGameSpeedInfo().getGoldGiftMod();
+			changeT100 /= 100; // Mod everything by game speed
+			anchor = militaryAnchorLowT100;
 		}
 		newPredictedT100 = newCappedChange(newPredictedT100, newPredictedT100 + changeT100, anchor);
 	}

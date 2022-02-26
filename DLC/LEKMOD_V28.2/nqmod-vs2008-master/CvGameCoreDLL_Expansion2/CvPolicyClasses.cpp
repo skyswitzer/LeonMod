@@ -4742,46 +4742,46 @@ bool CvPlayerPolicies::IsTimeToChooseIdeology() const
 	//}
 
 	// have adopted enough policies?
-	const int numPoliciesForIdeology = 18;
+	const int numPoliciesForIdeology = 20;
 	if (GetNumPoliciesOwned() > numPoliciesForIdeology)
 	{
 		return true;
 	}
-	// enough buildings? (3 factories)
-	else
-	{
-		CvBuildingXMLEntries* pkGameBuildings = GC.GetGameBuildings();
-		CvCivilizationInfo* pkInfo = GC.getCivilizationInfo(m_pPlayer->getCivilizationType());
-		if(pkInfo)
-		{
-			// Find a building that triggers an ideology
-			// Loop through all building classes
-#ifdef AUI_WARNING_FIXES
-			for (uint iI = 0; iI < GC.getNumBuildingClassInfos(); iI++)
-#else
-			for(int iI = 0; iI < GC.getNumBuildingClassInfos(); iI++)
-#endif
-			{
-				const BuildingTypes eBuilding = static_cast<BuildingTypes>(pkInfo->getCivilizationBuildings(iI));
-				CvBuildingEntry* pkBuildingInfo = NULL;
-				if(eBuilding != -1)
-				{
-					pkBuildingInfo = pkGameBuildings->GetEntry(eBuilding);
-					if (pkBuildingInfo)
-					{
-						int iIdeologyTriggerCount = pkBuildingInfo->GetXBuiltTriggersIdeologyChoice();
-						if (iIdeologyTriggerCount > 0)
-						{
-							if (m_pPlayer->getBuildingClassCount((BuildingClassTypes)iI) >= iIdeologyTriggerCount)
-							{
-								return true;
-							}
-						}
-					}
-				}
-			}
-		}
-	}
+//	// enough buildings? (3 factories)
+//	else
+//	{
+//		CvBuildingXMLEntries* pkGameBuildings = GC.GetGameBuildings();
+//		CvCivilizationInfo* pkInfo = GC.getCivilizationInfo(m_pPlayer->getCivilizationType());
+//		if(pkInfo)
+//		{
+//			// Find a building that triggers an ideology
+//			// Loop through all building classes
+//#ifdef AUI_WARNING_FIXES
+//			for (uint iI = 0; iI < GC.getNumBuildingClassInfos(); iI++)
+//#else
+//			for(int iI = 0; iI < GC.getNumBuildingClassInfos(); iI++)
+//#endif
+//			{
+//				const BuildingTypes eBuilding = static_cast<BuildingTypes>(pkInfo->getCivilizationBuildings(iI));
+//				CvBuildingEntry* pkBuildingInfo = NULL;
+//				if(eBuilding != -1)
+//				{
+//					pkBuildingInfo = pkGameBuildings->GetEntry(eBuilding);
+//					if (pkBuildingInfo)
+//					{
+//						int iIdeologyTriggerCount = pkBuildingInfo->GetXBuiltTriggersIdeologyChoice();
+//						if (iIdeologyTriggerCount > 0)
+//						{
+//							if (m_pPlayer->getBuildingClassCount((BuildingClassTypes)iI) >= iIdeologyTriggerCount)
+//							{
+//								return true;
+//							}
+//						}
+//					}
+//				}
+//			}
+//		}
+//	}
 
 	return false;
 }

@@ -16,6 +16,7 @@
 
 // Include this after all other headers.
 #include "LintFree.h"
+#include "CvGameCoreUtils.h"
 
 #define MAX_NOTIFICATIONS 250
 
@@ -421,7 +422,7 @@ int CvNotifications::Add(NotificationTypes eNotificationType, const char* strMes
 	newNotification.Clear();
 	newNotification.m_ePlayerID = m_ePlayer;
 	newNotification.m_eNotificationType = eNotificationType;
-	newNotification.m_strMessage = strMessage;
+	newNotification.m_strMessage = GetLocalizedText(strMessage);
 	newNotification.m_strSummary = strSummary;
 	newNotification.m_iX = iX;
 	newNotification.m_iY = iY;

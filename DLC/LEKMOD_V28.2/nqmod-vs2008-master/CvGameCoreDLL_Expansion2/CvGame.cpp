@@ -10251,7 +10251,7 @@ void CvGame::addReplayMessage(ReplayMessageTypes eType, PlayerTypes ePlayer, con
 	m_listReplayMessages.push_back(message);
 
 	// add to log
-	GC.messagePlayer(ePlayer, pszText);
+	GC.logSpecificMessage(ePlayer, pszText);
 }
 
 //	--------------------------------------------------------------------------------

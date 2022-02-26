@@ -961,14 +961,14 @@ void DoRangePillage(const CvUnit* attacker, CvPlot* plot)
 	s << name;
 	s << ".";
 	GC.messagePlayer(attacker->getOwner(), s.str().c_str());
-
+	
 	if (owner != NO_PLAYER)
 	{
 		stringstream s;
 		s << "Your ";
 		s << name;
-		s << " was destroyed by enemy bombardment.";
-		GC.messagePlayer(owner, s.str().c_str());
+		s << " was destroyed by an enemy bombardment.";
+		GC.messagePlayer(attacker->getOwner(), s.str().c_str());
 	}
 }
 

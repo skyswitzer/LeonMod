@@ -872,8 +872,8 @@ void CvUnit::initWithNameOffset(int iID, UnitTypes eUnit, int iNameOffset, UnitA
 	if(bSetupGraphical)
 		setupGraphical();
 
-	// always grant +25 friendly lands modifier
-	changeFriendlyLandsModifier(+25);
+	// always grant some friendly lands modifier
+	changeFriendlyLandsModifier(+15);
 }
 
 //	--------------------------------------------------------------------------------
@@ -7619,7 +7619,7 @@ bool CvUnit::pillage()
 						GC.messageUnit(0, GetIDInfo(), getOwner(), true, GC.getEVENT_MESSAGE_TIME(), strBuffer/*, "AS2D_PILLAGE", MESSAGE_TYPE_INFO, m_pUnitInfo->GetButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX(), pPlot->getY()*/);
 
 						// add to log
-						GC.messagePlayer(pPlot->getOwner(), strBuffer);
+						GC.logSpecificMessage(pPlot->getOwner(), strBuffer);
 					}
 
 					if(pPlot->isOwned() && pPlot->getOwner() == GC.getGame().getActivePlayer())
@@ -7628,7 +7628,7 @@ bool CvUnit::pillage()
 						GC.messagePlot(0, pPlot->GetPlotIndex(), pPlot->getOwner(), false, GC.getEVENT_MESSAGE_TIME(), strBuffer/*, "AS2D_PILLAGED", MESSAGE_TYPE_INFO, m_pUnitInfo->GetButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX(), pPlot->getY(), true, true*/);
 
 						// add to log
-						GC.messagePlayer(pPlot->getOwner(), strBuffer);
+						GC.logSpecificMessage(pPlot->getOwner(), strBuffer);
 					}
 				}
 			}
@@ -11049,9 +11049,10 @@ void CvUnit::DoTestBarbarianThreatToMinorsWithThisUnitsDeath(PlayerTypes eKillin
 
 //	--------------------------------------------------------------------------------
 /// Is this a Barbarian Unit threatening a nearby Minor?
-bool CvUnit::IsBarbarianUnitThreateningMinor(PlayerTypes eMinor)
+bool CvUnit::IsBarbarianUnitThreateningMinor(const PlayerTypes eMinor)
 {
 	VALIDATE_OBJECT
+	CvPlayer& minor = GET_PLAYER(eMinor);
 
 	// Must be a barb unit
 	if(!isBarbarian())
@@ -11060,6 +11061,17 @@ bool CvUnit::IsBarbarianUnitThreateningMinor(PlayerTypes eMinor)
 	// Plot owned by this minor?
 	if(plot()->getOwner() == eMinor)
 		return true;
+
+	// range
+	const int iRange = 4;
+	int iLoop = 0;
+	for (CvCity* pLoopCity = minor.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = minor.nextCity(&iLoop))
+	{
+		const CvPlot* cityPlot = pLoopCity->plot();
+		const int distance = hexDistance(plot()->getX() - cityPlot->getX(), plot()->getY() - cityPlot->getY());
+		if (distance <= iRange)
+			return true;
+	}
 
 	// Look at adjacent plots
 	CvPlot* pLoopPlot;

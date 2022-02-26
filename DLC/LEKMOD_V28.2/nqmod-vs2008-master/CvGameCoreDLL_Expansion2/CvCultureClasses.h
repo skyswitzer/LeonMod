@@ -271,7 +271,7 @@ public:
 	// Net tourism with other
 	int GetNetTourismWith(PlayerTypes eOtherPlayer) const;
 	// tourism mod with other
-	CvString GetTourismModifierWith_Tooltip(PlayerTypes eOtherPlayer) const;
+	CvString GetTourismModifierWith_Tooltip(const PlayerTypes eOtherPlayer) const;
 	// tourism mod (eg 50.0) with other
 	int GetTourismModifierWithT100(PlayerTypes eOtherPlayer,
 		bool bIgnoreReligion = false,
@@ -281,17 +281,19 @@ public:
 		bool bIgnoreIdeologies = false) const;
 
 	// golden age boost
-	double GetTourismModifierGoldenAgeT100(PlayerTypes eOtherPlayer) const;
+	double GetTourismModifierTradeRoutesT100(const PlayerTypes eOtherPlayer) const;
+	// golden age boost
+	double GetTourismModifierGoldenAgeT100(const PlayerTypes eOtherPlayer) const;
 	// happiness boost
-	double GetTourismModifierHappinessT100(PlayerTypes eOtherPlayer) const;
+	double GetTourismModifierHappinessT100(const PlayerTypes eOtherPlayer) const;
 	// adjust for number of cities
-	float GetTourismModifierCityCount(PlayerTypes eOtherPlayer) const;
+	float GetTourismModifierCityCount(const PlayerTypes eOtherPlayer) const;
 	// adjust for number of cities
-	int GetTourismModifierCityCountT100(PlayerTypes eOtherPlayer) const;
+	int GetTourismModifierCityCountT100(const PlayerTypes eOtherPlayer) const;
 	// modifier IF we have a shared religion
 	int GetTourismModifierSharedReligion() const;
 	// modifier for tech
-	int GetTourismModifierTechnologyT100(PlayerTypes eOtherPlayer) const;
+	int GetTourismModifierTechnologyT100(const PlayerTypes eOtherPlayer) const;
 
 
 	// tourism BEFORE "Other-Civ" specific modifiers but after OUR modifiers

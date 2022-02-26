@@ -1023,7 +1023,7 @@ function CultureTipHandler( control )
 		end
 	end
 	
-	strText = strText .. "[NEWLINE]After adopting your [COLOR_CYAN]19th Policy[ENDCOLOR] or building [COLOR_CYAN]3 Factories[ENDCOLOR], you will be able to select an [COLOR_CYAN]Ideology[ENDCOLOR].";
+	strText = strText .. Locale.ConvertTextKey("[NEWLINE][NEWLINE]{IDEOLOGY_PREREQ}");
 
 	tipControlTable.TooltipLabel:SetText( strText );
 	tipControlTable.TopPanelMouseover:SetHide(false);

@@ -21,11 +21,11 @@
 #include "LintFree.h"
 
 // how many policies are needed before tourism starts happening
-const int numPolicyThreshold = 7;
+const int numPolicyThreshold = 0;
 // each policy will increase tourism by this percent
-const int percentagePerPolicy = 4;
+const int percentagePerPolicy = 1;
 // we will stop increasing due to policies at this value
-const int maxPolicyTourismPercentage = 40;
+const int maxPolicyTourismPercentage = 100;
 // how many more cities does the capital count for when calculating tourism adjustment
 const int capitalCityAdditionalFactor = 6;
 
@@ -2674,7 +2674,7 @@ void addColoredValue(stringstream& s, const int modT100, const string descriptio
 
 
 /// Tooltip for GetTourismModifierWith()
-CvString CvPlayerCulture::GetTourismModifierWith_Tooltip(PlayerTypes eOtherPlayer) const
+CvString CvPlayerCulture::GetTourismModifierWith_Tooltip(const PlayerTypes eOtherPlayer) const
 {
 	CvString szRtnValue = "";
 	CvPlayer& kPlayer = GET_PLAYER(eOtherPlayer);
@@ -2707,6 +2707,12 @@ CvString CvPlayerCulture::GetTourismModifierWith_Tooltip(PlayerTypes eOtherPlaye
 	stringstream stream;
 	{
 		int totalLinearModT100 = 0;
+
+		{ // Trade route bonus
+			int mod = GetTourismModifierTradeRoutesT100(eOtherPlayer);
+			addColoredValue(stream, mod, "from Trade Routes"); // TXT_KEY_CO_PLAYER_TOURISM_TRADE_ROUTE
+			totalLinearModT100 += mod;
+		}
 		
 		{ // shared religion
 			ReligionTypes ePlayerReligion = m_pPlayer->GetReligions()->GetReligionInMostCities();
@@ -2867,6 +2873,12 @@ int CvPlayerCulture::GetTourismModifierWithT100(PlayerTypes eOtherPlayer, bool b
 	//}
 
 	// Shared religion
+	if (!bIgnoreTrade)
+	{
+		iMultiplier += GetTourismModifierTradeRoutesT100(eOtherPlayer);
+	}
+
+	// Shared religion
 	if (!bIgnoreReligion)
 	{
 		ReligionTypes ePlayerReligion = kCityPlayer.GetReligions()->GetReligionInMostCities();
@@ -2977,7 +2989,20 @@ int CvPlayerCulture::GetTourismModifierWithT100(PlayerTypes eOtherPlayer, bool b
 	return resultT100;
 }
 
-double CvPlayerCulture::GetTourismModifierGoldenAgeT100(PlayerTypes eOtherPlayer) const
+double CvPlayerCulture::GetTourismModifierTradeRoutesT100(const PlayerTypes eOtherPlayer) const
+{
+	double modT100 = 0;
+
+	{
+		const int modPer = GC.getTOURISM_MODIFIER_TRADE_ROUTE();
+		const int numTradeRoutes = GC.getGame().GetGameTrade()->CountNumPlayerConnectionsToPlayer(m_pPlayer->GetID(), eOtherPlayer);
+		modT100 += modPer * numTradeRoutes;
+	}
+
+	return modT100;
+}
+
+double CvPlayerCulture::GetTourismModifierGoldenAgeT100(const PlayerTypes eOtherPlayer) const
 {
 	double modT100 = 0;
 
@@ -2990,7 +3015,7 @@ double CvPlayerCulture::GetTourismModifierGoldenAgeT100(PlayerTypes eOtherPlayer
 	return modT100;
 }
 
-double CvPlayerCulture::GetTourismModifierHappinessT100(PlayerTypes eOtherPlayer) const
+double CvPlayerCulture::GetTourismModifierHappinessT100(const PlayerTypes eOtherPlayer) const
 {
 	double modT100 = 0;
 
@@ -3004,7 +3029,7 @@ double CvPlayerCulture::GetTourismModifierHappinessT100(PlayerTypes eOtherPlayer
 	return modT100;
 }
 
-float CvPlayerCulture::GetTourismModifierCityCount(PlayerTypes eOtherPlayer) const
+float CvPlayerCulture::GetTourismModifierCityCount(const PlayerTypes eOtherPlayer) const
 {
 	// Mod for City Count
 	const int themCities = GET_PLAYER(eOtherPlayer).GetMaxEffectiveCities(true);
@@ -3012,7 +3037,7 @@ float CvPlayerCulture::GetTourismModifierCityCount(PlayerTypes eOtherPlayer) con
 	return (float)(themCities + capitalCityAdditionalFactor) / (float)(usCities + capitalCityAdditionalFactor);
 }
 
-int CvPlayerCulture::GetTourismModifierCityCountT100(PlayerTypes eOtherPlayer) const
+int CvPlayerCulture::GetTourismModifierCityCountT100(const PlayerTypes eOtherPlayer) const
 {
 	return GC.toPercentT100(GetTourismModifierCityCount(eOtherPlayer));
 }
@@ -3088,13 +3113,9 @@ CvString CvPlayerCulture::GetOurTourism_Tooltip() const
 
 	{	// EXPLAIN tourism from culture
 		stringstream s;
-		s << "Each policy after your [COLOR_CYAN]";
-		s << numPolicyThreshold;
-		s << "th[ENDCOLOR] one will cause [COLOR_CYAN]+";
+		s << "Each policy will cause +";
 		s << percentagePerPolicy;
-		s << "%[ENDCOLOR] of city [ICON_CULTURE] Culture to be added to {TXT_KEY_CULTURAL_INFLUENCE} up to a max of [COLOR_CYAN]+";
-		s << maxPolicyTourismPercentage;
-		s << "%[ENDCOLOR].[NEWLINE]";
+		s << "% of city [ICON_CULTURE] Culture to be added to {TXT_KEY_CULTURAL_INFLUENCE}";
 		tooltip += s.str().c_str();
 	}
 
@@ -3120,8 +3141,10 @@ CvString CvPlayerCulture::GetOurTourism_Tooltip() const
 
 	{	// tourism from cities
 		stringstream s;
-		s << "[NEWLINE][NEWLINE]Having a stronger {TXT_KEY_CULTURAL_INFLUENCE} percentage than another ";
-		s << "civilization can grant up to [COLOR_POSITIVE_TEXT]+33%[ENDCOLOR] [ICON_STRENGTH] Strength against that civilization's units.";
+		s << "[NEWLINE][NEWLINE]Having a stronger {TXT_KEY_CULTURAL_INFLUENCE} over another ";
+		s << "civilization can grant up to [COLOR_POSITIVE_TEXT]+";
+		s << abs(GC.getTOURISM_COMBAT_MAX());
+		s << "%[ENDCOLOR] [ICON_STRENGTH] Strength against that civilization's units.";
 		tooltip += s.str().c_str();
 	}
 

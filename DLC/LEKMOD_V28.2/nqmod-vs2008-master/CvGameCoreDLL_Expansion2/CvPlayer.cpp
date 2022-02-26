@@ -5838,7 +5838,7 @@ int CvPlayer::GetDiplomaticInfluenceNeeded() const
 	int influenceNeeded = influencePerTurnPerAlly * expectedAllies * expectedTurnFraction * totalGameTurns;
 	influenceNeeded -= ((float)influenceNeeded / 1000.0f * (float)GC.getGame().GetVpAdjustment());
 
-	const int truncate = 10;
+	const int truncate = 50;
 	return (influenceNeeded / truncate) * truncate;
 }
 //	--------------------------------------------------------------------------------
