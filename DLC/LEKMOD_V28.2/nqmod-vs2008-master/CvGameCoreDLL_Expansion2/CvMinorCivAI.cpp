@@ -2291,13 +2291,13 @@ void CvMinorCivAI::DoThreateningBarbKilled(PlayerTypes eKillingPlayer, int iX, i
 	CvAssertMsg(eKillingPlayer < MAX_MAJOR_CIVS, "eMajor is expected to be within maximum bounds (invalid Index)");
 
 
-	int amountFriendship = GC.getFRIENDSHIP_PER_BARB_KILLED();
+	int amountFriendship = GC.getFRIENDSHIP_PER_BARB_KILLED() * 100;
 	if (IsThreateningBarbariansEventActiveForPlayer(eKillingPlayer))
 	{
 		amountFriendship *= 2; // double friendship if extra threatening
 	}
 
-	ChangeFriendshipWithMajor(eKillingPlayer, amountFriendship);
+	ChangeFriendshipWithMajorTimes100Instant(eKillingPlayer, amountFriendship);
 
 	ChangeAngerFreeIntrusionCounter(eKillingPlayer, 5);
 
@@ -4241,7 +4241,7 @@ int newCappedChange(const int currentT100, const int newT100, const int anchorT1
 		if (currentT100 < anchorT100 && newT100 > anchorT100) // went past anchor
 			return anchorT100;
 	}
-	else if (currentT100) // drop
+	else if (newT100 < currentT100) // drop
 	{
 		if (currentT100 > anchorT100 && newT100 < anchorT100) // went past anchor
 			return anchorT100;
@@ -4321,20 +4321,23 @@ int CvMinorCivAI::GetFriendshipChangePerTurnTimes100(const PlayerTypes ePlayer)
 			anchor = militaryAnchorHighT100;
 		}
 		// military loser
-		else if (eMilitaryWinner != NO_PLAYER)
+		else if (newPredictedT100 > militaryAnchorHighT100) // subtract more because past military anchor
 		{
-			changeT100 = -baseMilitaryInfluence * 100;
-			changeT100 *= GC.getGame().getGameSpeedInfo().getGoldGiftMod();
-			changeT100 /= 100; // Mod everything by game speed
-			anchor = militaryAnchorLowT100;
-		}
-		// no military person
-		else
-		{
-			changeT100 = -(baseMilitaryInfluence * 100) / 2;
-			changeT100 *= GC.getGame().getGameSpeedInfo().getGoldGiftMod();
-			changeT100 /= 100; // Mod everything by game speed
-			anchor = militaryAnchorLowT100;
+			if (eMilitaryWinner != NO_PLAYER)
+			{
+				changeT100 = -baseMilitaryInfluence * 100;
+				changeT100 *= GC.getGame().getGameSpeedInfo().getGoldGiftMod();
+				changeT100 /= 100; // Mod everything by game speed
+				anchor = militaryAnchorLowT100;
+			}
+			// no military person
+			else
+			{
+				changeT100 = -(baseMilitaryInfluence * 100) / 2;
+				changeT100 *= GC.getGame().getGameSpeedInfo().getGoldGiftMod();
+				changeT100 /= 100; // Mod everything by game speed
+				anchor = militaryAnchorLowT100;
+			}
 		}
 		newPredictedT100 = newCappedChange(newPredictedT100, newPredictedT100 + changeT100, anchor);
 	}
@@ -7620,7 +7623,7 @@ void CvMinorCivAI::DoBulliedByMajorReaction(PlayerTypes eBully, int iInfluenceCh
 	if (!pBully) return;
 
 	SetTurnLastBulliedByMajor(eBully, GC.getGame().getGameTurn());
-	ChangeFriendshipWithMajorTimes100(eBully, iInfluenceChangeTimes100);
+	ChangeFriendshipWithMajorTimes100Instant(eBully, iInfluenceChangeTimes100);
 
 #ifdef NQ_MINOR_FRIENDSHIP_GAIN_BULLY_GOLD_SUCCESS_FROM_POLICIES
 	if (bShouldRemoveQuests)
