@@ -924,25 +924,21 @@ bool CvMinorCivQuest::IsRevoked()
 /// Is this quest now expired (ie. time limit is up or condition is no longer valid)?
 bool CvMinorCivQuest::IsExpired()
 {
-	return false;
-	// new quests intentionally never expire
-	
-	// If this quest type has an end turn, have we passed it?
-	if(GetEndTurn() != NO_TURN)
-	{
-		if (GC.getGame().getGameTurn() > GetEndTurn())
-			return true;
-	}
-
-
 	if (m_eType == QUEST_UNREST)
 	{
-		if (GC.getGame().getGameTurn() == GetEndTurn() && !IsComplete())
+		if (GC.getGame().getGameTurn() > GetEndTurn() && !IsComplete())
 			return true;
 	}
 	else if(m_eType == QUEST_SPREAD_RELIGION)
 	{
 		// TODO consider: if holy city is lost
+	}
+
+	// If this quest type has an end turn, have we passed it?
+	if (GetEndTurn() != NO_TURN)
+	{
+		if (GC.getGame().getGameTurn() > GetEndTurn())
+			return true;
 	}
 
 	return false;
@@ -2291,19 +2287,19 @@ void CvMinorCivAI::DoThreateningBarbKilled(PlayerTypes eKillingPlayer, int iX, i
 	CvAssertMsg(eKillingPlayer < MAX_MAJOR_CIVS, "eMajor is expected to be within maximum bounds (invalid Index)");
 
 
-	int amountFriendship = GC.getFRIENDSHIP_PER_BARB_KILLED() * 100;
+	int amountFriendshipT100 = GC.getFRIENDSHIP_PER_BARB_KILLED() * 100;
 	if (isCamp)
 	{
-		amountFriendship *= 5;
+		amountFriendshipT100 *= 5;
 	}
 
-	ChangeFriendshipWithMajorTimes100Instant(eKillingPlayer, amountFriendship);
+	ChangeFriendshipWithMajorTimes100Instant(eKillingPlayer, amountFriendshipT100);
 
 	ChangeAngerFreeIntrusionCounter(eKillingPlayer, 5);
 
 	Localization::String strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_MINOR_BARB_KILLED");
 	strMessage << GetPlayer()->getNameKey();
-	strMessage << amountFriendship;
+	strMessage << (amountFriendshipT100 / 100);
 	Localization::String strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SM_MINOR_BARB_KILLED");
 	strSummary << GetPlayer()->getNameKey();
 
@@ -4321,7 +4317,7 @@ int CvMinorCivAI::GetFriendshipChangePerTurnTimes100(const PlayerTypes ePlayer)
 			anchor = militaryAnchorHighT100;
 		}
 		// military loser
-		else if (newPredictedT100 > militaryAnchorHighT100) // subtract more because past military anchor
+		else if (newPredictedT100 > militaryAnchorLowT100) // subtract more because past military anchor
 		{
 			if (eMilitaryWinner != NO_PLAYER)
 			{

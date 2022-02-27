@@ -21825,6 +21825,28 @@ bool CvUnit::UnitMove(CvPlot* pPlot, bool bCombat, CvUnit* pCombatUnit, bool bEn
 		PublishQueuedVisualizationMoves();
 	}
 
+	{ // update city state banners
+		for (int iPlayerLoop = 0; iPlayerLoop < MAX_CIV_PLAYERS; iPlayerLoop++)
+		{
+			const PlayerTypes ePlayer = (PlayerTypes)iPlayerLoop;
+			CvPlayerAI& player = GET_PLAYER(ePlayer);
+			if (player.isAlive() && player.isMinorCiv())
+			{
+				int iLoop = 0;
+				CvCity* pLoopCity = NULL;
+				for (pLoopCity = player.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = player.nextCity(&iLoop))
+				{
+					if (pLoopCity != NULL)
+					{
+						// update the mouseover text for the city-state's city banners
+						auto_ptr<ICvCity1> pDllLoopCity = GC.WrapCityPointer(pLoopCity);
+						GC.GetEngineUserInterface()->SetSpecificCityInfoDirty(pDllLoopCity.get(), CITY_UPDATE_TYPE_BANNER);
+					}
+				}
+			}
+		}
+	}
+
 	return bCanMoveIntoPlot;
 }
 

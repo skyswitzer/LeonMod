@@ -314,7 +314,7 @@ function GetCityStateStatusToolTip(iMajor, iMinor, bFullInfo)
 	-- end NQ_SHOW_BASE_INFLUENCE_WHILE_AT_WAR_IN_CS_TOOLTIP
 
 	-- show a + sign for positive values
-	local displayedInfluenceChange = "" .. math.floor(iInfluenceChangeThisTurn);
+	local displayedInfluenceChange = "" .. math.floor((iInfluenceChangeThisTurn * 10) + 0.5) / 10;
 	if (iInfluenceChangeThisTurn > 0) then
 		displayedInfluenceChange = "[COLOR_POSITIVE_TEXT]+" .. displayedInfluenceChange .. "[ENDCOLOR]";
 	elseif (iInfluenceChangeThisTurn <= 0) then
@@ -322,7 +322,7 @@ function GetCityStateStatusToolTip(iMajor, iMinor, bFullInfo)
 	end
 
 	-- highlight anchor
-	local displayedInfluenceAnchor = "[COLOR_CYAN]" .. iInfluenceAnchor .. "[ENDCOLOR]";
+	local displayedInfluenceAnchor = "" .. iInfluenceAnchor .. "";
 
 	-- Influence change
 	if (iInfluence ~= iInfluenceAnchor) then
