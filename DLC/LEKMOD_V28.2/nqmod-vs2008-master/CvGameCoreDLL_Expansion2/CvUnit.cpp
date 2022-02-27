@@ -10647,12 +10647,19 @@ bool CvUnit::CanUpgradeRightNow(bool bOnlyTestVisible) const
 		}
 
 		// Must be in territory owned by the player
-		const bool isOurTerritory = pPlot->getOwner() == getOwner();
-		const bool isAllyTerritory = 
-			GET_PLAYER(pPlot->getOwner()).isMinorCiv() && 
-			GET_PLAYER(pPlot->getOwner()).GetMinorCivAI()->IsAllies(getOwner());
-		if(!isOurTerritory && !isAllyTerritory)
+		const PlayerTypes owner = pPlot->getOwner();
+		const bool isOurTerritory = owner == getOwner();
+		bool isAllyTerritory = false;
+		if (owner != NO_PLAYER)
+		{
+			isAllyTerritory =
+				GET_PLAYER(owner).isMinorCiv() &&
+				GET_PLAYER(owner).GetMinorCivAI()->IsAllies(getOwner());
+		}
+		if (!isOurTerritory && !isAllyTerritory)
+		{
 			return false;
+		}
 
 		CvPlayerAI& kPlayer = GET_PLAYER(getOwner());
 
