@@ -269,7 +269,8 @@ public:
 
 
 	// Net tourism with other
-	int GetNetTourismWith(PlayerTypes eOtherPlayer) const;
+	int GetNetTourismWith(const PlayerTypes eOtherPlayer, const bool ignoreVpCatchup = false) const;
+	float getVpAccelerationFactorWith(const PlayerTypes eOtherPlayer) const;
 	// tourism mod with other
 	CvString GetTourismModifierWith_Tooltip(const PlayerTypes eOtherPlayer) const;
 	// tourism mod (eg 50.0) with other
@@ -278,7 +279,8 @@ public:
 		bool bIgnoreOpenBorders = false,
 		bool bIgnoreTrade = false,
 		bool bIgnorePolicies = false,
-		bool bIgnoreIdeologies = false) const;
+		bool bIgnoreIdeologies = false,
+		const bool ignoreVpCatchup = false) const;
 
 	// golden age boost
 	double GetTourismModifierTradeRoutesT100(const PlayerTypes eOtherPlayer) const;

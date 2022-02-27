@@ -2332,7 +2332,7 @@ void CvPlayerCulture::DoTurn()
 		CvTeam &kOtherTeam = GET_TEAM(kOtherPlayer.getTeam());
 		if (iLoopPlayer != m_pPlayer->GetID() && kOtherPlayer.isAlive() && !kOtherPlayer.isMinorCiv() && kOtherTeam.isHasMet(m_pPlayer->getTeam()))
 		{
-			m_aiCulturalInfluence[iLoopPlayer] += GetNetTourismWith((PlayerTypes)iLoopPlayer);
+			ChangeInfluenceOn((PlayerTypes)iLoopPlayer, GetNetTourismWith((PlayerTypes)iLoopPlayer));
 		}
 	}
 	
@@ -2630,7 +2630,7 @@ int CvPlayerCulture::GetLastTurnInfluenceOn(PlayerTypes ePlayer) const
 }
 
 /// Influence being applied each turn
-int CvPlayerCulture::GetNetTourismWith(PlayerTypes eOtherPlayer) const
+int CvPlayerCulture::GetNetTourismWith(PlayerTypes eOtherPlayer, const bool ignoreVpCatchup) const
 {
 	double tourismT100 = 0;
 	int iModifier = 0;
@@ -2641,7 +2641,7 @@ int CvPlayerCulture::GetNetTourismWith(PlayerTypes eOtherPlayer) const
 	if ((int)eOtherPlayer != m_pPlayer->GetID() && kOtherPlayer.isAlive() && !kOtherPlayer.isMinorCiv() && kOtherTeam.isHasMet(m_pPlayer->getTeam()))
 	{
 		tourismT100 = GetOurNetTourismT100();
-		double multiplierT100 = GetTourismModifierWithT100(eOtherPlayer);
+		double multiplierT100 = GetTourismModifierWithT100(eOtherPlayer, false, false, false, false, false, ignoreVpCatchup);
 
 		tourismT100 = tourismT100 * (100 + multiplierT100) / 100;
 	}
@@ -2671,8 +2671,20 @@ void addColoredValue(stringstream& s, const int modT100, const string descriptio
 	s << perc << description << "[ENDCOLOR][NEWLINE]";
 }
 
+float CvPlayerCulture::getVpAccelerationFactorWith(const PlayerTypes eOtherPlayer) const
+{
+	const int netTourismWithoutThisT100 = 100 * GetNetTourismWith(eOtherPlayer, true);
+	const int existingTourismT100 = 100 * GetInfluenceOn(eOtherPlayer);
+	const float existingTourismFactor = ((float)GC.getGame().GetVpAdjustment() / 1000.f);
+	const int tourismToAddT100 = existingTourismT100 * existingTourismFactor;
 
-
+	float extraFactor = 0.0f;
+	if (netTourismWithoutThisT100 > 10)
+	{
+		extraFactor = (float)tourismToAddT100 / (float)netTourismWithoutThisT100;
+	}
+	return extraFactor;
+}
 /// Tooltip for GetTourismModifierWith()
 CvString CvPlayerCulture::GetTourismModifierWith_Tooltip(const PlayerTypes eOtherPlayer) const
 {
@@ -2830,12 +2842,14 @@ CvString CvPlayerCulture::GetTourismModifierWith_Tooltip(const PlayerTypes eOthe
 		stream << "[NEWLINE]";
 	}
 	{ // adjust for previous progress
-		const int modT100 = GetInfluenceOn(eOtherPlayer) * ((float)GC.getGame().GetVpAdjustment() / 1000.f);
+		float extraFactor = getVpAccelerationFactorWith(eOtherPlayer);
+		const int addT100 = tourismT100 * extraFactor;
+		
 		string color = "[COLOR_POSITIVE_TEXT]";
-		if (modT100 <= 0) color = "[COLOR_GREY]";
-		stream << color << "+" << modT100 << " net from VP Acceleration[ENDCOLOR]";
-		stream << "[NEWLINE]" << (modT100 / 100) << " + " << (tourismT100 / 100) << " = " << (tourismT100 + modT100) / 100;
-		tourismT100 += modT100;
+		if (addT100 <= 0) color = "[COLOR_GREY]";
+		stream << color << "+" << addT100 / 100 << " net from VP Acceleration[ENDCOLOR]";
+		stream << "[NEWLINE]" << (addT100 / 100) << " + " << (tourismT100 / 100) << " = " << (tourismT100 + addT100) / 100;
+		tourismT100 += addT100;
 	}
 
 
@@ -2845,7 +2859,7 @@ CvString CvPlayerCulture::GetTourismModifierWith_Tooltip(const PlayerTypes eOthe
 	return GetLocalizedText(szRtnValue);
 }
 
-int CvPlayerCulture::GetTourismModifierWithT100(PlayerTypes eOtherPlayer, bool bIgnoreReligion, bool bIgnoreOpenBorders, bool bIgnoreTrade, bool bIgnorePolicies, bool bIgnoreIdeologies) const
+int CvPlayerCulture::GetTourismModifierWithT100(PlayerTypes eOtherPlayer, bool bIgnoreReligion, bool bIgnoreOpenBorders, bool bIgnoreTrade, bool bIgnorePolicies, bool bIgnoreIdeologies, const bool ignoreVpCatchup) const
 {
 	int iMultiplier = 0;
 	CvPlayer& kPlayer = GET_PLAYER(eOtherPlayer);
@@ -2978,12 +2992,12 @@ int CvPlayerCulture::GetTourismModifierWithT100(PlayerTypes eOtherPlayer, bool b
 		const float cityFactor = GetTourismModifierCityCount(eOtherPlayer);
 		factor *= cityFactor;
 
-		resultT100 = GC.toPercentT100(factor);
-	}
+		if (!ignoreVpCatchup)
+		{ // adjust for previous progress
+			factor *= (1.f + getVpAccelerationFactorWith(eOtherPlayer));
+		}
 
-	{ // vp catchup
-		const int mod = 100 * GetInfluenceOn(eOtherPlayer) * ((float)GC.getGame().GetVpAdjustment() / 1000.f);
-		resultT100 += mod;
+		resultT100 = GC.toPercentT100(factor);
 	}
 
 	return resultT100;

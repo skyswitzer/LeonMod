@@ -389,7 +389,7 @@ function AddBuildingButton( pCity, building )
 					
 					filledGreatWorkSlot:ClearCallback(Mouse.eLClick);
 					
-					if(greatWork.GreatWorkClassType ~= "GREAT_WORK_ARTIFACT") then
+					if(greatWork ~= nil and greatWork.GreatWorkClassType ~= "GREAT_WORK_ARTIFACT") then
 						filledGreatWorkSlot:RegisterCallback(Mouse.eLClick, function() 
 							local popupInfo = {
 								Type = ButtonPopupTypes.BUTTONPOPUP_GREAT_WORK_COMPLETED_ACTIVE_PLAYER,
