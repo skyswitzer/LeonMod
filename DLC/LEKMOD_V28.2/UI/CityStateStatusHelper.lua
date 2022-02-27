@@ -633,7 +633,7 @@ function GetActiveQuestToolTip(iMajor, iMinor)
 			sToolTipText = sToolTipText .. "[NEWLINE]";
 		end
 		sToolTipText = sToolTipText .. "[ICON_BULLET]";
-		sToolTipText = sToolTipText .. Locale.Lookup("TXT_KEY_CITY_STATE_QUEST_INVADING_BARBS_FORMAL", friendshipPerBarb, friendshipPerBarb * friendshipCampMult);
+		sToolTipText = sToolTipText .. Locale.ConvertTextKey("TXT_KEY_CITY_STATE_QUEST_INVADING_BARBS_FORMAL", friendshipPerBarb, friendshipPerBarb * friendshipCampMult);
 	end
 	
 	-- Proxy War event
