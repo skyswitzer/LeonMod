@@ -2555,9 +2555,10 @@ int CvLuaPlayer::lGetTourismModifierWith(lua_State* L)
 //CvString GetTourismModifierWithTooltip();
 int CvLuaPlayer::lGetTourismModifierWithTooltip(lua_State* L)
 {
+	int newTourismT100 = 0;
 	CvPlayerAI* pkPlayer = GetInstance(L);
 	PlayerTypes ePlayer = (PlayerTypes)lua_tointeger(L, 2);
-	lua_pushstring(L, pkPlayer->GetCulture()->GetTourismModifierWith_Tooltip(ePlayer));
+	lua_pushstring(L, pkPlayer->GetCulture()->GetTourismModifierWith_Tooltip(ePlayer, newTourismT100));
 	return 1;
 }
 //------------------------------------------------------------------------------

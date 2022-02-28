@@ -476,7 +476,7 @@ function AddSmallButtonsToTechButton( thisTechButtonInstance, tech, maxSmallButt
 		if thisButton then
 			IconHookup( 0, textureSize, "GENERIC_FUNC_ATLAS", thisButton );
 			thisButton:SetHide( false );
-			thisButton:SetToolTipString( Locale.ConvertTextKey( "Accelerates victory progress [COLOR_WARNING_TEXT]for all players[ENDCOLOR] by [COLOR_POSITIVE_TEXT]" .. (0.1 * tech.VpAcceleration) .. "%[ENDCOLOR] per turn upon first discovery" ) );
+			thisButton:SetToolTipString( Locale.ConvertTextKey( "Accelerates victory progress [COLOR_WARNING_TEXT]for all players[ENDCOLOR] upon first discovery" ) );
 			buttonNum = buttonNum + 1;
 		end
 	end

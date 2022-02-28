@@ -2632,18 +2632,14 @@ int CvPlayerCulture::GetLastTurnInfluenceOn(PlayerTypes ePlayer) const
 /// Influence being applied each turn
 int CvPlayerCulture::GetNetTourismWith(PlayerTypes eOtherPlayer, const bool ignoreVpCatchup) const
 {
-	double tourismT100 = 0;
-	int iModifier = 0;
+	int tourismT100 = 0;
 
 	CvPlayer &kOtherPlayer = GET_PLAYER(eOtherPlayer);
 	CvTeam &kOtherTeam = GET_TEAM(kOtherPlayer.getTeam());
 
 	if ((int)eOtherPlayer != m_pPlayer->GetID() && kOtherPlayer.isAlive() && !kOtherPlayer.isMinorCiv() && kOtherTeam.isHasMet(m_pPlayer->getTeam()))
 	{
-		tourismT100 = GetOurNetTourismT100();
-		double multiplierT100 = GetTourismModifierWithT100(eOtherPlayer, false, false, false, false, false, ignoreVpCatchup);
-
-		tourismT100 = tourismT100 * (100 + multiplierT100) / 100;
+		GetTourismModifierWith_Tooltip(eOtherPlayer, tourismT100);
 	}
 
 	return tourismT100 / 100;
@@ -2673,10 +2669,10 @@ void addColoredValue(stringstream& s, const int modT100, const string descriptio
 
 float CvPlayerCulture::getVpAccelerationFactorWithT100(const PlayerTypes eOtherPlayer) const
 {
-	return GC.getGame().GetVpAcceleration() * 2;
+	return GC.getGame().GetVpAcceleration() * 1;
 }
 /// Tooltip for GetTourismModifierWith()
-CvString CvPlayerCulture::GetTourismModifierWith_Tooltip(const PlayerTypes eOtherPlayer) const
+CvString CvPlayerCulture::GetTourismModifierWith_Tooltip(const PlayerTypes eOtherPlayer, int& newValueT100) const
 {
 	CvString szRtnValue = "";
 	CvPlayer& kPlayer = GET_PLAYER(eOtherPlayer);
@@ -2838,7 +2834,7 @@ CvString CvPlayerCulture::GetTourismModifierWith_Tooltip(const PlayerTypes eOthe
 	//	stream << "[NEWLINE]";
 	//}
 
-
+	newValueT100 = tourismT100;
 
 	szRtnValue += stream.str().c_str();
 
@@ -2847,146 +2843,11 @@ CvString CvPlayerCulture::GetTourismModifierWith_Tooltip(const PlayerTypes eOthe
 
 int CvPlayerCulture::GetTourismModifierWithT100(PlayerTypes eOtherPlayer, bool bIgnoreReligion, bool bIgnoreOpenBorders, bool bIgnoreTrade, bool bIgnorePolicies, bool bIgnoreIdeologies, const bool ignoreVpCatchup) const
 {
-	int iMultiplier = 0;
-	CvPlayer& kPlayer = GET_PLAYER(eOtherPlayer);
-	CvTeam& kTeam = GET_TEAM(kPlayer.getTeam());
-	CvPlayer& kCityPlayer = *m_pPlayer;
-	PolicyBranchTypes eMyIdeology = kCityPlayer.GetPlayerPolicies()->GetLateGamePolicyTree();
-	PolicyBranchTypes eTheirIdeology = kPlayer.GetPlayerPolicies()->GetLateGamePolicyTree();
+	int oldTourismT100 = GetOurNetTourismT100();
+	int newTourismT100 = 0;
+	GetTourismModifierWith_Tooltip(eOtherPlayer, newTourismT100);
 
-	// Open borders
-	//if (!bIgnoreOpenBorders)
-	//{
-	//	if (kTeam.IsAllowsOpenBordersToTeam(kCityPlayer.getTeam()))
-	//	{
-	//		iMultiplier += kCityPlayer.GetCulture()->GetTourismModifierOpenBorders();
-	//	}
-	//}
-
-	// Shared trade route
-	//if (!bIgnoreTrade)
-	//{
-	//	if (GC.getGame().GetGameTrade()->IsPlayerConnectedToPlayer(kCityPlayer.GetID(), ePlayer))
-	//	{
-	//		iMultiplier += kCityPlayer.GetCulture()->GetTourismModifierTradeRoute();
-	//	}
-	//}
-
-	// Shared religion
-	if (!bIgnoreTrade)
-	{
-		iMultiplier += GetTourismModifierTradeRoutesT100(eOtherPlayer);
-	}
-
-	// Shared religion
-	if (!bIgnoreReligion)
-	{
-		ReligionTypes ePlayerReligion = kCityPlayer.GetReligions()->GetReligionInMostCities();
-		if (ePlayerReligion != NO_RELIGION && kPlayer.GetReligions()->HasReligionInMostCities(ePlayerReligion))
-		{
-			iMultiplier += kCityPlayer.GetCulture()->GetTourismModifierSharedReligion();
-		}
-	}
-
-	// Ideology
-	if (!bIgnoreIdeologies)
-	{
-		// no ideology
-		if (eMyIdeology == NO_POLICY_BRANCH_TYPE || eTheirIdeology == NO_POLICY_BRANCH_TYPE) // do we have ideology?
-		{
-			iMultiplier += 0;
-		}
-		// different ideologies
-		else if (eMyIdeology != eTheirIdeology)
-		{
-			iMultiplier += GC.getTOURISM_MODIFIER_DIFFERENT_IDEOLOGIES();
-		}
-		// shared ideology
-		else
-		{
-			int iSharedIdeologyMod = kCityPlayer.GetPlayerPolicies()->GetNumericModifier(POLICYMOD_TOURISM_MOD_SHARED_IDEOLOGY);
-			if (iSharedIdeologyMod > 0)
-			{
-				iMultiplier += iSharedIdeologyMod;
-			}
-		}
-	}
-
-	// diplomat bonus
-	if (kCityPlayer.GetEspionage()->IsMyDiplomatVisitingThem(eOtherPlayer))
-	{
-		iMultiplier += GC.getTOURISM_MODIFIER_DIPLOMAT();
-	}
-
-	// policies
-	if (!bIgnorePolicies)
-	{
-		// cult of personality
-		int iCommonFoeMod = kCityPlayer.GetPlayerPolicies()->GetNumericModifier(POLICYMOD_TOURISM_MOD_COMMON_FOE);
-		if (iCommonFoeMod > 0)
-		{
-			// NQMP GJS - new Cult of Personality BEGIN
-			int rank = 0;
-			int totalEnemies = 0;
-			int myStrength = kCityPlayer.GetMilitaryMight();
-
-			PlayerTypes eLoopPlayer;
-			for (int iPlayerLoop = 0; iPlayerLoop < MAX_MAJOR_CIVS; iPlayerLoop++)
-			{
-				eLoopPlayer = (PlayerTypes)iPlayerLoop;
-				if (eLoopPlayer != kCityPlayer.GetID() && kCityPlayer.GetDiplomacyAI()->IsPlayerValid(eLoopPlayer))
-				{
-					totalEnemies++;
-					if (GET_PLAYER(eLoopPlayer).GetMilitaryMight() > myStrength)
-					{
-						rank++;
-					}
-				}
-			}
-
-			// divide the tourism boost into chunks, so that lowest player gets 0%, highest gets 100%, and the rest are evenly distributed in between
-			// so for example in a 6 player game, based on the player being 6th/5th/4th/3rd/2nd/1st in military strength they get 0%/20%/40%/60%/80%/100% boost
-			if (totalEnemies > 0)
-			{
-				iCommonFoeMod = iCommonFoeMod * (totalEnemies - rank) / totalEnemies;
-				iMultiplier += iCommonFoeMod;
-			}
-		}
-	}
-
-	// fair
-	if (m_pPlayer->GetTourismBonusTurns() > 0)
-	{
-		iMultiplier += GC.getTEMPORARY_TOURISM_BOOST_MOD();
-	}
-
-	// golden age bonus
-	iMultiplier += GetTourismModifierGoldenAgeT100(eOtherPlayer);
-
-	// happiness
-	iMultiplier += GetTourismModifierHappinessT100(eOtherPlayer);
-
-	// compounding influences
-	int resultT100 = 0;
-	{
-		double factor = GC.toFactor(iMultiplier);
-
-		// technology
-		const float internetFactor = GC.toFactor(GetTourismModifierTechnologyT100(eOtherPlayer));
-		factor *= internetFactor;
-		// adjust for number of cities COMPOUNDED
-		const float cityFactor = GetTourismModifierCityCount(eOtherPlayer);
-		factor *= cityFactor;
-
-		//if (!ignoreVpCatchup)
-		//{ // adjust for previous progress
-		//	factor *= GC.toFactor(getVpAccelerationFactorWithT100(eOtherPlayer));
-		//}
-
-		resultT100 = GC.toPercentT100(factor);
-	}
-
-	return resultT100;
+	return GC.toPercentT100((double)newTourismT100 / (double)oldTourismT100);
 }
 
 double CvPlayerCulture::GetTourismModifierTradeRoutesT100(const PlayerTypes eOtherPlayer) const
@@ -3034,7 +2895,9 @@ float CvPlayerCulture::GetTourismModifierCityCount(const PlayerTypes eOtherPlaye
 	// Mod for City Count
 	const int themCities = GET_PLAYER(eOtherPlayer).GetMaxEffectiveCities(true);
 	const int usCities = m_pPlayer->GetMaxEffectiveCities(true);
-	return (float)(themCities + capitalCityAdditionalFactor) / (float)(usCities + capitalCityAdditionalFactor);
+	const float factor = (float)(themCities + capitalCityAdditionalFactor) / (float)(usCities + capitalCityAdditionalFactor);
+	const int t100 = GC.toPercentT100(factor);
+	return GC.toFactor(t100);
 }
 
 int CvPlayerCulture::GetTourismModifierCityCountT100(const PlayerTypes eOtherPlayer) const
@@ -3049,6 +2912,7 @@ int CvPlayerCulture::GetTourismModifierSharedReligion() const
 
 int CvPlayerCulture::GetTourismModifierTechnologyT100(const PlayerTypes eOtherPlayer) const
 {
+	const int percentPerAcceleration = 2;
 	double changeFactor = 1.0; // default multiply by 1
 
 	// for each city
@@ -3088,7 +2952,7 @@ int CvPlayerCulture::GetTourismModifierTechnologyT100(const PlayerTypes eOtherPl
 		}
 	}
 
-	double internetFactor = GC.toFactor(m_pPlayer->GetInfluenceSpreadModifier() + (5 * GC.getGame().GetVpAcceleration()));
+	double internetFactor = GC.toFactor(m_pPlayer->GetInfluenceSpreadModifier() + (percentPerAcceleration * GC.getGame().GetVpAcceleration()));
 	internetFactor *= changeFactor;
 
 	return max(0, GC.toPercentT100(internetFactor));
