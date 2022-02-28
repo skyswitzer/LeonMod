@@ -582,9 +582,9 @@ function RefreshYourCulture()
 		BuildingEntry{
 			BuildingClass = "BUILDINGCLASS_MUSEUM",
 			BuildingSortColumn = "MuseumSort",
-			IconControlNames = {"MuseumGreatWork1", "MuseumGreatWork2"},
-			HighlightIconControlNames = {"MuseumGreatWork1HL", "MuseumGreatWork2HL"},
-			GhostIconControlNames = {"MuseumGreatWork1Ghost", "MuseumGreatWork2Ghost"},
+			IconControlNames = {"MuseumGreatWork1", "MuseumGreatWork2", "MuseumGreatWork3", "MuseumGreatWork4"},
+			HighlightIconControlNames = {"MuseumGreatWork1HL", "MuseumGreatWork2HL", "MuseumGreatWork3HL", "MuseumGreatWork4HL"},
+			GhostIconControlNames = {"MuseumGreatWork1Ghost", "MuseumGreatWork2Ghost", "MuseumGreatWork3Ghost", "MuseumGreatWork4Ghost"},
 			ThemeBonusControlName = "MuseumThemeBonus";
 			ColumnImageControl = Controls.MuseumImage,
 		},		
@@ -767,7 +767,9 @@ function RefreshYourCulture()
 						greatWorkToolTip = Game.GetGreatWorkTooltip(greatWorkIndex, playerID);
 						local greatWorkType = Game.GetGreatWorkType(greatWorkIndex);
 						local greatWork = GameInfo.GreatWorks[greatWorkType];
-						isArtifact = greatWork.GreatWorkClassType == "GREAT_WORK_ARTIFACT";
+						if (greatWork ~= nil) then
+							isArtifact = greatWork.GreatWorkClassType == "GREAT_WORK_ARTIFACT";
+						end
 					end
 										
 					greatWorks[greatWorkSlotIndex] = {
