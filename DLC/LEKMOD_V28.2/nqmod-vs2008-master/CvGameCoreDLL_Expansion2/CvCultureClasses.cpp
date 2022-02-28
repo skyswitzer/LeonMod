@@ -2671,25 +2671,9 @@ void addColoredValue(stringstream& s, const int modT100, const string descriptio
 	s << perc << description << "[ENDCOLOR][NEWLINE]";
 }
 
-float CvPlayerCulture::getVpAccelerationFactorWith(const PlayerTypes eOtherPlayer) const
+float CvPlayerCulture::getVpAccelerationFactorWithT100(const PlayerTypes eOtherPlayer) const
 {
-	const int netTourismWithoutThisT100 = 100 * GetNetTourismWith(eOtherPlayer, true);
-	const int existingTourismT100 = 100 * GetInfluenceOn(eOtherPlayer);
-	const float existingTourismFactor = ((float)GC.getGame().GetVpAdjustment() / 1000.f);
-	const int tourismToAddT100 = existingTourismT100 * existingTourismFactor;
-
-	float extraFactor = 0.0f;
-	if (netTourismWithoutThisT100 > 10)
-	{
-		extraFactor = (float)tourismToAddT100 / (float)netTourismWithoutThisT100;
-	}
-
-	if (eOtherPlayer == 1 && this->m_pPlayer->GetID() == 0)
-	{
-		extraFactor = extraFactor;
-	}
-
-	return extraFactor;
+	return GC.getGame().GetVpAcceleration() * 2;
 }
 /// Tooltip for GetTourismModifierWith()
 CvString CvPlayerCulture::GetTourismModifierWith_Tooltip(const PlayerTypes eOtherPlayer) const
@@ -2847,16 +2831,12 @@ CvString CvPlayerCulture::GetTourismModifierWith_Tooltip(const PlayerTypes eOthe
 		showFactorIncrease(stream, mod, tourismT100);
 		stream << "[NEWLINE]";
 	}
-	{ // adjust for previous progress
-		float extraFactor = getVpAccelerationFactorWith(eOtherPlayer);
-		const int addT100 = tourismT100 * extraFactor;
-		
-		string color = "[COLOR_POSITIVE_TEXT]";
-		if (addT100 <= 0) color = "[COLOR_GREY]";
-		stream << color << "+" << addT100 / 100 << " net from VP Acceleration[ENDCOLOR]";
-		stream << "[NEWLINE]" << (addT100 / 100) << " + " << (tourismT100 / 100) << " = " << (tourismT100 + addT100) / 100;
-		tourismT100 += addT100;
-	}
+	//{ // adjust for previous progress
+	//	const int mod = getVpAccelerationFactorWithT100(eOtherPlayer);
+	//	addColoredValue(stream, mod, "from VP Acceleration");
+	//	showFactorIncrease(stream, mod, tourismT100);
+	//	stream << "[NEWLINE]";
+	//}
 
 
 
@@ -2998,10 +2978,10 @@ int CvPlayerCulture::GetTourismModifierWithT100(PlayerTypes eOtherPlayer, bool b
 		const float cityFactor = GetTourismModifierCityCount(eOtherPlayer);
 		factor *= cityFactor;
 
-		if (!ignoreVpCatchup)
-		{ // adjust for previous progress
-			factor *= (1.f + getVpAccelerationFactorWith(eOtherPlayer));
-		}
+		//if (!ignoreVpCatchup)
+		//{ // adjust for previous progress
+		//	factor *= GC.toFactor(getVpAccelerationFactorWithT100(eOtherPlayer));
+		//}
 
 		resultT100 = GC.toPercentT100(factor);
 	}
@@ -3108,7 +3088,7 @@ int CvPlayerCulture::GetTourismModifierTechnologyT100(const PlayerTypes eOtherPl
 		}
 	}
 
-	double internetFactor = GC.toFactor(m_pPlayer->GetInfluenceSpreadModifier()) + (GC.getGame().GetVpAdjustment() / 1000.f);
+	double internetFactor = GC.toFactor(m_pPlayer->GetInfluenceSpreadModifier() + (5 * GC.getGame().GetVpAcceleration()));
 	internetFactor *= changeFactor;
 
 	return max(0, GC.toPercentT100(internetFactor));
@@ -4034,12 +4014,12 @@ void CvPlayerCulture::DoPublicOpinion()
 			locText << iUnhappyPerXPop;
 			m_strOpinionUnhappinessTooltip += locText.toUTF8();
 
-#ifdef NQ_IDEOLOGY_PRESSURE_UNHAPPINESS_MODIFIER_FROM_POLICIES
-			int iUnhappinessModifier = m_pPlayer->GetPlayerPolicies()->GetNumericModifier(POLICYMOD_IDEOLOGY_PRESSURE_UNHAPPINESS_MODIFIER);
-			locText = Localization::Lookup("TXT_KEY_CO_OPINION_TT_UNHAPPINESS_LINE5");
-			locText << -iUnhappinessModifier;
-			m_strOpinionUnhappinessTooltip += locText.toUTF8();
-#endif
+//#ifdef NQ_IDEOLOGY_PRESSURE_UNHAPPINESS_MODIFIER_FROM_POLICIES
+//			int iUnhappinessModifier = m_pPlayer->GetPlayerPolicies()->GetNumericModifier(POLICYMOD_IDEOLOGY_PRESSURE_UNHAPPINESS_MODIFIER);
+//			locText = Localization::Lookup("TXT_KEY_CO_OPINION_TT_UNHAPPINESS_LINE5");
+//			locText << -iUnhappinessModifier;
+//			m_strOpinionUnhappinessTooltip += locText.toUTF8();
+//#endif
 		}
 	}
 }

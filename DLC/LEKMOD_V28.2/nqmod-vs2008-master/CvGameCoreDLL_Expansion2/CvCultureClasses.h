@@ -270,7 +270,7 @@ public:
 
 	// Net tourism with other
 	int GetNetTourismWith(const PlayerTypes eOtherPlayer, const bool ignoreVpCatchup = false) const;
-	float getVpAccelerationFactorWith(const PlayerTypes eOtherPlayer) const;
+	float getVpAccelerationFactorWithT100(const PlayerTypes eOtherPlayer) const;
 	// tourism mod with other
 	CvString GetTourismModifierWith_Tooltip(const PlayerTypes eOtherPlayer) const;
 	// tourism mod (eg 50.0) with other
