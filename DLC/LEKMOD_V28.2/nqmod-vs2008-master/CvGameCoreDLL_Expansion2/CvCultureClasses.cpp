@@ -2683,6 +2683,12 @@ float CvPlayerCulture::getVpAccelerationFactorWith(const PlayerTypes eOtherPlaye
 	{
 		extraFactor = (float)tourismToAddT100 / (float)netTourismWithoutThisT100;
 	}
+
+	if (eOtherPlayer == 1 && this->m_pPlayer->GetID() == 0)
+	{
+		extraFactor = extraFactor;
+	}
+
 	return extraFactor;
 }
 /// Tooltip for GetTourismModifierWith()
