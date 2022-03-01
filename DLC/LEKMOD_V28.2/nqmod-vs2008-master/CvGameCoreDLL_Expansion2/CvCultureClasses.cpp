@@ -2897,7 +2897,7 @@ float CvPlayerCulture::GetTourismModifierCityCount(const PlayerTypes eOtherPlaye
 	const int usCities = m_pPlayer->GetMaxEffectiveCities(true);
 	const float factor = (float)(themCities + capitalCityAdditionalFactor) / (float)(usCities + capitalCityAdditionalFactor);
 	const int t100 = GC.toPercentT100(factor);
-	return GC.toFactor(t100);
+	return (GC.toFactor(t100) + 1.f) / 2.f;
 }
 
 int CvPlayerCulture::GetTourismModifierCityCountT100(const PlayerTypes eOtherPlayer) const
