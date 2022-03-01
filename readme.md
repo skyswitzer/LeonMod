@@ -1,3 +1,21 @@
+
+Install the git command line client and make sure it's in your path (it is needed for a pre-build script to run).
+Clone the repo. The Visual Studio solution file VoxPopuli_vs2013.sln is included in the repository folder
+Significant portions of the mods are Lua / SQL / XML files. Those can be modified without rebuilding the game core
+You need the Visual C++ 2008 SP1 compiler to actually link the resulting game core DLL
+It is possible to use a recent IDE like Visual Studio 2019 Community though, just make sure to use the correct toolset
+Always install different Visual Studio editions in chronological order, eg 2008 before 2019
+If prompted on loading the solution file whether you want to retarget projects, select "No Upgrade" for both options and continue
+If you encounter an "unexpected precompiler header error", install this hotfix
+A tutorial with visual aids has been posted here, courtesy of ASCII Guy
+To build the 43 Civ version of the DLL:
+Open the file Community-Patch-DLL\CvGameCoreDLLUtil\include\CustomModsGlobal.h
+Remove everything before the # in this line: // #define MOD_GLOBAL_MAX_MAJOR_CIVS (43)
+Save the file.
+If building the Release version, Whole Program Optimization is enabled, which will cause a several minute delay at the end of pass 1, but the compiler is still functioning!
+You can disable Whole Program Optimization locally under Project > VoxPopuli Properties > C/C++ > Optimization > Whole Program Optimization (set it to No)
+If the compiler stops responding at the end of pass 2, try deleting the hidden .vs folder as well as the BuildOutput/BuildTemp folders in the project directory, then reopening the solution file.
+
 # LeonMod Description
 This mod changes a bunch of things, from largest to smallest:
 * Interception Rework - With the previous interception mechanics, 
