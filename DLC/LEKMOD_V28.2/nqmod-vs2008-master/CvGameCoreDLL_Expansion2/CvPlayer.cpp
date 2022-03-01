@@ -5854,7 +5854,7 @@ void CvPlayer::ChangeScientificInfluence(const int iChange)
 //	--------------------------------------------------------------------------------
 int CvPlayer::GetScientificInfluenceNeeded() const
 {
-	int targetValue = 1000;
+	int targetValue = 1500;
 	targetValue -= ((float)targetValue / 1000.0f * (float)GC.getGame().GetVpAdjustment());
 	return targetValue;
 }
