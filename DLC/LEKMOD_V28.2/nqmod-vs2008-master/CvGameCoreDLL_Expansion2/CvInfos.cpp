@@ -2313,6 +2313,8 @@ bool CvCivilizationInfo::CacheResults(Database::Results& kResults, CvDatabaseUti
 		{
 			m_bCoastalCiv = pResults->GetBool(0);
 		}
+		// always everyone coastal
+		m_bCoastalCiv = true;
 
 		pResults->Reset();
 	}
