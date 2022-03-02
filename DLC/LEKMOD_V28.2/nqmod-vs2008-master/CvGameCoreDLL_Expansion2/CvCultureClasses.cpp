@@ -2756,34 +2756,9 @@ CvString CvPlayerCulture::GetTourismModifierWith_Tooltip(const PlayerTypes eOthe
 
 		{ // Cult of personality
 			int mod = 0;
-			const int iCommonFoeMod = m_pPlayer->GetPlayerPolicies()->GetNumericModifier(POLICYMOD_TOURISM_MOD_COMMON_FOE);
-			if (iCommonFoeMod > 0)
+			if (m_pPlayer->GetMilitaryMight() > kPlayer.GetMilitaryMight())
 			{
-				// NQMP GJS - new Cult of Personality BEGIN
-				int rank = 0;
-				int totalEnemies = 0;
-				const int myStrength = m_pPlayer->GetMilitaryMight();
-
-				PlayerTypes eLoopPlayer;
-				for (int iPlayerLoop = 0; iPlayerLoop < MAX_MAJOR_CIVS; iPlayerLoop++)
-				{
-					eLoopPlayer = (PlayerTypes)iPlayerLoop;
-					if (eLoopPlayer != m_pPlayer->GetID() && m_pPlayer->GetDiplomacyAI()->IsPlayerValid(eLoopPlayer))
-					{
-						totalEnemies++;
-						if (GET_PLAYER(eLoopPlayer).GetMilitaryMight() > myStrength)
-						{
-							rank++;
-						}
-					}
-				}
-
-				// divide the tourism boost into chunks, so that lowest player gets 0%, highest gets 100%, and the rest are evenly distributed in between
-				// so for example in a 6 player game, based on the player being 6th/5th/4th/3rd/2nd/1st in military strength they get 0%/20%/40%/60%/80%/100% boost
-				if (totalEnemies > 0)
-				{
-					mod = iCommonFoeMod * (totalEnemies - rank) / totalEnemies;
-				}
+				mod = m_pPlayer->GetPlayerPolicies()->GetNumericModifier(POLICYMOD_TOURISM_MOD_COMMON_FOE);
 			}
 
 			addColoredValue(stream, mod, "from Cult of Personality"); // TXT_KEY_CO_PLAYER_TOURISM_COMMON_FOE
