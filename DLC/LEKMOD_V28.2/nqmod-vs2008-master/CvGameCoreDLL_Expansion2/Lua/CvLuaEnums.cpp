@@ -205,6 +205,7 @@ int CvLuaEnums::pRegister(lua_State* L)
 	RegisterEnum(YIELD_SCIENCE);
 	RegisterEnum(YIELD_CULTURE);
 	RegisterEnum(YIELD_FAITH);
+	RegisterEnum(YIELD_TOURISM);
 	RegisterEnum(NUM_YIELD_TYPES);
 	EnumEnd(L);
 

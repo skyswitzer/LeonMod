@@ -11,6 +11,7 @@ local g_ImageIM  = InstanceManager:new( "ImageInstance",  "Image",  Controls.Scr
 local cultureTexture = "YieldAtlas_128_Culture.dds"
 local defaultTexture = "YieldAtlas.dds"
 local faithTexture = "YieldAtlas_128_Faith.dds"
+local tourismTexture = "YieldAtlas_128_Tourism.dds";
 
 local g_VisibleSet = {};
 local g_YieldInfoCache = {};
@@ -105,6 +106,7 @@ function BuildYield( x, y, index )
     SetYieldIcon( 3, yieldInfo.m_Science,    anchor.Stack, record );
     SetYieldIcon( 4, yieldInfo.m_Culture,    anchor.CultureContainer, record );
     SetYieldIcon( 5, yieldInfo.m_Faith,      anchor.Stack, record );
+    SetYieldIcon( 6, yieldInfo.m_Tourism,    anchor.Stack, record );
 
     anchor.Stack:CalculateSize();
     anchor.Stack:ReprocessAnchoring();
@@ -166,12 +168,27 @@ function SetYieldIcon( yieldType, amount, parent, record )
                 imageInstance.Image:SetTextureOffsetVal( 0 * 128, 128 * ( amount - 1 ) );
             end
             
-			imageInstance.Image:ChangeParent( parent );
+            imageInstance.Image:ChangeParent( parent );
 
-			if( record.ImageInstances == nil ) then
-				record.ImageInstances = {};
-			end
-			table.insert( record.ImageInstances, imageInstance );
+            if( record.ImageInstances == nil ) then
+                record.ImageInstances = {};
+            end
+            table.insert( record.ImageInstances, imageInstance );
+
+       elseif (yieldType == 6) then
+            imageInstance.Image:SetTexture(tourismTexture);
+            if( amount >= 5 ) then
+                imageInstance.Image:SetTextureOffsetVal( 0 * 128, 0 );
+            else
+                imageInstance.Image:SetTextureOffsetVal( 0 * 128, 0 );
+            end
+            
+            imageInstance.Image:ChangeParent( parent );
+
+            if( record.ImageInstances == nil ) then
+                record.ImageInstances = {};
+            end
+            table.insert( record.ImageInstances, imageInstance );
 
         end
     end
@@ -234,9 +251,10 @@ function RecordYieldInfo( x, y, index, plot )
     local iScience    = plot:CalculateYield( 3, true );
     local iCulture    = plot:CalculateYield( 4, true );
     local iFaith      = plot:CalculateYield( 5, true );
+    local iTourism    = plot:CalculateYield( 6, true );
 	    
     -- early out of allocations if there is no yield for this tile
-    if( iFood == 0 and iProduction == 0 and iGold == 0 and iScience == 0 and iCulture == 0 and iFaith == 0) then
+    if( iFood == 0 and iProduction == 0 and iGold == 0 and iScience == 0 and iCulture == 0 and iFaith == 0 and iTourism == 0) then
         return;
     end
     
@@ -251,6 +269,7 @@ function RecordYieldInfo( x, y, index, plot )
     info.m_Science    = iScience;
     info.m_Culture    = iCulture;
     info.m_Faith      = iFaith;
+    info.m_Tourism    = iTourism;
     
     return info;
 end

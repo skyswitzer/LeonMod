@@ -1595,6 +1595,8 @@ function TipHandler( control )
 					strBuildYieldString = strBuildYieldString .. Locale.ConvertTextKey("TXT_KEY_BUILD_CULTURE_STRING", iYieldChange);
 				elseif (iYield == YieldTypes.YIELD_FAITH) then
 					strBuildYieldString = strBuildYieldString .. Locale.ConvertTextKey("TXT_KEY_BUILD_FAITH_STRING", iYieldChange);
+				elseif (iYield == YieldTypes.YIELD_TOURISM) then
+					strBuildYieldString = strBuildYieldString .. Locale.ConvertTextKey("TXT_KEY_BUILD_TOURISM_STRING", iYieldChange);
 				end
 				
 				bFirstYield = false;

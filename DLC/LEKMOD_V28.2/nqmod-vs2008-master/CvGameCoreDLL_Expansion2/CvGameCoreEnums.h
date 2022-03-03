@@ -19,6 +19,8 @@ enum YieldTypes
     YIELD_CULTURE,
     YIELD_FAITH,
 
+    YIELD_TOURISM,
+
     NUM_YIELD_TYPES
 };
 
