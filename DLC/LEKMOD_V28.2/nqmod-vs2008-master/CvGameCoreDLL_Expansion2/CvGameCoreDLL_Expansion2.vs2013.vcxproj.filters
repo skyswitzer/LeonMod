@@ -1009,6 +1009,7 @@
     <ClInclude Include="_Defines.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\CvGameCoreDLLUtil\include\CvEnums.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="CvGameCoreDLL.rc" />
