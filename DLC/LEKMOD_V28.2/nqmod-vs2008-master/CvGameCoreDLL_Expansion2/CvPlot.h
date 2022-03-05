@@ -102,8 +102,6 @@ public:
 	bool HasFeature(const string name) const;
 	bool HasAnyAtoll() const;
 
-	// type FEATURE_ and press Ctrl+Space for options
-	bool HasFeature(FeatureTypes iFeatureType) const;
 	// type ROUTE_ and press Ctrl+Space for options
 	bool HasRoute(RouteTypes iRouteType) const;
 	// type TERRAIN_ and press Ctrl+Space for options
