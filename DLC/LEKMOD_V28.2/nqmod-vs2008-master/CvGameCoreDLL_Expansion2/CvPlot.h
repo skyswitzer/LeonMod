@@ -90,7 +90,6 @@ public:
 		return getFeatureType() == FEATURE_ICE;
 	};
 	bool IsCivilization(CivilizationTypes iCivilizationType) const;
-	bool HasFeature(FeatureTypes iFeatureType) const;
 	bool HasAnyNaturalWonder() const;
 	bool HasNaturalWonder(FeatureTypes iFeatureType) const;
 	bool HasResource(ResourceTypes iResourceType) const;
@@ -102,9 +101,23 @@ public:
 	// "FEATURE_ATOLL_SCIENCE" etc
 	bool HasFeature(const string name) const;
 	bool HasAnyAtoll() const;
+
+	// type FEATURE_ and press Ctrl+Space for options
+	bool HasFeature(FeatureTypes iFeatureType) const;
 	// type ROUTE_ and press Ctrl+Space for options
 	bool HasRoute(RouteTypes iRouteType) const;
+	// type TERRAIN_ and press Ctrl+Space for options
 	bool HasTerrain(TerrainTypes iTerrainType) const;
+	// "RESOURCE_DEER", "RESOURCE_IRON", etc.
+	bool HasResource(const string name) const;
+	// "RESOURCECLASS_BONUS": Wheat, Cow, Sheep, Deer, Banana, Fish, Stone, Bison, Hardwood, Maize, 
+	// "RESOURCECLASS_LUXURY": Obvious
+	// "RESOURCECLASS_RUSH": Iron, Horses, Artifact, Hidden Artifact
+	// "RESOURCECLASS_MODERN": Coal, Oil, Aluminum, Uranium, Slaves
+	bool HasResourceClass(const string name) const;
+	// "IMPROVEMENT_MINE", "IMPROVEMENT_CITY_RUINS", etc.
+	bool HasImprovement(const string name) const;
+
 	bool IsFeatureLake() const;
 	bool IsFeatureRiver() const;
 	bool HasImprovement(ImprovementTypes iImprovementType) const;
@@ -119,6 +132,7 @@ public:
 	bool IsWithinDistanceOfResource(ResourceTypes iResourceType, int iDistance) const;
 	bool IsAdjacentToTerrain(TerrainTypes iTerrainType) const;
 	bool IsWithinDistanceOfTerrain(TerrainTypes iTerrainType, int iDistance) const;
+
 
 	CvPlot();
 	~CvPlot();

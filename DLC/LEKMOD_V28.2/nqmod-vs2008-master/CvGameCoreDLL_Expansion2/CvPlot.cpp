@@ -1081,6 +1081,27 @@ bool CvPlot::HasTerrain(TerrainTypes iTerrainType) const
 	return (getTerrainType() == iTerrainType);
 }
 
+bool CvPlot::HasResource(const string name) const
+{
+	return HasResource(GC.Resource(name));
+}
+
+bool CvPlot::HasResourceClass(const string name) const
+{
+	if (getResourceType() != NO_RESOURCE)
+	{
+		const CvResourceInfo* info = GC.getResourceInfo(getResourceType());
+		const bool isRightClass = info->getResourceClassType() == GC.ResourceClass(name);
+		return isRightClass;
+	}
+	return false;
+}
+
+bool CvPlot::HasImprovement(const string name) const
+{
+	return HasImprovement(GC.Improvement(name));
+}
+
 bool CvPlot::IsAdjacentToFeature(FeatureTypes iFeatureType) const
 {
 	int iX = getX(); int iY = getY();
