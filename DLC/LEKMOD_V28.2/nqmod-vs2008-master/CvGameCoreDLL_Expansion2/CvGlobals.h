@@ -137,6 +137,31 @@ class ICvPlot1;
 class ICvRandom1;
 class ICvUnit1;
 
+// uses the map to convert the name string to the specified enum type
+// needs to be passed a function to get the info type of a given TEnum
+// Populates the map if it is out of date.
+template <class TEnum, class TInfo, class TOwner>
+TEnum GetFromMap(const TOwner* This, const string name, std::map<string, TEnum>& map, const int numExpectedInfo, TInfo* (TOwner::* getInfo)(TEnum) const)
+{
+	if (map.size() != numExpectedInfo)
+	{
+		map.clear();
+		// for each
+		for (int i = 0; i < numExpectedInfo; i++)
+		{
+			const TEnum e = (TEnum)i;
+			const TInfo* pInfo = (This->*getInfo)(e);
+			if (pInfo != NULL)
+			{
+				// store its name
+				map[pInfo->GetType()] = e;
+			}
+		}
+	}
+
+	return map[name];
+}
+
 class CvGlobals
 {
 public:
@@ -400,21 +425,17 @@ public:
 	std::vector<CvTerrainInfo*>& getTerrainInfo();
 	CvTerrainInfo* getTerrainInfo(TerrainTypes eTerrainNum);
 
-#ifdef AUI_WARNING_FIXES
-	uint getNumResourceClassInfos() const;
-#else
-	int getNumResourceClassInfos();
-#endif
-	std::vector<CvResourceClassInfo*>& getResourceClassInfo();
-	_Ret_maybenull_ CvResourceClassInfo* getResourceClassInfo(ResourceClassTypes eResourceNum);
 
-#ifdef AUI_WARNING_FIXES
-	uint getNumResourceInfos() const;
-#else
-	int getNumResourceInfos();
-#endif
+	int getNumResourceClassInfos() const;
+	std::vector<CvResourceClassInfo*>& getResourceClassInfo();
+	CvResourceClassInfo* getResourceClassInfo(ResourceClassTypes eResourceNum) const;
+	ResourceClassTypes ResourceClass(const string name) const;
+
+
+	int getNumResourceInfos() const;
 	std::vector<CvResourceInfo*>& getResourceInfo();
-	CvResourceInfo* getResourceInfo(ResourceTypes eResourceNum);
+	CvResourceInfo* getResourceInfo(ResourceTypes eResourceNum) const;
+	ResourceTypes Resource(const string name) const;
 
 #ifdef AUI_WARNING_FIXES
 	uint getNumFeatureInfos() const;
@@ -527,14 +548,11 @@ public:
 	std::vector<CvRouteInfo*>& getRouteInfo();
 	_Ret_maybenull_ CvRouteInfo* getRouteInfo(RouteTypes eRouteNum);
 
-#ifdef AUI_WARNING_FIXES
-	uint getNumImprovementInfos() const;
-#else
-	int getNumImprovementInfos();
-#endif
+	int getNumImprovementInfos() const;
 	std::vector<CvImprovementEntry*>& getImprovementInfo();
-	CvImprovementEntry* getImprovementInfo(ImprovementTypes eImprovementNum);
+	CvImprovementEntry* getImprovementInfo(ImprovementTypes eImprovementNum) const;
 	CvImprovementXMLEntries* GetGameImprovements() const;
+	ImprovementTypes Improvement(const string name) const;
 
 #ifdef AUI_WARNING_FIXES
 	uint getNumBuildInfos() const;
@@ -7947,7 +7965,9 @@ protected:
 	std::vector<CvRouteInfo*> m_paRouteInfo;
 	std::vector<CvFeatureInfo*> m_paFeatureInfo;
 	std::vector<CvResourceClassInfo*> m_paResourceClassInfo;
+	mutable std::map<string, ResourceClassTypes> resourceClassMap;
 	std::vector<CvResourceInfo*> m_paResourceInfo;
+	mutable std::map<string, ResourceTypes> resourceMap;
 	std::vector<CvBuildInfo*> m_paBuildInfo;
 	std::vector<CvHandicapInfo*> m_paHandicapInfo;
 	std::vector<CvGameSpeedInfo*> m_paGameSpeedInfo;
@@ -7996,6 +8016,7 @@ protected:
 	CvProjectXMLEntries* m_pProjects;
 	CvPromotionXMLEntries* m_pPromotions;
 	CvImprovementXMLEntries* m_pImprovements;
+	mutable std::map<string, ImprovementTypes> improvementsMap;
 	CvEmphasisXMLEntries* m_pEmphases;
 	CvTraitXMLEntries* m_pTraits;
 	CvReligionXMLEntries* m_pReligions;

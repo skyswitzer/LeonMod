@@ -1940,6 +1940,9 @@ CvGlobals::CvGlobals() :
 	m_pResolutions(NULL),
 	m_pGameDatabase(NULL)
 {
+		resourceMap = std::map<string, ResourceTypes>();
+		resourceClassMap = std::map<string, ResourceClassTypes>();
+		improvementsMap = std::map<string, ImprovementTypes>();
 }
 
 CvGlobals::~CvGlobals()
@@ -2929,27 +2932,16 @@ CvTerrainInfo* CvGlobals::getTerrainInfo(TerrainTypes eTerrainNum)
 		return NULL;
 }
 
-#ifdef AUI_WARNING_FIXES
-uint CvGlobals::getNumResourceClassInfos() const
-{
-	return m_paResourceClassInfo.size();
-#else
-int CvGlobals::getNumResourceClassInfos()
+
+int CvGlobals::getNumResourceClassInfos() const
 {
 	return (int)m_paResourceClassInfo.size();
-#endif
 }
-
 std::vector<CvResourceClassInfo*>& CvGlobals::getResourceClassInfo()
 {
 	return m_paResourceClassInfo;
 }
-
-#ifdef AUI_WARNING_FIXES
-_Ret_maybenull_ CvResourceClassInfo* CvGlobals::getResourceClassInfo(ResourceClassTypes eResourceNum)
-#else
-CvResourceClassInfo* CvGlobals::getResourceClassInfo(ResourceClassTypes eResourceNum)
-#endif
+CvResourceClassInfo* CvGlobals::getResourceClassInfo(ResourceClassTypes eResourceNum) const
 {
 	CvAssert(eResourceNum > -1);
 	CvAssert(eResourceNum < GC.getNumResourceClassInfos());
@@ -2960,23 +2952,41 @@ CvResourceClassInfo* CvGlobals::getResourceClassInfo(ResourceClassTypes eResourc
 }
 
 
-#ifdef AUI_WARNING_FIXES
-uint CvGlobals::getNumResourceInfos() const
+ResourceClassTypes CvGlobals::ResourceClass(const string name) const
 {
-	return m_paResourceInfo.size();
-#else
-int CvGlobals::getNumResourceInfos()
-{
-	return (int)m_paResourceInfo.size();
-#endif
+	return GetFromMap(this, name, resourceClassMap, getNumResourceClassInfos(), &CvGlobals::getResourceClassInfo);
+
+	//const int expectedSize = getNumResourceClassInfos();
+	//if (resourceClassMap.size() != expectedSize)
+	//{
+	//	resourceClassMap.clear();
+	//	// for each
+	//	for (int i = 0; i < expectedSize; i++)
+	//	{
+	//		const ResourceClassTypes e = (ResourceClassTypes)i;
+	//		const CvResourceClassInfo* pInfo = getResourceClassInfo(e);
+	//		if (pInfo != NULL)
+	//		{
+	//			// store its name
+	//			resourceClassMap[pInfo->GetType()] = e;
+	//		}
+	//	}
+	//}
+
+	//return resourceClassMap[name];
 }
 
+
+
+int CvGlobals::getNumResourceInfos() const
+{
+	return (int)m_paResourceInfo.size();
+}
 std::vector<CvResourceInfo*>& CvGlobals::getResourceInfo()
 {
 	return m_paResourceInfo;
 }
-
-CvResourceInfo* CvGlobals::getResourceInfo(ResourceTypes eResourceNum)
+CvResourceInfo* CvGlobals::getResourceInfo(ResourceTypes eResourceNum) const
 {
 	CvAssert(eResourceNum > -1);
 	CvAssert(eResourceNum < GC.getNumResourceInfos());
@@ -2985,6 +2995,28 @@ CvResourceInfo* CvGlobals::getResourceInfo(ResourceTypes eResourceNum)
 	else
 		return NULL;
 }
+ResourceTypes CvGlobals::Resource(const string name) const
+{
+	const int expectedSize = getNumResourceInfos();
+	if (resourceMap.size() != expectedSize)
+	{
+		// for each
+		for (int i = 0; i < expectedSize; i++)
+		{
+			const ResourceTypes e = (ResourceTypes)i;
+			const CvResourceInfo* pInfo = getResourceInfo(e);
+			if (pInfo != NULL)
+			{
+				// store its name
+				resourceMap[pInfo->GetType()] = e;
+			}
+		}
+	}
+
+	return resourceMap[name];
+}
+
+
 
 #ifdef AUI_WARNING_FIXES
 uint CvGlobals::getNumFeatureInfos() const
@@ -3473,11 +3505,7 @@ CvRouteInfo* CvGlobals::getRouteInfo(RouteTypes eRouteNum)
 		return NULL;
 }
 
-#ifdef AUI_WARNING_FIXES
-uint CvGlobals::getNumImprovementInfos() const
-#else
-int CvGlobals::getNumImprovementInfos()
-#endif
+int CvGlobals::getNumImprovementInfos() const
 {
 	return m_pImprovements->GetNumImprovements();
 }
@@ -3487,7 +3515,7 @@ std::vector<CvImprovementEntry*>& CvGlobals::getImprovementInfo()
 	return m_pImprovements->GetImprovementEntries();
 }
 
-CvImprovementEntry* CvGlobals::getImprovementInfo(ImprovementTypes eImprovementNum)
+CvImprovementEntry* CvGlobals::getImprovementInfo(ImprovementTypes eImprovementNum) const
 {
 #ifdef AUI_WARNING_FIXES
 	uint uiIndex = uint(eImprovementNum);
@@ -3507,6 +3535,10 @@ CvImprovementEntry* CvGlobals::getImprovementInfo(ImprovementTypes eImprovementN
 CvImprovementXMLEntries* CvGlobals::GetGameImprovements() const
 {
 	return m_pImprovements;
+}
+ImprovementTypes CvGlobals::Improvement(const string name) const
+{
+	return GetFromMap(this, name, improvementsMap, getNumImprovementInfos(), &CvGlobals::getImprovementInfo);
 }
 
 #ifdef AUI_WARNING_FIXES
