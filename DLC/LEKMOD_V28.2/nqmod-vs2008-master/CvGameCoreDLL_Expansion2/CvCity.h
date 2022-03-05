@@ -646,6 +646,8 @@ public:
 #endif
 	int getYieldRate(YieldTypes eIndex, bool bIgnoreTrade) const;
 	int getYieldRateTimes100(YieldTypes eIndex, bool bIgnoreTrade) const;
+	// true if this city has a religion majority with this belief
+	bool HasBelief(const string name) const;
 
 	// Base Yield
 	int getBaseYieldRate(YieldTypes eIndex) const;
@@ -939,9 +941,8 @@ public:
 	void			clearCombat();
 	bool			isFighting() const;
 
-	///
-	bool HasBuilding(BuildingTypes iBuildingType) const;
-	bool HasBuildingClass(BuildingClassTypes iBuildingClassType) const;
+	// true if this city has this class of building built
+	bool HasBuildingClass(BuildingClassTypes eBuildingClass) const;
 
 	int iScratch; // know the scope of your validity
 

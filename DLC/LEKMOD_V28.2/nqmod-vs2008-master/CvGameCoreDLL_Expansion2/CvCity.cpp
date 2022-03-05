@@ -11150,6 +11150,25 @@ int CvCity::getYieldRateTimes100(YieldTypes eIndex, bool bIgnoreTrade) const
 	return iModifiedYield;
 }
 
+bool CvCity::HasBelief(const string name) const
+{
+	const ReligionTypes majority = GetCityReligions()->GetReligiousMajority();
+	if (majority == NO_RELIGION)
+	{
+		return false;
+	}
+	else
+	{
+		const CvReligion* pReligion = GC.getGame().GetGameReligions()->GetReligion(majority, getOwner());
+		CvBeliefXMLEntries* allBeliefs = GC.GetGameBeliefs();
+		if (pReligion != NULL && allBeliefs != NULL)
+		{
+			const BeliefTypes eBelief = allBeliefs->Belief(name);
+			return pReligion->m_Beliefs.HasBelief(eBelief);
+		}
+	}
+	return false;
+}
 
 //	--------------------------------------------------------------------------------
 int CvCity::getBaseYieldRate(YieldTypes eIndex) const
@@ -17899,6 +17918,11 @@ void CvCity::clearCombat()
 bool CvCity::isFighting() const
 {
 	return getCombatUnit() != NULL;
+}
+
+bool CvCity::HasBuildingClass(BuildingClassTypes eBuildingClass) const
+{
+	return GetCityBuildings()->HasBuildingClass(eBuildingClass);
 }
 
 /* Error Hunting Attempt

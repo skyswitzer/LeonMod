@@ -1085,7 +1085,7 @@ bool CvBeliefEntry::CacheResults(Database::Results& kResults, CvDatabaseUtility&
 /// Constructor
 CvBeliefXMLEntries::CvBeliefXMLEntries(void)
 {
-
+	map = std::map<string, BeliefTypes>();
 }
 
 /// Destructor
@@ -1101,7 +1101,7 @@ std::vector<CvBeliefEntry*>& CvBeliefXMLEntries::GetBeliefEntries()
 }
 
 /// Number of defined beliefs
-int CvBeliefXMLEntries::GetNumBeliefs()
+int CvBeliefXMLEntries::GetNumBeliefs() const
 {
 	return m_paBeliefEntries.size();
 }
@@ -1115,6 +1115,28 @@ void CvBeliefXMLEntries::DeleteArray()
 	}
 
 	m_paBeliefEntries.clear();
+}
+
+
+BeliefTypes CvBeliefXMLEntries::Belief(const string name) const
+{
+	// populate
+	if (map.size() != GetNumBeliefs())
+	{
+		// for each policy
+		for (int iPolicyLoop = 0; iPolicyLoop < GetNumBeliefs(); iPolicyLoop++)
+		{
+			const BeliefTypes ePolicy = (BeliefTypes)iPolicyLoop;
+			const CvBeliefEntry* pInfo = GC.getBeliefInfo(ePolicy);
+			if (pInfo != NULL)
+			{
+				// put it in the dictionary
+				map[pInfo->GetType()] = ePolicy;
+			}
+		}
+	}
+
+	return map[name];
 }
 
 /// Get a specific entry

@@ -435,42 +435,65 @@ end
 function GetYieldString(plot)
 
 	local strYield = "";
+	local amount = 0;
 	
 	-- food
 	local iNumFood = plot:CalculateYield(0, true);
 	if (iNumFood > 0) then
-		strYield = strYield .. "[ICON_FOOD] xx" .. iNumFood .. " ";
-	end
-	
+		strYield = strYield .. "[ICON_FOOD] " .. iNumFood .. " ";
+	end	
 	-- production
 	local iNumProduction = plot:CalculateYield(1, true);
 	if (iNumProduction > 0) then
 		strYield = strYield .. "[ICON_PRODUCTION] " .. iNumProduction .. " ";
-	end
-	
+	end	
 	-- gold
 	local iNumGold = plot:CalculateYield(2, true);
 	if (iNumGold > 0) then
 		strYield = strYield .. "[ICON_GOLD] " .. iNumGold .. " ";
 	end
 	
+
 	-- science
 	local iNumScience = plot:CalculateYield(3, true);
 	if (iNumScience > 0) then
 		strYield = strYield .. "[ICON_RESEARCH] " .. iNumScience .. " ";
-	end
-	
-    	-- culture	
+	end	
+    -- culture	
 	local iNumCulture = plot:CalculateYield(4, true);
 	if (iNumCulture > 0) then
 		strYield = strYield .. "[ICON_CULTURE] " .. iNumCulture .. " ";
-	end
-	
+	end	
 	-- Faith
 	local iNumFaith = plot:CalculateYield(5, true);
 	if (iNumFaith > 0) then
 		strYield = strYield .. "[ICON_PEACE] " .. iNumFaith .. " ";
 	end
+	
+
+	-- Golden Age
+	amount = plot:CalculateYield(6, true);
+	if (amount > 0) then
+		strYield = strYield .. "[ICON_GOLDEN_AGE] " .. amount .. " ";
+	end
+	
+
+	-- Cultural Influence
+	amount = plot:CalculateYield(7, true);
+	if (amount > 0) then
+		strYield = strYield .. "[ICON_CULTURAL_INFLUENCE] " .. amount .. " ";
+	end	
+	-- Scientific Influence
+	amount = plot:CalculateYield(8, true);
+	if (amount > 0) then
+		strYield = strYield .. "[ICON_SCIENTIFIC_INFLUENCE] " .. amount .. " ";
+	end	
+	-- Diplomatic Influence
+	amount = plot:CalculateYield(9, true);
+	if (amount > 0) then
+		strYield = strYield .. "[ICON_DIPLOMATIC_INFLUENCE] " .. amount .. " ";
+	end
+
 	
 	-- Happiness (should probably be calculated in CvPlayer)
 	local featureType = plot:GetFeatureType();

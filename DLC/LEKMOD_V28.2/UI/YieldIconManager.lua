@@ -9,7 +9,7 @@ local g_AnchorIM = InstanceManager:new( "AnchorInstance", "Anchor", Controls.Scr
 local g_ImageIM  = InstanceManager:new( "ImageInstance",  "Image",  Controls.Scrap );
 
 local cultureTexture = "YieldAtlas_128_Culture.dds"
-local defaultTexture = "YieldAtlas.dds"
+local defaultTexture = "newyieldatlas.dds"
 local faithTexture = "YieldAtlas_128_Faith.dds"
 local tourismTexture = "YieldAtlas_128_Tourism.dds";
 
@@ -103,10 +103,18 @@ function BuildYield( x, y, index )
     SetYieldIcon( 0, yieldInfo.m_Food,       anchor.Stack, record );
     SetYieldIcon( 1, yieldInfo.m_Production, anchor.Stack, record );
     SetYieldIcon( 2, yieldInfo.m_Gold,       anchor.Stack, record );
-    SetYieldIcon( 3, yieldInfo.m_Science,    anchor.Stack, record );
-    SetYieldIcon( 4, yieldInfo.m_Culture,    anchor.CultureContainer, record );
-    SetYieldIcon( 5, yieldInfo.m_Faith,      anchor.Stack, record );
-    SetYieldIcon( 6, yieldInfo.m_Tourism,    anchor.Stack, record );
+
+    SetYieldIcon( 3, yieldInfo.m_Science,    anchor.Stack2, record );
+    SetYieldIcon( 4, yieldInfo.m_Culture,    anchor.Stack2, record );
+    SetYieldIcon( 5, yieldInfo.m_Faith,      anchor.Stack2, record );
+
+    SetYieldIcon( 6, yieldInfo.m_Tourism,    anchor.Stack3, record );
+
+    SetYieldIcon( 7, yieldInfo.m_Tourism,    anchor.Stack3, record );
+    SetYieldIcon( 8, yieldInfo.m_Tourism,    anchor.Stack3, record );
+    SetYieldIcon( 9, yieldInfo.m_Tourism,    anchor.Stack3, record );
+    --SetYieldIcon( 6, yieldInfo.m_Tourism,    anchor.Stack, record );
+    --SetYieldIcon( 6, yieldInfo.m_Tourism,    anchor.Stack, record );
 
     anchor.Stack:CalculateSize();
     anchor.Stack:ReprocessAnchoring();
@@ -121,75 +129,32 @@ function SetYieldIcon( yieldType, amount, parent, record )
     if amount > 0 then
 
         local imageInstance = g_ImageIM:GetInstance();
-        
-        if( yieldType < 4 ) then
+
+        if( yieldType < 10 ) then
             imageInstance.Image:SetTexture(defaultTexture);
+
+            -- yield icon
             if( amount >= 6 ) then
                 imageInstance.Image:SetTextureOffsetVal( yieldType * 128, 512 );
             else
                 imageInstance.Image:SetTextureOffsetVal( yieldType * 128, 128 * ( amount - 1 ) );
             end
 
-			imageInstance.Image:ChangeParent( parent );
-
-			if( record.ImageInstances == nil ) then
-				record.ImageInstances = {};
-			end
-			table.insert( record.ImageInstances, imageInstance );
-
-			 if( amount > 5 ) then
-				local textImageInstance = g_ImageIM:GetInstance();
-
-				textImageInstance.Image:SetTextureOffsetVal( GetNumberOffset( amount ) );
-	            
-				textImageInstance.Image:ChangeParent( imageInstance.Image );
-				table.insert( record.ImageInstances, textImageInstance );
-			end
-       elseif (yieldType == 4) then
-            imageInstance.Image:SetTexture(cultureTexture);
-            if( amount >= 5 ) then
-                imageInstance.Image:SetTextureOffsetVal( 0 * 128, 512 );
-            else
-                imageInstance.Image:SetTextureOffsetVal( 0 * 128, 128 * ( amount - 1 ) );
-            end
-            
-			imageInstance.Image:ChangeParent( parent );
-
-			if( record.ImageInstances == nil ) then
-				record.ImageInstances = {};
-			end
-			table.insert( record.ImageInstances, imageInstance );
-
-       elseif (yieldType == 5) then
-            imageInstance.Image:SetTexture(faithTexture);
-            if( amount >= 5 ) then
-                imageInstance.Image:SetTextureOffsetVal( 0 * 128, 512 );
-            else
-                imageInstance.Image:SetTextureOffsetVal( 0 * 128, 128 * ( amount - 1 ) );
-            end
-            
             imageInstance.Image:ChangeParent( parent );
-
             if( record.ImageInstances == nil ) then
                 record.ImageInstances = {};
             end
             table.insert( record.ImageInstances, imageInstance );
 
-       elseif (yieldType == 6) then
-            imageInstance.Image:SetTexture(tourismTexture);
-            if( amount >= 5 ) then
-                imageInstance.Image:SetTextureOffsetVal( 0 * 128, 0 );
-            else
-                imageInstance.Image:SetTextureOffsetVal( 0 * 128, 0 );
-            end
-            
-            imageInstance.Image:ChangeParent( parent );
+            -- additional numbers
+            if( amount > 5 ) then
+                local textImageInstance = g_ImageIM:GetInstance();
 
-            if( record.ImageInstances == nil ) then
-                record.ImageInstances = {};
+                textImageInstance.Image:SetTextureOffsetVal( GetNumberOffset( amount ) );
+                
+                textImageInstance.Image:ChangeParent( imageInstance.Image );
+                table.insert( record.ImageInstances, textImageInstance );
             end
-            table.insert( record.ImageInstances, imageInstance );
-
         end
     end
 end
@@ -248,13 +213,34 @@ function RecordYieldInfo( x, y, index, plot )
     local iFood       = plot:CalculateYield( 0, true );
     local iProduction = plot:CalculateYield( 1, true );
     local iGold       = plot:CalculateYield( 2, true );
+
     local iScience    = plot:CalculateYield( 3, true );
     local iCulture    = plot:CalculateYield( 4, true );
     local iFaith      = plot:CalculateYield( 5, true );
-    local iTourism    = plot:CalculateYield( 6, true );
+
+    local iGolden     = plot:CalculateYield( 6, true );
+
+    local iTourism    = plot:CalculateYield( 7, true );
+    local iScientific = plot:CalculateYield( 8, true );
+    local iDiplo      = plot:CalculateYield( 9, true );
 	    
     -- early out of allocations if there is no yield for this tile
-    if( iFood == 0 and iProduction == 0 and iGold == 0 and iScience == 0 and iCulture == 0 and iFaith == 0 and iTourism == 0) then
+    if( 
+        iFood == 0 and 
+        iProduction == 0 and 
+        iGold == 0 and 
+
+        iScience == 0 and 
+        iCulture == 0 and 
+        iFaith == 0 and 
+
+        iGolden == 0 and
+        
+        iTourism == 0 and
+        iScientific == 0 and
+        iDiplo == 0
+
+        ) then
         return;
     end
     
@@ -266,10 +252,16 @@ function RecordYieldInfo( x, y, index, plot )
     info.m_Food       = iFood;
     info.m_Production = iProduction;
     info.m_Gold       = iGold;
+
     info.m_Science    = iScience;
     info.m_Culture    = iCulture;
     info.m_Faith      = iFaith;
+
+    info.m_Golden     = iGolden;
+
     info.m_Tourism    = iTourism;
+    info.m_Scientific = iScientific;
+    info.m_Diplo      = iDiplo;
     
     return info;
 end

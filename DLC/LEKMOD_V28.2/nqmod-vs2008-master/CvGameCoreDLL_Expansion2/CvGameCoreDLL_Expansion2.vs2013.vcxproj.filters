@@ -484,6 +484,7 @@
     <ClCompile Include="CvWorldBuilderMapLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CvPlotExtraYields.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Lua\CvLuaArea.h">

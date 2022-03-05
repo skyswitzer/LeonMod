@@ -661,7 +661,7 @@ public:
 	uint GetNumPolicies() const;
 	CvPolicyEntry* GetPolicyEntry(uint index);
 #else
-	int GetNumPolicies();
+	int GetNumPolicies() const;
 	CvPolicyEntry* GetPolicyEntry(int index);
 #endif
 
@@ -678,10 +678,14 @@ public:
 #endif
 
 	void DeletePolicyBranchesArray();
+	// converts "POLICY_XYZ" to the PolicyTypes enum value
+	PolicyTypes Policy(const string name) const;
 
 private:
 	std::vector<CvPolicyEntry*> m_paPolicyEntries;
 	std::vector<CvPolicyBranchEntry*> m_paPolicyBranchEntries;
+
+	mutable std::map<string, PolicyTypes> map;
 };
 
 enum PolicyModifierType

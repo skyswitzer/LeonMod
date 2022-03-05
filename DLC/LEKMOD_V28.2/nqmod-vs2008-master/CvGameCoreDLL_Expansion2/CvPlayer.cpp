@@ -13597,6 +13597,18 @@ CvHomelandAI* CvPlayer::GetHomelandAI() const
 	return m_pHomelandAI;
 }
 
+
+bool CvPlayer::HasPolicy(const string name) const
+{
+	const CvPolicyXMLEntries* pAllPolicies = GC.GetGamePolicies();
+	if (pAllPolicies != NULL)
+	{
+		const PolicyTypes ePolicy = pAllPolicies->Policy(name);
+		return GetPlayerPolicies()->HasPolicy(ePolicy);
+	}
+	return false;
+}
+
 //	--------------------------------------------------------------------------------
 void CvPlayer::setHasPolicy(PolicyTypes eIndex, bool bNewValue)
 {

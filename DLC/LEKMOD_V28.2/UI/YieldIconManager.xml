@@ -11,8 +11,9 @@
 
     <Instance Name="AnchorInstance" >
         <WorldAnchor ID="Anchor" Scaling="True" DepthAdjust="-25" >
-			<Stack Offset="0,-10" StackGrowth="Right" Anchor="C,C" ID="Stack" Padding="-40" />
-			<Container Anchor="C,T" AnchorSide="i,o" Size="128,128" Offset="0,-150" ID="CultureContainer" />
+            <Stack Offset="-60,-164" StackGrowth="Right" Anchor="C,C" ID="Stack3" Padding="-40" />
+            <Stack Offset="  0,-10" StackGrowth="Right" Anchor="C,C" ID="Stack" Padding="-40" />
+            <Stack Offset="-60, 15" StackGrowth="Right" Anchor="C,C" ID="Stack2" Padding="-40" />
 		</WorldAnchor>
     </Instance>
 

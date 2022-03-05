@@ -2401,7 +2401,7 @@ std::vector<CvBuildingEntry*>& CvBuildingXMLEntries::GetBuildingEntries()
 #ifdef AUI_WARNING_FIXES
 uint CvBuildingXMLEntries::GetNumBuildings() const
 #else
-int CvBuildingXMLEntries::GetNumBuildings()
+int CvBuildingXMLEntries::GetNumBuildings() const
 #endif
 {
 	return m_paBuildingEntries.size();
@@ -2416,6 +2416,29 @@ void CvBuildingXMLEntries::DeleteArray()
 	}
 
 	m_paBuildingEntries.clear();
+}
+
+
+BuildingClassTypes CvBuildingXMLEntries::BuildingClass(const string name) const
+{
+	if (map.size() != GetNumBuildings())
+	{
+		// for each policy
+		for (int i = 0; i < GetNumBuildings(); i++)
+		{
+			// that this player has
+			const BuildingTypes ePolicy = (BuildingTypes)i;
+			const CvBuildingEntry* pInfo = GC.getBuildingInfo(ePolicy);
+			if (pInfo != NULL)
+			{
+				const CvBuildingClassInfo& classInfo = pInfo->GetBuildingClassInfo();
+				// is it the policy we are looking for?
+				map[classInfo.GetType()] = (BuildingClassTypes)classInfo.GetID();
+			}
+		}
+	}
+
+	return map[name];
 }
 
 /// Get a specific entry
@@ -2664,16 +2687,24 @@ int CvCityBuildings::GetNumBuilding(BuildingTypes eIndex) const
 }
 
 /// Accessor: Is there at least one building of the class in the city? Potentially faster function than the above.
-bool CvCityBuildings::HasBuildingClass(BuildingClassTypes eIndex) const
+bool CvCityBuildings::HasBuildingClass(BuildingClassTypes eClass) const
 {
-	CvAssertMsg(eIndex != NO_BUILDINGCLASS, "BuildingClassTypes eIndex is expected to not be NO_BUILDINGCLASS");
+	CvAssertMsg(eClass != NO_BUILDINGCLASS, "BuildingClassTypes eIndex is expected to not be NO_BUILDINGCLASS");
 
-	for (std::vector<BuildingTypes>::const_iterator iI = m_buildingsThatExistAtLeastOnce.begin(); iI != m_buildingsThatExistAtLeastOnce.end(); ++iI)
+	// for every building
+	const int numBuildings = GC.GetGameBuildings()->GetNumBuildings();
+	for (int i = 0; i < numBuildings; ++i)
 	{
-		CvBuildingEntry* pkInfo = GC.getBuildingInfo(*iI);
-		if (pkInfo && pkInfo->GetBuildingClassType() == eIndex && GetNumBuilding(*iI) > 0)
+		// if this city has it
+		const BuildingTypes type = (BuildingTypes)i;
+		if (GetNumRealBuilding(type) > 0)
 		{
-			return true;
+			// see if it matches the class
+			const CvBuildingEntry* pkInfo = GC.getBuildingInfo(type);
+			if (pkInfo && pkInfo->GetBuildingClassType() == eClass)
+			{
+				return true;
+			}
 		}
 	}
 	return false;

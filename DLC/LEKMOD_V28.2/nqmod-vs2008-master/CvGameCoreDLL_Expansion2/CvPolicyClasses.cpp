@@ -2482,7 +2482,7 @@ std::vector<CvPolicyEntry*>& CvPolicyXMLEntries::GetPolicyEntries()
 #ifdef AUI_WARNING_FIXES
 uint CvPolicyXMLEntries::GetNumPolicies() const
 #else
-int CvPolicyXMLEntries::GetNumPolicies()
+int CvPolicyXMLEntries::GetNumPolicies() const
 #endif
 {
 	return m_paPolicyEntries.size();
@@ -2534,6 +2534,28 @@ void CvPolicyXMLEntries::DeletePolicyBranchesArray()
 	}
 
 	m_paPolicyBranchEntries.clear();
+}
+
+
+PolicyTypes CvPolicyXMLEntries::Policy(const string name) const
+{
+	if (map.size() != GetNumPolicies())
+	{
+		// for each policy
+		for (int iPolicyLoop = 0; iPolicyLoop < GetNumPolicies(); iPolicyLoop++)
+		{
+			// that this player has
+			const PolicyTypes ePolicy = (PolicyTypes)iPolicyLoop;
+			const CvPolicyEntry* pInfo = GC.getPolicyInfo(ePolicy);
+			if (pInfo != NULL)
+			{
+				// is it the policy we are looking for?
+				map[pInfo->GetType()] = ePolicy;
+			}
+		}
+	}
+
+	return map[name];
 }
 
 /// Get a specific entry

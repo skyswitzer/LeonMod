@@ -612,6 +612,19 @@ public:
 	int calculateTotalBestNatureYield(TeamTypes eTeam) const;
 	int calculateImprovementYieldChange(ImprovementTypes eImprovement, YieldTypes eYield, PlayerTypes ePlayer, bool bOptimal = false, RouteTypes eAssumeThisRoute = NUM_ROUTE_TYPES) const;
 	int calculateYield(YieldTypes eIndex, bool bDisplay = false);
+	// hard coded extra yields
+	int getExtraYield
+	(
+		// type of yield we are considering
+		const YieldTypes eYieldType,
+		// type of improvement
+		const ImprovementTypes eImprovement,
+		// type of route (road, railroad, none)
+		const RouteTypes eRouteType,
+		// owning player
+		const PlayerTypes tileOwner
+	);
+
 	bool hasYield() const;
 	void updateYield();
 

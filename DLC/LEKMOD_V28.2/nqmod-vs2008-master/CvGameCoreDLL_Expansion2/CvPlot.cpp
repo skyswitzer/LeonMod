@@ -8626,6 +8626,14 @@ int CvPlot::calculateYield(YieldTypes eYield, bool bDisplay)
 		}
 	}
 
+	iYield += getExtraYield
+	(
+		eYield,
+		eImprovement,
+		eRoute,
+		ePlayer
+	);
+
 	return std::max(0, iYield);
 }
 

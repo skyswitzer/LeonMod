@@ -294,13 +294,17 @@ public:
 
 	// Accessor functions
 	std::vector<CvBeliefEntry*>& GetBeliefEntries();
-	int GetNumBeliefs();
+	int GetNumBeliefs() const;
 	CvBeliefEntry* GetEntry(int index);
 
 	void DeleteArray();
+	// converts the belief, such as "BELIEF_CATHEDRALS" into the BeliefTypes enum
+	BeliefTypes Belief(const string name) const;
 
 private:
 	std::vector<CvBeliefEntry*> m_paBeliefEntries;
+
+	mutable std::map<string, BeliefTypes> map;
 };
 
 typedef FStaticVector<int, 5, false, c_eCiv5GameplayDLL >BeliefList;

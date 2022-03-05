@@ -577,14 +577,17 @@ public:
 	uint GetNumBuildings() const;
 	_Ret_maybenull_ CvBuildingEntry* GetEntry(uint index);
 #else
-	int GetNumBuildings();
+	int GetNumBuildings() const;
 	_Ret_maybenull_ CvBuildingEntry* GetEntry(int index);
 #endif
 
 	void DeleteArray();
-
+	// turns "BUILDINGCLASS_WALLS" into the right building class enum
+	BuildingClassTypes BuildingClass(const string name) const;
 private:
 	std::vector<CvBuildingEntry*> m_paBuildingEntries;
+
+	mutable std::map<string, BuildingClassTypes> map;
 };
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
