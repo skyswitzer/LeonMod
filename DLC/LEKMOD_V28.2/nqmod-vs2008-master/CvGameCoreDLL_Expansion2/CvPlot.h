@@ -94,6 +94,15 @@ public:
 	bool HasAnyNaturalWonder() const;
 	bool HasNaturalWonder(FeatureTypes iFeatureType) const;
 	bool HasResource(ResourceTypes iResourceType) const;
+
+
+
+	// type FEATURE_ and press Ctrl+Space for options
+	bool HasFeature(FeatureTypes iFeatureType) const;
+	// "FEATURE_ATOLL_SCIENCE" etc
+	bool HasFeature(const string name) const;
+	bool HasAnyAtoll() const;
+	// type ROUTE_ and press Ctrl+Space for options
 	bool HasRoute(RouteTypes iRouteType) const;
 	bool HasTerrain(TerrainTypes iTerrainType) const;
 	bool IsFeatureLake() const;

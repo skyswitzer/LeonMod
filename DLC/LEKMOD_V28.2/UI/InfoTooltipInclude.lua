@@ -164,9 +164,9 @@ function GetHelpTextForBuilding(iBuildingID, bExcludeName, bExcludeHeader, bNoMa
 	end
 	
 	-- Culture
-	local iCulture = Game.GetBuildingYieldChange(iBuildingID, YieldTypes.YIELD_CULTURE);
+	local iCulture = pActivePlayer:GetTotalBuildingYields(pCity, iBuildingID, YieldTypes.YIELD_CULTURE, false);
 	if (pCity ~= nil) then
-		iCulture = iCulture + pCity:GetReligionBuildingClassYieldChange(buildingClassID, YieldTypes.YIELD_CULTURE) + pActivePlayer:GetPlayerBuildingClassYieldChange(buildingClassID, YieldTypes.YIELD_CULTURE);
+		--iCulture = iCulture + pCity:GetReligionBuildingClassYieldChange(buildingClassID, YieldTypes.YIELD_CULTURE) + pActivePlayer:GetPlayerBuildingClassYieldChange(buildingClassID, YieldTypes.YIELD_CULTURE);
 		iCulture = iCulture + pCity:GetLeagueBuildingClassYieldChange(buildingClassID, YieldTypes.YIELD_CULTURE);
 	end
 	if (iCulture ~= nil and iCulture ~= 0) then
@@ -174,7 +174,8 @@ function GetHelpTextForBuilding(iBuildingID, bExcludeName, bExcludeHeader, bNoMa
 	end
 
 	-- Tourism
-	local iTourism = pBuildingInfo.TechEnhancedTourism;
+	--local iTourism = pBuildingInfo.TechEnhancedTourism;
+	local iTourism = pActivePlayer:GetTotalBuildingYields(pCity, iBuildingID, YieldTypes.YIELD_TOURISM, false);
 	if (iTourism ~= nil and iTourism ~= 0) then
 		table.insert(lines, Locale.ConvertTextKey("TXT_KEY_PRODUCTION_BUILDING_TOURISM", iTourism));
 	end
@@ -210,9 +211,10 @@ function GetHelpTextForBuilding(iBuildingID, bExcludeName, bExcludeHeader, bNoMa
 	end
 	
 	-- Food
-	local iFood = Game.GetBuildingYieldChange(iBuildingID, YieldTypes.YIELD_FOOD);
+	--local iFood = Game.GetBuildingYieldChange(iBuildingID, YieldTypes.YIELD_FOOD);
+	local iFood = pActivePlayer:GetTotalBuildingYields(pCity, iBuildingID, YieldTypes.YIELD_FOOD, false);
 	if (pCity ~= nil) then
-		iFood = iFood + pCity:GetReligionBuildingClassYieldChange(buildingClassID, YieldTypes.YIELD_FOOD) + pActivePlayer:GetPlayerBuildingClassYieldChange(buildingClassID, YieldTypes.YIELD_FOOD);
+		--iFood = iFood + pCity:GetReligionBuildingClassYieldChange(buildingClassID, YieldTypes.YIELD_FOOD) + pActivePlayer:GetPlayerBuildingClassYieldChange(buildingClassID, YieldTypes.YIELD_FOOD);
 		iFood = iFood + pCity:GetLeagueBuildingClassYieldChange(buildingClassID, YieldTypes.YIELD_FOOD);
 	end
 	if (iFood ~= nil and iFood ~= 0) then

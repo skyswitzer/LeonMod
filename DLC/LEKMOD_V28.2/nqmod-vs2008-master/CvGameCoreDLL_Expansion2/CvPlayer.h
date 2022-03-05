@@ -174,6 +174,18 @@ public:
 	void DoUnitAttrition();
 	void RespositionInvalidUnits();
 
+	// total yield this player should get from a building
+	int GetYieldForBuilding(const CvCity* pCity, const BuildingTypes eBuilding, const YieldTypes eYieldType, const bool isPercentMod = false) const;
+	// extra yields this player/city should get from this building
+	int GetExtraYieldForBuilding
+	(
+		const CvCity* pCity, 
+		const BuildingTypes eBuilding,
+		const BuildingClassTypes eBuildingClass, 
+		const CvBuildingEntry* pBuildingInfo,
+		const YieldTypes eYieldType, 
+		const bool isPercentMod = false
+	) const;
 	void updateYield();
 	void updateExtraSpecialistYield();
 	void updateCityPlotYield();

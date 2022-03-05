@@ -5225,6 +5225,87 @@ void CvPlayer::RespositionInvalidUnits()
 	}
 }
 
+int CvPlayer::GetYieldForBuilding(const CvCity* pCity, const BuildingTypes eBuilding, const YieldTypes eYieldType, const bool isPercentMod) const
+{
+	const CvBuildingEntry* pkBuildingInfo = GC.getBuildingInfo(eBuilding);
+	if (pkBuildingInfo == NULL)
+		return 0;
+	const BuildingClassTypes eBuildingClass = (BuildingClassTypes)pkBuildingInfo->GetBuildingClassType();
+
+	int iYield = 0;
+
+	{ // defaults
+		if (isPercentMod)
+			iYield += GC.getBuildingInfo(eBuilding)->GetYieldModifier(eYieldType);
+		else
+			iYield += GC.getBuildingInfo(eBuilding)->GetYieldChange(eYieldType);
+	}
+
+
+	{ // consider policies
+		for (int i = 0; i < GC.getNumPolicyInfos(); i++)
+		{
+			const PolicyTypes e = (PolicyTypes)i;
+			const CvPolicyEntry* pInfo = GC.getPolicyInfo(e);
+			if (pInfo)
+			{
+				const bool hasIt = GetPlayerPolicies()->HasPolicy(e);
+				const bool isBlocked = GetPlayerPolicies()->IsPolicyBlocked(e);
+				if (hasIt && !isBlocked)
+				{
+					if (isPercentMod)
+					{
+						iYield += pInfo->GetBuildingClassYieldModifiers(eBuildingClass, eYieldType);
+						if (eYieldType == YIELD_TOURISM)
+							iYield += pInfo->GetBuildingClassTourismModifier(eBuildingClass);
+					}
+					else
+					{
+						iYield += pInfo->GetBuildingClassYieldChanges(eBuildingClass, eYieldType);
+					}
+				}
+			}
+		}
+	}
+
+	// consider religions
+	if (pCity != NULL)
+	{
+		for (int i = 0; i < GC.getNumBeliefInfos(); i++)
+		{
+			const BeliefTypes e = (BeliefTypes)i;
+			const CvBeliefEntry* pInfo = GC.getBeliefInfo(e);
+			if (pInfo)
+			{
+				const bool hasIt = pCity->HasBelief(pInfo->GetType());
+				if (hasIt)
+				{
+					if (isPercentMod)
+					{
+						// no options for this
+					}
+					else
+					{
+						iYield += pInfo->GetBuildingClassYieldChange(eBuildingClass, eYieldType);
+						if (eYieldType == YIELD_TOURISM)
+							iYield += pInfo->GetBuildingClassTourism(eBuildingClass);
+					}
+				}
+			}
+		}
+	}
+
+
+	// TODO consider leagues, see lGetLeagueBuildingClassYieldChange
+
+
+	{ // other changes
+		iYield += GetExtraYieldForBuilding(pCity, eBuilding, eBuildingClass, pkBuildingInfo, eYieldType, isPercentMod);
+	}
+
+	return iYield;
+}
+
 //	--------------------------------------------------------------------------------
 void CvPlayer::updateYield()
 {

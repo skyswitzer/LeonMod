@@ -1020,6 +1020,21 @@ bool CvPlot::HasFeature(FeatureTypes iFeatureType) const
 
 	return (getFeatureType() == iFeatureType);
 }
+bool CvPlot::HasFeature(const string name) const
+{
+	return HasFeature(GC.Feature(name));
+}
+bool CvPlot::HasAnyAtoll() const
+{
+	return 
+	(
+		HasFeature("FEATURE_ATOLL") ||
+		HasFeature("FEATURE_ATOLL_GOLD") ||
+		HasFeature("FEATURE_ATOLL_PRODUCTION") ||
+		HasFeature("FEATURE_ATOLL_CULTURE") ||
+		HasFeature("FEATURE_ATOLL_SCIENCE")
+	);
+}
 
 bool CvPlot::IsFeatureLake() const
 {

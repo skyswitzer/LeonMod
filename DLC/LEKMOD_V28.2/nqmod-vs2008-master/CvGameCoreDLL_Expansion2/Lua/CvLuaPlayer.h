@@ -934,6 +934,7 @@ protected:
 	static int lGetMayaCalendarString(lua_State* L);
 	static int lGetMayaCalendarLongString(lua_State* L);
 
+	static int lGetTotalBuildingYields(lua_State* L);
 	static int lGetExtraBuildingHappinessFromPolicies(lua_State* L);
 
 	static int lGetPrevCity(lua_State* L);

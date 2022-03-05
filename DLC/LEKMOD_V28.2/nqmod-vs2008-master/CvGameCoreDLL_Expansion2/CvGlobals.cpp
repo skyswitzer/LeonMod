@@ -1940,6 +1940,10 @@ CvGlobals::CvGlobals() :
 	m_pResolutions(NULL),
 	m_pGameDatabase(NULL)
 {
+		resourceMap = std::map<string, ResourceTypes>();
+		resourceClassMap = std::map<string, ResourceClassTypes>();
+		improvementsMap = std::map<string, ImprovementTypes>();
+		featureMap = std::map<string, FeatureTypes>();
 }
 
 CvGlobals::~CvGlobals()
@@ -2963,9 +2967,18 @@ CvResourceClassInfo* CvGlobals::getResourceClassInfo(ResourceClassTypes eResourc
 #ifdef AUI_WARNING_FIXES
 uint CvGlobals::getNumResourceInfos() const
 {
+<<<<<<< Updated upstream
 	return m_paResourceInfo.size();
 #else
 int CvGlobals::getNumResourceInfos()
+=======
+	return GetFromMap(this, name, resourceClassMap, getNumResourceClassInfos(), &CvGlobals::getResourceClassInfo);
+}
+
+
+
+int CvGlobals::getNumResourceInfos() const
+>>>>>>> Stashed changes
 {
 	return (int)m_paResourceInfo.size();
 #endif
@@ -2986,15 +2999,10 @@ CvResourceInfo* CvGlobals::getResourceInfo(ResourceTypes eResourceNum)
 		return NULL;
 }
 
-#ifdef AUI_WARNING_FIXES
-uint CvGlobals::getNumFeatureInfos() const
-{
-	return m_paFeatureInfo.size();
-#else
-int CvGlobals::getNumFeatureInfos()
+
+int CvGlobals::getNumFeatureInfos() const
 {
 	return (int)m_paFeatureInfo.size();
-#endif
 }
 
 std::vector<CvFeatureInfo*>& CvGlobals::getFeatureInfo()
@@ -3002,7 +3010,7 @@ std::vector<CvFeatureInfo*>& CvGlobals::getFeatureInfo()
 	return m_paFeatureInfo;
 }
 
-CvFeatureInfo* CvGlobals::getFeatureInfo(FeatureTypes eFeatureNum)
+CvFeatureInfo* CvGlobals::getFeatureInfo(FeatureTypes eFeatureNum) const
 {
 	CvAssert(eFeatureNum > -1);
 	CvAssert(eFeatureNum < GC.getNumFeatureInfos());
@@ -3010,6 +3018,10 @@ CvFeatureInfo* CvGlobals::getFeatureInfo(FeatureTypes eFeatureNum)
 		return m_paFeatureInfo[eFeatureNum];
 	else
 		return NULL;
+}
+FeatureTypes CvGlobals::Feature(const string name) const
+{
+	return GetFromMap(this, name, featureMap, getNumFeatureInfos(), &CvGlobals::getFeatureInfo);
 }
 
 int& CvGlobals::getNumPlayableCivilizationInfos()

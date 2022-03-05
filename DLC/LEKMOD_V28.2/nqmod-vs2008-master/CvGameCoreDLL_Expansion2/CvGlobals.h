@@ -416,13 +416,10 @@ public:
 	std::vector<CvResourceInfo*>& getResourceInfo();
 	CvResourceInfo* getResourceInfo(ResourceTypes eResourceNum);
 
-#ifdef AUI_WARNING_FIXES
-	uint getNumFeatureInfos() const;
-#else
-	int getNumFeatureInfos();
-#endif
+	int getNumFeatureInfos() const;
 	std::vector<CvFeatureInfo*>& getFeatureInfo();
-	CvFeatureInfo* getFeatureInfo(FeatureTypes eFeatureNum);
+	CvFeatureInfo* getFeatureInfo(FeatureTypes eFeatureNum) const;
+	FeatureTypes Feature(const string name) const;
 
 	int& getNumPlayableCivilizationInfos();
 	int& getNumAIPlayableCivilizationInfos();
@@ -7946,6 +7943,7 @@ protected:
 	std::vector<CvYieldInfo*> m_paYieldInfo;
 	std::vector<CvRouteInfo*> m_paRouteInfo;
 	std::vector<CvFeatureInfo*> m_paFeatureInfo;
+	mutable std::map<string, FeatureTypes> featureMap;
 	std::vector<CvResourceClassInfo*> m_paResourceClassInfo;
 	std::vector<CvResourceInfo*> m_paResourceInfo;
 	std::vector<CvBuildInfo*> m_paBuildInfo;

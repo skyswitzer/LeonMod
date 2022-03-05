@@ -934,6 +934,7 @@ void CvLuaPlayer::PushMethods(lua_State* L, int t)
 	Method(IsUsingMayaCalendar);
 	Method(GetMayaCalendarString);
 	Method(GetMayaCalendarLongString);
+	Method(GetTotalBuildingYields);
 
 	Method(GetExtraBuildingHappinessFromPolicies);
 
@@ -7051,11 +7052,7 @@ int CvLuaPlayer::lGetCurrentEra(lua_State* L)
 //int getTeam();
 int CvLuaPlayer::lGetTeam(lua_State* L)
 {
-#ifdef AUI_WARNING_FIXES
 	return BasicLuaMethod<TeamTypes>(L, (&CvPlayerAI::getTeam));
-#else
-	return BasicLuaMethod(L, &CvPlayerAI::getTeam);
-#endif
 }
 //------------------------------------------------------------------------------
 //ColorTypes GetPlayerColor();
@@ -9638,6 +9635,23 @@ int CvLuaPlayer::lGetMayaCalendarLongString(lua_State* L)
 	if(pkPlayer)
 	{
 		lua_pushstring(L, pkPlayer->GetPlayerTraits()->GetMayaCalendarLongString());
+	}
+	return 1;
+}
+//------------------------------------------------------------------------------
+int CvLuaPlayer::lGetTotalBuildingYields(lua_State* L)
+{
+	const CvPlayer* pkPlayer = GetInstance(L);
+	if (pkPlayer != NULL)
+	{
+		const CvCity* pCity = (CvCity*)lua_touserdata(L, 2);
+		const BuildingTypes eBuilding = (BuildingTypes)lua_tointeger(L, 3);
+		const YieldTypes eYieldType = (YieldTypes)lua_tointeger(L, 4);
+		const bool isPercentMod = (bool)lua_toboolean(L, 5);
+
+		const int result = pkPlayer->GetYieldForBuilding(pCity, eBuilding, eYieldType, isPercentMod);
+
+		lua_pushinteger(L, result);
 	}
 	return 1;
 }

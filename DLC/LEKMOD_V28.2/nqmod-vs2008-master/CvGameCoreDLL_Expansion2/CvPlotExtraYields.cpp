@@ -71,6 +71,8 @@ int CvPlot::getExtraYield
 	const bool hasAnyImprovement = eImprovement != NO_IMPROVEMENT;
 	// true if this is the actual city tile (not just a surrounding tile)
 	const bool isCityCenter = getPlotCity() != NULL;
+	// true if this tile has any atoll on it
+	const bool hasAnyAtoll = HasAnyAtoll();
 	CvImprovementEntry* pImprovement = NULL;
 	string improvementName = ""; // <ImprovementType>
 	if (hasAnyImprovement)
@@ -89,7 +91,7 @@ int CvPlot::getExtraYield
 	// depends on player
 	if (tileOwner != NO_PLAYER)
 	{
-		CvPlayer& player = GET_PLAYER(tileOwner);
+		const CvPlayer& player = GET_PLAYER(tileOwner);
 		// depends on city
 		if (pWorkingCity != NULL)
 		{
@@ -108,11 +110,16 @@ int CvPlot::getExtraYield
 	}
 	else // does not depend on player
 	{
-		// example, checks for non pillaged mine and increase production by 1
-		//if (isNotPillaged && eYieldType == YIELD_PRODUCTION && improvementName == "IMPROVEMENT_MINE")
-		//{
-		//	yieldChange += 1;
-		//}
+
+		{ // don't stack lake and atoll yields
+			if (isLake() && hasAnyAtoll)
+			{
+				// remove whatever the lake would have given
+				const CvYieldInfo& kYield = *GC.getYieldInfo(eYieldType);
+				yieldChange -= kYield.getLakeChange();
+			}
+		}
+
 	}
 
 	return yieldChange;
@@ -130,6 +137,32 @@ int CvPlot::getExtraYield
 
 
 
+int CvPlayer::GetExtraYieldForBuilding
+(
+	const CvCity* pCity, 
+	const BuildingTypes eBuilding, 
+	const BuildingClassTypes eBuildingClass,
+	const CvBuildingEntry* pBuildingInfo,
+	const YieldTypes eYieldType, 
+	const bool isPercentMod
+) const
+{
+	int iYield;
+
+	const CvPlayer& player = *this;
+
+	if (pCity != NULL)
+	{
+		const CvCity& city = *pCity;
+
+	}
+	else // not in a city
+	{
+
+	}
+
+	return iYield;
+}
 
 
 
