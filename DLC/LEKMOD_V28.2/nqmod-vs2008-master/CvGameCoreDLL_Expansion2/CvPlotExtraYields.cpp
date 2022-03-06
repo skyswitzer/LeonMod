@@ -92,10 +92,10 @@ int CvPlot::getExtraYield
 
 	const bool isTundra = plot.HasTerrain(TERRAIN_TUNDRA);
 	const bool isDesert = plot.HasTerrain(TERRAIN_DESERT);
-	const bool hasBonus = plot.HasResourceClass("RESOURCECLASS_BONUS");
-	const bool hasLuxury = plot.HasResourceClass("RESOURCECLASS_LUXURY");
-	const bool hasStrategic = plot.HasResourceClass("RESOURCECLASS_RUSH") || plot.HasResourceClass("RESOURCECLASS_MODERN");
-	const bool noResource = !hasBonus && !hasLuxury && !hasStrategic;
+	const bool hasBonus = plot.HasResourceClass("RESOURCECLASS_BONUS"); // has a bonus resource
+	const bool hasLuxury = plot.HasResourceClass("RESOURCECLASS_LUXURY"); // has a luxury resource
+	const bool hasStrategic = plot.HasResourceClass("RESOURCECLASS_RUSH") || plot.HasResourceClass("RESOURCECLASS_MODERN"); // has any strategic resource
+	const bool noResource = !hasBonus && !hasLuxury && !hasStrategic; // no resource of any kind (might have artifacts though)
 
 
 	// depends on player
