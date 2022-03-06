@@ -1091,8 +1091,14 @@ bool CvPlot::HasResourceClass(const string name) const
 	if (getResourceType() != NO_RESOURCE)
 	{
 		const CvResourceInfo* info = GC.getResourceInfo(getResourceType());
-		const bool isRightClass = info->getResourceClassType() == GC.ResourceClass(name);
-		return isRightClass;
+		// do not include RESOURCE_ARTIFACTS and RESOURCE_HIDDEN_ARTIFACTS
+		if (name == "RESOURCECLASS_RUSH" && (info->GetID() == 35 || info->GetID() == 39))
+			return false;
+		else
+		{
+			const bool isRightClass = info->getResourceClassType() == GC.ResourceClass(name);
+			return isRightClass;
+		}
 	}
 	return false;
 }

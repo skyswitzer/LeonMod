@@ -47,6 +47,7 @@ BuildingClassTypes BuildingClass(const string name)
 }
 
 
+// extra yields for plots
 int CvPlot::getExtraYield
 (
 	// type of yield we are considering
@@ -59,20 +60,21 @@ int CvPlot::getExtraYield
 	const PlayerTypes tileOwner
 )
 {
+	const CvPlot& plot = *this;
 	// city that is/could work this tile
-	const CvCity* pWorkingCity = getWorkingCity();
+	const CvCity* pWorkingCity = plot.getWorkingCity();
 	// true if a is/could work this tile
 	const bool hasAWorkingCity = pWorkingCity != NULL;
 	// true if this tile is not pillaged
-	const bool isNotPillaged = !IsRoutePillaged() && !IsImprovementPillaged();
+	const bool isNotPillaged = !plot.IsRoutePillaged() && !plot.IsImprovementPillaged();
 	// true if we have a road or railroad
 	const bool hasAnyRoute = eRouteType != NO_ROUTE && isNotPillaged;
 	// true if this tile has any improvements
 	const bool hasAnyImprovement = eImprovement != NO_IMPROVEMENT;
 	// true if this is the actual city tile (not just a surrounding tile)
-	const bool isCityCenter = getPlotCity() != NULL;
+	const bool isCityCenter = plot.getPlotCity() != NULL;
 	// true if this tile has any atoll on it
-	const bool hasAnyAtoll = HasAnyAtoll();
+	const bool hasAnyAtoll = plot.HasAnyAtoll();
 	CvImprovementEntry* pImprovement = NULL;
 	string improvementName = ""; // <ImprovementType>
 	if (hasAnyImprovement)
@@ -88,6 +90,14 @@ int CvPlot::getExtraYield
 	int yieldChange = 0;
 
 
+	const bool isTundra = plot.HasTerrain(TERRAIN_TUNDRA);
+	const bool isDesert = plot.HasTerrain(TERRAIN_DESERT);
+	const bool hasBonus = plot.HasResourceClass("RESOURCECLASS_BONUS");
+	const bool hasLuxury = plot.HasResourceClass("RESOURCECLASS_LUXURY");
+	const bool hasStrategic = plot.HasResourceClass("RESOURCECLASS_RUSH") || plot.HasResourceClass("RESOURCECLASS_MODERN");
+	const bool noResource = !hasBonus && !hasLuxury && !hasStrategic;
+
+
 	// depends on player
 	if (tileOwner != NO_PLAYER)
 	{
@@ -96,7 +106,6 @@ int CvPlot::getExtraYield
 		if (pWorkingCity != NULL)
 		{
 			const CvCity& city = *pWorkingCity;
-
 
 			// example gives one production to every tile if you satisfy all criteria
 			//const bool hasLibertyOpener = player.HasPolicy("POLICY_LIBERTY");
@@ -107,90 +116,45 @@ int CvPlot::getExtraYield
 			//	yieldChange += 1;
 			//}
 
-			// Dance of Aura - on tundra tiles only - gives +1 production to bonus tiles, +1 culture to luxury tiles, +1 Gold to Strategic, and +1 faith to every other tundra tile
-			const bool hasBeliefdanceofaura = city.HasBelief("BELIEF_DANCE_AURORA"); 
-			const bool hasBeliefdesertfolklore = city.HasBelief("BELIEF_DESERT_FOLKLORE");
-			const bool istundra = HasTerrain(TERRAIN_TUNDRA);
-			const bool isdesert = HasTerrain(TERRAIN_DESERT);
-			const bool isbonus = HasResourceClass("RESOURCECLASS_BONUS");
-			const bool isluxury = HasResourceClass("RESOURCECLASS_LUXURY");
-			const bool isstrat1 = HasResourceClass("RESOURCECLASS_RUSH");
-			const bool isstrat2 = HasResourceClass("RESOURCECLASS_MODERN");
 			
-			if (eYieldType == YIELD_FAITH && hasBeliefdanceofaura && istundra)
-			{
-				yieldChange += 1;
+			{ // BELIEF_DANCE_AURORA - Dance of the Aurora - on tundra tiles only - gives +1 production to bonus tiles, +1 culture to luxury tiles, +1 Gold to Strategic, and +1 faith to every other tundra tile
+				const bool hasBeliefDanceOfTheAurora = city.HasBelief("BELIEF_DANCE_AURORA");
+				if (eYieldType == YIELD_FAITH && hasBeliefDanceOfTheAurora && isTundra && noResource)
+					yieldChange += 1;
+				if (eYieldType == YIELD_PRODUCTION && hasBeliefDanceOfTheAurora && isTundra && hasBonus)
+					yieldChange += 1;
+				if (eYieldType == YIELD_CULTURE && hasBeliefDanceOfTheAurora && isTundra && hasLuxury)
+					yieldChange += 1;
+				if (eYieldType == YIELD_GOLD && hasBeliefDanceOfTheAurora && isTundra && hasStrategic)
+					yieldChange += 1;
 			}
-			if (eYieldType == YIELD_PRODUCTION && hasBeliefdanceofaura && istundra && isbonus)
-			{
-				yieldChange += 1;
-			}
-			if (eYieldType == YIELD_FAITH && hasBeliefdanceofaura && istundra && isbonus)
-			{
-				yieldChange -= 1;
-			}
-			if (eYieldType == YIELD_CULTURE && hasBeliefdanceofaura && istundra && isluxury)
-			{
-				yieldChange += 1;
-			}
-			if (eYieldType == YIELD_FAITH && hasBeliefdanceofaura && istundra && isluxury)
-			{
-				yieldChange -= 1;
-			}
-			if (eYieldType == YIELD_GOLD && hasBeliefdanceofaura && istundra && (isstrat1 || isstrat2))
-			{
-				yieldChange += 1;
-			}
-			if (eYieldType == YIELD_FAITH && hasBeliefdanceofaura && istundra && (isstrat1 || isstrat2))
-			{
-				yieldChange -= 1;
-			}
-			
 
-			// Desert Folklore - on Desert tiles only - gives +1 production to bonus tiles, +1 culture to luxury tiles, +1 Gold to Strategic, and +1 faith to every other Desert tile
-			
-			if (eYieldType == YIELD_FAITH && hasBeliefdesertfolklore && isdesert)
-			{
-				yieldChange += 1;
+			{ // BELIEF_DESERT_FOLKLORE - Desert Folklore - on Desert tiles only - gives +1 production to bonus tiles, +1 culture to luxury tiles, +1 Gold to Strategic, and +1 faith to every other Desert tile
+				const bool hasBeliefDesertFolklore = city.HasBelief("BELIEF_DESERT_FOLKLORE");
+				if (eYieldType == YIELD_FAITH && hasBeliefDesertFolklore && isDesert && noResource)
+					yieldChange += 1;
+				if (eYieldType == YIELD_PRODUCTION && hasBeliefDesertFolklore && isDesert && hasBonus)
+					yieldChange += 1;
+				if (eYieldType == YIELD_CULTURE && hasBeliefDesertFolklore && isDesert && hasLuxury)
+					yieldChange += 1;
+				if (eYieldType == YIELD_GOLD && hasBeliefDesertFolklore && isDesert && hasStrategic)
+					yieldChange += 1;
 			}
-			if (eYieldType == YIELD_PRODUCTION && hasBeliefdesertfolklore && isdesert && isbonus)
-			{
-				yieldChange += 1;
-			}
-			if (eYieldType == YIELD_FAITH && hasBeliefdesertfolklore && isdesert && isbonus)
-			{
-				yieldChange -= 1;
-			}
-			if (eYieldType == YIELD_CULTURE && hasBeliefdesertfolklore && isdesert && isluxury)
-			{
-				yieldChange += 1;
-			}
-			if (eYieldType == YIELD_FAITH && hasBeliefdesertfolklore && isdesert && isluxury)
-			{
-				yieldChange -= 1;
-			}
-			if (eYieldType == YIELD_GOLD && hasBeliefdesertfolklore && isdesert && (isstrat1 || isstrat2))
-			{
-				yieldChange += 1;
-			}
-			if (eYieldType == YIELD_FAITH && hasBeliefdesertfolklore && isdesert && (isstrat1 || isstrat2))
-			{
-				yieldChange -= 1;
-			}
-			
+
+
 		}
 	}
 	else // does not depend on player
 	{
-
 		{ // don't stack lake and atoll yields
-			if (isLake() && hasAnyAtoll)
+			if (plot.isLake() && hasAnyAtoll)
 			{
 				// remove whatever the lake would have given
 				const CvYieldInfo& kYield = *GC.getYieldInfo(eYieldType);
 				yieldChange -= kYield.getLakeChange();
 			}
 		}
+
 
 	}
 
@@ -203,12 +167,7 @@ int CvPlot::getExtraYield
 
 
 
-
-
-
-
-
-
+// Extra yields for buildings.
 int CvPlayer::GetExtraYieldForBuilding
 (
 	const CvCity* pCity, 
@@ -223,7 +182,7 @@ int CvPlayer::GetExtraYieldForBuilding
 
 	const CvPlayer& player = *this;
 
-	if (pCity != NULL)
+	if (pCity != NULL) // in a city
 	{
 		const CvCity& city = *pCity;
 
