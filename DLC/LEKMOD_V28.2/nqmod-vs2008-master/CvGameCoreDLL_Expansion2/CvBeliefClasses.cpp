@@ -608,6 +608,8 @@ int CvBeliefEntry::GetImprovementYieldChange(ImprovementTypes eIndex1, YieldType
 /// Yield change for a specific BuildingClass by yield type
 int CvBeliefEntry::GetBuildingClassYieldChange(int i, int j) const
 {
+	if (j == YIELD_TOURISM)
+		return GetBuildingClassTourism(i);
 	CvAssertMsg(i < GC.getNumBuildingClassInfos(), "Index out of bounds");
 	CvAssertMsg(i > -1, "Index out of bounds");
 	CvAssertMsg(j < NUM_YIELD_TYPES, "Index out of bounds");

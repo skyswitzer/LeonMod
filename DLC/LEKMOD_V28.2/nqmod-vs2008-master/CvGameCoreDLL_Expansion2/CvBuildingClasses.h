@@ -662,7 +662,6 @@ public:
 
 	int GetBuildingYieldChange(BuildingClassTypes eBuildingClass, YieldTypes eYield) const;
 	void SetBuildingYieldChange(BuildingClassTypes eBuildingClass, YieldTypes eYield, int iChange);
-	void ChangeBuildingYieldChange(BuildingClassTypes eBuildingClass, YieldTypes eYield, int iChange);
 
 #ifdef AUI_WARNING_FIXES
 	int GetBuildingGreatWork(BuildingClassTypes eBuildingClass, uint iSlot) const;

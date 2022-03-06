@@ -2983,7 +2983,8 @@ end
 function SelectBuildingOrWonderArticle( buildingID )
 	if buildingID ~= -1 then
 		local thisBuilding = GameInfo.Buildings[buildingID];
-					
+		local yield = 0;
+
 		-- update the name
 		local name = Locale.ConvertTextKey( thisBuilding.Description ); 	
 		Controls.ArticleID:SetText( name );
@@ -3173,13 +3174,22 @@ function SelectBuildingOrWonderArticle( buildingID )
 			Controls.ScienceFrame:SetHide( false );
 		end
 
-		local pBuildingInfo = GameInfo.Buildings[buildingID];
-		-- update the Scientific Influence
-		local iScientificInfluence = pBuildingInfo.ScientificInfluence;
+		-- update the Cultural Influence
+		yield = GetBuildingYieldChange(buildingID, "YIELD_TOURISM");
+		yield = yield + thisBuilding.TechEnhancedTourism;
 		local sign = "";
-		if (iScientificInfluence > 0) then sign="+"; end
-		if (iScientificInfluence ~= 0) then
-			Controls.ScientificInfluenceLabel:SetText( sign .. tostring(iScientificInfluence).." [ICON_SCIENTIFIC_INFLUENCE]" );
+		if (yield > 0) then sign="+"; end
+		if (yield ~= 0) then
+			Controls.CulturalInfluenceLabel:SetText( sign .. tostring(yield).." [ICON_CULTURAL_INFLUENCE]" );
+			Controls.CulturalInfluenceFrame:SetHide( false );
+		end
+
+		-- update the Scientific Insight
+		yield = GetBuildingYieldChange(buildingID, "YIELD_SCIENTIFIC_INSIGHT");
+		local sign = "";
+		if (yield > 0) then sign="+"; end
+		if (yield ~= 0) then
+			Controls.ScientificInfluenceLabel:SetText( sign .. tostring(yield).." [ICON_SCIENTIFIC_INFLUENCE]" );
 			Controls.ScientificInfluenceFrame:SetHide( false );
 		end
 
@@ -6944,6 +6954,7 @@ function ClearArticle()
 	Controls.GoldFrame:SetHide( true );
 	Controls.ScienceFrame:SetHide( true );
 	Controls.ScientificInfluenceFrame:SetHide( true );
+	Controls.CulturalInfluenceFrame:SetHide( true );
 	Controls.ProductionFrame:SetHide( true );
 	Controls.GreatPeopleFrame:SetHide( true );
 	Controls.CombatFrame:SetHide( true );

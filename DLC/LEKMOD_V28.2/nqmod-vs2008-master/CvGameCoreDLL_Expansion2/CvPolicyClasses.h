@@ -287,7 +287,6 @@ public:
 	bool IsFreePromotionUnitCombat(const int promotionID, const int unitCombatID) const;
 	int GetUnitCombatProductionModifiers(int i) const;
 	int GetUnitCombatFreeExperiences(int i) const;
-	int GetBuildingClassCultureChange(int i) const;
 	int GetBuildingClassHappiness(int i) const;
 	int GetBuildingClassProductionModifier(int i) const;
 	int GetBuildingClassTourismModifier(int i) const;
@@ -311,6 +310,8 @@ public:
 	BuildingTypes GetFreeBuildingOnConquest() const;
 
 private:
+	// private, as is now referenced in standard yield changes
+	int GetBuildingClassCultureChange(int i) const;
 	int m_iTechPrereq;
 	int m_iCultureCost;
 	int m_iGridX;

@@ -184,7 +184,6 @@ CvCity::CvCity() :
 	, m_iJONSCulturePerTurnFromPolicies("CvCity::m_iJONSCulturePerTurnFromPolicies", m_syncArchive)
 	, m_iJONSCulturePerTurnFromSpecialists("CvCity::m_iJONSCulturePerTurnFromSpecialists", m_syncArchive)
 	, m_iJONSCulturePerTurnFromReligion("CvCity::m_iJONSCulturePerTurnFromReligion", m_syncArchive)
-	, m_iFaithPerTurnFromBuildings(0)
 	, m_iFaithPerTurnFromPolicies(0)
 	, m_iFaithPerTurnFromReligion(0)
 	, m_iScientificInfluence("CvCity::m_iScientificInfluence", m_syncArchive)
@@ -917,7 +916,6 @@ void CvCity::reset(int iID, PlayerTypes eOwner, int iX, int iY, bool bConstructo
 	m_iJONSCulturePerTurnFromPolicies = 0;
 	m_iJONSCulturePerTurnFromSpecialists = 0;
 	m_iJONSCulturePerTurnFromReligion = 0;
-	m_iFaithPerTurnFromBuildings = 0;
 	m_iFaithPerTurnFromPolicies = 0;
 	m_iFaithPerTurnFromReligion = 0;
 	m_iScientificInfluence = 0;
@@ -6706,13 +6704,13 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst, 
 	CvTeam& owningTeam = GET_TEAM(getTeam());
 	const CvCivilizationInfo& thisCiv = getCivilizationInfo();
 
-	if(!(owningTeam.isObsoleteBuilding(eBuilding)) || bObsolete)
+	if (!(owningTeam.isObsoleteBuilding(eBuilding)) || bObsolete)
 	{
 		// One-shot items
-		if(bFirst && iChange > 0)
+		if (bFirst && iChange > 0)
 		{
 			// Capital
-			if(pBuildingInfo->IsCapital())
+			if (pBuildingInfo->IsCapital())
 				owningPlayer.setCapitalCity(this);
 
 #ifdef NQ_LOCAL_POPULATION_CHANGE_FROM_BUILDING
@@ -6737,11 +6735,11 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst, 
 					pLoopPlot = plotCity(getX(), getY(), iCityPlotLoop);
 
 					// must have a valid plot
-					if(pLoopPlot == NULL)
+					if (pLoopPlot == NULL)
 						continue;
 
 					// Must be owned by this player, not water, not mountain, and unimproved with no resources
-					if(pLoopPlot->getOwner() != getOwner() || pLoopPlot->isWater() || pLoopPlot->isMountain() || 
+					if (pLoopPlot->getOwner() != getOwner() || pLoopPlot->isWater() || pLoopPlot->isMountain() ||
 						//pLoopPlot->getImprovementType() != NO_IMPROVEMENT || 
 						pLoopPlot->getResourceType() != NO_RESOURCE)
 						continue;
@@ -6750,12 +6748,12 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst, 
 					if (pLoopPlot->getTerrainType() != TERRAIN_PLAINS && pLoopPlot->getTerrainType() == TERRAIN_HILL &&
 						pLoopPlot->getTerrainType() != TERRAIN_TUNDRA && pLoopPlot->getTerrainType() != TERRAIN_GRASS)
 						continue;
-					
+
 					// cannot have any feature other than forest or jungle
 					if (pLoopPlot->getFeatureType() != NO_FEATURE) //&& pLoopPlot->getFeatureType() != FEATURE_FOREST && 
 						//pLoopPlot->getFeatureType() != FEATURE_JUNGLE  -- It now applies for horses, these shouldn't spawn on forest/jungle tiles.
 						continue;
-					
+
 					validPlotList[validPlotCount] = iCityPlotLoop;
 					validPlotCount++;
 				}
@@ -6764,12 +6762,12 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst, 
 				{
 					int iIndex = GC.getGame().getJonRandNum(validPlotCount, "Mali Treasury random plot selection");
 					CvPlot* pPlot = GetCityCitizens()->GetCityPlotFromIndex(validPlotList[iIndex]);
-					
+
 					ResourceTypes eResourceGold = (ResourceTypes)GC.getInfoTypeForString("RESOURCE_GOLD", true);
 					ResourceTypes eResourceSalt = (ResourceTypes)GC.getInfoTypeForString("RESOURCE_SALT", true);
 					ResourceTypes eResourceCopper = (ResourceTypes)GC.getInfoTypeForString("RESOURCE_COPPER", true);
 					ResourceTypes eResourceSilver = (ResourceTypes)GC.getInfoTypeForString("RESOURCE_SILVER", true);
-					
+
 					int iGoldWeight = 0;
 					int iSaltWeight = 0;
 					int iCopperWeight = 0;
@@ -6777,8 +6775,8 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst, 
 
 					if (pPlot->isHills())
 					{
-						iGoldWeight =   (eResourceGold != NO_RESOURCE)   ? 2 : 0;
-						iSaltWeight =   (eResourceSalt != NO_RESOURCE)   ? 0 : 0;
+						iGoldWeight = (eResourceGold != NO_RESOURCE) ? 2 : 0;
+						iSaltWeight = (eResourceSalt != NO_RESOURCE) ? 0 : 0;
 						iCopperWeight = (eResourceCopper != NO_RESOURCE) ? 1 : 0;
 						iSilverWeight = (eResourceSilver != NO_RESOURCE) ? 1 : 0;
 					}
@@ -6786,29 +6784,29 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst, 
 					{
 						if (pPlot->getTerrainType() == TERRAIN_DESERT)
 						{
-							iGoldWeight =   (eResourceGold != NO_RESOURCE)   ? 4 : 0;
-							iSaltWeight =   (eResourceSalt != NO_RESOURCE)   ? 3 : 0;
+							iGoldWeight = (eResourceGold != NO_RESOURCE) ? 4 : 0;
+							iSaltWeight = (eResourceSalt != NO_RESOURCE) ? 3 : 0;
 							iCopperWeight = (eResourceCopper != NO_RESOURCE) ? 2 : 0;
 							iSilverWeight = (eResourceSilver != NO_RESOURCE) ? 1 : 0;
 						}
 						if (pPlot->getTerrainType() == TERRAIN_GRASS)
 						{
-							iGoldWeight =   (eResourceGold != NO_RESOURCE)   ? 4 : 0;
-							iSaltWeight =   (eResourceSalt != NO_RESOURCE)   ? 1 : 0;
+							iGoldWeight = (eResourceGold != NO_RESOURCE) ? 4 : 0;
+							iSaltWeight = (eResourceSalt != NO_RESOURCE) ? 1 : 0;
 							iCopperWeight = (eResourceCopper != NO_RESOURCE) ? 3 : 0;
 							iSilverWeight = (eResourceSilver != NO_RESOURCE) ? 1 : 0;
 						}
 						if (pPlot->getTerrainType() == TERRAIN_PLAINS)
 						{
-							iGoldWeight =   (eResourceGold != NO_RESOURCE)   ? 3 : 0;
-							iSaltWeight =   (eResourceSalt != NO_RESOURCE)   ? 3 : 0;
+							iGoldWeight = (eResourceGold != NO_RESOURCE) ? 3 : 0;
+							iSaltWeight = (eResourceSalt != NO_RESOURCE) ? 3 : 0;
 							iCopperWeight = (eResourceCopper != NO_RESOURCE) ? 2 : 0;
 							iSilverWeight = (eResourceSilver != NO_RESOURCE) ? 1 : 0;
 						}
 						if (pPlot->getTerrainType() == TERRAIN_TUNDRA)
 						{
-							iGoldWeight =   (eResourceGold != NO_RESOURCE)   ? 1 : 0;
-							iSaltWeight =   (eResourceSalt != NO_RESOURCE)   ? 1 : 0;
+							iGoldWeight = (eResourceGold != NO_RESOURCE) ? 1 : 0;
+							iSaltWeight = (eResourceSalt != NO_RESOURCE) ? 1 : 0;
 							iCopperWeight = (eResourceCopper != NO_RESOURCE) ? 1 : 0;
 							iSilverWeight = (eResourceSilver != NO_RESOURCE) ? 1 : 0;
 						}
@@ -6848,7 +6846,7 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst, 
 						// --- notification ---
 						Localization::String localizedText;
 						CvNotifications* pNotifications = GET_PLAYER(getOwner()).GetNotifications();
-						if(pNotifications)
+						if (pNotifications)
 						{
 							localizedText = Localization::Lookup("TXT_KEY_TREASURY_RESOURCE_FOUND");
 							localizedText << resourceName << getNameKey();
@@ -6865,7 +6863,7 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst, 
 			int iFreeUnitLoop;
 
 			// NQMP GJS - New France UA begin
-			if(pBuildingInfo->IsGrantsFreeCulturalGreatPersonWithTrait() && isCapital() && owningPlayer.GetPlayerTraits()->IsEarnsGreatPersonOnSlotOrGuild())
+			if (pBuildingInfo->IsGrantsFreeCulturalGreatPersonWithTrait() && isCapital() && owningPlayer.GetPlayerTraits()->IsEarnsGreatPersonOnSlotOrGuild())
 			{
 				bool bGetWriter = false;
 				bool bGetArtist = false;
@@ -6937,20 +6935,20 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst, 
 #ifdef AUI_WARNING_FIXES
 			for (uint iUnitLoop = 0; iUnitLoop < GC.getNumUnitInfos(); iUnitLoop++)
 #else
-			for(int iUnitLoop = 0; iUnitLoop < GC.getNumUnitInfos(); iUnitLoop++)
+			for (int iUnitLoop = 0; iUnitLoop < GC.getNumUnitInfos(); iUnitLoop++)
 #endif
 			{
 				const UnitTypes eUnit = static_cast<UnitTypes>(iUnitLoop);
 				CvUnitEntry* pkUnitInfo = GC.getUnitInfo(eUnit);
-				if(pkUnitInfo)
+				if (pkUnitInfo)
 				{
-					for(iFreeUnitLoop = 0; iFreeUnitLoop < pBuildingInfo->GetNumFreeUnits(iUnitLoop); iFreeUnitLoop++)
+					for (iFreeUnitLoop = 0; iFreeUnitLoop < pBuildingInfo->GetNumFreeUnits(iUnitLoop); iFreeUnitLoop++)
 					{
 						// Get the right unit of this class for this civ
 						const UnitTypes eFreeUnitType = (UnitTypes)thisCiv.getCivilizationUnits((UnitClassTypes)pkUnitInfo->GetUnitClassType());
 
 						// Great prophet?
-						if(GC.GetGameUnits()->GetEntry(eFreeUnitType)->IsFoundReligion())
+						if (GC.GetGameUnits()->GetEntry(eFreeUnitType)->IsFoundReligion())
 						{
 							// NQMP GJS - this code only runs when a building spawns a unit that can found a religion (currently ONLY Hagia Sophia)
 							// Since that Great Prophet should be free, I changed the 2 boolean parameters below from true to false
@@ -6961,7 +6959,7 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst, 
 							pFreeUnit = owningPlayer.initUnit(eFreeUnitType, getX(), getY());
 
 							// Bump up the count
-							if(pFreeUnit->IsGreatGeneral())
+							if (pFreeUnit->IsGreatGeneral())
 							{
 								owningPlayer.incrementGreatGeneralsCreated();
 								if (!pFreeUnit->jumpToNearestValidPlot())
@@ -6973,10 +6971,10 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst, 
 								}
 #endif
 							}
-							else if(pFreeUnit->IsGreatAdmiral())
+							else if (pFreeUnit->IsGreatAdmiral())
 							{
 								owningPlayer.incrementGreatAdmiralsCreated();
-								CvPlot *pSpawnPlot = owningPlayer.GetGreatAdmiralSpawnPlot(pFreeUnit);
+								CvPlot* pSpawnPlot = owningPlayer.GetGreatAdmiralSpawnPlot(pFreeUnit);
 								if (pFreeUnit->plot() != pSpawnPlot)
 								{
 									pFreeUnit->setXY(pSpawnPlot->getX(), pSpawnPlot->getY());
@@ -6988,14 +6986,14 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst, 
 								//owningPlayer.incrementGreatWritersCreated();
 								if (!pFreeUnit->jumpToNearestValidPlot())
 									pFreeUnit->kill(false);	// Could not find a valid spot!
-							}							
+							}
 							else if (pkUnitInfo->GetUnitClassType() == GC.getInfoTypeForString("UNITCLASS_ARTIST"))
 							{
 								// GJS NQMP - Free Great Artist is now actually free
 								//owningPlayer.incrementGreatArtistsCreated();
 								if (!pFreeUnit->jumpToNearestValidPlot())
 									pFreeUnit->kill(false);	// Could not find a valid spot!
-							}							
+							}
 							else if (pkUnitInfo->GetUnitClassType() == GC.getInfoTypeForString("UNITCLASS_MUSICIAN"))
 							{
 								// GJS NQMP - Free Great Musician is now actually free
@@ -7047,7 +7045,7 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst, 
 
 			// Free building
 			BuildingClassTypes eFreeBuildingClassThisCity = (BuildingClassTypes)pBuildingInfo->GetFreeBuildingThisCity();
-			if(eFreeBuildingClassThisCity != NO_BUILDINGCLASS)
+			if (eFreeBuildingClassThisCity != NO_BUILDINGCLASS)
 			{
 				BuildingTypes eFreeBuildingThisCity = (BuildingTypes)(thisCiv.getCivilizationBuildings(eFreeBuildingClassThisCity));
 
@@ -7063,7 +7061,7 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst, 
 			if (eGWType != NO_GREAT_WORK)
 			{
 				GreatWorkClass eClass = CultureHelpers::GetGreatWorkClass(eGWType);
-				int iGWindex = 	GC.getGame().GetGameCulture()->CreateGreatWork(eGWType, eClass, m_eOwner, owningPlayer.GetCurrentEra(), pBuildingInfo->GetDescription());
+				int iGWindex = GC.getGame().GetGameCulture()->CreateGreatWork(eGWType, eClass, m_eOwner, owningPlayer.GetCurrentEra(), pBuildingInfo->GetDescription());
 				m_pCityBuildings->SetBuildingGreatWork(eBuildingClass, 0, iGWindex);
 			}
 
@@ -7071,8 +7069,8 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst, 
 			// This is going to be really ugly. May Google forgive my eSoul. You should get a free great work with your first Royal Library.
 			if (eBuilding == (BuildingTypes)GC.getInfoTypeForString("BUILDING_ROYAL_LIBRARY") && !owningPlayer.GetHasEverBuiltRoyalLibrary())
 			{
-				CvGameCulture *pCulture = GC.getGame().GetGameCulture();
-				if(pCulture == NULL)
+				CvGameCulture* pCulture = GC.getGame().GetGameCulture();
+				if (pCulture == NULL)
 				{
 					CvAssertMsg(pCulture != NULL, "This should never happen.");
 				}
@@ -7090,11 +7088,11 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst, 
 					{
 						int iNameOffset = GC.getGame().getJonRandNum(iNumNames, "Unit name selection");
 						int iI;
-						for(iI = 0; iI < iNumNames; iI++)
+						for (iI = 0; iI < iNumNames; iI++)
 						{
 							int iIndex = (iNameOffset + iI) % iNumNames;
 							strName = pkUnitEntry->GetUnitNames(iIndex);
-							if(!GC.getGame().isGreatPersonBorn(strName))
+							if (!GC.getGame().isGreatPersonBorn(strName))
 							{
 								eGreatWorkType = pkUnitEntry->GetGreatWorks(iIndex);
 								GC.getGame().addGreatPersonBornName(strName);
@@ -7116,7 +7114,7 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst, 
 
 						// --- notification ---
 						CvNotifications* pNotifications = owningPlayer.GetNotifications();
-						if(pNotifications)
+						if (pNotifications)
 						{
 							Localization::String localizedText;
 							localizedText = Localization::Lookup("TXT_KEY_MISC_WONDER_COMPLETED");
@@ -7129,17 +7127,17 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst, 
 #endif
 
 			// Tech boost for science buildings in capital
-			if(owningPlayer.GetPlayerTraits()->IsTechBoostFromCapitalScienceBuildings())
+			if (owningPlayer.GetPlayerTraits()->IsTechBoostFromCapitalScienceBuildings())
 			{
-				if(isCapital())
+				if (isCapital())
 				{
-					if(pBuildingInfo->IsScienceBuilding())
+					if (pBuildingInfo->IsScienceBuilding())
 					{
 						int iMedianTechResearch = owningPlayer.GetPlayerTechs()->GetMedianTechResearch();
 						iMedianTechResearch = (iMedianTechResearch * owningPlayer.GetMedianTechPercentage()) / 100;
 
 						TechTypes eCurrentTech = owningPlayer.GetPlayerTechs()->GetCurrentResearch();
-						if(eCurrentTech == NO_TECH)
+						if (eCurrentTech == NO_TECH)
 						{
 							owningPlayer.changeOverflowResearch(iMedianTechResearch);
 						}
@@ -7158,7 +7156,7 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst, 
 				std::vector<UnitAITypes> aExtraUnitAITypes;
 				CvUnit* pLoopUnit = NULL;
 				int iLoop = 0;
-				for(pLoopUnit = GET_PLAYER(m_eOwner).firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = GET_PLAYER(m_eOwner).nextUnit(&iLoop))
+				for (pLoopUnit = GET_PLAYER(m_eOwner).firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = GET_PLAYER(m_eOwner).nextUnit(&iLoop))
 				{
 					if (pLoopUnit->getDomainType() == DOMAIN_LAND && pLoopUnit->IsCombatUnit())
 					{
@@ -7197,7 +7195,7 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst, 
 			// END TERRA COTTA AWESOME
 		}
 
-		if(pBuildingInfo->GetTrainedFreePromotion() != NO_PROMOTION)
+		if (pBuildingInfo->GetTrainedFreePromotion() != NO_PROMOTION)
 		{
 			changeFreePromotionCount(((PromotionTypes)(pBuildingInfo->GetTrainedFreePromotion())), iChange);
 		}
@@ -7211,50 +7209,46 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst, 
 
 		ChangeNoOccupiedUnhappinessCount(pBuildingInfo->IsNoOccupiedUnhappiness() * iChange);
 
-		if(pBuildingInfo->GetHappiness() > 0)
+		if (pBuildingInfo->GetHappiness() > 0)
 		{
 			ChangeBaseHappinessFromBuildings(pBuildingInfo->GetHappiness() * iChange);
 		}
 
-		if(pBuildingInfo->GetUnmoddedHappiness() > 0)
+		if (pBuildingInfo->GetUnmoddedHappiness() > 0)
 		{
 			ChangeUnmoddedHappinessFromBuildings(pBuildingInfo->GetUnmoddedHappiness() * iChange);
 		}
 
-		if(pBuildingInfo->GetUnhappinessModifier() != 0)
+		if (pBuildingInfo->GetUnhappinessModifier() != 0)
 		{
 			owningPlayer.ChangeUnhappinessMod(pBuildingInfo->GetUnhappinessModifier() * iChange);
 		}
 
-		int iBuildingCulture = pBuildingInfo->GetYieldChange(YIELD_CULTURE);
-		if(iBuildingCulture > 0)
 		{
-			iBuildingCulture += owningPlayer.GetPlayerTraits()->GetCultureBuildingYieldChange();
+			int iBuildingCultureRateModifier = owningPlayer.GetTotalYieldForBuilding(this, eBuilding, YIELD_CULTURE, true);
+			changeCultureRateModifier(iBuildingCultureRateModifier * iChange);
 		}
-		ChangeJONSCulturePerTurnFromBuildings(iBuildingCulture * iChange);
-		changeCultureRateModifier(pBuildingInfo->GetCultureRateModifier() * iChange);
+
 		changePlotCultureCostModifier(pBuildingInfo->GetPlotCultureCostModifier() * iChange);
 		changePlotBuyCostModifier(pBuildingInfo->GetPlotBuyCostModifier() * iChange);
 
-		int iBuildingFaith = pBuildingInfo->GetYieldChange(YIELD_FAITH);
-		ChangeFaithPerTurnFromBuildings(iBuildingFaith * iChange);
 		m_pCityReligions->ChangeReligiousPressureModifier(pBuildingInfo->GetReligiousPressureModifier() * iChange);
 
 		PolicyTypes ePolicy;
-#ifdef AUI_WARNING_FIXES
-		for (uint iPolicyLoop = 0; iPolicyLoop < GC.getNumPolicyInfos(); iPolicyLoop++)
-#else
-		for(int iPolicyLoop = 0; iPolicyLoop < GC.getNumPolicyInfos(); iPolicyLoop++)
-#endif
-		{
-			ePolicy = (PolicyTypes) iPolicyLoop;
-
-			if(owningPlayer.GetPlayerPolicies()->HasPolicy(ePolicy) && !owningPlayer.GetPlayerPolicies()->IsPolicyBlocked(ePolicy))
-			{
-				ChangeJONSCulturePerTurnFromPolicies(GC.getPolicyInfo(ePolicy)->GetBuildingClassCultureChange(eBuildingClass) * iChange);
-				ChangeFaithPerTurnFromPolicies(GC.getPolicyInfo(ePolicy)->GetBuildingClassYieldChanges(eBuildingClass, YIELD_FAITH) * iChange);
-			}
-		}
+//#ifdef AUI_WARNING_FIXES
+//		for (uint iPolicyLoop = 0; iPolicyLoop < GC.getNumPolicyInfos(); iPolicyLoop++)
+//#else
+//		for(int iPolicyLoop = 0; iPolicyLoop < GC.getNumPolicyInfos(); iPolicyLoop++)
+//#endif
+//		{
+//			ePolicy = (PolicyTypes) iPolicyLoop;
+//
+//			if(owningPlayer.GetPlayerPolicies()->HasPolicy(ePolicy) && !owningPlayer.GetPlayerPolicies()->IsPolicyBlocked(ePolicy))
+//			{
+//				ChangeJONSCulturePerTurnFromPolicies(GC.getPolicyInfo(ePolicy)->GetBuildingClassCultureChange(eBuildingClass) * iChange);
+//				ChangeFaithPerTurnFromPolicies(GC.getPolicyInfo(ePolicy)->GetBuildingClassYieldChanges(eBuildingClass, YIELD_FAITH) * iChange);
+//			}
+//		}
 
 		changeMaxFoodKeptPercent(pBuildingInfo->GetFoodKept() * iChange);
 		changeMilitaryProductionModifier(pBuildingInfo->GetMilitaryProductionModifier() * iChange);
@@ -7374,9 +7368,6 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst, 
 			}
 		}
 
-
-		changeScientificInfluence(pBuildingInfo->GetScientificInfluencePerTurn());
-
 		YieldTypes eYield;
 		
 		changeMountainScienceYield(pBuildingInfo->GetMountainScienceYield()); // NQMP GJS - mountain science yield
@@ -7389,14 +7380,20 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst, 
 			changeRiverPlotYield(eYield, (pBuildingInfo->GetRiverPlotYieldChange(eYield) * iChange));
 			changeLakePlotYield(eYield, (pBuildingInfo->GetLakePlotYieldChange(eYield) * iChange));
 			changeSeaResourceYield(eYield, (pBuildingInfo->GetSeaResourceYieldChange(eYield) * iChange));
-			ChangeBaseYieldRateFromBuildings(eYield, ((pBuildingInfo->GetYieldChange(eYield) + m_pCityBuildings->GetBuildingYieldChange(eBuildingClass, eYield)) * iChange));
+
+			const int iBaseChange = owningPlayer.GetTotalYieldForBuilding(this, eBuilding, eYield, false);
+			//ChangeBaseYieldRateFromBuildings(eYield, ((pBuildingInfo->GetYieldChange(eYield) + m_pCityBuildings->GetBuildingYieldChange(eBuildingClass, eYield)) * iChange));
+			ChangeBaseYieldRateFromBuildings(eYield, iBaseChange * iChange);
+
+			const int iBaseRateChange = owningPlayer.GetTotalYieldForBuilding(this, eBuilding, eYield, true);
+			changeYieldRateModifier(eYield, iBaseRateChange * iChange);
+
 			ChangeYieldPerPopTimes100(eYield, pBuildingInfo->GetYieldChangePerPop(eYield) * iChange);
 			ChangeYieldPerReligionTimes100(eYield, pBuildingInfo->GetYieldChangePerReligion(eYield) * iChange);
-			changeYieldRateModifier(eYield, (pBuildingInfo->GetYieldModifier(eYield) * iChange));
 
-			CvPlayerPolicies* pPolicies = GET_PLAYER(getOwner()).GetPlayerPolicies();
-			changeYieldRateModifier(eYield, pPolicies->GetBuildingClassYieldModifier(eBuildingClass, eYield) * iChange);
-			ChangeBaseYieldRateFromBuildings(eYield, pPolicies->GetBuildingClassYieldChange(eBuildingClass, eYield) * iChange);
+			//CvPlayerPolicies* pPolicies = GET_PLAYER(getOwner()).GetPlayerPolicies();
+			//changeYieldRateModifier(eYield, pPolicies->GetBuildingClassYieldModifier(eBuildingClass, eYield) * iChange);
+			//ChangeBaseYieldRateFromBuildings(eYield, pPolicies->GetBuildingClassYieldChange(eBuildingClass, eYield) * iChange);
 
 #ifdef AUI_WARNING_FIXES
 			for (uint iJ = 0; iJ < GC.getNumResourceInfos(); iJ++)
@@ -7442,40 +7439,10 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst, 
 				ChangeTerrainExtraYield(((TerrainTypes)iJ), eYield, (GC.getBuildingInfo(eBuilding)->GetTerrainYieldChange(iJ, eYield) * iChange));
 			}
 
-			if(pBuildingInfo->GetEnhancedYieldTech() != NO_TECH)
-			{
-				if(owningTeam.GetTeamTechs()->HasTech((TechTypes)pBuildingInfo->GetEnhancedYieldTech()))
-				{
-					if(eYield == YIELD_CULTURE)
-					{
-						ChangeJONSCulturePerTurnFromBuildings(pBuildingInfo->GetTechEnhancedYieldChange(eYield) * iChange);
-					}
-					else if(eYield == YIELD_FAITH)
-					{
-						ChangeFaithPerTurnFromBuildings(pBuildingInfo->GetTechEnhancedYieldChange(eYield) * iChange);
-					}
-					else
-					{
-						ChangeBaseYieldRateFromBuildings(eYield, pBuildingInfo->GetTechEnhancedYieldChange(eYield) * iChange);
-					}
-				}
-			}
-
 			int iBuildingClassBonus = owningPlayer.GetBuildingClassYieldChange(eBuildingClass, eYield);
 			if(iBuildingClassBonus > 0)
 			{
-				if(eYield == YIELD_CULTURE)
-				{
-					ChangeJONSCulturePerTurnFromBuildings(iBuildingClassBonus * iChange);
-				}
-				else if(eYield == YIELD_FAITH)
-				{
-					ChangeFaithPerTurnFromBuildings(iBuildingClassBonus * iChange);
-				}
-				else
-				{
-					ChangeBaseYieldRateFromBuildings(eYield, iBuildingClassBonus * iChange);
-				}
+				ChangeBaseYieldRateFromBuildings(eYield, iBuildingClassBonus * iChange);
 			}
 		}
 
@@ -7697,62 +7664,64 @@ void CvCity::UpdateReligion(ReligionTypes eNewMajority)
 				}
 
 				// Buildings
-#ifdef AUI_WARNING_FIXES
-				for (uint jJ = 0; jJ < GC.getNumBuildingClassInfos(); jJ++)
-#else
-				for(int jJ = 0; jJ < GC.getNumBuildingClassInfos(); jJ++)
-#endif
-				{
-					BuildingClassTypes eBuildingClass = (BuildingClassTypes)jJ;
-
-					CvBuildingClassInfo* pkBuildingClassInfo = GC.getBuildingClassInfo(eBuildingClass);
-					if(!pkBuildingClassInfo)
-					{
-						continue;
-					}
-
-					CvCivilizationInfo& playerCivilizationInfo = getCivilizationInfo();
-					BuildingTypes eBuilding = (BuildingTypes)playerCivilizationInfo.getCivilizationBuildings(eBuildingClass);
-
-					if(eBuilding != NO_BUILDING)
-					{
-						if(GetCityBuildings()->GetNumBuilding(eBuilding) > 0)
-						{
-							int iYieldFromBuilding = pReligion->m_Beliefs.GetBuildingClassYieldChange(eBuildingClass, (YieldTypes)iYield, iFollowers);
-
-							if (isWorldWonderClass(*pkBuildingClassInfo))
-							{
-								iYieldFromBuilding += pReligion->m_Beliefs.GetYieldChangeWorldWonder((YieldTypes)iYield);
-							}
-
-#ifdef NQ_CHEAT_SACRED_SITES_AFFECTS_GOLD
-							if (iYield == YIELD_GOLD || iYield == YIELD_FAITH) // and now also faith ... man this is getting ugly
-							{
-								CvBuildingEntry *pkEntry = GC.getBuildingInfo(eBuilding);
-								if (pkEntry && pkEntry->GetFaithCost() > 0 && pkEntry->IsUnlockedByBelief() && pkEntry->GetProductionCost() == -1)
-								{
-									iYieldFromBuilding += pReligion->m_Beliefs.GetFaithBuildingTourism(); // ... super ugly...
-								}
-							} // ... may Google forgive my eSoul...
-#endif
-							switch(iYield)
-							{
-							case YIELD_CULTURE:
-								ChangeJONSCulturePerTurnFromReligion(iYieldFromBuilding);
-								break;
-							case YIELD_FAITH:
-								ChangeFaithPerTurnFromReligion(iYieldFromBuilding);
-								break;
-							default:
-								ChangeBaseYieldRateFromReligion((YieldTypes)iYield, iYieldFromBuilding);
-								break;
-							}
-						}
-					}
-				}
+//#ifdef AUI_WARNING_FIXES
+//				for (uint jJ = 0; jJ < GC.getNumBuildingClassInfos(); jJ++)
+//#else
+//				for(int jJ = 0; jJ < GC.getNumBuildingClassInfos(); jJ++)
+//#endif
+//				{
+//					BuildingClassTypes eBuildingClass = (BuildingClassTypes)jJ;
+//
+//					CvBuildingClassInfo* pkBuildingClassInfo = GC.getBuildingClassInfo(eBuildingClass);
+//					if(!pkBuildingClassInfo)
+//					{
+//						continue;
+//					}
+//
+//					CvCivilizationInfo& playerCivilizationInfo = getCivilizationInfo();
+//					BuildingTypes eBuilding = (BuildingTypes)playerCivilizationInfo.getCivilizationBuildings(eBuildingClass);
+//
+//					if(eBuilding != NO_BUILDING)
+//					{
+//						if(GetCityBuildings()->GetNumBuilding(eBuilding) > 0)
+//						{
+//							int iYieldFromBuilding = pReligion->m_Beliefs.GetBuildingClassYieldChange(eBuildingClass, (YieldTypes)iYield, iFollowers);
+//
+//							if (isWorldWonderClass(*pkBuildingClassInfo))
+//							{
+//								iYieldFromBuilding += pReligion->m_Beliefs.GetYieldChangeWorldWonder((YieldTypes)iYield);
+//							}
+//
+//#ifdef NQ_CHEAT_SACRED_SITES_AFFECTS_GOLD
+//							if (iYield == YIELD_GOLD || iYield == YIELD_FAITH) // and now also faith ... man this is getting ugly
+//							{
+//								CvBuildingEntry *pkEntry = GC.getBuildingInfo(eBuilding);
+//								if (pkEntry && pkEntry->GetFaithCost() > 0 && pkEntry->IsUnlockedByBelief() && pkEntry->GetProductionCost() == -1)
+//								{
+//									iYieldFromBuilding += pReligion->m_Beliefs.GetFaithBuildingTourism(); // ... super ugly...
+//								}
+//							} // ... may Google forgive my eSoul...
+//#endif
+//							switch(iYield)
+//							{
+//							case YIELD_CULTURE:
+//								ChangeJONSCulturePerTurnFromReligion(iYieldFromBuilding);
+//								break;
+//							case YIELD_FAITH:
+//								ChangeFaithPerTurnFromReligion(iYieldFromBuilding);
+//								break;
+//							default:
+//								ChangeBaseYieldRateFromReligion((YieldTypes)iYield, iYieldFromBuilding);
+//								break;
+//							}
+//						}
+//					}
+//				}
 			}
 		}
 	}
+
+	UpdateBuildingYields();
 
 	GET_PLAYER(getOwner()).UpdateReligion();
 }
@@ -9032,18 +9001,13 @@ int CvCity::GetBaseJONSCulturePerTurn() const
 //	--------------------------------------------------------------------------------
 int CvCity::GetJONSCulturePerTurnFromBuildings() const
 {
-	VALIDATE_OBJECT
-	return m_iJONSCulturePerTurnFromBuildings;
+	return GetBaseYieldRateFromBuildings(YIELD_CULTURE);
 }
 
 //	--------------------------------------------------------------------------------
 void CvCity::ChangeJONSCulturePerTurnFromBuildings(int iChange)
 {
-	VALIDATE_OBJECT
-	if(iChange != 0)
-	{
-		m_iJONSCulturePerTurnFromBuildings = (m_iJONSCulturePerTurnFromBuildings + iChange);
-	}
+	ChangeBaseYieldRateFromBuildings(YIELD_CULTURE, iChange);
 }
 
 //	--------------------------------------------------------------------------------
@@ -9157,18 +9121,13 @@ int CvCity::GetFaithPerTurn() const
 //	--------------------------------------------------------------------------------
 int CvCity::GetFaithPerTurnFromBuildings() const
 {
-	VALIDATE_OBJECT
-	return m_iFaithPerTurnFromBuildings;
+	return GetBaseYieldRateFromBuildings(YIELD_FAITH);
 }
 
 //	--------------------------------------------------------------------------------
 void CvCity::ChangeFaithPerTurnFromBuildings(int iChange)
 {
-	VALIDATE_OBJECT
-	if(iChange != 0)
-	{
-		m_iFaithPerTurnFromBuildings = (m_iFaithPerTurnFromBuildings + iChange);
-	}
+	ChangeBaseYieldRateFromBuildings(YIELD_FAITH, iChange);
 }
 
 //	--------------------------------------------------------------------------------
@@ -9270,7 +9229,7 @@ int CvCity::GetFlatFaithOnCitizenBorn() const
 int CvCity::getScientificInfluence() const
 {
 	VALIDATE_OBJECT
-	return m_iScientificInfluence;
+	return m_iScientificInfluence + getYieldRate(YIELD_SCIENTIFIC_INSIGHT, false);
 }
 
 //	--------------------------------------------------------------------------------
@@ -11261,21 +11220,60 @@ int CvCity::GetBaseYieldRateFromBuildings(YieldTypes eIndex) const
 void CvCity::ChangeBaseYieldRateFromBuildings(YieldTypes eIndex, int iChange)
 {
 	VALIDATE_OBJECT
-	CvAssertMsg(eIndex >= 0, "eIndex expected to be >= 0");
+		CvAssertMsg(eIndex >= 0, "eIndex expected to be >= 0");
 	CvAssertMsg(eIndex < NUM_YIELD_TYPES, "eIndex expected to be < NUM_YIELD_TYPES");
 
-	if(iChange != 0)
+	if (iChange != 0)
 	{
 		m_aiBaseYieldRateFromBuildings.setAt(eIndex, m_aiBaseYieldRateFromBuildings[eIndex] + iChange);
 
-		if(getTeam() == GC.getGame().getActiveTeam())
+		if (getTeam() == GC.getGame().getActiveTeam())
 		{
-			if(isCitySelected())
+			if (isCitySelected())
 			{
 				DLLUI->setDirty(CityScreen_DIRTY_BIT, true);
 				//DLLUI->setDirty(InfoPane_DIRTY_BIT, true );
 			}
 		}
+	}
+}
+
+void CvCity::UpdateBuildingYields()
+{
+	for (int y = 0; y < NUM_YIELD_TYPES; y++)
+	{
+		const YieldTypes eYield = (YieldTypes)y;
+		int newYield = 0;
+		int newYieldRate = 0;
+		// for each building
+		for (int i = 0; i < GC.getNumBuildingClassInfos(); i++)
+		{
+			// if building is valid
+			const BuildingClassTypes eBuildingClass = (BuildingClassTypes)i;
+			CvBuildingClassInfo* pkBuildingClassInfo = GC.getBuildingClassInfo(eBuildingClass);
+			if (!pkBuildingClassInfo)
+				continue;
+			const BuildingTypes eBuilding = (BuildingTypes)getCivilizationInfo().getCivilizationBuildings(eBuildingClass);
+			if (eBuilding != NO_BUILDING)
+			{
+				const CvBuildingEntry* pkBuilding = GC.getBuildingInfo(eBuilding);
+				if (pkBuilding)
+				{
+					// if building exists in city
+					const int iBuildingCount = GetCityBuildings()->GetNumBuilding(eBuilding);
+					if (iBuildingCount > 0)
+					{
+						// process new yield value
+						newYield += GetPlayer()->GetTotalYieldForBuilding(this, eBuilding, eYield, false);
+					}
+				}
+			}
+		}
+		const int oldYield = GetBaseYieldRateFromBuildings(eYield);
+		ChangeBaseYieldRateFromBuildings(eYield, newYield - oldYield);
+
+		const int oldYieldRate = getYieldRateModifier(eYield);
+		changeYieldRateModifier(eYield, newYieldRate - oldYieldRate);
 	}
 }
 
@@ -15949,7 +15947,6 @@ void CvCity::read(FDataStream& kStream)
 	kStream >> m_iJONSCulturePerTurnFromPolicies;
 	kStream >> m_iJONSCulturePerTurnFromSpecialists;
 	kStream >> m_iJONSCulturePerTurnFromReligion;
-	kStream >> m_iFaithPerTurnFromBuildings;
 
 	kStream >> m_iFaithPerTurnFromPolicies;
 
@@ -16314,7 +16311,6 @@ void CvCity::write(FDataStream& kStream) const
 	kStream << m_iJONSCulturePerTurnFromPolicies;
 	kStream << m_iJONSCulturePerTurnFromSpecialists;
 	kStream << m_iJONSCulturePerTurnFromReligion;
-	kStream << m_iFaithPerTurnFromBuildings;
 	kStream << m_iFaithPerTurnFromPolicies;
 	kStream << m_iFaithPerTurnFromReligion;
 	kStream << m_iScientificInfluence;

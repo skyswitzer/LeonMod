@@ -147,7 +147,7 @@ int CvPlayer::GetExtraYieldForBuilding
 	const bool isPercentMod
 ) const
 {
-	int iYield;
+	int yieldChange = 0;
 
 	const CvPlayer& player = *this;
 
@@ -161,7 +161,7 @@ int CvPlayer::GetExtraYieldForBuilding
 
 	}
 
-	return iYield;
+	return yieldChange;
 }
 
 

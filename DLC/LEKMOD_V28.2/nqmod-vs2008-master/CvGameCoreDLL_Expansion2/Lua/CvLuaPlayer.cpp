@@ -9644,12 +9644,12 @@ int CvLuaPlayer::lGetTotalBuildingYields(lua_State* L)
 	const CvPlayer* pkPlayer = GetInstance(L);
 	if (pkPlayer != NULL)
 	{
-		const CvCity* pCity = (CvCity*)lua_touserdata(L, 2);
+		const CvCity* pCity = CvLuaCity::GetInstance(L, 2, false);
 		const BuildingTypes eBuilding = (BuildingTypes)lua_tointeger(L, 3);
 		const YieldTypes eYieldType = (YieldTypes)lua_tointeger(L, 4);
 		const bool isPercentMod = (bool)lua_toboolean(L, 5);
 
-		const int result = pkPlayer->GetYieldForBuilding(pCity, eBuilding, eYieldType, isPercentMod);
+		const int result = pkPlayer->GetTotalYieldForBuilding(pCity, eBuilding, eYieldType, isPercentMod);
 
 		lua_pushinteger(L, result);
 	}

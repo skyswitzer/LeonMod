@@ -3324,12 +3324,6 @@ void CvCityBuildings::SetBuildingYieldChange(BuildingClassTypes eBuildingClass, 
 	}
 }
 
-/// Accessor: Change yield boost for a specific building by yield type
-void CvCityBuildings::ChangeBuildingYieldChange(BuildingClassTypes eBuildingClass, YieldTypes eYield, int iChange)
-{
-	SetBuildingYieldChange(eBuildingClass, eYield, GetBuildingYieldChange(eBuildingClass, eYield) + iChange);
-}
-
 /// Accessor: Get Great Work in a specific building by slot index
 #ifdef AUI_WARNING_FIXES
 int CvCityBuildings::GetBuildingGreatWork(BuildingClassTypes eBuildingClass, uint iSlot) const

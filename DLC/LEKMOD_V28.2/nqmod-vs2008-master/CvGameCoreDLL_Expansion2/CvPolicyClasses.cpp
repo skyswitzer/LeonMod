@@ -2226,6 +2226,8 @@ int CvPolicyEntry::GetImprovementYieldChanges(int i, int j) const
 /// Yield modifier for a specific BuildingClass by yield type
 int CvPolicyEntry::GetBuildingClassYieldModifiers(int i, int j) const
 {
+	if (j == YIELD_TOURISM)
+		return GetBuildingClassTourismModifier(i);
 	CvAssertMsg(i < GC.getNumBuildingClassInfos(), "Index out of bounds");
 	CvAssertMsg(i > -1, "Index out of bounds");
 	CvAssertMsg(j < NUM_YIELD_TYPES, "Index out of bounds");
@@ -2240,6 +2242,11 @@ int CvPolicyEntry::GetBuildingClassYieldModifiers(int i, int j) const
 /// Yield change for a specific BuildingClass by yield type
 int CvPolicyEntry::GetBuildingClassYieldChanges(int i, int j) const
 {
+	if (j == YIELD_CULTURE)
+	{
+		return GetBuildingClassCultureChange(i);
+	}
+
 	CvAssertMsg(i < GC.getNumBuildingClassInfos(), "Index out of bounds");
 	CvAssertMsg(i > -1, "Index out of bounds");
 	CvAssertMsg(j < NUM_YIELD_TYPES, "Index out of bounds");

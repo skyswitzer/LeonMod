@@ -764,6 +764,13 @@
 							<Label Anchor="L,C" Offset="8,-2" Anchorside="I.O" WrapWidth="600" LeadingOffset="0" Font="TwCenMT20" FontStyle="Shadow" Color0="Beige" Color1="0.0.0.160" ID="ScientificInfluenceLabel"/>
 						</Grid>
 					</Grid>
+					<!-- Scientific Influence -->
+					<Grid Anchor="L,T" Offset="0,24" Size="204,36" Padding="0,0" Style="GridBlackIndent8" Hidden="0" ID="CulturalInfluenceFrame">
+						<Grid Anchor="C,C" Offset="0,0" Size="208,40" Padding="0,0" Style="Grid9Frame" Hidden="0">
+							<Label Anchor="L,T" Offset="4,-16" Anchorside="I.O" WrapWidth="600" LeadingOffset="0" Font="TwCenMT20" FontStyle="Shadow" Color0="Beige" Color1="0.0.0.160" String="CULTURAL_INFLUENCE_TEXT"/>
+							<Label Anchor="L,C" Offset="8,-2" Anchorside="I.O" WrapWidth="600" LeadingOffset="0" Font="TwCenMT20" FontStyle="Shadow" Color0="Beige" Color1="0.0.0.160" ID="CulturalInfluenceLabel"/>
+						</Grid>
+					</Grid>
 					<!-- Production -->
 					<Grid Anchor="L,T" Offset="0,24" Size="204,36" Padding="0,0" Style="GridBlackIndent8" Hidden="0" ID="ProductionFrame">
 						<Grid Anchor="C,C" Offset="0,0" Size="208,40" Padding="0,0" Style="Grid9Frame" Hidden="0">

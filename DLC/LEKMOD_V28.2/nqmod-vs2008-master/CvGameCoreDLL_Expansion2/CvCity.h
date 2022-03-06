@@ -660,6 +660,8 @@ public:
 	int GetBaseYieldRateFromBuildings(YieldTypes eIndex) const;
 	void ChangeBaseYieldRateFromBuildings(YieldTypes eIndex, int iChange);
 
+	void UpdateBuildingYields();
+
 	int GetBaseYieldRateFromSpecialists(YieldTypes eIndex) const;
 	void ChangeBaseYieldRateFromSpecialists(YieldTypes eIndex, int iChange);
 
@@ -676,7 +678,9 @@ public:
 	int GetYieldPerReligionTimes100(YieldTypes eIndex) const;
 	void ChangeYieldPerReligionTimes100(YieldTypes eIndex, int iChange);
 
+	// for buildings
 	int getYieldRateModifier(YieldTypes eIndex) const;
+	// for buildings
 	void changeYieldRateModifier(YieldTypes eIndex, int iChange);
 
 	int getPowerYieldRateModifier(YieldTypes eIndex) const;
@@ -977,7 +981,6 @@ protected:
 	FAutoVariable<int, CvCity> m_iJONSCulturePerTurnFromPolicies;
 	FAutoVariable<int, CvCity> m_iJONSCulturePerTurnFromSpecialists;
 	FAutoVariable<int, CvCity> m_iJONSCulturePerTurnFromReligion;
-	int m_iFaithPerTurnFromBuildings;
 	int m_iFaithPerTurnFromPolicies;
 	int m_iFaithPerTurnFromReligion;
 	FAutoVariable<int, CvCity> m_iScientificInfluence;
