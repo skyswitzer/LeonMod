@@ -106,6 +106,78 @@ int CvPlot::getExtraYield
 			//{
 			//	yieldChange += 1;
 			//}
+
+			// Dance of Aura - on tundra tiles only - gives +1 production to bonus tiles, +1 culture to luxury tiles, +1 Gold to Strategic, and +1 faith to every other tundra tile
+			const bool hasBeliefdanceofaura = city.HasBelief("BELIEF_DANCE_AURORA"); 
+			const bool hasBeliefdesertfolklore = city.HasBelief("BELIEF_DESERT_FOLKLORE");
+			const bool istundra = HasTerrain(TERRAIN_TUNDRA);
+			const bool isdesert = HasTerrain(TERRAIN_DESERT);
+			const bool isbonus = HasResourceClass("RESOURCECLASS_BONUS");
+			const bool isluxury = HasResourceClass("RESOURCECLASS_LUXURY");
+			const bool isstrat1 = HasResourceClass("RESOURCECLASS_RUSH");
+			const bool isstrat2 = HasResourceClass("RESOURCECLASS_MODERN");
+			
+			if (eYieldType == YIELD_FAITH && hasBeliefdanceofaura && istundra)
+			{
+				yieldChange += 1;
+			}
+			if (eYieldType == YIELD_PRODUCTION && hasBeliefdanceofaura && istundra && isbonus)
+			{
+				yieldChange += 1;
+			}
+			if (eYieldType == YIELD_FAITH && hasBeliefdanceofaura && istundra && isbonus)
+			{
+				yieldChange -= 1;
+			}
+			if (eYieldType == YIELD_CULTURE && hasBeliefdanceofaura && istundra && isluxury)
+			{
+				yieldChange += 1;
+			}
+			if (eYieldType == YIELD_FAITH && hasBeliefdanceofaura && istundra && isluxury)
+			{
+				yieldChange -= 1;
+			}
+			if (eYieldType == YIELD_GOLD && hasBeliefdanceofaura && istundra && (isstrat1 || isstrat2))
+			{
+				yieldChange += 1;
+			}
+			if (eYieldType == YIELD_FAITH && hasBeliefdanceofaura && istundra && (isstrat1 || isstrat2))
+			{
+				yieldChange -= 1;
+			}
+			
+
+			// Desert Folklore - on Desert tiles only - gives +1 production to bonus tiles, +1 culture to luxury tiles, +1 Gold to Strategic, and +1 faith to every other Desert tile
+			
+			if (eYieldType == YIELD_FAITH && hasBeliefdesertfolklore && isdesert)
+			{
+				yieldChange += 1;
+			}
+			if (eYieldType == YIELD_PRODUCTION && hasBeliefdesertfolklore && isdesert && isbonus)
+			{
+				yieldChange += 1;
+			}
+			if (eYieldType == YIELD_FAITH && hasBeliefdesertfolklore && isdesert && isbonus)
+			{
+				yieldChange -= 1;
+			}
+			if (eYieldType == YIELD_CULTURE && hasBeliefdesertfolklore && isdesert && isluxury)
+			{
+				yieldChange += 1;
+			}
+			if (eYieldType == YIELD_FAITH && hasBeliefdesertfolklore && isdesert && isluxury)
+			{
+				yieldChange -= 1;
+			}
+			if (eYieldType == YIELD_GOLD && hasBeliefdesertfolklore && isdesert && (isstrat1 || isstrat2))
+			{
+				yieldChange += 1;
+			}
+			if (eYieldType == YIELD_FAITH && hasBeliefdesertfolklore && isdesert && (isstrat1 || isstrat2))
+			{
+				yieldChange -= 1;
+			}
+			
 		}
 	}
 	else // does not depend on player
