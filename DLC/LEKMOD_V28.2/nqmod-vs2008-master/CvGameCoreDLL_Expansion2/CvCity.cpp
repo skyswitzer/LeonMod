@@ -1894,6 +1894,9 @@ void CvCity::doTurn()
 		// add scientific influence to player total
 		CvPlayer& owner = GET_PLAYER(getOwner());
 		owner.ChangeScientificInfluence(getScientificInfluence());
+		owner.ChangeDiplomaticInfluence(getYieldRate(YIELD_DIPLOMATIC_SUPPORT, false));
+
+		owner.ChangeGoldenAgeProgressMeter(getYieldRate(YIELD_GOLDEN, false));
 
 		DoUpdateIndustrialRouteToCapital();
 

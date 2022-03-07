@@ -3174,6 +3174,15 @@ function SelectBuildingOrWonderArticle( buildingID )
 			Controls.ScienceFrame:SetHide( false );
 		end
 
+		-- Golden Age Points
+		yield = GetBuildingYieldChange(buildingID, "YIELD_GOLDEN");
+		local sign = "";
+		if (yield > 0) then sign="+"; end
+		if (yield ~= 0) then
+			Controls.GoldenLabel:SetText( sign .. tostring(yield).." [ICON_GOLDEN_AGE]" );
+			Controls.GoldenFrame:SetHide( false );
+		end
+
 		-- update the Cultural Influence
 		local tourismItems = {};
 		yield = GetBuildingYieldModifier(buildingID, "YIELD_TOURISM");
@@ -6966,6 +6975,7 @@ function ClearArticle()
 	Controls.GoldChangeFrame:SetHide( true );
 	Controls.GoldFrame:SetHide( true );
 	Controls.ScienceFrame:SetHide( true );
+	Controls.GoldenFrame:SetHide( true );
 	Controls.ScientificInfluenceFrame:SetHide( true );
 	Controls.CulturalInfluenceFrame:SetHide( true );
 	Controls.ProductionFrame:SetHide( true );

@@ -174,7 +174,12 @@ function GetHelpTextForBuilding(iBuildingID, bExcludeName, bExcludeHeader, bNoMa
 	end
 
 	-- Tourism
-	--local iTourism = pBuildingInfo.TechEnhancedTourism;
+	local golden = pActivePlayer:GetTotalBuildingYields(pCity, iBuildingID, YieldTypes.YIELD_GOLDEN, false);
+	if (golden ~= nil and golden ~= 0) then
+		table.insert(lines, Locale.ConvertTextKey("TXT_KEY_PRODUCTION_BUILDING_GOLDEN", golden));
+	end
+
+	-- Tourism
 	local iTourism = pActivePlayer:GetTotalBuildingYields(pCity, iBuildingID, YieldTypes.YIELD_TOURISM, false);
 	iTourism = iTourism + pBuildingInfo.TechEnhancedTourism;
 	if (iTourism ~= nil and iTourism ~= 0) then
