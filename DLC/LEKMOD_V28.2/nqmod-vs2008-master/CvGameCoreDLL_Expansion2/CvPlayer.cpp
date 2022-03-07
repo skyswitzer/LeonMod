@@ -1355,7 +1355,7 @@ void CvPlayer::reset(PlayerTypes eID, bool bConstructorCall)
 			}
 		}
 
-		Firaxis::Array< int, NUM_YIELD_TYPES > yield;
+		Firaxis::Array< int, NUM_YIELD_TYPES > yield = Firaxis::Array< int, NUM_YIELD_TYPES >();
 		for(unsigned int j = 0; j < NUM_YIELD_TYPES; ++j)
 		{
 			yield[j] = 0;
@@ -1954,7 +1954,7 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bGift)
 
 	CvString strBuffer;
 	CvString strName;
-	bool abEverOwned[MAX_PLAYERS];
+	bool abEverOwned[MAX_PLAYERS] = {};
 	PlayerTypes eOldOwner;
 #ifdef AUI_PLAYER_FIX_ACQUIRE_CITY_NO_CITY_LOSSES_ON_RECAPTURE
 	PlayerTypes eOriginalOwner = pOldCity->getOriginalOwner();
@@ -2286,7 +2286,7 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bGift)
 #endif
 					if (iGreatWork != NO_GREAT_WORK)
 					{
-						CopyGreatWorkData kData;
+						CopyGreatWorkData kData = CopyGreatWorkData();
 						kData.m_iGreatWork = iGreatWork;
 						kData.m_eBuildingType = (BuildingTypes)iI;
 						kData.m_iSlot = jJ;
@@ -4943,7 +4943,7 @@ void CvPlayer::doTurnUnits()
 
 	// Start: OPERATIONAL AI UNIT PROCESSING
 	std::map<int, CvAIOperation*>::iterator iter;
-	bool bKilledSomething;
+	bool bKilledSomething = false;
 	do
 	{
 		bKilledSomething = false;
@@ -5915,7 +5915,7 @@ int CvPlayer::GetDiplomaticInfluenceNeeded() const
 	const float numTotalPlayers = GC.getGamePointer()->getNumMajorCivsStart();
 	const float numHumanPlayers = GC.getGamePointer()->getNumHumanPlayers();
 
-	const float effectiveNumCivs = (numHumanPlayers + numHumanPlayers + numTotalPlayers) / 3.0;
+	const float effectiveNumCivs = (numHumanPlayers);
 
 	const float toWinBoost = 1.10;
 	const float expectedTurnFraction = 0.50;
@@ -16637,7 +16637,7 @@ void CvPlayer::SetHasLostCapital(bool bValue, PlayerTypes eConqueror)
 				// Calculate who owns the most original capitals by iterating through all civs 
 				// and finding out who owns their original capital.
 				typedef std::tr1::array<int, MAX_CIV_TEAMS> CivTeamArray;
-				CivTeamArray aTeamCityCount;
+				CivTeamArray aTeamCityCount = CivTeamArray();
 				aTeamCityCount.assign(0);
 
 				CvMap& kMap = GC.getMap();
@@ -23691,11 +23691,11 @@ void CvPlayer::processPolicies(PolicyTypes ePolicy, int iChange)
 		}
 	}
 
-	BuildingClassTypes eBuildingClass;
-	BuildingTypes eBuilding;
-	int iBuildingCount;
-	int iYieldMod;
-	int iYieldChange;
+	BuildingClassTypes eBuildingClass = NO_BUILDINGCLASS;
+	BuildingTypes eBuilding = NO_BUILDING;
+	int iBuildingCount = 0;
+	int iYieldMod = 0;
+	int iYieldChange = 0;
 
 	// How many cities get free buildings?
 	int iNumCitiesFreeAestheticsSchools = pPolicy->GetNumCitiesFreeAestheticsSchools(); // NQMP GJS - add support for NumCitiesFreeAestheticsSchools

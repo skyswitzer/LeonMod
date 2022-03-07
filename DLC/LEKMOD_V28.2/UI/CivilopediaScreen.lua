@@ -3175,12 +3175,25 @@ function SelectBuildingOrWonderArticle( buildingID )
 		end
 
 		-- update the Cultural Influence
+		local tourismItems = {};
+		yield = GetBuildingYieldModifier(buildingID, "YIELD_TOURISM");
+		local sign = "";
+		if (yield > 0) then sign="+"; end
+		if (yield ~= 0) then
+			table.insert(tourismItems, sign .. tostring(yield).."% [ICON_CULTURAL_INFLUENCE]" );
+		end
+
+		-- update the Cultural Influence
 		yield = GetBuildingYieldChange(buildingID, "YIELD_TOURISM");
 		yield = yield + thisBuilding.TechEnhancedTourism;
 		local sign = "";
 		if (yield > 0) then sign="+"; end
 		if (yield ~= 0) then
-			Controls.CulturalInfluenceLabel:SetText( sign .. tostring(yield).." [ICON_CULTURAL_INFLUENCE]" );
+			table.insert(tourismItems, sign .. tostring(yield).." [ICON_CULTURAL_INFLUENCE]" );
+		end
+
+		if(#tourismItems > 0) then
+			Controls.CulturalInfluenceLabel:SetText( table.concat(tourismItems, ", ") );
 			Controls.CulturalInfluenceFrame:SetHide( false );
 		end
 

@@ -180,6 +180,11 @@ function GetHelpTextForBuilding(iBuildingID, bExcludeName, bExcludeHeader, bNoMa
 	if (iTourism ~= nil and iTourism ~= 0) then
 		table.insert(lines, Locale.ConvertTextKey("TXT_KEY_PRODUCTION_BUILDING_TOURISM", iTourism));
 	end
+	-- Tourism Mod
+	local tourismMod = pActivePlayer:GetTotalBuildingYields(pCity, iBuildingID, YieldTypes.YIELD_TOURISM, true);
+	if (tourismMod ~= nil and tourismMod ~= 0) then
+		table.insert(lines, Locale.ConvertTextKey("TXT_KEY_PRODUCTION_BUILDING_TOURISM_MOD", tourismMod));
+	end
 	--[[
 	local iTechEnhancedTourism = pBuildingInfo.TechEnhancedTourism;
 	local iEnhancingTech = GameInfoTypes[pBuildingInfo.EnhancedYieldTech];

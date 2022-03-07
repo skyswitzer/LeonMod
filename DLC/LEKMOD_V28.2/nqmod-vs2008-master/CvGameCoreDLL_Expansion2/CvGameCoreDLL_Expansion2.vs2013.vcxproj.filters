@@ -1010,6 +1010,7 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\CvGameCoreDLLUtil\include\CvEnums.h" />
+    <ClInclude Include="..\FirePlace\include\FireWorks\FFastVector.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="CvGameCoreDLL.rc" />

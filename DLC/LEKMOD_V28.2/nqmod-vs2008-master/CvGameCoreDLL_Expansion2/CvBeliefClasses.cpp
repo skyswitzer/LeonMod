@@ -2018,20 +2018,23 @@ bool CvReligionBeliefs::IsBuildingClassEnabled(BuildingClassTypes eType) const
 /// Is there a belief that allows faith buying of units
 bool CvReligionBeliefs::IsFaithBuyingEnabled(EraTypes eEra) const
 {
-	CvBeliefXMLEntries* pBeliefs = GC.GetGameBeliefs();
+	// always allow faith purchases if they have beliefs
+	return true;
 
-	for(int i = 0; i < pBeliefs->GetNumBeliefs(); i++)
-	{
-		if(HasBelief((BeliefTypes)i))
-		{
-			if (pBeliefs->GetEntry(i)->IsFaithUnitPurchaseEra((int)eEra))
-			{
-				return true;
-			}
-		}
-	}
+	//CvBeliefXMLEntries* pBeliefs = GC.GetGameBeliefs();
 
-	return false;
+	//for(int i = 0; i < pBeliefs->GetNumBeliefs(); i++)
+	//{
+	//	if(HasBelief((BeliefTypes)i))
+	//	{
+	//		if (pBeliefs->GetEntry(i)->IsFaithUnitPurchaseEra((int)eEra))
+	//		{
+	//			return true;
+	//		}
+	//	}
+	//}
+
+	//return false;
 }
 
 /// Is there a belief that allows us to convert adjacent barbarians?

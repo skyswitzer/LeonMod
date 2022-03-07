@@ -556,6 +556,10 @@ int CvMinorCivQuest::GetEndTurn() const
 	{
 		iLength = GC.getMINOR_QUEST_STANDARD_CONTEST_LENGTH();
 	}
+	else if (m_eType == QUEST_GIFT_GOLD)
+	{
+		iLength = GC.getMINOR_QUEST_STANDARD_CONTEST_LENGTH() / 2;
+	}
 	else // personal quests
 	{
 		iLength = GC.getMINOR_QUEST_STANDARD_CONTEST_LENGTH();
@@ -5436,8 +5440,9 @@ bool CvMinorCivAI::IsPlayerHasOpenBordersAutomatically(PlayerTypes ePlayer)
 /// Major liberates a Minor by recapturing its City!
 void CvMinorCivAI::DoLiberationByMajor(PlayerTypes eLiberator, TeamTypes eConquerorTeam)
 {
+	CvPlayer& liberator = GET_PLAYER(eLiberator);
 	Localization::String strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_MINOR_LIBERATION");
-	strMessage << GetPlayer()->getNameKey() << GET_PLAYER(eLiberator).getNameKey();
+	strMessage << GetPlayer()->getNameKey() << liberator.getNameKey();
 	Localization::String strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_MINOR_LIBERATION");
 	strSummary << GetPlayer()->getNameKey();
 
@@ -5475,17 +5480,26 @@ void CvMinorCivAI::DoLiberationByMajor(PlayerTypes eLiberator, TeamTypes eConque
 		}
 	}
 
+	// diplo points
+	const int diplomaticInfluenceReward = 250;
+	liberator.ChangeDiplomaticInfluence(diplomaticInfluenceReward);
+
 	// Influence for liberator - raise to ally status
 	int iNewInfluence = max(iHighestOtherMajorInfluence + GC.getMINOR_LIBERATION_FRIENDSHIP(), GetBaseFriendshipWithMajor(eLiberator) + GC.getMINOR_LIBERATION_FRIENDSHIP());
 	iNewInfluence = max(GetAlliesThreshold(), iNewInfluence); // Must be at least enough to make us allies
 	SetFriendshipWithMajor(eLiberator, iNewInfluence);
 
 	// Notification for liberator
-	strMessage = Localization::Lookup("TXT_KEY_NOTIFICATION_MINOR_LIBERATION_YOU");
+	stringstream s;
+	strMessage << Localization::Lookup("TXT_KEY_NOTIFICATION_MINOR_LIBERATION_YOU");
 	strMessage << GetPlayer()->getNameKey();
+	s << strMessage.toUTF8();
+	s << "[NEWLINE][ICON_BULLET]+" << iNewInfluence << " {FRIENDSHIP}";
+	s << "[NEWLINE][ICON_BULLET]+" << diplomaticInfluenceReward << " {DIPLOMATIC_INFLUENCE}";
+
 	strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SUMMARY_MINOR_LIBERATION");
 	strSummary << GetPlayer()->getNameKey();
-	AddNotification(strMessage.toUTF8(), strSummary.toUTF8(), eLiberator);
+	AddNotification(s.str().c_str(), strSummary.toUTF8(), eLiberator);
 }
 
 void CvMinorCivAI::DoChangeProtectionFromMajor(PlayerTypes eMajor, bool bProtect, bool bPledgeNowBroken)
@@ -7734,7 +7748,7 @@ void CvMinorCivAI::DoElection()
 	}
 
 	CvWeightedVector<PlayerTypes, MAX_MAJOR_CIVS, true> wvVotes;
-	Firaxis::Array<CvEspionageSpy*, MAX_MAJOR_CIVS> apSpy;
+	Firaxis::Array<CvEspionageSpy*, MAX_MAJOR_CIVS> apSpy = Firaxis::Array<CvEspionageSpy*, MAX_MAJOR_CIVS>();
 	CvCity* pCapital = GetPlayer()->getCapitalCity();
 	if(!pCapital)
 	{
