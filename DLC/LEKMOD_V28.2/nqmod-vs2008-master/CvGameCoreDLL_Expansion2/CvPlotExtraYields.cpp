@@ -141,6 +141,32 @@ int CvPlot::getExtraYield
 					yieldChange += 1;
 			}
 
+			{ // BELIEF_SACRED_WATERS - gives one tourism from lake and atoll tiles. Could change to lake and oasis in future if Atolls seems too good. Features don't work right now though. 
+				const bool hasBeliefSacredWaters = city.HasBelief("BELIEF_SACRED_WATERS");
+				const bool islake = plot.isLake();
+				if (eYieldType == YIELD_TOURISM && hasBeliefSacredWaters && (islake || hasAnyAtoll))
+					yieldChange += 1;
+			}
+
+			{ // BELIEF_Zakat - gives 2 Scientific Influence from Palace. 
+				const bool hasBeliefSacredWaters = city.HasBelief("BELIEF_SACRED_WATERS");
+				const bool islake = plot.isLake();
+				if (eYieldType == YIELD_TOURISM && hasBeliefSacredWaters && (islake || hasAnyAtoll))
+					yieldChange += 1;
+			}
+			{ // Policy_Cutural Exchange - gives 1 tourism to great person tile improvements. 
+				const bool hasPolicyCulturalExchange = player.HasPolicy("POLICY_ETHICS");
+				const bool isAcadamy = plot.HasImprovement("IMPROVEMENT_ACADEMY");
+				const bool isCustomsHouse = plot.HasImprovement("IMPROVEMENT_CUSTOMS_HOUSE");
+				const bool isManufactory = plot.HasImprovement("IMPROVEMENT_MANUFACTORY");
+				const bool isHolySite = plot.HasImprovement("IMPROVEMENT_HOLY_SITE");
+				const bool isDrydock = plot.HasImprovement("IMPROVEMENT_DOCK");
+				const bool isChileDry = plot.HasImprovement("IMPROVEMENT_CHILE_DOCK");
+				const bool isSacredGrove = plot.HasImprovement("IMPROVEMENT_SACRED_GROVE");
+				if (eYieldType == YIELD_TOURISM && hasPolicyCulturalExchange && (isAcadamy || isCustomsHouse || isManufactory || isHolySite || isDrydock || isChileDry || isSacredGrove))
+					yieldChange += 1;
+			}
+			
 
 		}
 	}
@@ -176,22 +202,27 @@ int CvPlayer::GetExtraYieldForBuilding
 	const CvBuildingEntry* pBuildingInfo,
 	const YieldTypes eYieldType, 
 	const bool isPercentMod
+	
 ) const
 {
 	int yieldChange = 0;
 
 	const CvPlayer& player = *this;
-
+	
 	if (pCity != NULL) // in a city
 	{
 		const CvCity& city = *pCity;
-
+		{ // adds +1 scientific insight to national college wings from peace gardens
+			const bool hasBeliefPeaceGardens = city.HasBelief("BELIEF_PEACE_GARDENZ");
+			const bool isNationalCollege1 = eBuildingClass == BuildingClass("BUILDINGCLASS_NATIONAL_COLLEGE");
+			const bool isNationalCollege2 = eBuildingClass == BuildingClass("BUILDINGCLASS_NATIONAL_SCIENCE_1");
+			const bool isNationalCollege3 = eBuildingClass == BuildingClass("BUILDINGCLASS_NATIONAL_SCIENCE_2");
+			if (eYieldType == YIELD_SCIENTIFIC_INSIGHT && hasBeliefPeaceGardens && (isNationalCollege1 || isNationalCollege2 || isNationalCollege3))
+			yieldChange += 1; 
+		}
+		
 	}
-	else // not in a city
-	{
-
-	}
-
+	
 	return yieldChange;
 }
 
