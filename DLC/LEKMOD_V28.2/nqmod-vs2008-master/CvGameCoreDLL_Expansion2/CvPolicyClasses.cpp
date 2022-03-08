@@ -2224,38 +2224,43 @@ int CvPolicyEntry::GetImprovementYieldChanges(int i, int j) const
 }
 
 /// Yield modifier for a specific BuildingClass by yield type
-int CvPolicyEntry::GetBuildingClassYieldModifiers(int i, int j) const
+int CvPolicyEntry::GetBuildingClassYieldModifiers(int eBuildingClass, int yieldType) const
 {
-	if (j == YIELD_TOURISM)
-		return GetBuildingClassTourismModifier(i);
-	CvAssertMsg(i < GC.getNumBuildingClassInfos(), "Index out of bounds");
-	CvAssertMsg(i > -1, "Index out of bounds");
-	CvAssertMsg(j < NUM_YIELD_TYPES, "Index out of bounds");
-	CvAssertMsg(j > -1, "Index out of bounds");
-#ifdef AUI_DATABASE_UTILITY_PROPER_2D_ALLOCATION_AND_DESTRUCTION
-	return m_ppiBuildingClassYieldModifiers.first ? m_ppiBuildingClassYieldModifiers.first[i][j] : 0;
-#else
-	return m_ppiBuildingClassYieldModifiers[i][j];
-#endif
+	int value = 0;
+	if (yieldType == YIELD_TOURISM)
+	{
+		value += GetBuildingClassTourismModifier(eBuildingClass);
+	}
+	if (yieldType == YIELD_PRODUCTION)
+	{
+		value += GetBuildingClassProductionModifier(eBuildingClass);
+	}
+
+	CvAssertMsg(eBuildingClass < GC.getNumBuildingClassInfos(), "Index out of bounds");
+	CvAssertMsg(eBuildingClass > -1, "Index out of bounds");
+	CvAssertMsg(yieldType < NUM_YIELD_TYPES, "Index out of bounds");
+	CvAssertMsg(yieldType > -1, "Index out of bounds");
+
+	value += m_ppiBuildingClassYieldModifiers[eBuildingClass][yieldType];
+	return value;
 }
 
 /// Yield change for a specific BuildingClass by yield type
-int CvPolicyEntry::GetBuildingClassYieldChanges(int i, int j) const
+int CvPolicyEntry::GetBuildingClassYieldChanges(int eBuildingClass, int yieldType) const
 {
-	if (j == YIELD_CULTURE)
+	int value = 0;
+	if (yieldType == YIELD_CULTURE)
 	{
-		return GetBuildingClassCultureChange(i);
+		value += GetBuildingClassCultureChange(eBuildingClass);
 	}
 
-	CvAssertMsg(i < GC.getNumBuildingClassInfos(), "Index out of bounds");
-	CvAssertMsg(i > -1, "Index out of bounds");
-	CvAssertMsg(j < NUM_YIELD_TYPES, "Index out of bounds");
-	CvAssertMsg(j > -1, "Index out of bounds");
-#ifdef AUI_DATABASE_UTILITY_PROPER_2D_ALLOCATION_AND_DESTRUCTION
-	return m_ppiBuildingClassYieldChanges.first ? m_ppiBuildingClassYieldChanges.first[i][j] : 0;
-#else
-	return m_ppiBuildingClassYieldChanges[i][j];
-#endif
+	CvAssertMsg(eBuildingClass < GC.getNumBuildingClassInfos(), "Index out of bounds");
+	CvAssertMsg(eBuildingClass > -1, "Index out of bounds");
+	CvAssertMsg(yieldType < NUM_YIELD_TYPES, "Index out of bounds");
+	CvAssertMsg(yieldType > -1, "Index out of bounds");
+
+	value += m_ppiBuildingClassYieldChanges[eBuildingClass][yieldType];
+	return value;
 }
 
 #ifdef AUI_POLICY_BUILDING_CLASS_FLAVOR_MODIFIERS

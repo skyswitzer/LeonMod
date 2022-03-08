@@ -170,18 +170,17 @@ int CvPlot::getExtraYield
 
 		}
 	}
-	else // does not depend on player
-	{
-		{ // don't stack lake and atoll yields
-			if (plot.isLake() && hasAnyAtoll)
-			{
-				// remove whatever the lake would have given
-				const CvYieldInfo& kYield = *GC.getYieldInfo(eYieldType);
-				yieldChange -= kYield.getLakeChange();
-			}
+
+
+	// does not depend on player
+
+	{ // don't stack lake and atoll yields
+		if (plot.isLake() && hasAnyAtoll)
+		{
+			// remove whatever the lake would have given
+			const CvYieldInfo& kYield = *GC.getYieldInfo(eYieldType);
+			yieldChange -= kYield.getLakeChange();
 		}
-
-
 	}
 
 	return yieldChange;

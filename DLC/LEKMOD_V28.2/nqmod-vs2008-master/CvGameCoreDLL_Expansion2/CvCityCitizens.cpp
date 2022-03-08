@@ -3130,7 +3130,7 @@ int CvCityCitizens::GetNumSpecialistsAllowedByBuilding(const CvBuildingEntry& kB
 }
 
 const int minBlueCollar = 8;
-const int divisor = 3;
+const int divisor = 2;
 int CvCityCitizens::NeededPopForOneMoreSpecialist()
 {
 	const int start = minBlueCollar + 1;

@@ -108,16 +108,23 @@ function BuildYield( x, y, index )
     SetYieldIcon( 4, yieldInfo.m_Culture,    anchor.Stack2, record );
     SetYieldIcon( 5, yieldInfo.m_Faith,      anchor.Stack2, record );
 
-    SetYieldIcon( 6, yieldInfo.m_Tourism,    anchor.Stack3, record );
+    SetYieldIcon( 6, yieldInfo.m_Golden,     anchor.Stack3, record );
 
     SetYieldIcon( 7, yieldInfo.m_Tourism,    anchor.Stack3, record );
-    SetYieldIcon( 8, yieldInfo.m_Tourism,    anchor.Stack3, record );
-    SetYieldIcon( 9, yieldInfo.m_Tourism,    anchor.Stack3, record );
+    SetYieldIcon( 8, yieldInfo.m_Scientific, anchor.Stack3, record );
+    SetYieldIcon( 9, yieldInfo.m_Diplo,      anchor.Stack3, record );
     --SetYieldIcon( 6, yieldInfo.m_Tourism,    anchor.Stack, record );
     --SetYieldIcon( 6, yieldInfo.m_Tourism,    anchor.Stack, record );
+
+    anchor.Stack3:CalculateSize();
+    anchor.Stack3:ReprocessAnchoring();
 
     anchor.Stack:CalculateSize();
     anchor.Stack:ReprocessAnchoring();
+
+    anchor.Stack2:CalculateSize();
+    anchor.Stack2:ReprocessAnchoring();
+    
     anchor.Anchor:SetHexPosition( x, y );
 end
 

@@ -1894,6 +1894,9 @@ void CvCity::doTurn()
 		// add scientific influence to player total
 		CvPlayer& owner = GET_PLAYER(getOwner());
 		owner.ChangeScientificInfluence(getScientificInfluence());
+		owner.ChangeDiplomaticInfluence(getYieldRate(YIELD_DIPLOMATIC_SUPPORT, false));
+
+		owner.ChangeGoldenAgeProgressMeter(getYieldRate(YIELD_GOLDEN, false));
 
 		DoUpdateIndustrialRouteToCapital();
 
@@ -2029,6 +2032,25 @@ void CvCity::doTurn()
 			}
 
 			m_bRouteToCapitalConnectedLastTurn = m_bRouteToCapitalConnectedThisTurn;
+		}
+
+		const PlayerTypes originalOwner = this->getOriginalOwner();
+		if (originalOwner != NO_PLAYER)
+		{
+			// if we own a city state, gain some influence
+			CvPlayer& owner = GET_PLAYER(getOwner());
+			if (GET_PLAYER(originalOwner).isMinorCiv() && !owner.isMinorCiv())
+			{
+				int ownedMinorPoints = 5;
+				
+				// TODO
+				//if (owner.HasPolicy("SOMETHING"))
+				//{
+				//	ownedMinorPoints += 5;
+				//}
+
+				owner.ChangeDiplomaticInfluence(+ownedMinorPoints);
+			}
 		}
 
 		// XXX
@@ -6728,7 +6750,7 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst, 
 			if (pBuildingInfo->IsMalianTreasury())
 			{
 				int validPlotCount = 0;
-				int validPlotList[NUM_CITY_PLOTS];
+				int validPlotList[NUM_CITY_PLOTS] = {};
 				CvPlot* pLoopPlot;
 				for (int iCityPlotLoop = 1; iCityPlotLoop < NUM_CITY_PLOTS; iCityPlotLoop++) // start loop skipping city plot
 				{
@@ -7234,7 +7256,7 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst, 
 
 		m_pCityReligions->ChangeReligiousPressureModifier(pBuildingInfo->GetReligiousPressureModifier() * iChange);
 
-		PolicyTypes ePolicy;
+		PolicyTypes ePolicy = NO_POLICY;
 //#ifdef AUI_WARNING_FIXES
 //		for (uint iPolicyLoop = 0; iPolicyLoop < GC.getNumPolicyInfos(); iPolicyLoop++)
 //#else
@@ -11265,6 +11287,7 @@ void CvCity::UpdateBuildingYields()
 					{
 						// process new yield value
 						newYield += GetPlayer()->GetTotalYieldForBuilding(this, eBuilding, eYield, false);
+						newYieldRate += GetPlayer()->GetTotalYieldForBuilding(this, eBuilding, eYield, true);
 					}
 				}
 			}
@@ -12330,7 +12353,7 @@ void CvCity::setDamage(int iValue, bool noMessage)
 		// send the popup text if the player can see this plot
 		if(!noMessage && plot()->GetActiveFogOfWarMode() == FOGOFWARMODE_OFF)
 		{
-			char text[256];
+			char text[256] = {};
 			text[0] = NULL;
 			int iNewValue = MIN(GetMaxHitPoints(),iValue);
 			int iDiff = iOldValue - iNewValue;
