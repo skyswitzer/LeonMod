@@ -7403,12 +7403,6 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst, 
 			changeLakePlotYield(eYield, (pBuildingInfo->GetLakePlotYieldChange(eYield) * iChange));
 			changeSeaResourceYield(eYield, (pBuildingInfo->GetSeaResourceYieldChange(eYield) * iChange));
 
-			const int iBaseChange = owningPlayer.GetTotalYieldForBuilding(this, eBuilding, eYield, false);
-			//ChangeBaseYieldRateFromBuildings(eYield, ((pBuildingInfo->GetYieldChange(eYield) + m_pCityBuildings->GetBuildingYieldChange(eBuildingClass, eYield)) * iChange));
-			ChangeBaseYieldRateFromBuildings(eYield, iBaseChange * iChange);
-
-			const int iBaseRateChange = owningPlayer.GetTotalYieldForBuilding(this, eBuilding, eYield, true);
-			changeYieldRateModifier(eYield, iBaseRateChange * iChange);
 
 			ChangeYieldPerPopTimes100(eYield, pBuildingInfo->GetYieldChangePerPop(eYield) * iChange);
 			ChangeYieldPerReligionTimes100(eYield, pBuildingInfo->GetYieldChangePerReligion(eYield) * iChange);
