@@ -115,7 +115,11 @@ int CvPlot::getExtraYield
 			const int numTradeCityStates = player.GetTrade()->GetNumberOfCityStateTradeRoutes(); // number of trade routes we have with city states
 			const int numTradeMajorCivs = player.GetTrade()->GetNumForeignTradeRoutes(player.GetID()) - numTradeCityStates; // number of trade routes we have with other civ players (not city states)
 
-
+			{// BELIEF_Religious Community - gives 1 diplo point per 6 followers (max 20)
+				const bool hasBeliefReligiousCommunity = city.HasBelief("BELIEF_RELIGIOUS_COMMUNITY");
+				if (eYieldType == YIELD_DIPLOMATIC_SUPPORT && hasBeliefReligiousCommunity && isHolyCity && isCityCenter)
+					yieldChange += min(20, numFollowersGlobal/3);
+			}
 			// example gives one production to every tile if you satisfy all criteria
 			//const bool hasLibertyOpener = player.HasPolicy("POLICY_LIBERTY");
 			//const bool hasBeliefCathedrals = city.HasBelief("BELIEF_CATHEDRALS");
@@ -152,17 +156,12 @@ int CvPlot::getExtraYield
 
 			{ // BELIEF_SACRED_WATERS - gives one tourism from lake and atoll tiles. Could change to lake and oasis in future if Atolls seems too good. Features don't work right now though. 
 				const bool hasBeliefSacredWaters = city.HasBelief("BELIEF_SACRED_WATERS");
-				const bool islake = plot.isLake();
-				if (eYieldType == YIELD_TOURISM && hasBeliefSacredWaters && (islake || hasAnyAtoll))
+				const bool isLake = plot.isLake();
+				const bool isOasis = plot.HasFeature("FEATURE_OASIS");
+				if (eYieldType == YIELD_TOURISM && hasBeliefSacredWaters && (isLake || hasAnyAtoll || isOasis))
 					yieldChange += 1;
 			}
-
-			{ // BELIEF_Zakat - gives 2 Scientific Influence from Palace. 
-				const bool hasBeliefSacredWaters = city.HasBelief("BELIEF_SACRED_WATERS");
-				const bool islake = plot.isLake();
-				if (eYieldType == YIELD_TOURISM && hasBeliefSacredWaters && (islake || hasAnyAtoll))
-					yieldChange += 1;
-			}
+			
 			{ // Policy_Cutural Exchange - gives 1 tourism to great person tile improvements. 
 				const bool hasPolicyCulturalExchange = player.HasPolicy("POLICY_ETHICS");
 				const bool isAcadamy = plot.HasImprovement("IMPROVEMENT_ACADEMY");
