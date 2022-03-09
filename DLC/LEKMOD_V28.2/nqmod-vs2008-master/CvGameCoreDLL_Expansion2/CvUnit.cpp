@@ -10855,13 +10855,14 @@ int CvUnit::upgradePrice(UnitTypes eUnit) const
 	// Apply exponent
 	iPrice = (int) pow((double) iPrice, (double) /*1.0f*/ GC.getUNIT_UPGRADE_COST_EXPONENT());
 
+	// more expensive in this territory
+	if (isHardUpgradeTerritory(this))
+		iPrice *= 1.33f;
+
 	// Make the number not be funky
 	int iDivisor = /*5*/ GC.getUNIT_UPGRADE_COST_VISIBLE_DIVISOR();
 	iPrice /= iDivisor;
 	iPrice *= iDivisor;
-
-	if (isHardUpgradeTerritory(this))
-		iPrice *= 1.33f;
 
 	return iPrice;
 }
