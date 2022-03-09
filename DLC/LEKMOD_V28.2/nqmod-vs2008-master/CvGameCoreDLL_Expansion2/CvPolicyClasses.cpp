@@ -2883,7 +2883,7 @@ void CvPlayerPolicies::SetPolicy(PolicyTypes eIndex, bool bNewValue)
 
 		PolicyBranchTypes eThisBranch = (PolicyBranchTypes) pkPolicyInfo->GetPolicyBranchType();
 
-		if(eThisBranch != NO_POLICY_BRANCH_TYPE)
+		//if(eThisBranch != NO_POLICY_BRANCH_TYPE)
 		{
 			bool bBranchFinished;
 
@@ -2913,7 +2913,7 @@ void CvPlayerPolicies::SetPolicy(PolicyTypes eIndex, bool bNewValue)
 						if(pkLoopPolicyInfo->GetPolicyBranchType() == eThisBranch)
 						{
 							// We don't have this policy!
-							if(!HasPolicy(eLoopPolicy))
+							if(!HasPolicy(eLoopPolicy) || !IsPolicyBranchUnlocked(eThisBranch))
 							{
 								bBranchFinished = false;
 

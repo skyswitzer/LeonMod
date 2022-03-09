@@ -107,9 +107,14 @@ int CvPlot::getExtraYield
 			const CvCity& city = *pWorkingCity;
 			const ReligionTypes majorityReligion = city.GetCityReligions()->GetReligiousMajority(); // the majority religion in this city
 			const int numCitiesFollowing = GC.getGame().GetGameReligions()->GetNumCitiesFollowing(majorityReligion); // number of cities with this as majority
+			const int numCityStatesFollowing = GC.getGame().GetGameReligions()->GetNumCitiesFollowing(majorityReligion, true); // number of city states with this as majority
 			const bool isHolyCity = city.GetCityReligions()->IsHolyCityForReligion(majorityReligion); // true if this is the holy city of the majority religion in this city
-			const int followersOfMajority = city.GetCityReligions()->GetNumFollowers(majorityReligion); // number of people following the majority religion in this city
-			const int cityPopulation = city.getPopulation(); // num people in city
+			const int numFollowersLocal = city.GetCityReligions()->GetNumFollowers(majorityReligion); // number of people following the majority religion in this city
+			const int numFollowersGlobal = city.GetCityReligions()->GetNumFollowers(majorityReligion); // number of people following the majority religion in this city globaly
+			const int cityPopulation = city.getPopulation(); // number of people in this city
+			const int numTradeCityStates = player.GetTrade()->GetNumberOfCityStateTradeRoutes(); // number of trade routes we have with city states
+			const int numTradeMajorCivs = player.GetTrade()->GetNumForeignTradeRoutes(player.GetID()) - numTradeCityStates; // number of trade routes we have with other civ players (not city states)
+
 
 			// example gives one production to every tile if you satisfy all criteria
 			//const bool hasLibertyOpener = player.HasPolicy("POLICY_LIBERTY");

@@ -201,7 +201,8 @@ public:
 
 	// Main religion information functions
 	int GetNumFollowers(ReligionTypes eReligion) const;
-	int GetNumCitiesFollowing(ReligionTypes eReligion) const;
+	int GetNumCityStatesFollowing(ReligionTypes eReligion) const;
+	int GetNumCitiesFollowing(ReligionTypes eReligion, const bool onlyCityStates = false) const;
 	bool HasCreatedReligion(PlayerTypes ePlayer) const;
 	bool HasAddedReformationBelief(PlayerTypes ePlayer) const;
 	bool IsEligibleForFounderBenefits(ReligionTypes eReligion, PlayerTypes ePlayer) const;

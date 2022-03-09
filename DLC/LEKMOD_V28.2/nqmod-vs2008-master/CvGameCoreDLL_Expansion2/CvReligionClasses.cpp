@@ -1669,7 +1669,7 @@ int CvGameReligions::GetNumFollowers(ReligionTypes eReligion) const
 }
 
 /// Number of cities following this religion
-int CvGameReligions::GetNumCitiesFollowing(ReligionTypes eReligion) const
+int CvGameReligions::GetNumCitiesFollowing(ReligionTypes eReligion, const bool onlyCityStates) const
 {
 	int iRtnValue = 0;
 
@@ -1677,7 +1677,7 @@ int CvGameReligions::GetNumCitiesFollowing(ReligionTypes eReligion) const
 	for(int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
 		CvPlayer& kPlayer = GET_PLAYER((PlayerTypes)iI);
-		if(kPlayer.isAlive())
+		if(kPlayer.isAlive() && (kPlayer.isMinorCiv() || !onlyCityStates))
 		{
 			// Loop through each of their cities
 			int iLoop;
