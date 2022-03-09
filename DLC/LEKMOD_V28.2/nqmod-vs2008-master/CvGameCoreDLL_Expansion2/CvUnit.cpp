@@ -10611,6 +10611,37 @@ bool CvUnit::isReadyForUpgrade() const
 	return true;
 }
 
+bool isEasyUpgradeTerritory(const CvUnit* This)
+{
+	const PlayerTypes plotOwner = This->plot()->getOwner();
+	const bool isOurTerritory = plotOwner == This->getOwner();
+	if (isOurTerritory) return true;
+
+	bool isAllyTerritory = false;
+	if (plotOwner != NO_PLAYER)
+	{
+		CvPlayer& plotOwningPlayer = GET_PLAYER(plotOwner);
+		isAllyTerritory =
+		(
+			( // minor civ allyship
+				plotOwningPlayer.isMinorCiv() &&
+				plotOwningPlayer.GetMinorCivAI()->IsAllies(This->getOwner())
+			)
+			||
+			// defensive pact allows easy upgrade
+			GET_TEAM(plotOwningPlayer.getTeam()).IsHasDefensivePact(This->getTeam())
+		);
+	}
+	if (isAllyTerritory) return true;
+
+	return false;
+}
+bool isHardUpgradeTerritory(const CvUnit* This)
+{
+	const PlayerTypes plotOwner = This->plot()->getOwner();
+	return plotOwner == NO_PLAYER;
+}
+
 //	--------------------------------------------------------------------------------
 /// Can this Unit upgrade with anything right now?
 bool CvUnit::CanUpgradeRightNow(bool bOnlyTestVisible) const
@@ -10647,16 +10678,9 @@ bool CvUnit::CanUpgradeRightNow(bool bOnlyTestVisible) const
 		}
 
 		// Must be in territory owned by the player
-		const PlayerTypes owner = pPlot->getOwner();
-		const bool isOurTerritory = owner == getOwner();
-		bool isAllyTerritory = false;
-		if (owner != NO_PLAYER)
-		{
-			isAllyTerritory =
-				GET_PLAYER(owner).isMinorCiv() &&
-				GET_PLAYER(owner).GetMinorCivAI()->IsAllies(getOwner());
-		}
-		if (!isOurTerritory && !isAllyTerritory)
+		const bool isEasyUpgrade = isEasyUpgradeTerritory(this);
+		const bool isHardUpgrade = isHardUpgradeTerritory(this);
+		if (!isEasyUpgrade && !isHardUpgrade)
 		{
 			return false;
 		}
@@ -10835,6 +10859,9 @@ int CvUnit::upgradePrice(UnitTypes eUnit) const
 	int iDivisor = /*5*/ GC.getUNIT_UPGRADE_COST_VISIBLE_DIVISOR();
 	iPrice /= iDivisor;
 	iPrice *= iDivisor;
+
+	if (isHardUpgradeTerritory(this))
+		iPrice *= 1.33f;
 
 	return iPrice;
 }
