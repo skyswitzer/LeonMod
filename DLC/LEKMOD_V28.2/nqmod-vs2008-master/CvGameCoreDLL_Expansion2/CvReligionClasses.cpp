@@ -3715,6 +3715,7 @@ void CvCityReligions::DoPopulationChange(int iChange)
 	{
 		RecomputeFollowers(FOLLOWER_CHANGE_POP_CHANGE, eMajorityReligion);
 	}
+	m_pCity->UpdateBuildingYields();
 }
 
 /// Note that a religion was founded here

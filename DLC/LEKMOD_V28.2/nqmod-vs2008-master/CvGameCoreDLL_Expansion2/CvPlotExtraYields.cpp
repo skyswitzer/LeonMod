@@ -86,7 +86,6 @@ int CvPlot::getExtraYield
 		}
 	}
 
-
 	int yieldChange = 0;
 
 
@@ -106,6 +105,11 @@ int CvPlot::getExtraYield
 		if (pWorkingCity != NULL)
 		{
 			const CvCity& city = *pWorkingCity;
+			const ReligionTypes majorityReligion = city.GetCityReligions()->GetReligiousMajority(); // the majority religion in this city
+			const int numCitiesFollowing = GC.getGame().GetGameReligions()->GetNumCitiesFollowing(majorityReligion); // number of cities with this as majority
+			const bool isHolyCity = city.GetCityReligions()->IsHolyCityForReligion(majorityReligion); // true if this is the holy city of the majority religion in this city
+			const int followersOfMajority = city.GetCityReligions()->GetNumFollowers(majorityReligion); // number of people following the majority religion in this city
+			const int cityPopulation = city.getPopulation(); // num people in city
 
 			// example gives one production to every tile if you satisfy all criteria
 			//const bool hasLibertyOpener = player.HasPolicy("POLICY_LIBERTY");
@@ -211,13 +215,15 @@ int CvPlayer::GetExtraYieldForBuilding
 	if (pCity != NULL) // in a city
 	{
 		const CvCity& city = *pCity;
+
+
 		{ // adds +1 scientific insight to national college wings from peace gardens
 			const bool hasBeliefPeaceGardens = city.HasBelief("BELIEF_PEACE_GARDENZ");
 			const bool isNationalCollege1 = eBuildingClass == BuildingClass("BUILDINGCLASS_NATIONAL_COLLEGE");
 			const bool isNationalCollege2 = eBuildingClass == BuildingClass("BUILDINGCLASS_NATIONAL_SCIENCE_1");
 			const bool isNationalCollege3 = eBuildingClass == BuildingClass("BUILDINGCLASS_NATIONAL_SCIENCE_2");
 			if (eYieldType == YIELD_SCIENTIFIC_INSIGHT && hasBeliefPeaceGardens && (isNationalCollege1 || isNationalCollege2 || isNationalCollege3))
-			yieldChange += 1; 
+				yieldChange += 1; 
 		}
 		
 	}
