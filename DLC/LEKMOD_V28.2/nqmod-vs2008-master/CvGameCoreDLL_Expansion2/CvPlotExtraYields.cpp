@@ -234,16 +234,28 @@ int CvPlot::getExtraYield
 					yieldChange += min(10, numFollowersGlobal / 16);
 			}
 
-			// example gives one production to every tile if you satisfy all criteria
-			//const bool hasLibertyOpener = player.HasPolicy("POLICY_LIBERTY");
-			//const bool hasBeliefCathedrals = city.HasBelief("BELIEF_CATHEDRALS");
-			//const bool hasWalls = city.HasBuildingClass(BuildingClass("BUILDINGCLASS_WALLS"));
-			//if (eYieldType == YIELD_PRODUCTION && hasLibertyOpener && hasBeliefCathedrals && hasWalls)
-			//{
-			//	yieldChange += 1;
-			//}
-
-			
+			{// POLICY_NEW_DEAL - GP Tile +2 Atoll Yields, +2 Tourism from Natural Wonders
+				const bool hasNewDeal = player.HasPolicy("POLICY_NEW_DEAL");
+				const bool isAtoll = plot.HasFeature("FEATURE_ATOLL");
+				const bool isAtollCulture = plot.HasFeature("FEATURE_ATOLL_CULTURE");
+				const bool isAtollProduction = plot.HasFeature("FEATURE_ATOLL_PRODUCTION");
+				const bool isAtollGold = plot.HasFeature("FEATURE_ATOLL_GOLD");
+				const bool isAtollScience = plot.HasFeature("FEATURE_ATOLL_SCIENCE");
+				const bool isNaturalWonder = plot.HasAnyNaturalWonder();
+				if (eYieldType == YIELD_TOURISM && hasNewDeal && isNaturalWonder)
+					yieldChange += 2;
+				if (eYieldType == YIELD_FAITH && hasNewDeal && isAtoll)
+					yieldChange += 2;
+				if (eYieldType == YIELD_CULTURE && hasNewDeal && isAtollCulture)
+					yieldChange += 2;
+				if (eYieldType == YIELD_PRODUCTION && hasNewDeal && isAtollProduction)
+					yieldChange += 2;
+				if (eYieldType == YIELD_GOLD && hasNewDeal && isAtollGold)
+					yieldChange += 2;
+				if (eYieldType == YIELD_SCIENCE && hasNewDeal && isAtollScience)
+					yieldChange += 2;
+			}
+									
 			{ // BELIEF_DANCE_AURORA - Dance of the Aurora - on tundra tiles only - gives +1 production to bonus tiles, +1 culture to luxury tiles, +1 Gold to Strategic, and +1 faith to every other tundra tile
 				const bool hasBeliefDanceOfTheAurora = city.HasBelief("BELIEF_DANCE_AURORA");
 				if (eYieldType == YIELD_FAITH && hasBeliefDanceOfTheAurora && isTundra && noResource)
@@ -288,11 +300,51 @@ int CvPlot::getExtraYield
 				if (eYieldType == YIELD_TOURISM && hasPolicyCulturalExchange && (isAcadamy || isCustomsHouse || isManufactory || isHolySite || isDrydock || isChileDry || isSacredGrove))
 					yieldChange += 1;
 			}
-			
+			{ // POLICY_MEDIA_CULTURE - gives 3 tourism to great person tile improvements. 
+				const bool hasMediaCulture = player.HasPolicy("POLICY_MEDIA_CULTURE");
+				const bool isAcadamy = plot.HasImprovement("IMPROVEMENT_ACADEMY");
+				const bool isCustomsHouse = plot.HasImprovement("IMPROVEMENT_CUSTOMS_HOUSE");
+				const bool isManufactory = plot.HasImprovement("IMPROVEMENT_MANUFACTORY");
+				const bool isHolySite = plot.HasImprovement("IMPROVEMENT_HOLY_SITE");
+				const bool isDrydock = plot.HasImprovement("IMPROVEMENT_DOCK");
+				const bool isChileDry = plot.HasImprovement("IMPROVEMENT_CHILE_DOCK");
+				const bool isSacredGrove = plot.HasImprovement("IMPROVEMENT_SACRED_GROVE");
+				if (eYieldType == YIELD_TOURISM && hasMediaCulture && (isAcadamy || isCustomsHouse || isManufactory || isHolySite || isDrydock || isChileDry || isSacredGrove))
+					yieldChange += 3;
+			}
+			{ // POLICY_SPACE_PROCUREMENTS - gives 5 Singularity Points per Acadamy. 
+				const bool hasSpaceProcurement = player.HasPolicy("POLICY_SPACE_PROCUREMENTS");
+				const bool isAcadamy = plot.HasImprovement("IMPROVEMENT_ACADEMY");
+				if (eYieldType == YIELD_SCIENTIFIC_INSIGHT && hasSpaceProcurement && isAcadamy)
+					yieldChange += 5;
+			}	
 
+			{// POLICY_IRON_CURTAIN - gives +2 tourism per city
+				const bool hasIronCurtain = player.HasPolicy("POLICY_IRON_CURTAIN");
+				if (eYieldType == YIELD_TOURISM && hasIronCurtain && isCityCenter)
+					yieldChange += 2;
+			}
+
+			{// POLICY_SPACEFLIGHT_PIONEERS - gives +2 scientific insight per city
+				const bool hasSpaceFlightPioneers = player.HasPolicy("POLICY_SPACEFLIGHT_PIONEERS");
+				if (eYieldType == YIELD_SCIENTIFIC_INSIGHT && hasSpaceFlightPioneers && isCityCenter)
+					yieldChange += 2;
+			}
+
+			{// POLICY_NEW_ORDER - gives +3 tourism, culture, diplo points, gold to citadels
+				const bool hasNewOrder = player.HasPolicy("POLICY_NEW_ORDER");
+				const bool isCitadel = plot.HasImprovement("IMPROVEMENT_CITADEL");
+				if (eYieldType == YIELD_TOURISM && hasNewOrder && isCitadel)
+					yieldChange += 3;
+				if (eYieldType == YIELD_CULTURE && hasNewOrder && isCitadel)
+					yieldChange += 3;
+				if (eYieldType == YIELD_DIPLOMATIC_SUPPORT && hasNewOrder && isCitadel)
+					yieldChange += 3;
+				if (eYieldType == YIELD_GOLD && hasNewOrder && isCitadel)
+					yieldChange += 3;
+			}
 		}
 	}
-
 
 	// does not depend on player
 
@@ -307,10 +359,6 @@ int CvPlot::getExtraYield
 
 	return yieldChange;
 }
-
-
-
-
 
 
 
@@ -335,7 +383,7 @@ int CvPlayer::GetExtraYieldForBuilding
 		const CvCity& city = *pCity;
 
 
-		{ // adds +1 scientific insight to national college wings from peace gardens
+		{ // BELIEF_PEACE_GARDENS - adds +1 scientific insight to national college wings
 			const bool hasBeliefPeaceGardens = city.HasBelief("BELIEF_PEACE_GARDENZ");
 			const bool isNationalCollege1 = eBuildingClass == BuildingClass("BUILDINGCLASS_NATIONAL_COLLEGE");
 			const bool isNationalCollege2 = eBuildingClass == BuildingClass("BUILDINGCLASS_NATIONAL_SCIENCE_1");
@@ -343,7 +391,27 @@ int CvPlayer::GetExtraYieldForBuilding
 			if (eYieldType == YIELD_SCIENTIFIC_INSIGHT && hasBeliefPeaceGardens && (isNationalCollege1 || isNationalCollege2 || isNationalCollege3))
 				yieldChange += 1; 
 		}
+
+		{ // POLICY_SKYSCRAPERS - adds +2 diplomatic points to plazas
+			const bool hasSkyScrapers = player.HasPolicy("POLICY_SKYSCRAPERS");
+			const bool isPlaza = eBuildingClass == BuildingClass("BUILDINGCLASS_STATUE_5");
+			if (eYieldType == YIELD_DIPLOMATIC_SUPPORT && hasSkyScrapers && isPlaza)
+				yieldChange += 1;
+		}
 		
+		{// POLICY_FUTURISM - gives + 4 scientific insight from courthouse
+			const bool hasFuturism = player.HasPolicy("POLICY_FUTURISM");
+			const bool isCourthouse = eBuildingClass == BuildingClass("BUILDINGCLASS_COURTHOUSE");
+			if (eYieldType == YIELD_SCIENTIFIC_INSIGHT && hasFuturism && isCourthouse)
+				yieldChange += 4;
+		}
+		{// POLICY_UNITED_FRONT - gives + 10 diplo points from courthouse
+			const bool hasUnitedFront = player.HasPolicy("POLICY_UNITED_FRONT");
+			const bool isCourthouse = eBuildingClass == BuildingClass("BUILDINGCLASS_COURTHOUSE");
+			if (eYieldType == YIELD_DIPLOMATIC_SUPPORT && hasUnitedFront && isCourthouse)
+				yieldChange += 10;
+		}
+
 	}
 	
 	return yieldChange;
