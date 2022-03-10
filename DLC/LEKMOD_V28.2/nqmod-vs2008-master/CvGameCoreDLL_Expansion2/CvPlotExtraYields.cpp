@@ -433,6 +433,38 @@ int CvPlayer::GetExtraYieldForBuilding
 				yieldChange += 1;
 		}
 
+		{// POLICY_URBANIZATION - +3% Production and Science to Windmill, Workshop, Factory
+			const bool hasUrbanization = player.HasPolicy("POLICY_URBANIZATION");
+			const bool isWorkshop = eBuildingClass == BuildingClass("BUILDINGCLASS_WORKSHOP");
+			const bool isWindmill = eBuildingClass == BuildingClass("BUILDINGCLASS_WINDMILL");
+			const bool isFactory = eBuildingClass == BuildingClass("BUILDINGCLASS_FACTORY");
+			if (eYieldType == YIELD_SCIENCE && isPercentMod && hasUrbanization && (isWorkshop || isWindmill || isFactory)
+				yieldChange += 3;
+			if (eYieldType == YIELD_PRODUCTION && isPercentMod && hasUrbanization && (isWorkshop || isWindmill || isFactory)
+					yieldChange += 3;
+		}
+
+		{// POLICY_UNIVERSAL_HEALTHCARE = -1 gold, +1 happy for granaries, -2 gold, +1 happy +1 food for aquaducts, -2 gold, -2 production, +1 happy +4 food from Hospitals
+			const bool hasUniversal1 = player.HasPolicy("POLICY_UNIVERSAL_HEALTHCARE_F");
+			const bool hasUniversal2 = player.HasPolicy("POLICY_UNIVERSAL_HEALTHCARE_O");
+			const bool hasUniversal3 = player.HasPolicy("POLICY_UNIVERSAL_HEALTHCARE_A");
+			const bool isGranary = eBuildingClass == BuildingClass("BUILDINGCLASS_GRANARY");
+			const bool isAquaduct = eBuildingClass == BuildingClass("BUILDINGCLASS_AQUEDUCT");
+			const bool isHospital = eBuildingClass == BuildingClass("BUILDINGCLASS_HOSPITAL");
+			if (eYieldType == YIELD_GOLD && (hasUniversal1 || hasUniversal2 || hasUniversal3) && isGranary)
+				yieldChange -= 1;
+			if (eYieldType == YIELD_GOLD && (hasUniversal1 || hasUniversal2 || hasUniversal3) && isAquaduct)
+				yieldChange -= 2;
+			if (eYieldType == YIELD_FOOD && (hasUniversal1 || hasUniversal2 || hasUniversal3) && isAquaduct)
+				yieldChange += 1;
+			if (eYieldType == YIELD_GOLD && (hasUniversal1 || hasUniversal2 || hasUniversal3) && isHospital)
+				yieldChange -= 2;
+			if (eYieldType == YIELD_PRODUCTION && (hasUniversal1 || hasUniversal2 || hasUniversal3) && isHospital)
+				yieldChange -= 2;
+			if (eYieldType == YIELD_FOOD && (hasUniversal1 || hasUniversal2 || hasUniversal3) && isHospital)
+				yieldChange += 4;
+		}
+
 	}
 	
 	return yieldChange;
