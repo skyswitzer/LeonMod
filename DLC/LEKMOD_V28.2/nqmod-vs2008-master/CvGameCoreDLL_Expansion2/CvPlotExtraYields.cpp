@@ -343,6 +343,13 @@ int CvPlot::getExtraYield
 				if (eYieldType == YIELD_GOLD && hasNewOrder && isCitadel)
 					yieldChange += 3;
 			}
+
+			{// POLICY_SOVEREIGNTY - gives +1 singularity to acadamies
+				const bool hasSovereignty = player.HasPolicy("POLICY_SOVEREIGNTY");
+				const bool isAcadamy = plot.HasImprovement("IMPROVEMENT_ACADEMY");
+				if (eYieldType == YIELD_SCIENTIFIC_INSIGHT && hasSovereignty && isAcadamy)
+					yieldChange += 1;
+			}
 		}
 	}
 
@@ -410,6 +417,20 @@ int CvPlayer::GetExtraYieldForBuilding
 			const bool isCourthouse = eBuildingClass == BuildingClass("BUILDINGCLASS_COURTHOUSE");
 			if (eYieldType == YIELD_DIPLOMATIC_SUPPORT && hasUnitedFront && isCourthouse)
 				yieldChange += 10;
+		}
+
+		{// POLICY_TRADE_UNIONS - renamed Mercenary Army - gives + 15% gold to merchant's guilds
+			const bool hasMercenaryArmy = player.HasPolicy("POLICY_TRADE_UNIONS");
+			const bool isMerchantsGuild = eBuildingClass == BuildingClass("BUILDINGCLASS_GUILD_GOLD");
+			if (eYieldType == YIELD_GOLD && isPercentMod && hasMercenaryArmy && isMerchantsGuild)
+				yieldChange += 15;
+		}
+
+		{// POLICY_FREE_THOUGHT - +1 Singularity from Research Labs
+			const bool hasFreeThought = player.HasPolicy("POLICY_FREE_THOUGHT");
+			const bool isResearchLab = eBuildingClass == BuildingClass("BUILDINGCLASS_LABORATORY");
+			if (eYieldType == YIELD_SCIENTIFIC_INSIGHT && hasFreeThought && isResearchLab)
+				yieldChange += 1;
 		}
 
 	}
