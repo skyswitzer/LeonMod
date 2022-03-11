@@ -7669,10 +7669,7 @@ public:
 	{
 		return m_iCULTURE_LEVEL_POPULAR;
 	}
-	inline int getCULTURE_LEVEL_INFLUENTIAL()
-	{
-		return m_iCULTURE_LEVEL_INFLUENTIAL - (float)getGame().GetVpAdjustment() / 10.f;
-	}
+	int getCULTURE_LEVEL_INFLUENTIAL() const;
 	inline int getCULTURE_LEVEL_DOMINANT()
 	{
 		return m_iCULTURE_LEVEL_DOMINANT;

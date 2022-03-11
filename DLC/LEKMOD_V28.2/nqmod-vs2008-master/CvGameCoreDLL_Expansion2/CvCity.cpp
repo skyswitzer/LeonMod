@@ -2171,28 +2171,26 @@ void CvCity::SetIndustrialRouteToCapital(bool bValue)
 /// Connected to capital with industrial route? (Railroads)
 void CvCity::DoUpdateIndustrialRouteToCapital()
 {
+	//#ifdef AUI_CITY_FIX_UPDATE_RAILROAD_CONNECTION_ALLOW_REMOVAL
 	AI_PERF_FORMAT("City-AI-perf.csv", ("CvCity::DoUpdateIndustrialRouteToCapital, Turn %03d, %s, %s", GC.getGame().getElapsedGameTurns(), GetPlayer()->getCivilizationShortDescription(), getName().c_str()) );
 	// Capital - what do we want to do about this?
 	if(isCapital())
 	{
-#ifdef AUI_CITY_FIX_UPDATE_RAILROAD_CONNECTION_ALLOW_REMOVAL
-		if (plot() && plot()->getRouteType() == GC.getGame().GetIndustrialRoute())
-			SetIndustrialRouteToCapital(true);
-		else
-			SetIndustrialRouteToCapital(false);
-#endif
+		const bool isIndustrialConnection = plot() && plot()->getRouteType() == GC.getGame().GetIndustrialRoute();
+		SetIndustrialRouteToCapital(isIndustrialConnection);
 	}
 	// Non-capital city
 	else
 	{
-		if(GET_PLAYER(getOwner()).IsCapitalConnectedToCity(this, GC.getGame().GetIndustrialRoute()))
+		bool isConnected = GET_PLAYER(getOwner()).IsCapitalConnectedToCity(this, GC.getGame().GetIndustrialRoute(), true);
+		if (!isConnected)
 		{
-			SetIndustrialRouteToCapital(true);
+			const bool isIndustrialConnectionAny = GET_PLAYER(getOwner()).IsCapitalConnectedToCity(this, GC.getGame().GetIndustrialRoute(), false);
+			const bool hasSeaport = HasBuildingClass(GC.GetGameBuildings()->BuildingClass("BUILDINGCLASS_SEAPORT"));
+			const bool hasFactory = HasBuildingClass(GC.GetGameBuildings()->BuildingClass("BUILDINGCLASS_FACTORY"));
+			isConnected = isIndustrialConnectionAny && hasSeaport && hasFactory;
 		}
-#ifdef AUI_CITY_FIX_UPDATE_RAILROAD_CONNECTION_ALLOW_REMOVAL
-		else
-			SetIndustrialRouteToCapital(false);
-#endif
+		SetIndustrialRouteToCapital(isConnected);
 	}
 }
 

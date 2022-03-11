@@ -4315,6 +4315,10 @@ int CvGlobals::getNumPolicyInfos()
 #endif
 }
 
+int CvGlobals::getCULTURE_LEVEL_INFLUENTIAL() const
+{
+	return m_iCULTURE_LEVEL_INFLUENTIAL + (0.45f - (float)GC.getGame().GetVpAdjustment() / 10.f);
+}
 std::vector<CvPolicyEntry*>& CvGlobals::getPolicyInfo()
 {
 	return m_pPolicies->GetPolicyEntries();

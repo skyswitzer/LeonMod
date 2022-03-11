@@ -438,10 +438,10 @@ int CvPlayer::GetExtraYieldForBuilding
 			const bool isWorkshop = eBuildingClass == BuildingClass("BUILDINGCLASS_WORKSHOP");
 			const bool isWindmill = eBuildingClass == BuildingClass("BUILDINGCLASS_WINDMILL");
 			const bool isFactory = eBuildingClass == BuildingClass("BUILDINGCLASS_FACTORY");
-			if (eYieldType == YIELD_SCIENCE && isPercentMod && hasUrbanization && (isWorkshop || isWindmill || isFactory)
+			if (eYieldType == YIELD_SCIENCE && isPercentMod && hasUrbanization && (isWorkshop || isWindmill || isFactory))
 				yieldChange += 3;
-			if (eYieldType == YIELD_PRODUCTION && isPercentMod && hasUrbanization && (isWorkshop || isWindmill || isFactory)
-					yieldChange += 3;
+			if (eYieldType == YIELD_PRODUCTION && isPercentMod && hasUrbanization && (isWorkshop || isWindmill || isFactory))
+				yieldChange += 3;
 		}
 
 		{// POLICY_UNIVERSAL_HEALTHCARE = -1 gold, +1 happy for granaries, -2 gold, +1 happy +1 food for aquaducts, -2 gold, -2 production, +1 happy +4 food from Hospitals

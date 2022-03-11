@@ -1243,9 +1243,8 @@ function TipHandler( control )
 		
 		if (not bDisabled) then
 			strToolTip = strToolTip .. "[NEWLINE]----------------[NEWLINE]";
-			strToolTip = strToolTip .. "+" .. unit:GetTradeInfluence(unit:GetPlot()) .. " {FRIENDSHIP}";
-			strToolTip = strToolTip .. "[NEWLINE]";
-			strToolTip = strToolTip .. "+" .. unit:GetTradeGold(unit:GetPlot()) .. " {DIPLOMATIC_INFLUENCE}";
+			strToolTip = strToolTip ..  Locale.ConvertTextKey("+" .. unit:GetTradeInfluence(unit:GetPlot()) .. " {FRIENDSHIP}[NEWLINE]");
+			strToolTip = strToolTip ..  Locale.ConvertTextKey("+" .. unit:GetTradeGold(unit:GetPlot()) .. " {DIPLOMATIC_INFLUENCE}");
 		end
 		
 	-- Great Writer

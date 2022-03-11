@@ -6074,7 +6074,7 @@ bool CvPlayer::IsCapitalConnectedToPlayer(PlayerTypes ePlayer, RouteTypes eRestr
 }
 
 //	---------------------------------------------------------------------------
-bool CvPlayer::IsCapitalConnectedToCity(CvCity* pCity, RouteTypes eRestrictRoute)
+bool CvPlayer::IsCapitalConnectedToCity(CvCity* pCity, RouteTypes eRestrictRoute, const bool bIgnoreHarbors)
 {
 	CvCity* pPlayerCapital = getCapitalCity();
 	if(pPlayerCapital == NULL)
@@ -6082,7 +6082,7 @@ bool CvPlayer::IsCapitalConnectedToCity(CvCity* pCity, RouteTypes eRestrictRoute
 		return false;
 	}
 
-	return IsCityConnectedToCity(pPlayerCapital, pCity, eRestrictRoute);
+	return IsCityConnectedToCity(pPlayerCapital, pCity, eRestrictRoute, bIgnoreHarbors);
 }
 
 //	--------------------------------------------------------------------------------

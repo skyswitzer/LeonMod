@@ -701,7 +701,7 @@ function PopulateCultural()
 		end
 
 		-- show progress
-		local status = Locale.ConvertTextKey("You have 100% {TXT_KEY_CULTURAL_INFLUENCE} over " .. have .. " of " .. needed .. " Civilizations.");		
+		local status = Locale.ConvertTextKey("You have enough {TXT_KEY_CULTURAL_INFLUENCE} over " .. have .. " of " .. needed .. " Civilizations.");		
 		Controls.CultureInfo:SetText(status);
 
 		local doneLabel = "";

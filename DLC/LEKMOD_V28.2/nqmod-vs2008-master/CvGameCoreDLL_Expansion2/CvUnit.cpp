@@ -8958,7 +8958,7 @@ bool CvUnit::trade()
 
 	int iTradeGold = getTradeGold(pPlot);
 	
-	GET_PLAYER(getOwner()).GetTreasury()->ChangeGold(iTradeGold);
+	GET_PLAYER(getOwner()).ChangeDiplomaticInfluence(iTradeGold);
 
 	// Improve relations with the Minor
 	PlayerTypes eMinor = pPlot->getOwner();
