@@ -1243,9 +1243,9 @@ function TipHandler( control )
 		
 		if (not bDisabled) then
 			strToolTip = strToolTip .. "[NEWLINE]----------------[NEWLINE]";
-			strToolTip = strToolTip .. "+" .. unit:GetTradeInfluence(unit:GetPlot()) .. " [ICON_INFLUENCE]";
+			strToolTip = strToolTip .. "+" .. unit:GetTradeInfluence(unit:GetPlot()) .. " {FRIENDSHIP}";
 			strToolTip = strToolTip .. "[NEWLINE]";
-			strToolTip = strToolTip .. "+" .. unit:GetTradeGold(unit:GetPlot()) .. "[ICON_GOLD]";
+			strToolTip = strToolTip .. "+" .. unit:GetTradeGold(unit:GetPlot()) .. " {DIPLOMATIC_INFLUENCE}";
 		end
 		
 	-- Great Writer

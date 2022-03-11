@@ -8863,24 +8863,30 @@ bool CvUnit::hurry()
 int CvUnit::getTradeGold(const CvPlot* /*pPlot*/) const
 {
 	VALIDATE_OBJECT
-	int iGold;
+	int diplomaticInfluence = 200;
 
-	// Seed the gold Value with some cash
-	iGold = m_pUnitInfo->GetBaseGold();
+	diplomaticInfluence *= (100 + GET_PLAYER(getOwner()).GetPlayerPolicies()->GetNumericModifier(POLICYMOD_TRADE_MISSION_GOLD_MODIFIER));
+	diplomaticInfluence /= 100;
 
-	// Amount of Gold also increases with how far into the game we are
-	iGold += (m_pUnitInfo->GetNumGoldPerEra() * GET_TEAM(getTeam()).GetCurrentEra());
+	return diplomaticInfluence;
+	//int iGold;
 
-	iGold *= GC.getGame().getGameSpeedInfo().getUnitTradePercent();
-	iGold /= 100;
+	//// Seed the gold Value with some cash
+	//iGold = m_pUnitInfo->GetBaseGold();
 
-	iGold *= (100 + GET_PLAYER(getOwner()).GetPlayerPolicies()->GetNumericModifier(POLICYMOD_TRADE_MISSION_GOLD_MODIFIER));
-	iGold /= 100;
+	//// Amount of Gold also increases with how far into the game we are
+	//iGold += (m_pUnitInfo->GetNumGoldPerEra() * GET_TEAM(getTeam()).GetCurrentEra());
 
-	iGold *= (100 + GetTradeMissionGoldModifier());
-	iGold /= 100;
+	//iGold *= GC.getGame().getGameSpeedInfo().getUnitTradePercent();
+	//iGold /= 100;
 
-	return std::max(0, iGold);
+	//iGold *= (100 + GET_PLAYER(getOwner()).GetPlayerPolicies()->GetNumericModifier(POLICYMOD_TRADE_MISSION_GOLD_MODIFIER));
+	//iGold /= 100;
+
+	//iGold *= (100 + GetTradeMissionGoldModifier());
+	//iGold /= 100;
+
+	//return std::max(0, iGold);
 }
 
 //	--------------------------------------------------------------------------------

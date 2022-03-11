@@ -182,6 +182,7 @@ protected:
 
 	static int lGetFaithCost(lua_State* L);
 
+	static int lGetVpAdjustment(lua_State* L);
 	static int lGetWinner(lua_State* L);
 	static int lGetVictory(lua_State* L);
 	static int lSetWinner(lua_State* L);

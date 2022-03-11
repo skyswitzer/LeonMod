@@ -2666,11 +2666,6 @@ void addColoredValue(stringstream& s, const int modT100, const string descriptio
 	if (includePercent) perc = "% ";
 	s << perc << description << "[ENDCOLOR][NEWLINE]";
 }
-
-float CvPlayerCulture::getVpAccelerationFactorWithT100(const PlayerTypes eOtherPlayer) const
-{
-	return GC.getGame().GetVpAcceleration() * 1;
-}
 /// Tooltip for GetTourismModifierWith()
 CvString CvPlayerCulture::GetTourismModifierWith_Tooltip(const PlayerTypes eOtherPlayer, int& newValueT100) const
 {
@@ -2887,7 +2882,7 @@ int CvPlayerCulture::GetTourismModifierSharedReligion() const
 
 int CvPlayerCulture::GetTourismModifierTechnologyT100(const PlayerTypes eOtherPlayer) const
 {
-	const int percentPerAcceleration = 2;
+	const int percentPerAcceleration = 1;
 	double changeFactor = 1.0; // default multiply by 1
 
 	// for each city

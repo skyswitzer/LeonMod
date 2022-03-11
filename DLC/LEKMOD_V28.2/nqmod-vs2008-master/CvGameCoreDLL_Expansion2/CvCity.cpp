@@ -17813,17 +17813,17 @@ int CvCity::GetMaxHitPoints() const
 
 	// give AI some extra city hitpoints cents they dumm
 	// but do not assume it is a bonus!
-	int extraAiHitpoints = 0;
-	if (!this->isHuman() && !GET_PLAYER(this->getOwner()).isMinorCiv()) // minor civs don't get AI city bonus
+	if (!this->isHuman())
 	{
-		//float percentage = GC.turnsToPercentage(10.0f, 75.0f);
-
-		extraAiHitpoints = GC.getMAX_CITY_HIT_POINTS_AI_BONUS();
-		//extraAiHitpoints /= 100;
-		//extraAiHitpoints *= percentage;
+		total += GC.getMAX_CITY_HIT_POINTS_AI_BONUS();
+	}
+	// minor civs double change
+	if (GET_PLAYER(this->getOwner()).isMinorCiv())
+	{
+		total += GC.getMAX_CITY_HIT_POINTS_AI_BONUS();
 	}
 
-	return total + extraAiHitpoints;
+	return total;
 }
 
 //	--------------------------------------------------------------------------------

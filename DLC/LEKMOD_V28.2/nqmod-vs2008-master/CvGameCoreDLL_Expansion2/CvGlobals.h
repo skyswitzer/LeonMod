@@ -7671,7 +7671,7 @@ public:
 	}
 	inline int getCULTURE_LEVEL_INFLUENTIAL()
 	{
-		return m_iCULTURE_LEVEL_INFLUENTIAL;
+		return m_iCULTURE_LEVEL_INFLUENTIAL - (float)getGame().GetVpAdjustment() / 10.f;
 	}
 	inline int getCULTURE_LEVEL_DOMINANT()
 	{

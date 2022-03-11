@@ -2006,7 +2006,7 @@ function RefreshPlayerInfluence()
 						playerInfluence.LevelToolTip = playerInfluence.LevelToolTip .. Locale.ConvertTextKey("TXT_KEY_CO_INFLUENCE_BONUSES_FAMILIAR");
 				    elseif (iInfluenceLevel == 3) then
 						strText = Locale.ConvertTextKey("TXT_KEY_CO_INFLUENTIAL");
-						playerInfluence.LevelToolTip = Locale.ConvertTextKey("TXT_KEY_CO_TOURISM_PERCENT_TT", playerInfluence.InfluenceToolTip, strText, GameDefines.CULTURE_LEVEL_INFLUENTIAL);				    
+						playerInfluence.LevelToolTip = Locale.ConvertTextKey("TXT_KEY_CO_TOURISM_PERCENT_TT", playerInfluence.InfluenceToolTip, strText, GameDefines.CULTURE_LEVEL_INFLUENTIAL - Game.GetVpAdjustment());				    
 						playerInfluence.LevelToolTip = playerInfluence.LevelToolTip .. Locale.ConvertTextKey("TXT_KEY_CO_INFLUENCE_BONUSES_POPULAR");
 				    elseif (iInfluenceLevel == 4) then
 						strText = Locale.ConvertTextKey("TXT_KEY_CO_DOMINANT");

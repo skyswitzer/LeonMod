@@ -193,6 +193,7 @@ void CvLuaGame::RegisterMembers(lua_State* L)
 	Method(GetBestLandUnitCombat);
 
 	Method(GetFaithCost);
+	Method(GetVpAdjustment);
 
 	Method(GetWinner);
 	Method(GetVictory);
@@ -1226,6 +1227,13 @@ int CvLuaGame::lGetFaithCost(lua_State* L)
 	const UnitTypes eUnit = (UnitTypes) lua_tointeger(L, 1);
 	CvUnitEntry* pkUnitInfo = GC.getUnitInfo(eUnit);
 	const int iResult = GC.getGame().GetFaithCost(pkUnitInfo);
+	lua_pushinteger(L, iResult);
+	return 1;
+}
+//------------------------------------------------------------------------------
+int CvLuaGame::lGetVpAdjustment(lua_State* L)
+{
+	const int iResult = GC.getGame().GetVpAdjustment();
 	lua_pushinteger(L, iResult);
 	return 1;
 }
