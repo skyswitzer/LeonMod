@@ -143,23 +143,25 @@ class ICvUnit1;
 template <class TEnum, class TInfo, class TOwner>
 TEnum GetFromMap(const TOwner* This, const string name, std::map<string, TEnum>& map, const int numExpectedInfo, TInfo* (TOwner::* getInfo)(TEnum) const)
 {
-	if (map.size() != numExpectedInfo)
+	//if (map.size() != numExpectedInfo)
 	{
-		map.clear();
+		//map.clear();
 		// for each
 		for (int i = 0; i < numExpectedInfo; i++)
 		{
 			const TEnum e = (TEnum)i;
 			const TInfo* pInfo = (This->*getInfo)(e);
-			if (pInfo != NULL)
+			if (pInfo != NULL && pInfo->GetType() == name)
 			{
+				return e;
 				// store its name
-				map[pInfo->GetType()] = e;
+				//map[] = e;
 			}
 		}
 	}
+	return (TEnum)0;
 
-	return map[name];
+	//return map[name];
 }
 
 class CvGlobals

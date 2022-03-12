@@ -3515,17 +3515,10 @@ std::vector<CvImprovementEntry*>& CvGlobals::getImprovementInfo()
 
 CvImprovementEntry* CvGlobals::getImprovementInfo(ImprovementTypes eImprovementNum) const
 {
-#ifdef AUI_WARNING_FIXES
-	uint uiIndex = uint(eImprovementNum);
-	CvAssert(uiIndex < GC.getNumImprovementInfos());
-	if (uiIndex < GC.getNumImprovementInfos())
-		return m_pImprovements->GetImprovementEntries()[uiIndex];
-#else
 	CvAssert(eImprovementNum > -1);
 	CvAssert(eImprovementNum < GC.getNumImprovementInfos());
 	if(eImprovementNum > -1 && eImprovementNum < GC.getNumImprovementInfos())
 		return m_pImprovements->GetImprovementEntries()[eImprovementNum];
-#endif
 	else
 		return NULL;
 }
