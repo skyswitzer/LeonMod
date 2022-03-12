@@ -526,6 +526,22 @@ function GeneratePlotTypes()
 	local plotTypes = fractal_world:GeneratePlotTypes(args);
 	--local x = fractal_world:Plots();
 
+
+	for x = 0, maxX - 1 do
+		for y = 0, maxY - 1 do
+			local i = GetI(x,y,maxX);
+			if plotTypes[i] ~= PlotTypes.PLOT_OCEAN then
+				if plotTypes[i] == PlotTypes.PLOT_MOUNTAIN then -- remove existing mountain
+					plotTypes[i] = PlotTypes.PLOT_HILLS;
+				end
+				if Map.Rand(1000, "Mountain Chance") < 50 then -- mountain chance
+					plotTypes[i] = PlotTypes.PLOT_MOUNTAIN;
+				end
+			end
+		end
+	end
+
+
 	-- add random islands
 	for x = 0, maxX - 1 do
 		for y = 0, maxY - 1 do
@@ -561,13 +577,11 @@ function GeneratePlotTypes()
 	end
 
 	-- add pole islands
-	if true then
-		for x = 0, maxX - 1 do
-			for y = 0, maxY - 1 do
-				if y <= polesAddDist or y >= maxY-polesAddDist then
-					if Map.Rand(1000, "Pole Island Chance") < polesIslandChance then
-						RandomIsland(plotTypes,x,y,maxX,3+Map.Rand(8, "Pole Size"),80);
-					end
+	for x = 0, maxX - 1 do
+		for y = 0, maxY - 1 do
+			if y <= polesAddDist or y >= maxY-polesAddDist then
+				if Map.Rand(1000, "Pole Island Chance") < polesIslandChance then
+					RandomIsland(plotTypes,x,y,maxX,3+Map.Rand(8, "Pole Size"),80);
 				end
 			end
 		end
