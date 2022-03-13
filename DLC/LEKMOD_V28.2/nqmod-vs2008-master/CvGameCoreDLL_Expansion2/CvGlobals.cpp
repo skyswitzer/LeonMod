@@ -2953,26 +2953,23 @@ CvResourceClassInfo* CvGlobals::getResourceClassInfo(ResourceClassTypes eResourc
 }
 ResourceClassTypes CvGlobals::ResourceClass(const string name) const
 {
-	return GetFromMap(this, name, resourceClassMap, getNumResourceClassInfos(), &CvGlobals::getResourceClassInfo);
+	// populate
+	if (resourceClassMap.size() == 0)
+	{
+		// for each policy
+		for (int i = 0; i < getNumResourceClassInfos(); i++)
+		{
+			const ResourceClassTypes e = (ResourceClassTypes)i;
+			const CvResourceClassInfo* pInfo = getResourceClassInfo(e);
+			if (pInfo != NULL)
+			{
+				// put it in the dictionary
+				resourceClassMap[pInfo->GetType()] = e;
+			}
+		}
+	}
 
-	//const int expectedSize = getNumResourceClassInfos();
-	//if (resourceClassMap.size() != expectedSize)
-	//{
-	//	resourceClassMap.clear();
-	//	// for each
-	//	for (int i = 0; i < expectedSize; i++)
-	//	{
-	//		const ResourceClassTypes e = (ResourceClassTypes)i;
-	//		const CvResourceClassInfo* pInfo = getResourceClassInfo(e);
-	//		if (pInfo != NULL)
-	//		{
-	//			// store its name
-	//			resourceClassMap[pInfo->GetType()] = e;
-	//		}
-	//	}
-	//}
-
-	//return resourceClassMap[name];
+	return resourceClassMap[name];
 }
 
 
@@ -2996,17 +2993,17 @@ CvResourceInfo* CvGlobals::getResourceInfo(ResourceTypes eResourceNum) const
 }
 ResourceTypes CvGlobals::Resource(const string name) const
 {
-	const int expectedSize = getNumResourceInfos();
-	if (resourceMap.size() != expectedSize)
+	// populate
+	if (resourceMap.size() == 0)
 	{
-		// for each
-		for (int i = 0; i < expectedSize; i++)
+		// for each policy
+		for (int i = 0; i < getNumResourceInfos(); i++)
 		{
 			const ResourceTypes e = (ResourceTypes)i;
 			const CvResourceInfo* pInfo = getResourceInfo(e);
 			if (pInfo != NULL)
 			{
-				// store its name
+				// put it in the dictionary
 				resourceMap[pInfo->GetType()] = e;
 			}
 		}
@@ -3039,7 +3036,23 @@ CvFeatureInfo* CvGlobals::getFeatureInfo(FeatureTypes eFeatureNum) const
 }
 FeatureTypes CvGlobals::Feature(const string name) const
 {
-	return GetFromMap(this, name, featureMap, getNumFeatureInfos(), &CvGlobals::getFeatureInfo);
+	// populate
+	if (featureMap.size() == 0)
+	{
+		// for each policy
+		for (int i = 0; i < getNumFeatureInfos(); i++)
+		{
+			const FeatureTypes e = (FeatureTypes)i;
+			const CvFeatureInfo* pInfo = getFeatureInfo(e);
+			if (pInfo != NULL)
+			{
+				// put it in the dictionary
+				featureMap[pInfo->GetType()] = e;
+			}
+		}
+	}
+
+	return featureMap[name];
 }
 
 int& CvGlobals::getNumPlayableCivilizationInfos()
@@ -3529,7 +3542,23 @@ CvImprovementXMLEntries* CvGlobals::GetGameImprovements() const
 }
 ImprovementTypes CvGlobals::Improvement(const string name) const
 {
-	return GetFromMap(this, name, improvementsMap, getNumImprovementInfos(), &CvGlobals::getImprovementInfo);
+	// populate
+	if (improvementsMap.size() == 0)
+	{
+		// for each policy
+		for (int i = 0; i < getNumImprovementInfos(); i++)
+		{
+			const ImprovementTypes e = (ImprovementTypes)i;
+			const CvImprovementEntry* pInfo = getImprovementInfo(e);
+			if (pInfo != NULL)
+			{
+				// put it in the dictionary
+				improvementsMap[pInfo->GetType()] = e;
+			}
+		}
+	}
+
+	return improvementsMap[name];
 }
 
 #ifdef AUI_WARNING_FIXES
@@ -7134,6 +7163,10 @@ void CvGlobals::deleteInfoArrays()
 	SAFE_DELETE_ARRAY(GC.getFootstepAudioTags());
 
 	deleteInfoArray(m_paEntityEventInfo);
+	resourceMap.clear();// = std::map<string, ResourceTypes>();
+	resourceClassMap.clear();// = std::map<string, ResourceClassTypes>();
+	improvementsMap.clear();// = std::map<string, ImprovementTypes>();
+	featureMap.clear();// = std::map<string, FeatureTypes>();
 }
 
 //

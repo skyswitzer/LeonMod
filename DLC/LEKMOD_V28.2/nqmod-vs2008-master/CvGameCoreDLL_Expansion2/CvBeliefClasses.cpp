@@ -1116,6 +1116,7 @@ void CvBeliefXMLEntries::DeleteArray()
 		SAFE_DELETE(*it);
 	}
 
+	map.clear();
 	m_paBeliefEntries.clear();
 }
 
@@ -1123,17 +1124,17 @@ void CvBeliefXMLEntries::DeleteArray()
 BeliefTypes CvBeliefXMLEntries::Belief(const string name) const
 {
 	// populate
-	if (map.size() != GetNumBeliefs())
+	if (map.size() == 0)
 	{
 		// for each policy
-		for (int iPolicyLoop = 0; iPolicyLoop < GetNumBeliefs(); iPolicyLoop++)
+		for (int i = 0; i < GetNumBeliefs(); i++)
 		{
-			const BeliefTypes ePolicy = (BeliefTypes)iPolicyLoop;
-			const CvBeliefEntry* pInfo = GC.getBeliefInfo(ePolicy);
+			const BeliefTypes e = (BeliefTypes)i;
+			const CvBeliefEntry* pInfo = GC.getBeliefInfo(e);
 			if (pInfo != NULL)
 			{
 				// put it in the dictionary
-				map[pInfo->GetType()] = ePolicy;
+				map[pInfo->GetType()] = e;
 			}
 		}
 	}

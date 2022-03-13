@@ -288,6 +288,8 @@ public:
 	int GetUnitCombatProductionModifiers(int i) const;
 	int GetUnitCombatFreeExperiences(int i) const;
 	int GetBuildingClassHappiness(int i) const;
+	// player gets bonus production toward a particular building class
+	// this DOES NOT mean this building gets the bonus
 	int GetBuildingClassProductionModifier(int i) const;
 	int GetBuildingClassTourismModifier(int i) const;
 	int GetNumFreeUnitsByClass(int i) const;

@@ -2414,14 +2414,14 @@ void CvBuildingXMLEntries::DeleteArray()
 	{
 		SAFE_DELETE(*it);
 	}
-
+	map.clear();
 	m_paBuildingEntries.clear();
 }
 
 
 BuildingClassTypes CvBuildingXMLEntries::BuildingClass(const string name) const
 {
-	if (map.size() != GetNumBuildings())
+	if (map.size() == 0)
 	{
 		// for each policy
 		for (int i = 0; i < GetNumBuildings(); i++)

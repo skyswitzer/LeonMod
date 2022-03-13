@@ -2231,10 +2231,6 @@ int CvPolicyEntry::GetBuildingClassYieldModifiers(int eBuildingClass, int yieldT
 	{
 		value += GetBuildingClassTourismModifier(eBuildingClass);
 	}
-	if (yieldType == YIELD_PRODUCTION)
-	{
-		value += GetBuildingClassProductionModifier(eBuildingClass);
-	}
 
 	CvAssertMsg(eBuildingClass < GC.getNumBuildingClassInfos(), "Index out of bounds");
 	CvAssertMsg(eBuildingClass > -1, "Index out of bounds");
@@ -2544,25 +2540,25 @@ void CvPolicyXMLEntries::DeletePolicyBranchesArray()
 	{
 		SAFE_DELETE(*it);
 	}
-
+	map.clear();
 	m_paPolicyBranchEntries.clear();
 }
 
 
 PolicyTypes CvPolicyXMLEntries::Policy(const string name) const
 {
-	if (map.size() != GetNumPolicies())
+	// populate
+	if (map.size() == 0)
 	{
 		// for each policy
-		for (int iPolicyLoop = 0; iPolicyLoop < GetNumPolicies(); iPolicyLoop++)
+		for (int i = 0; i < GetNumPolicies(); i++)
 		{
-			// that this player has
-			const PolicyTypes ePolicy = (PolicyTypes)iPolicyLoop;
-			const CvPolicyEntry* pInfo = GC.getPolicyInfo(ePolicy);
+			const PolicyTypes e = (PolicyTypes)i;
+			const CvPolicyEntry* pInfo = GC.getPolicyInfo(e);
 			if (pInfo != NULL)
 			{
-				// is it the policy we are looking for?
-				map[pInfo->GetType()] = ePolicy;
+				// put it in the dictionary
+				map[pInfo->GetType()] = e;
 			}
 		}
 	}
