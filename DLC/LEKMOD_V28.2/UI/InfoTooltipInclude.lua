@@ -137,7 +137,7 @@ function GetHelpTextForBuilding(iBuildingID, bExcludeName, bExcludeHeader, bNoMa
 		
 		-- Maintenance
 		if (not bNoMaintenance) then
-			local iMaintenance = pBuildingInfo.GoldMaintenance;
+			local iMaintenance = pActivePlayer:GetTotalBuildingYields(pCity, iBuildingID, -2, false);
 			if (iMaintenance ~= nil and iMaintenance ~= 0) then		
 				table.insert(lines, Locale.ConvertTextKey("TXT_KEY_PRODUCTION_BUILDING_MAINTENANCE", iMaintenance));
 			end

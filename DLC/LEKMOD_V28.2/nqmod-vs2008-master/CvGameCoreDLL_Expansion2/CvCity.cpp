@@ -11290,6 +11290,8 @@ void CvCity::UpdateBuildingYields()
 		const int oldYieldRate = getYieldRateModifier(eYield);
 		changeYieldRateModifier(eYield, newYieldRate - oldYieldRate);
 	}
+
+	GetCityBuildings()->UpdateTotalBaseBuildingMaintenance();
 }
 
 //	--------------------------------------------------------------------------------
