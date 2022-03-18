@@ -289,20 +289,21 @@ string CvMinorCivQuest::GetStatusMessage(const CvPlayer* pMinor, const CvPlayer*
 	}
 	else if (quest == QUEST_GIFT_GOLD)
 	{
+		const int amountOfGold = m_iData1;
 		if (messageType == MessageType::START_CAPTION)
 		{
 			s << civName << " seeks a {GOLD_INVESTMENT}!";
 		}
 		if (messageType == MessageType::START_DESC)
 		{
-			s << "We are attempting a new public works project. If you could provide us with a " << m_iData1;
+			s << "We are attempting a new public works project. If you could provide us with a " << amountOfGold;
 			s << "{GOLD_INVESTMENT} to help with it, we would be very grateful. We'd make an investment of our own: ";
 			s << compileRewards(rewards);
 			s << txtTurnsRemain(turnsRemaining);
 		}
 		if (messageType == MessageType::STATUS_DESC)
 		{
-			s << "Could you gift us " << m_iData1;
+			s << "Could you gift us " << amountOfGold;
 			s << "[ICON_INVEST] {GOLD_TEXT} to help fund our project? We'd make an investment of our own: ";
 			s << compileRewards(rewards);
 			s << txtTurnsRemain(turnsRemaining);
@@ -435,7 +436,7 @@ string CvMinorCivQuest::GetStatusMessage(const CvPlayer* pMinor, const CvPlayer*
 		}
 		if (messageType == MessageType::LOSE_DESC)
 		{
-			s << "We'll never understand " << religionName << " or follow its tenets. We would have awarded you: ";
+			s << "We still don't understand " << religionName << ". We would have awarded you: ";
 			s << compileRewards(rewards);
 		}
 	}
