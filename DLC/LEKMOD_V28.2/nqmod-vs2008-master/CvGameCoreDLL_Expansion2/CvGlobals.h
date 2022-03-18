@@ -980,6 +980,17 @@ public:
 	{
 		return m_iPOLICY_WEIGHT_PROPAGATION_PERCENT;
 	}
+	// Number of policies needed to adopt ideology
+	// will unlock after adopting this policy
+	inline int getPOLICY_NUM_FOR_IDEOLOGY()
+	{
+		return 21;
+	}
+	// How much extra "policies" does each policy
+	inline float getPOLICY_INCREASE_LATE_GAME()
+	{
+		return 0.5f;
+	}
 	inline int getPOLICY_WEIGHT_PROPAGATION_LEVELS()
 	{
 		return m_iPOLICY_WEIGHT_PROPAGATION_LEVELS;
