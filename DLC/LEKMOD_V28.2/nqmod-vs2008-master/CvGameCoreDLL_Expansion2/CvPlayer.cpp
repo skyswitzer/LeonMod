@@ -5227,86 +5227,93 @@ void CvPlayer::RespositionInvalidUnits()
 
 int CvPlayer::GetTotalYieldForBuilding(const CvCity* pCity, const BuildingTypes eBuilding, const YieldTypes eYieldType, const bool isPercentMod) const
 {
+	int iYield = 0;
 	const CvBuildingEntry* pBuildingInfo = GC.getBuildingInfo(eBuilding);
 	if (pBuildingInfo == NULL)
 		return 0;
 	const BuildingClassTypes eBuildingClass = (BuildingClassTypes)pBuildingInfo->GetBuildingClassType();
 
-	int iYield = 0;
-
-	{ // defaults
-		if (isPercentMod)
-			iYield += GC.getBuildingInfo(eBuilding)->GetYieldModifier(eYieldType);
-		else
-			iYield += GC.getBuildingInfo(eBuilding)->GetYieldChange(eYieldType);
-	}
-
-	// has tech or no tech needed
-	if (pBuildingInfo->GetEnhancedYieldTech() == NO_TECH || 
-		GET_TEAM(getTeam()).GetTeamTechs()->HasTech((TechTypes)pBuildingInfo->GetEnhancedYieldTech()))
+	if (eYieldType >= 0)
 	{
-		iYield += pBuildingInfo->GetTechEnhancedYieldChange(eYieldType);
-	}
+		{ // defaults
+			if (isPercentMod)
+				iYield += GC.getBuildingInfo(eBuilding)->GetYieldModifier(eYieldType);
+			else
+				iYield += GC.getBuildingInfo(eBuilding)->GetYieldChange(eYieldType);
+		}
 
-	{ // consider policies
-		for (int i = 0; i < GC.getNumPolicyInfos(); i++)
+		// has tech or no tech needed
+		if (pBuildingInfo->GetEnhancedYieldTech() == NO_TECH ||
+			GET_TEAM(getTeam()).GetTeamTechs()->HasTech((TechTypes)pBuildingInfo->GetEnhancedYieldTech()))
 		{
-			const PolicyTypes e = (PolicyTypes)i;
-			const CvPolicyEntry* pInfo = GC.getPolicyInfo(e);
-			if (pInfo)
+			iYield += pBuildingInfo->GetTechEnhancedYieldChange(eYieldType);
+		}
+
+		{ // consider policies
+			for (int i = 0; i < GC.getNumPolicyInfos(); i++)
 			{
-				const bool hasIt = GetPlayerPolicies()->HasPolicy(e);
-				const bool isBlocked = GetPlayerPolicies()->IsPolicyBlocked(e);
-				if (hasIt && !isBlocked)
+				const PolicyTypes e = (PolicyTypes)i;
+				const CvPolicyEntry* pInfo = GC.getPolicyInfo(e);
+				if (pInfo)
 				{
-					if (isPercentMod)
+					const bool hasIt = GetPlayerPolicies()->HasPolicy(e);
+					const bool isBlocked = GetPlayerPolicies()->IsPolicyBlocked(e);
+					if (hasIt && !isBlocked)
 					{
-						iYield += pInfo->GetBuildingClassYieldModifiers(eBuildingClass, eYieldType);
-					}
-					else
-					{
-						iYield += pInfo->GetBuildingClassYieldChanges(eBuildingClass, eYieldType);
+						if (isPercentMod)
+						{
+							iYield += pInfo->GetBuildingClassYieldModifiers(eBuildingClass, eYieldType);
+						}
+						else
+						{
+							iYield += pInfo->GetBuildingClassYieldChanges(eBuildingClass, eYieldType);
+						}
 					}
 				}
 			}
 		}
-	}
 
-	// consider religions
-	if (pCity != NULL)
-	{
-		for (int i = 0; i < GC.getNumBeliefInfos(); i++)
+		// consider religions
+		if (pCity != NULL)
 		{
-			const BeliefTypes e = (BeliefTypes)i;
-			const CvBeliefEntry* pInfo = GC.getBeliefInfo(e);
-			if (pInfo)
+			for (int i = 0; i < GC.getNumBeliefInfos(); i++)
 			{
-				const bool hasIt = pCity->HasBelief(pInfo->GetType());
-				if (hasIt)
+				const BeliefTypes e = (BeliefTypes)i;
+				const CvBeliefEntry* pInfo = GC.getBeliefInfo(e);
+				if (pInfo)
 				{
-					if (isPercentMod)
+					const bool hasIt = pCity->HasBelief(pInfo->GetType());
+					if (hasIt)
 					{
-						// no options for this
-					}
-					else
-					{
-						iYield += pInfo->GetBuildingClassYieldChange(eBuildingClass, eYieldType);
+						if (isPercentMod)
+						{
+							// no options for this
+						}
+						else
+						{
+							iYield += pInfo->GetBuildingClassYieldChange(eBuildingClass, eYieldType);
+						}
 					}
 				}
 			}
 		}
+
+		{ // player traits
+			if (eYieldType == YIELD_CULTURE)
+				iYield += GetPlayerTraits()->GetCultureBuildingYieldChange();
+			// there don't appear to be other trait yield mods
+		}
+
+		// TODO consider leagues, see lGetLeagueBuildingClassYieldChange
+
+
+		{ // other changes
+			iYield += GetExtraYieldForBuilding(pCity, eBuilding, eBuildingClass, pBuildingInfo, eYieldType, isPercentMod);
+		}
 	}
-
-	{ // player traits
-		if (eYieldType == YIELD_CULTURE)
-			iYield += GetPlayerTraits()->GetCultureBuildingYieldChange();
-		// there don't appear to be other trait yield mods
-	}
-
-	// TODO consider leagues, see lGetLeagueBuildingClassYieldChange
-
-
-	{ // other changes
+	else if (eYieldType == YIELD_MAINTENANCE) // maintenace checks
+	{
+		iYield += pBuildingInfo->GetGoldMaintenance(*this);
 		iYield += GetExtraYieldForBuilding(pCity, eBuilding, eBuildingClass, pBuildingInfo, eYieldType, isPercentMod);
 	}
 

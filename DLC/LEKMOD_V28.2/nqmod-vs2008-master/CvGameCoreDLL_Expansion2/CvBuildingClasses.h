@@ -95,7 +95,7 @@ public:
 	int GetObsoleteTech() const;
 	int GetEnhancedYieldTech() const;
 	int GetTechEnhancedTourism() const;
-	int GetGoldMaintenance() const;
+	int GetGoldMaintenance(const CvPlayer& player) const;
 	int GetMutuallyExclusiveGroup() const;
 	int GetReplacementBuildingClass() const;
 	int GetPrereqAndTech() const;
