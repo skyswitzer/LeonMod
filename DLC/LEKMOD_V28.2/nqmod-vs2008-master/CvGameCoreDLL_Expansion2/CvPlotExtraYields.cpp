@@ -132,18 +132,13 @@ int CvPlot::getExtraYield
 			{// BELIEF_Church Property - Holy City - +1 (food, production, gold, faith, culture, and science) and an additional of each yield per 40 followers (max +5)
 				const bool hasBeliefChurchProperty = city.HasBelief("BELIEF_CHURCH_PROPERTY");
 				const bool isTileAffected = hasBeliefChurchProperty && isHolyCity && isCityCenter;
-				if (eYieldType == YIELD_FOOD && isTileAffected)
-					yieldChange += 1 + min(6, numFollowersGlobal / 50);
-				if (eYieldType == YIELD_PRODUCTION && isTileAffected)
-					yieldChange += 1 + min(6, numFollowersGlobal / 50);
-				if (eYieldType == YIELD_CULTURE && isTileAffected)
-					yieldChange += 1 + min(6, numFollowersGlobal / 50);
-				if (eYieldType == YIELD_FAITH && isTileAffected)
-					yieldChange += 1 + min(6, numFollowersGlobal / 50);
-				if (eYieldType == YIELD_SCIENCE && isTileAffected)
-					yieldChange += 1 + min(6, numFollowersGlobal / 50);
-				if (eYieldType == YIELD_GOLD && isTileAffected)
-					yieldChange += 1 + min(6, numFollowersGlobal / 50);
+				const bool isYieldAffected = 
+				(
+					eYieldType == YIELD_FOOD || eYieldType == YIELD_PRODUCTION || eYieldType == YIELD_CULTURE ||
+					eYieldType == YIELD_FAITH || eYieldType == YIELD_SCIENCE || eYieldType == YIELD_GOLD
+				);
+				if (isYieldAffected && isTileAffected)
+					yieldChange += min(6, 1 + numFollowersGlobal / 50);
 			}
 
 			{// BELIEF_Dawah - Holy City - 2 Culture, 1 Culture per 8 followers (max 20)
