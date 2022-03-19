@@ -24,10 +24,6 @@
 //					CvMinorCivQuest
 //======================================================================================================
 
-// score awarded upon winning the unrest contest
-const int scoreFromQuest = 150;
-// score per turn for being an ally
-const int scorePerAllyTurn = 10;
 // minimum military influence needed to gain influence
 const int minMilitaryStrength = 15;
 // influence gained per turn for having the most local military
@@ -970,13 +966,13 @@ void CvMinorCivQuest::SetHandled(bool bValue)
 // NOTE: Should only be called once.
 void CvMinorCivQuest::DoStartQuest(int iStartTurn)
 {
-	m_iStartTurn = iStartTurn;
-	m_rewards = QuestReward();
-	m_rewards.support = 150;
-	m_rewards.friendship = 40;
-
 	CvPlayer* pMinor = &GET_PLAYER(m_eMinor);
 	CvPlayer* pMajor = &GET_PLAYER(m_eAssignedPlayer);
+
+	m_iStartTurn = iStartTurn;
+	m_rewards = QuestReward();
+	m_rewards.support = GC.getDIPLOMATIC_INFLUENCE_PER_QUEST_BASE(m_eMinor, m_eAssignedPlayer);
+	m_rewards.friendship = GC.getMINOR_FRIENDSHIP_FROM_TRADE_MISSION();
 
 	Localization::String strMessage;
 	Localization::String strSummary;
@@ -1069,8 +1065,9 @@ bool CvMinorCivQuest::DoFinishQuest(const float bonusFactor)
 
 	CvPlayer* pMinor = &GET_PLAYER(m_eMinor);
 	const CvPlayer* pMajor = &GET_PLAYER(m_eAssignedPlayer);
+	const PlayerTypes eMajor = pMajor->GetID();
 	const int friendshipRewardT100 = 100 * GetInfluenceReward() * bonusFactor;
-	const int diplomaticSupportReward = scoreFromQuest * bonusFactor;
+	const int diplomaticSupportReward = GC.getDIPLOMATIC_INFLUENCE_PER_QUEST_BASE(m_eMinor, eMajor) * bonusFactor;
 
 
 	// apply rewards
@@ -2474,7 +2471,7 @@ void CvMinorCivAI::DoTurnQuests()
 	PlayerTypes ePlayer;
 	for(int iPlayerLoop = 0; iPlayerLoop < MAX_MAJOR_CIVS; iPlayerLoop++)
 	{
-		ePlayer = (PlayerTypes) iPlayerLoop;
+		ePlayer = (PlayerTypes)iPlayerLoop;
 
 		if(IsHasMetPlayer(ePlayer))
 		{
@@ -2492,7 +2489,8 @@ void CvMinorCivAI::DoTurnQuests()
 	PlayerTypes ally = GetAlly();
 	if (ally != NO_PLAYER)
 	{
-		GET_PLAYER(ally).ChangeDiplomaticInfluence(scorePerAllyTurn);
+		const PlayerTypes eMinor = GetPlayer()->GetID();
+		GET_PLAYER(ally).ChangeDiplomaticInfluence(GC.getDIPLOMATIC_INFLUENCE_PER_TURN_ALLY(eMinor, ally));
 	}
 }
 

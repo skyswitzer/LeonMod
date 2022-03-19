@@ -954,6 +954,44 @@ public:
 	GD_INT_DEF(NEW_SCORE_BELIEF_MULTIPLIER);
 #endif
 
+
+	// score per turn for being an ally
+	inline int getDIPLOMATIC_INFLUENCE_PER_TURN_ALLY(const PlayerTypes eMinor, const PlayerTypes ePlayer)
+	{
+		return 10;
+	}
+	// amount of dioplomatic influence per quest you complete
+	inline int getDIPLOMATIC_INFLUENCE_PER_QUEST_BASE(const PlayerTypes eMinor, const PlayerTypes ePlayer)
+	{
+		return 100;
+	}
+	// Number of policies needed to adopt ideology
+	// will unlock after adopting this policy
+	inline int getPOLICY_NUM_FOR_IDEOLOGY()
+	{
+		return 21;
+	}
+	// grow or shrink city tourism impact
+	inline float getTOURISM_CITY_PERCENT_ADJUST()
+	{
+		return 0.75f;
+	}
+	// grow or shrink city tourism impact
+	inline int getTOURISM_FROM_CITY_CULTURE_PER_POLICY()
+	{
+		return 1;
+	}
+	// how many more cities does the capital count for when calculating tourism adjustment
+	inline float getTOURISM_CITY_CAPITAL_ADJUST()
+	{
+		return 6.0f;
+	}
+	// How much extra "policies" does each policy cost once you get ideology
+	inline float getPOLICY_INCREASE_LATE_GAME()
+	{
+		return 0.5f;
+	}
+
 	// -- ints --
 
 	inline int getAI_ATTEMPT_RUSH_OVER_X_TURNS_TO_BUILD()
@@ -979,17 +1017,6 @@ public:
 	inline int getPOLICY_WEIGHT_PROPAGATION_PERCENT()
 	{
 		return m_iPOLICY_WEIGHT_PROPAGATION_PERCENT;
-	}
-	// Number of policies needed to adopt ideology
-	// will unlock after adopting this policy
-	inline int getPOLICY_NUM_FOR_IDEOLOGY()
-	{
-		return 21;
-	}
-	// How much extra "policies" does each policy
-	inline float getPOLICY_INCREASE_LATE_GAME()
-	{
-		return 0.5f;
 	}
 	inline int getPOLICY_WEIGHT_PROPAGATION_LEVELS()
 	{
