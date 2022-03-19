@@ -700,6 +700,8 @@ function GetCultureTooltip(pCity)
 			
 			strCultureToolTip = strCultureToolTip .. "[ICON_BULLET]" .. Locale.ConvertTextKey("TXT_KEY_CULTURE_FROM_TRAITS", iCultureFromTraits);
 		end
+
+		strCultureToolTip = strCultureToolTip .. "[NEWLINE][ICON_BULLET] Any remainder is from Trade Routes";
 		
 		-- Empire Culture modifier
 		local iAmount = Players[pCity:GetOwner()]:GetCultureCityModifier();

@@ -3049,7 +3049,7 @@ int CvPlayerTrade::GetTradeConnectionValueTimes100 (const TradeConnection& kTrad
 		}
 	}
 
-	iValue = 100 * GetTradeConnectionValueExtra(kTradeConnection, eYield, bAsOriginPlayer);
+	iValue += 100 * GetTradeConnectionValueExtra(kTradeConnection, eYield, bAsOriginPlayer);
 
 	return iValue;	
 }
