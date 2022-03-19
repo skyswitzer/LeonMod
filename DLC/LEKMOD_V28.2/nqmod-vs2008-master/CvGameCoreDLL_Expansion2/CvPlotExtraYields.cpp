@@ -31,6 +31,7 @@
 #include "CvBarbarians.h"
 
 #include "CvDllPlot.h"
+#include "CvGameCoreEnums.h"
 #include "CvDllUnit.h"
 #include "CvUnitMovement.h"
 #include "CvTargeting.h"
@@ -270,23 +271,23 @@ int CvPlot::getExtraYield
 				if (eYieldType == YIELD_TOURISM && hasMediaCulture && isGreatTile)
 					yieldChange += 3;
 			}
-			{ // POLICY_SPACE_PROCUREMENTS - gives 5 Singularity Points per Acadamy. 
+			{ // POLICY_SPACE_PROCUREMENTS - gives 3 Singularity Points per Acadamy. 
 				const bool hasSpaceProcurement = player.HasPolicy("POLICY_SPACE_PROCUREMENTS");
 				const bool isAcadamy = plot.HasImprovement("IMPROVEMENT_ACADEMY");
 				if (eYieldType == YIELD_SCIENTIFIC_INSIGHT && hasSpaceProcurement && isAcadamy)
-					yieldChange += 5;
+					yieldChange += 3;
 			}	
-
+			
 			{// POLICY_IRON_CURTAIN - gives +2 tourism per city
 				const bool hasIronCurtain = player.HasPolicy("POLICY_IRON_CURTAIN");
 				if (eYieldType == YIELD_TOURISM && hasIronCurtain && isCityCenter)
 					yieldChange += 2;
 			}
 
-			{// POLICY_SPACEFLIGHT_PIONEERS - gives +2 scientific insight per city
+			{// POLICY_SPACEFLIGHT_PIONEERS - gives +1 scientific insight per city
 				const bool hasSpaceFlightPioneers = player.HasPolicy("POLICY_SPACEFLIGHT_PIONEERS");
 				if (eYieldType == YIELD_SCIENTIFIC_INSIGHT && hasSpaceFlightPioneers && isCityCenter)
-					yieldChange += 2;
+					yieldChange += 1;
 			}
 
 			{// POLICY_NEW_ORDER - gives +3 tourism, culture, diplo points, gold to citadels
@@ -308,6 +309,8 @@ int CvPlot::getExtraYield
 				if (eYieldType == YIELD_SCIENTIFIC_INSIGHT && hasSovereignty && isAcadamy)
 					yieldChange += 1;
 			}
+
+			
 		}
 	}
 
@@ -369,7 +372,14 @@ int CvPlayer::GetExtraYieldForBuilding
 		const bool hasFuturism = player.HasPolicy("POLICY_FUTURISM");
 		const bool isCourthouse = eBuildingClass == BuildingClass("BUILDINGCLASS_COURTHOUSE");
 		if (eYieldType == YIELD_SCIENTIFIC_INSIGHT && !isPercentMod && hasFuturism && isCourthouse)
-			yieldChange += 4;
+			yieldChange += 2;	
+	}
+
+	{// POLICY_FUTURISM - gives + 3 scientific insight from courthouse
+		const bool hasFuturism = player.HasPolicy("POLICY_FUTURISM");
+		const bool isCourthouse = eBuildingClass == BuildingClass("BUILDINGCLASS_COURTHOUSE");
+		if (eYieldType == YIELD_SCIENTIFIC_INSIGHT && !isPercentMod && hasFuturism && isCourthouse)
+			yieldChange += 3;
 	}
 	{// POLICY_UNITED_FRONT - gives + 10 diplo points from courthouse
 		const bool hasUnitedFront = player.HasPolicy("POLICY_UNITED_FRONT");
@@ -383,6 +393,13 @@ int CvPlayer::GetExtraYieldForBuilding
 		const bool isMerchantsGuild = eBuildingClass == BuildingClass("BUILDINGCLASS_GUILD_GOLD");
 		if (eYieldType == YIELD_GOLD && isPercentMod && hasMercenaryArmy && isMerchantsGuild)
 			yieldChange += 15;
+	}
+
+	{// POLICY_FREE_THOUGHT - +1 Singularity from Research Labs
+		const bool hasFreeThought = player.HasPolicy("POLICY_FREE_THOUGHT");
+		const bool isResearchLab = eBuildingClass == BuildingClass("BUILDINGCLASS_LABORATORY");
+		if (eYieldType == YIELD_SCIENTIFIC_INSIGHT && !isPercentMod && hasFreeThought && isResearchLab)
+			yieldChange += 1;
 	}
 
 	{// POLICY_FREE_THOUGHT - +1 Singularity from Research Labs
@@ -428,6 +445,13 @@ int CvPlayer::GetExtraYieldForBuilding
 			if (eYieldType == YIELD_PRODUCTION && hasUniversal && isHospital)
 				yieldChange -= 2;
 		}
+	}
+
+	{// POLICY_RATIONALISM_FINISHER - +8 Singularity from Rationalism Finisher
+		const bool hasRationalismFinisher = player.HasPolicy("POLICY_RATIONALISM_FINISHER");
+		const bool isPalace = eBuildingClass == BuildingClass("BUILDINGCLASS_PALACE");
+		if (eYieldType == YIELD_SCIENTIFIC_INSIGHT && !isPercentMod && hasRationalismFinisher && isPalace)
+			yieldChange += 8;
 	}
 	
 	return yieldChange;
