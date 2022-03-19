@@ -7340,6 +7340,7 @@ RouteTypes CvPlot::getRouteType() const
 	// let the bridge to count as a road
 	if (IsAllowsWalkWater())
 		return ROUTE_ROAD;
+	return NO_ROUTE;
 }
 
 
