@@ -3446,10 +3446,10 @@ int CvPlot::MovementCostNoZOC(const CvUnit* pUnit, const CvPlot* pFromPlot, int 
 //	--------------------------------------------------------------------------------
 bool CvPlot::IsAllowsWalkWater() const
 {
-	ImprovementTypes eImprovement = getImprovementType();
-	if (eImprovement != NO_IMPROVEMENT)
+	const ImprovementTypes eImprovement = getImprovementType();
+	if (eImprovement != NO_IMPROVEMENT && !IsImprovementPillaged())
 	{
-		CvImprovementEntry *pkEntry = GC.getImprovementInfo(eImprovement);
+		const CvImprovementEntry* pkEntry = GC.getImprovementInfo(eImprovement);
 		if (pkEntry)
 			return pkEntry->IsAllowsWalkWater();
 	}
@@ -3486,29 +3486,33 @@ bool CvPlot::IsEnemyTerritory(const PlayerTypes ePlayer) const
 // --------------------------------------------------------------------------------- // from Izy
 bool CvPlot::IsAllowsSailLand(PlayerTypes ePlayer) const
 {
-	TeamTypes ePlayerTeam = GET_PLAYER(ePlayer).getTeam();
-	TeamTypes ePlotOwnerTeam = getTeam();
-
-	// no closed borders
-	if (IsEnemyTerritory(ePlayer))
-		return false;
-
-	// adjacent enemy units stop canal usage
-	bool bAnyNearbyEnemyUnits = isEnemyUnit(ePlayer, true, false, false) || GetAdjacentEnemyMilitaryUnits(ePlayerTeam, NO_DOMAIN).size() != 0;
-	if (bAnyNearbyEnemyUnits)
-		return false;
-
 	// allow travel through rivers
-	//if (isRiver()) // how do we prevent river hoping?
+	// WARNING, THIS CODE WOULD NEED REFACTOR TO CONSIDER BELOW ENEMY STUFF
+	//if (isRiver()) // how do we prevent river hopping?
 	//	return true;
 
+	// TODO should we check city here?
+
 	// allow travel through special improvements
-    ImprovementTypes eImprovement = getImprovementType();
-    if (eImprovement != NO_IMPROVEMENT)
+    const ImprovementTypes eImprovement = getImprovementType();
+    if (eImprovement != NO_IMPROVEMENT && !IsImprovementPillaged())
     {
-        CvImprovementEntry *pkEntry = GC.getImprovementInfo(eImprovement);
-        if (pkEntry)
-            return pkEntry->IsAllowsSailLand();
+        const CvImprovementEntry *pkEntry = GC.getImprovementInfo(eImprovement);
+		if (pkEntry && pkEntry->IsAllowsSailLand())
+		{
+			// no closed borders
+			if (IsEnemyTerritory(ePlayer))
+				return false;
+
+			const TeamTypes ePlayerTeam = GET_PLAYER(ePlayer).getTeam();
+			// adjacent enemy units stop canal usage
+			const bool bAnyNearbyEnemyUnits = isEnemyUnit(ePlayer, true, false, false) || GetAdjacentEnemyMilitaryUnits(ePlayerTeam).size() != 0;
+			if (bAnyNearbyEnemyUnits)
+				return false;
+
+			// improvement allows it
+			return true;
+		}
     }
 
 	// disallow by default
@@ -5028,23 +5032,17 @@ bool CvPlot::isValidDomainForLocation(const CvUnit& unit) const
 	return isCity();
 }
 
-
-//	--------------------------------------------------------------------------------
-bool CvPlot::isValidDomainForAction(const CvUnit& unit) const
+bool CvPlot::isValidDomain(const DomainTypes eDomain, const PlayerTypes ePlayer) const
 {
-	switch(unit.getDomainType())
+	switch (eDomain)
 	{
 	case DOMAIN_SEA:
-		  return (isWater() || unit.canMoveAllTerrain() || IsAllowsSailLand(unit.getOwner()));
-		break;
-
-	case DOMAIN_AIR:
-		return CanHoldThisAircraft(&unit); // TODO Check improvement type
+		return CanBeUsedAsWater(ePlayer);
 		break;
 
 	case DOMAIN_LAND:
 	case DOMAIN_IMMOBILE:
-		return (!isWater() || unit.IsHoveringUnit() || unit.canMoveAllTerrain() || unit.isEmbarked() || IsAllowsWalkWater());
+		return CanBeUsedAsLand();
 		break;
 
 	default:
@@ -5053,6 +5051,40 @@ bool CvPlot::isValidDomainForAction(const CvUnit& unit) const
 	}
 
 	return false;
+}
+
+//	--------------------------------------------------------------------------------
+bool CvPlot::isValidDomainForAction(const CvUnit& unit) const
+{
+	const DomainTypes eDomain = unit.getDomainType();
+	if (isValidDomain(eDomain, unit.getOwner()))
+	{
+		return true;
+	}
+	else
+	{
+		switch (eDomain)
+		{
+		case DOMAIN_SEA:
+			return (unit.canMoveAllTerrain());
+			break;
+
+		case DOMAIN_AIR:
+			return CanHoldThisAircraft(&unit);
+			break;
+
+		case DOMAIN_LAND:
+		case DOMAIN_IMMOBILE:
+			return (unit.IsHoveringUnit() || unit.canMoveAllTerrain() || unit.isEmbarked());
+			break;
+
+		default:
+			return false;
+			break;
+		}
+
+		return false;
+	}
 }
 
 //	--------------------------------------------------------------------------------
@@ -7327,7 +7359,11 @@ void CvPlot::SetWorldAnchor(GenericWorldAnchorTypes eAnchor, int iData1)
 //	--------------------------------------------------------------------------------
 RouteTypes CvPlot::getRouteType() const
 {
-	return (RouteTypes)m_eRouteType;
+	if ((RouteTypes)m_eRouteType != NO_ROUTE)
+		return (RouteTypes)m_eRouteType;
+	// let the bridge to count as a road
+	if (IsAllowsWalkWater())
+		return ROUTE_ROAD;
 }
 
 

@@ -349,6 +349,7 @@ public:
 
 	bool isValidDomainForLocation(const CvUnit& unit) const;
 	bool isValidDomainForAction(const CvUnit& unit) const;
+	bool isValidDomain(const DomainTypes eDomain, const PlayerTypes ePlayer) const;
 
 
 	inline int getX() const
@@ -457,6 +458,16 @@ public:
 	{
 		return (PlotTypes)m_ePlotType == PLOT_OCEAN;
 	};
+	// true if land units could consider this a water tile
+	bool CanBeUsedAsWater(const PlayerTypes ePlayer) const
+	{
+		return isWater() || IsAllowsSailLand(ePlayer);
+	};
+	// true if land units could consider this a land tile
+	bool CanBeUsedAsLand() const
+	{
+		return !isWater() || IsAllowsWalkWater();
+	};
 	bool isHills()          const
 	{
 		return (PlotTypes)m_ePlotType == PLOT_HILLS;
@@ -508,7 +519,7 @@ public:
 	vector<const CvUnit*> CvPlot::getAllUnitsConst() const;
 
 	bool isEnemyUnit(PlayerTypes ePlayer, bool bCombat, bool bCheckVisibility, bool bIgnoreBarbs) const;
-	vector<CvUnit*> GetAdjacentEnemyMilitaryUnits(const TeamTypes eMyTeam, const DomainTypes eDomain, const bool ignoreBarbs = false) const;
+	vector<CvUnit*> GetAdjacentEnemyMilitaryUnits(const TeamTypes eMyTeam, const DomainTypes eDomain = NO_DOMAIN, const bool ignoreBarbs = false) const;
 
 	bool isRoughGround() const
 	{
