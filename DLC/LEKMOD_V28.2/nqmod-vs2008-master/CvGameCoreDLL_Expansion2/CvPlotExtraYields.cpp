@@ -229,7 +229,7 @@ int CvPlot::getExtraYield
 					yieldChange += 2;
 			}
 									
-			{ // BELIEF_DANCE_AURORA - Dance of the Aurora - on tundra tiles only - gives +1 production to bonus tiles, +1 culture to luxury tiles, +1 Gold to Strategic, and +1 faith to every other tundra tile
+			{// BELIEF_DANCE_AURORA - Dance of the Aurora - on tundra tiles only - gives +1 production to bonus tiles, +1 culture to luxury tiles, +1 Gold to Strategic, and +1 faith to every other tundra tile
 				const bool hasBeliefDanceOfTheAurora = city.HasBelief("BELIEF_DANCE_AURORA");
 				if (eYieldType == YIELD_FAITH && hasBeliefDanceOfTheAurora && isTundra && noResource)
 					yieldChange += 1;
@@ -241,7 +241,7 @@ int CvPlot::getExtraYield
 					yieldChange += 1;
 			}
 
-			{ // BELIEF_DESERT_FOLKLORE - Desert Folklore - on Desert tiles only - gives +1 production to bonus tiles, +1 culture to luxury tiles, +1 Gold to Strategic, and +1 faith to every other Desert tile
+			{// BELIEF_DESERT_FOLKLORE - Desert Folklore - on Desert tiles only - gives +1 production to bonus tiles, +1 culture to luxury tiles, +1 Gold to Strategic, and +1 faith to every other Desert tile
 				const bool hasBeliefDesertFolklore = city.HasBelief("BELIEF_DESERT_FOLKLORE");
 				if (eYieldType == YIELD_FAITH && hasBeliefDesertFolklore && isDesert && noResource)
 					yieldChange += 1;
@@ -253,7 +253,7 @@ int CvPlot::getExtraYield
 					yieldChange += 1;
 			}
 
-			{ // BELIEF_SACRED_WATERS - gives one tourism from lake and atoll tiles. Could change to lake and oasis in future if Atolls seems too good. Features don't work right now though. 
+			{// BELIEF_SACRED_WATERS - gives one tourism from lake and atoll tiles. Could change to lake and oasis in future if Atolls seems too good. Features don't work right now though. 
 				const bool hasBeliefSacredWaters = city.HasBelief("BELIEF_SACRED_WATERS");
 				const bool isLake = plot.isLake();
 				const bool isOasis = plot.HasFeature("FEATURE_OASIS");
@@ -261,16 +261,18 @@ int CvPlot::getExtraYield
 					yieldChange += 1;
 			}
 			
-			{ // Policy_Cutural Exchange - gives 1 tourism to great person tile improvements. 
+			{// Policy_Cutural Exchange - gives 1 tourism to great person tile improvements. 
 				const bool hasPolicyCulturalExchange = player.HasPolicy("POLICY_ETHICS");
 				if (eYieldType == YIELD_TOURISM && hasPolicyCulturalExchange && isGreatTile)
 					yieldChange += 1;
 			}
-			{ // POLICY_MEDIA_CULTURE - gives 3 tourism to great person tile improvements. 
+
+			{// POLICY_MEDIA_CULTURE - gives 3 tourism to great person tile improvements. 
 				const bool hasMediaCulture = player.HasPolicy("POLICY_MEDIA_CULTURE");
 				if (eYieldType == YIELD_TOURISM && hasMediaCulture && isGreatTile)
 					yieldChange += 3;
 			}
+
 			{ // POLICY_SPACE_PROCUREMENTS - gives 3 Singularity Points per Acadamy. 
 				const bool hasSpaceProcurement = player.HasPolicy("POLICY_SPACE_PROCUREMENTS");
 				const bool isAcadamy = plot.HasImprovement("IMPROVEMENT_ACADEMY");
@@ -309,8 +311,6 @@ int CvPlot::getExtraYield
 				if (eYieldType == YIELD_SCIENTIFIC_INSIGHT && hasSovereignty && isAcadamy)
 					yieldChange += 1;
 			}
-
-			
 		}
 	}
 
@@ -381,6 +381,7 @@ int CvPlayer::GetExtraYieldForBuilding
 		if (eYieldType == YIELD_SCIENTIFIC_INSIGHT && !isPercentMod && hasFuturism && isCourthouse)
 			yieldChange += 3;
 	}
+
 	{// POLICY_UNITED_FRONT - gives + 10 diplo points from courthouse
 		const bool hasUnitedFront = player.HasPolicy("POLICY_UNITED_FRONT");
 		const bool isCourthouse = eBuildingClass == BuildingClass("BUILDINGCLASS_COURTHOUSE");
