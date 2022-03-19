@@ -971,7 +971,7 @@ void CvMinorCivQuest::DoStartQuest(int iStartTurn)
 
 	m_iStartTurn = iStartTurn;
 	m_rewards = QuestReward();
-	m_rewards.support = GC.getDIPLOMATIC_INFLUENCE_PER_QUEST_BASE(m_eMinor, m_eAssignedPlayer);
+	m_rewards.support = GC.getDIPLOMATIC_INFLUENCE_PER_QUEST(m_eMinor, m_eAssignedPlayer);
 	m_rewards.friendship = GC.getMINOR_FRIENDSHIP_FROM_TRADE_MISSION();
 
 	Localization::String strMessage;
@@ -1067,7 +1067,7 @@ bool CvMinorCivQuest::DoFinishQuest(const float bonusFactor)
 	const CvPlayer* pMajor = &GET_PLAYER(m_eAssignedPlayer);
 	const PlayerTypes eMajor = pMajor->GetID();
 	const int friendshipRewardT100 = 100 * GetInfluenceReward() * bonusFactor;
-	const int diplomaticSupportReward = GC.getDIPLOMATIC_INFLUENCE_PER_QUEST_BASE(m_eMinor, eMajor) * bonusFactor;
+	const int diplomaticSupportReward = GC.getDIPLOMATIC_INFLUENCE_PER_QUEST(m_eMinor, eMajor) * bonusFactor;
 
 
 	// apply rewards

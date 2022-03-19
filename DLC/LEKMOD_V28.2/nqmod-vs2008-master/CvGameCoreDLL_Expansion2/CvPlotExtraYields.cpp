@@ -433,8 +433,15 @@ int CvPlayer::GetExtraYieldForBuilding
 	return yieldChange;
 }
 
-
-
+// how much influence per turn a player gets from an ally
+int CvGlobals::getDIPLOMATIC_INFLUENCE_PER_TURN_ALLY(const PlayerTypes eMinor, const PlayerTypes ePlayer) const
+{
+	return 10;
+}
+int CvGlobals::getDIPLOMATIC_INFLUENCE_PER_QUEST(const PlayerTypes eMinor, const PlayerTypes ePlayer) const
+{
+	return 100;
+}
 
 
 // trade route modifier
