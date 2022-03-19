@@ -8531,7 +8531,7 @@ bool CvUnit::canDiscover(const CvPlot* /*pPlot*/, bool bTestVisible) const
 //	--------------------------------------------------------------------------------
 int CvUnit::getDiscoverAmount()
 {
-	return 40;
+	return GC.getGREAT_SCIENTIST_AMOUNT();
 	//int iValue = 0;
 	//CvPlot* pPlot = plot();
 	//if(canDiscover(pPlot))

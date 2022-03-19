@@ -990,6 +990,11 @@ public:
 	{
 		return 0.5f;
 	}
+	// how much stuff the great scientist gives
+	inline int getGREAT_SCIENTIST_AMOUNT() const
+	{
+		return 100;
+	}
 
 	// -- ints --
 
