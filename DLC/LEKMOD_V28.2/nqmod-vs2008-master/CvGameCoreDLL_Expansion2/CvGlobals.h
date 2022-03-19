@@ -8,6 +8,7 @@
 #pragma once
 
 // CvGlobals.h
+#include <math.h>
 
 #ifndef CIV5_GLOBALS_H
 #define CIV5_GLOBALS_H
@@ -249,10 +250,14 @@ public:
 		return val;
 	}
 
+	double round(double x)
+	{
+		return x < 0 ? ceil(x - 0.5) : floor(x + 0.5);
+	}
 	// 1.516 -> 52
 	int toPercentT100(double factor)
 	{
-		return ((factor - 1.0) * 100.0) + 0.5;
+		return round((factor - 1.0) * 100.0);
 	}
 	// 52 -> 1.52
 	double toFactor(const int percentChangeT100)

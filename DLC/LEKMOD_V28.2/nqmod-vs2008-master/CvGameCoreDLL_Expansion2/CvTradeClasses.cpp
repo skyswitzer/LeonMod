@@ -2293,7 +2293,8 @@ void CvPlayerTrade::DoTurn(void)
 
 bool TradeConnection::isPathStillValid() const
 {
-	for (int i = 0; i < m_aPlotList.size(); ++i)
+	// ignore the last tile, since it may be a city that we don't have open borders with
+	for (int i = 0; i < m_aPlotList.size() - 1; ++i)
 	{
 		// make sure is still valid for domain
 		const CvPlot* pPlot = GC.getMap().plot(m_aPlotList[i].m_iX, m_aPlotList[i].m_iY);
@@ -3047,6 +3048,8 @@ int CvPlayerTrade::GetTradeConnectionValueTimes100 (const TradeConnection& kTrad
 			}
 		}
 	}
+
+	iValue = 100 * GetTradeConnectionValueExtra(kTradeConnection, eYield, bAsOriginPlayer);
 
 	return iValue;	
 }

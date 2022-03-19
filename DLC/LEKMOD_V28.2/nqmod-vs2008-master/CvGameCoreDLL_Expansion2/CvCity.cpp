@@ -9008,6 +9008,7 @@ int CvCity::GetBaseJONSCulturePerTurn() const
 	iCulturePerTurn += GetJONSCulturePerTurnFromTraits();
 	iCulturePerTurn += GetJONSCulturePerTurnFromReligion();
 	iCulturePerTurn += GetJONSCulturePerTurnFromLeagues();
+	iCulturePerTurn += GetTradeYieldModifier(YIELD_CULTURE);
 
 	return iCulturePerTurn;
 }

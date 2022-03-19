@@ -13331,7 +13331,7 @@ void CvDiplomacyAI::DoContactMinorCivs()
 		{
 			int iGoldLeft = GetPlayer()->GetTreasury()->GetGold();
 			MinorGoldGiftInfo sGift = veMinorsToGiveGold.GetElement(i);
-			int goldToGift = floor(sGift.numSmallGiftsNeeded + 0.5f) * iSmallGiftGold; // round gifts and calc gold
+			int goldToGift = GC.round(sGift.numSmallGiftsNeeded) * iSmallGiftGold; // round gifts and calc gold
 			int iOldFriendship = GET_PLAYER(sGift.eMinor).GetMinorCivAI()->GetEffectiveFriendshipWithMajor(eID);
 			bool isBoost = sGift.numSmallGiftsNeeded;
 

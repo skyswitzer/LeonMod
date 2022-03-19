@@ -307,7 +307,8 @@ public:
 	}
 
 	bool isFriendlyCity(const CvUnit& kUnit, bool bCheckImprovement) const;
-	bool IsFriendlyTerritory(PlayerTypes ePlayer) const;
+	bool isFriendlyCity(const PlayerTypes ePlayer) const;
+	bool IsFriendlyTerritory(const PlayerTypes ePlayer) const;
 
 	bool isBeingWorked() const;
 
@@ -458,10 +459,11 @@ public:
 	{
 		return (PlotTypes)m_ePlotType == PLOT_OCEAN;
 	};
-	// true if land units could consider this a water tile
+	// true if land units could consider this a water tile for passage
+	// could be a city, so you can't necessarily stop on it
 	bool CanBeUsedAsWater(const PlayerTypes ePlayer) const
 	{
-		return isWater() || IsAllowsSailLand(ePlayer);
+		return isWater() || IsAllowsSailLand(ePlayer) || isFriendlyCity(ePlayer);
 	};
 	// true if land units could consider this a land tile
 	bool CanBeUsedAsLand() const

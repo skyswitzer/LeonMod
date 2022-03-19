@@ -2859,11 +2859,11 @@ double CvPlayerCulture::GetTourismModifierHappinessT100(const PlayerTypes eOther
 float CvPlayerCulture::GetTourismModifierCityCount(const PlayerTypes eOtherPlayer) const
 {
 	// Mod for City Count
-	const int themCities = GET_PLAYER(eOtherPlayer).GetMaxEffectiveCities(true);
-	const int usCities = m_pPlayer->GetMaxEffectiveCities(true);
+	const float themCities = GET_PLAYER(eOtherPlayer).GetMaxEffectiveCities(true);
+	const float usCities = m_pPlayer->GetMaxEffectiveCities(true);
 	const float factor = (float)(themCities + GC.getTOURISM_CITY_CAPITAL_ADJUST()) / (float)(usCities + GC.getTOURISM_CITY_CAPITAL_ADJUST());
-	const int t100 = GC.toPercentT100(factor);
-	return (GC.toFactor(t100) + 1.f) * GC.getTOURISM_CITY_PERCENT_ADJUST();
+	const float t100 = GC.toPercentT100(factor);
+	return GC.toFactor(t100 * GC.getTOURISM_CITY_PERCENT_ADJUST());
 }
 
 int CvPlayerCulture::GetTourismModifierCityCountT100(const PlayerTypes eOtherPlayer) const
@@ -4647,6 +4647,8 @@ int CvCityCulture::GetBaseTourismBeforeModifiers() const
 		}
 	}
 
+	iBase += GET_PLAYER(m_pCity->getOwner()).GetTrade()->GetTradeValuesAtCityTimes100(m_pCity, YIELD_TOURISM) / 100;
+
 	// already handled in base yield calculation
 	// more building tourism after certain techs
 	// Some buildings are marked with EnhancedYieldTech and TechEnhancedTourism
@@ -4831,6 +4833,11 @@ CvString CvCityCulture::GetTourismTooltip()
 		szRtnValue += GetLocalizedText("TXT_KEY_CO_CITY_TOURISM_RELIGIOUS_ART", iReligiousArtTourism);
 	}
 
+	{
+		szRtnValue += spacing;
+		const int iTradeYield = GET_PLAYER(m_pCity->getOwner()).GetTrade()->GetTradeValuesAtCityTimes100(m_pCity, YIELD_TOURISM) / 100;
+		szRtnValue += GetLocalizedText("TXT_KEY_CO_CITY_TOURISM_TRADE_ROUTES", iTradeYield);
+	}
 
 	// Tech enhanced Tourism
 	//int techEnhancedTourism = 0;

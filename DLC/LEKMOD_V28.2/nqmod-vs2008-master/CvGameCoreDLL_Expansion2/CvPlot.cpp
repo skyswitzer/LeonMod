@@ -3461,27 +3461,17 @@ bool CvPlot::IsEnemyTerritory(const PlayerTypes ePlayer) const
 	const TeamTypes ePlotOwnerTeam = getTeam();
 
 	// no closed borders
-	if (ePlotOwnerTeam != NO_TEAM) // noteam is open borders
+	if (ePlotOwnerTeam == NO_TEAM) // noteam is open borders
+	{
+		return false;
+	}
+	else
 	{
 		if (ePlotOwnerTeam != ePlayerTeam) // different team
 		{
-			if (!GET_TEAM(ePlotOwnerTeam).IsAllowsOpenBordersToTeam(ePlayerTeam)) // closed borders
-				return true;
-		}
-		else if (!GET_PLAYER(ePlayer).isMinorCiv()) // player is not minor civ
-		{
-			const CvTeam& ownerTeam = GET_TEAM(ePlotOwnerTeam);
-			if (ownerTeam.isMinorCiv()) // owner is minor civ
-			{
-				if (!GET_PLAYER(ownerTeam.getLeaderID()).GetMinorCivAI()->IsPlayerHasOpenBorders(ePlayer)) // closed borders
-				{
-					return true;
-				}
-			}
+			return !IsFriendlyTerritory(ePlayer);
 		}
 	}
-
-	return false;
 }
 // --------------------------------------------------------------------------------- // from Izy
 bool CvPlot::IsAllowsSailLand(PlayerTypes ePlayer) const
@@ -4294,34 +4284,20 @@ void CvPlot::removeGoody()
 //	--------------------------------------------------------------------------------
 bool CvPlot::isFriendlyCity(const CvUnit& kUnit, bool) const
 {
-	if(!getPlotCity())
-	{
-		return false;
-	}
-
 	TeamTypes ePlotTeam = getTeam();
-
-	if(NO_TEAM != ePlotTeam)
-	{
-		TeamTypes eTeam = GET_PLAYER(kUnit.getCombatOwner(ePlotTeam, *this)).getTeam();
-
-		if(eTeam == ePlotTeam)
-		{
-			return true;
-		}
-
-		if(GET_TEAM(ePlotTeam).IsAllowsOpenBordersToTeam(eTeam))
-		{
-			return true;
-		}
-	}
-
-	return false;
+	return isFriendlyCity(kUnit.getCombatOwner(ePlotTeam, *this));
+}
+//	--------------------------------------------------------------------------------
+bool CvPlot::isFriendlyCity(const PlayerTypes ePlayer) const
+{
+	const bool isCity = getPlotCity() != NULL;
+	const bool isFriendly = IsFriendlyTerritory(ePlayer);
+	return isCity && isFriendly;
 }
 
 //	--------------------------------------------------------------------------------
 /// Is this a plot that's friendly to our team? (owned by us or someone we have Open Borders with)
-bool CvPlot::IsFriendlyTerritory(PlayerTypes ePlayer) const
+bool CvPlot::IsFriendlyTerritory(const PlayerTypes ePlayer) const
 {
 	// No friendly territory for barbs!
 	if(GET_PLAYER(ePlayer).isBarbarian())

@@ -471,6 +471,41 @@ int CvGlobals::getDIPLOMATIC_INFLUENCE_PER_QUEST(const PlayerTypes eMinor, const
 
 // trade route modifier
 
+int CvPlayerTrade::GetTradeConnectionValueExtra(const TradeConnection& kTradeConnection, const YieldTypes eYieldType, const bool bIsOwner) const
+{
+	float yieldChange = 0.0f;
+	const CvPlayer& playerOrigin = GET_PLAYER(kTradeConnection.m_eOriginOwner);
+	const CvPlayer& playerDest = GET_PLAYER(kTradeConnection.m_eDestOwner);
+	const bool isInternal = playerOrigin.GetID() == playerDest.GetID();
+	// true if the destination is a City State
+	const bool isDestMinor = playerDest.isMinorCiv();
+	const CvCity* cityOrigin = CvGameTrade::GetOriginCity(kTradeConnection);
+	const CvCity* cityDest = CvGameTrade::GetDestCity(kTradeConnection);
+	// how many tiles between the 2 cities
+	const int tradeDistance = kTradeConnection.m_aPlotList.size();
+	if (!cityOrigin || !cityDest) return 0;
+
+
+	
+	if (isInternal) // true if this is an internal trade route
+	{
+
+
+	}
+	else if (isDestMinor) // destination is City State
+	{
+
+
+	}
+	else // destination is another civ
+	{
+
+
+	}
+
+
+	return GC.round(yieldChange); // round to nearest integer
+}
 
 
 
