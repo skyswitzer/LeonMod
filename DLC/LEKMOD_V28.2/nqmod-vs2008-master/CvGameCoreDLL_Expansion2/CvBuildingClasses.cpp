@@ -928,7 +928,7 @@ int CvBuildingEntry::GetTechEnhancedTourism() const
 }
 
 /// How much GPT does this Building cost?
-int CvBuildingEntry::GetGoldMaintenance(const CvPlayer& player) const
+int CvBuildingEntry::GetGoldMaintenance() const
 {
 	return m_iGoldMaintenance;
 }
@@ -2467,7 +2467,6 @@ CvCityBuildings::CvCityBuildings():
 	m_paiNumRealBuilding(NULL),
 	m_paiNumFreeBuilding(NULL),
 	m_iNumBuildings(0),
-	m_iBuildingMaintenance(0),
 	m_iBuildingProductionModifier(0),
 	m_iBuildingDefense(0),
 #ifdef NQ_BUILDING_DEFENSE_FROM_CITIZENS
@@ -2551,7 +2550,6 @@ void CvCityBuildings::Reset()
 
 	// Initialize non-arrays
 	m_iNumBuildings = 0;
-	m_iBuildingMaintenance = 0;
 	m_iBuildingProductionModifier = 0;
 	m_iBuildingDefense = 0;
 #ifdef NQ_BUILDING_DEFENSE_FROM_CITIZENS
@@ -2588,7 +2586,6 @@ void CvCityBuildings::Read(FDataStream& kStream)
 	kStream >> uiVersion;
 
 	kStream >> m_iNumBuildings;
-	kStream >> m_iBuildingMaintenance;
 	kStream >> m_iBuildingProductionModifier;
 	kStream >> m_iBuildingDefense;
 #ifdef NQ_BUILDING_DEFENSE_FROM_CITIZENS
@@ -2622,7 +2619,6 @@ void CvCityBuildings::Write(FDataStream& kStream)
 	kStream << uiVersion;
 
 	kStream << m_iNumBuildings;
-	kStream << m_iBuildingMaintenance;
 	kStream << m_iBuildingProductionModifier;
 	kStream << m_iBuildingDefense;
 #ifdef NQ_BUILDING_DEFENSE_FROM_CITIZENS
@@ -2734,7 +2730,7 @@ bool CvCityBuildings::IsBuildingSellable(const CvBuildingEntry& kBuilding) const
 		return false;
 
 	// Can't sell a building if it doesn't cost us anything	
-	if(kBuilding.GetGoldMaintenance(GET_PLAYER(m_pCity->getOwner())) <= 0)
+	if(kBuilding.GetGoldMaintenance() <= 0)
 		return false;
 
 	// Is this a free building?
@@ -2836,36 +2832,25 @@ void CvCityBuildings::SetSoldBuildingThisTurn(bool bValue)
 /// What is the total maintenance? (no modifiers)
 int CvCityBuildings::GetTotalBaseBuildingMaintenance() const
 {
-	return m_iBuildingMaintenance;
-}
-/// What is the total maintenance? (no modifiers)
-void CvCityBuildings::UpdateTotalBaseBuildingMaintenance()
-{
 	int iTotalCost = 0;
-	const CvPlayer& player = GET_PLAYER(m_pCity->getOwner());
 
-	for (int iBuildingLoop = 0; iBuildingLoop < GC.getNumBuildingInfos(); iBuildingLoop++)
+#ifdef AUI_WARNING_FIXES
+	for (uint iBuildingLoop = 0; iBuildingLoop < GC.getNumBuildingInfos(); iBuildingLoop++)
+#else
+	for(int iBuildingLoop = 0; iBuildingLoop < GC.getNumBuildingInfos(); iBuildingLoop++)
+#endif
 	{
 		const BuildingTypes eBuilding = static_cast<BuildingTypes>(iBuildingLoop);
-		if (GetNumBuilding(eBuilding) > 0)
-		{
-			const CvBuildingEntry* pkBuildingInfo = GC.getBuildingInfo(eBuilding);
+		CvBuildingEntry* pkBuildingInfo = GC.getBuildingInfo(eBuilding);
 
-			if (pkBuildingInfo)
-			{
-				int iForBuilding = player.GetTotalYieldForBuilding
-				(
-					m_pCity,
-					eBuilding,
-					YIELD_MAINTENANCE,
-					false
-				);
-				iTotalCost += (iForBuilding * GetNumBuilding(eBuilding));
-			}
+		if(pkBuildingInfo)
+		{
+			if(GetNumBuilding(eBuilding))
+				iTotalCost += (pkBuildingInfo->GetGoldMaintenance() * GetNumBuilding(eBuilding));
 		}
 	}
 
-	m_iBuildingMaintenance = iTotalCost;
+	return iTotalCost;
 }
 
 /// Accessor: How far is construction of this building?
@@ -2996,6 +2981,7 @@ int CvCityBuildings::GetNumRealBuilding(BuildingTypes eIndex) const
 void CvCityBuildings::SetNumRealBuilding(BuildingTypes eIndex, int iNewValue)
 {
 	SetNumRealBuildingTimed(eIndex, iNewValue, true, m_pCity->getOwner(), GC.getGame().getGameTurnYear());
+
 }
 
 /// Accessor: Set number of these buildings that have been constructed in the city (with date)
@@ -3008,10 +2994,9 @@ void CvCityBuildings::SetNumRealBuildingTimed(BuildingTypes eIndex, int iNewValu
 
 	int iChangeNumRealBuilding = iNewValue - GetNumRealBuilding(eIndex);
 
-	const CvBuildingEntry* buildingEntry = GC.getBuildingInfo(eIndex);
+	CvBuildingEntry* buildingEntry = GC.getBuildingInfo(eIndex);
 	const BuildingClassTypes buildingClassType = (BuildingClassTypes) buildingEntry->GetBuildingClassType();
 	const CvBuildingClassInfo& kBuildingClassInfo = buildingEntry->GetBuildingClassInfo();
-	const CvPlayer& player = GET_PLAYER(m_pCity->getOwner());
 
 	if(iChangeNumRealBuilding != 0)
 	{
@@ -3036,19 +3021,11 @@ void CvCityBuildings::SetNumRealBuildingTimed(BuildingTypes eIndex, int iNewValu
 			m_pCity->processBuilding(eIndex, iChangeNumRealBuilding, bFirst);
 		}
 
-		//int iForBuilding = player.GetTotalYieldForBuilding
-		//(
-		//	m_pCity,
-		//	eIndex,
-		//	YIELD_MAINTENANCE,
-		//	false
-		//);
-		//// Maintenance cost
-		//if(iForBuilding != 0)
-		//{
-		//	pPlayer->GetTreasury()->ChangeBaseBuildingGoldMaintenance(iForBuilding * iChangeNumRealBuilding);
-		//}
-		//GC.GetEngineUserInterface()->setDirty(InfoPane_DIRTY_BIT, true);
+		// Maintenance cost
+		if(buildingEntry->GetGoldMaintenance() != 0)
+		{
+			pPlayer->GetTreasury()->ChangeBaseBuildingGoldMaintenance(buildingEntry->GetGoldMaintenance() * iChangeNumRealBuilding);
+		}
 
 		//Achievement for Temples
 		const char* szBuildingTypeC = buildingEntry->GetType();

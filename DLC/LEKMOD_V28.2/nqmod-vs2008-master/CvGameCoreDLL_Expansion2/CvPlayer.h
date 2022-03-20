@@ -177,7 +177,6 @@ public:
 	// total yield this player should get from a building
 	int GetTotalYieldForBuilding(const CvCity* pCity, const BuildingTypes eBuilding, const YieldTypes eYieldType, const bool isPercentMod = false) const;
 	// extra yields this player/city should get from this building
-private:
 	int GetExtraYieldForBuilding
 	(
 		const CvCity* pCity, 
@@ -187,7 +186,6 @@ private:
 		const YieldTypes eYieldType, 
 		const bool isPercentMod = false
 	) const;
-public:
 	void updateYield();
 	void updateExtraSpecialistYield();
 	void updateCityPlotYield();

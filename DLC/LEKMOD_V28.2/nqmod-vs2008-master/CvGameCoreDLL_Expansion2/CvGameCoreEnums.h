@@ -8,10 +8,6 @@
 
 #pragma once
 
-
-#define YIELD_MAINTENANCE ((YieldTypes)-2)
-
-
 enum YieldTypes
 {
     NO_YIELD = -1,

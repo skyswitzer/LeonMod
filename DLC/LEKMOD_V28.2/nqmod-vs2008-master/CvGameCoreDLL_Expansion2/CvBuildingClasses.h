@@ -95,7 +95,7 @@ public:
 	int GetObsoleteTech() const;
 	int GetEnhancedYieldTech() const;
 	int GetTechEnhancedTourism() const;
-	int GetGoldMaintenance(const CvPlayer& player) const;
+	int GetGoldMaintenance() const;
 	int GetMutuallyExclusiveGroup() const;
 	int GetReplacementBuildingClass() const;
 	int GetPrereqAndTech() const;
@@ -636,7 +636,6 @@ public:
 	void SetSoldBuildingThisTurn(bool bValue);
 
 	int GetTotalBaseBuildingMaintenance() const;
-	void UpdateTotalBaseBuildingMaintenance();
 
 	int GetBuildingProduction(BuildingTypes eIndex) const;
 	int GetBuildingProductionTimes100(BuildingTypes eIndex) const;
@@ -742,7 +741,6 @@ private:
 	void NotifyNewBuildingStarted(BuildingTypes eIndex);
 
 	int m_iNumBuildings;
-	int m_iBuildingMaintenance;
 	int m_iBuildingProductionModifier;
 	int m_iBuildingDefense;
 #ifdef NQ_BUILDING_DEFENSE_FROM_CITIZENS

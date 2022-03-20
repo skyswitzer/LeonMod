@@ -808,13 +808,7 @@ int CvTreasury::GetBuildingGoldMaintenance() const
 /// What are our BASE gold maintenance costs because of Buildings?
 int CvTreasury::GetBaseBuildingGoldMaintenance() const
 {
-	int totalMaintenance = 0;
-	int iLoop;
-	for (const CvCity* pLoopCity = m_pPlayer->firstCity(&iLoop); pLoopCity != NULL; pLoopCity = m_pPlayer->nextCity(&iLoop))
-	{
-		totalMaintenance += pLoopCity->GetCityBuildings()->GetTotalBaseBuildingMaintenance();
-	}
-	return totalMaintenance;
+	return m_iBaseBuildingGoldMaintenance;
 }
 
 /// What are our gold maintenance costs because of Buildings?
