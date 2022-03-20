@@ -2401,10 +2401,48 @@ CvGlobals& CvGlobals::getInstance()
 {
 	return gGlobals;
 }
+int CvGlobals::getPOLICY_NUM_FOR_IDEOLOGY() const
+{
+	return 21;
+}
+// grow or shrink city tourism impact
+float CvGlobals::getTOURISM_CITY_PERCENT_ADJUST() const
+{
+	return 0.65f;
+}
+// grow or shrink city tourism impact
+int CvGlobals::getTOURISM_FROM_CITY_CULTURE_PER_POLICY() const
+{
+	return 1;
+}
+// how many more cities does the capital count for when calculating tourism adjustment
+float CvGlobals::getTOURISM_CITY_CAPITAL_ADJUST() const
+{
+	return 6.0f;
+}
+// How much extra "policies" does each policy cost once you get ideology
+float CvGlobals::getPOLICY_INCREASE_LATE_GAME() const
+{
+	return 0.5f;
+}
+// how much stuff the great scientist gives
+int CvGlobals::getGREAT_SCIENTIST_AMOUNT() const
+{
+	return 100;
+}
+float CvGlobals::getSCIENCE_CATCHUP_DIFF() const
+{
+	return 12.0f;
+}
+float CvGlobals::getSCIENCE_CATCHUP_DIFF_NONE() const
+{
+	return 1.0f;
+}
+
 // [0, 1] Number of turns DONE as a percentage of max turns 
 float CvGlobals::getPercentTurnsDone()
 {
-	return (float)this->getGamePointer()->getGameTurn() / (float)this->getGamePointer()->getMaxTurns();
+	return max(0.0f, (float)this->getGamePointer()->getGameTurn() / (float)this->getGamePointer()->getMaxTurns());
 }
 // max turns in an online speed game
 float CvGlobals::onlineSpeedMaxTurns()

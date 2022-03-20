@@ -966,35 +966,21 @@ public:
 	int getDIPLOMATIC_INFLUENCE_PER_QUEST(const PlayerTypes eMinor, const PlayerTypes ePlayer) const;
 	// Number of policies needed to adopt ideology
 	// will unlock after adopting this policy
-	inline int getPOLICY_NUM_FOR_IDEOLOGY()
-	{
-		return 21;
-	}
+	int getPOLICY_NUM_FOR_IDEOLOGY() const;
 	// grow or shrink city tourism impact
-	inline float getTOURISM_CITY_PERCENT_ADJUST()
-	{
-		return 0.75f;
-	}
+	float getTOURISM_CITY_PERCENT_ADJUST() const;
 	// grow or shrink city tourism impact
-	inline int getTOURISM_FROM_CITY_CULTURE_PER_POLICY()
-	{
-		return 1;
-	}
+	int getTOURISM_FROM_CITY_CULTURE_PER_POLICY() const;
 	// how many more cities does the capital count for when calculating tourism adjustment
-	inline float getTOURISM_CITY_CAPITAL_ADJUST()
-	{
-		return 6.0f;
-	}
+	float getTOURISM_CITY_CAPITAL_ADJUST() const;
 	// How much extra "policies" does each policy cost once you get ideology
-	inline float getPOLICY_INCREASE_LATE_GAME()
-	{
-		return 0.5f;
-	}
+	float getPOLICY_INCREASE_LATE_GAME() const;
 	// how much stuff the great scientist gives
-	inline int getGREAT_SCIENTIST_AMOUNT() const
-	{
-		return 100;
-	}
+	int getGREAT_SCIENTIST_AMOUNT() const;
+	// how far someone falls behind in science turns before they get 100% boost
+	float getSCIENCE_CATCHUP_DIFF() const;
+	// how far someone falls behind in science turns before they get ANY boost
+	float getSCIENCE_CATCHUP_DIFF_NONE() const;
 
 	// -- ints --
 
