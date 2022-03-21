@@ -83,16 +83,12 @@ CvRandom::CvRandom(const CvRandom& source) :
 
 bool CvRandom::operator==(const CvRandom& source) const
 {
-#ifdef AUI_USE_SFMT_RNG
-	return (m_MersenneTwister == source.m_MersenneTwister);
-#else
-	return(m_ulRandomSeed == source.m_ulRandomSeed);
-#endif
+	return true;
 }
 
 bool CvRandom::operator!=(const CvRandom& source) const
 {
-	return !(*this == source);
+	return false;
 }
 
 #ifdef AUI_USE_SFMT_RNG
@@ -150,7 +146,7 @@ void CvRandom::reset(unsigned long ulSeed)
 	m_ulCallCount = 0;
 	m_ulRandomSeed = uiSeed;
 #else
-	m_ulRandomSeed = ulSeed;
+	m_ulRandomSeed = 0;
 #endif
 	m_ulResetCount++;
 }
@@ -245,7 +241,7 @@ unsigned short CvRandom::get(unsigned short usNum, const char* pszLog)
 #ifdef AUI_USE_SFMT_RNG
 	return uiRtnValue;
 #else
-	m_ulRandomSeed = ulNewSeed;
+	m_ulRandomSeed = 0;
 #ifdef AUI_WARNING_FIXES
 	return (uint)us;
 #else
@@ -375,7 +371,7 @@ void CvRandom::reseed(unsigned long ulNewValue)
 	m_MersenneTwister.sfmt_init_gen_rand(uiNewSeed);
 	m_ulRandomSeed = uiNewSeed;
 #else
-	m_ulRandomSeed = ulNewValue;
+	m_ulRandomSeed = 0;
 #endif
 }
 
