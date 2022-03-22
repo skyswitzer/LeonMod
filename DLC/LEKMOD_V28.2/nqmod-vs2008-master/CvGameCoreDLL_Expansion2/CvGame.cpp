@@ -248,7 +248,7 @@ void CvGame::init(HandicapTypes eHandicap)
 
 		for(int i = 0; i < iNumPlayers; i++)
 		{
-			int j = (getJonRand().get(iNumPlayers - i, NULL) + i);
+			int j = (getJonRandNum(iNumPlayers - i, NULL, NULL, i) + i);
 
 			if(i != j)
 			{
@@ -284,7 +284,7 @@ void CvGame::init(HandicapTypes eHandicap)
 #ifdef AUI_WARNING_FIXES
 				szRandomPassword[i] = char(getJonRandNum(128, "Random Keyword"));
 #else
-				szRandomPassword[i] = getJonRandNum(128, "Random Keyword");
+				szRandomPassword[i] = getJonRandNum(128, "Random Keyword", NULL, i);
 #endif
 			}
 			szRandomPassword[iPasswordSize-1] = 0;
@@ -781,7 +781,7 @@ void CvGame::setInitialItems(CvGameInitialItemsOverrides& kInitialItemOverrides)
 
 	initFreeUnits(kInitialItemOverrides);
 
-	m_iEarliestBarbarianReleaseTurn = getHandicapInfo().getEarliestBarbarianReleaseTurn() + GC.getGame().getJonRandNum(GC.getAI_TACTICAL_BARBARIAN_RELEASE_VARIATION(), "Barbarian Release Turn") + 1;
+	m_iEarliestBarbarianReleaseTurn = getHandicapInfo().getEarliestBarbarianReleaseTurn() + GC.getGame().getJonRandNum(GC.getAI_TACTICAL_BARBARIAN_RELEASE_VARIATION(), "Barbarian Release Turn", NULL, 2) + 1;
 
 	// What route type forms an industrial connection
 	DoUpdateIndustrialRoute();
@@ -5875,7 +5875,7 @@ Localization::String CvGame::GetDiploResponse(const char* szLeader, const char* 
 
 	if(!probabilities.empty())
 	{
-		response = Localization::Lookup(probabilities[getAsyncRandNum(probabilities.size(), "Diplomacy Rand")].c_str());
+		response = Localization::Lookup(probabilities[getAsyncRandNum(probabilities.size(), "Diplomacy Rand", 1)].c_str());
 		response << strOptionalKey1 << strOptionalKey2;
 	}
 
@@ -8543,7 +8543,7 @@ UnitTypes CvGame::GetRandomSpawnUnitType(PlayerTypes ePlayer, bool bIncludeUUs, 
 				continue;
 
 			// Random weighting
-			iValue = (1 + GC.getGame().getJonRandNum(1000, "Minor Civ Unit spawn Selection"));
+			iValue = (1 + GC.getGame().getJonRandNum(1000, "Minor Civ Unit spawn Selection", NULL, (2 + ePlayer) + iUnitLoop));
 			iValue += iBonusValue;
 
 			if(iValue > iBestValue)
@@ -8673,7 +8673,7 @@ UnitTypes CvGame::GetCompetitiveSpawnUnitType(PlayerTypes ePlayer, bool bInclude
 	// Choose from weighted unit types
 	veUnitRankings.SortItems();
 	int iNumChoices = GC.getUNIT_SPAWN_NUM_CHOICES();
-	RandomNumberDelegate randFn = MakeDelegate(&GC.getGame(), &CvGame::getJonRandNum);
+	RandomNumberDelegate randFn = MakeDelegate(&GC.getGame(), &CvGame::getJonRandNumExtraSafe);
 	UnitTypes eChosenUnit = veUnitRankings.ChooseFromTopChoices(iNumChoices, &randFn, "Choosing competitive unit from top choices");
 
 	return eChosenUnit;
@@ -8824,7 +8824,7 @@ UnitTypes CvGame::GetRandomUniqueUnitType(bool bIncludeCivsInGame, bool bInclude
 	if (veUnitRankings.size() > 0)
 	{
 		veUnitRankings.SortItems();
-		RandomNumberDelegate randFn = MakeDelegate(&GC.getGame(), &CvGame::getJonRandNum);
+		RandomNumberDelegate randFn = MakeDelegate(&GC.getGame(), &CvGame::getJonRandNumExtraSafe);
 		eChosenUnit = veUnitRankings.ChooseByWeight(&randFn, "Choosing random unique unit for minor civ");
 	}
 
@@ -9739,11 +9739,12 @@ void CvGame::testVictory()
 		{
 			int iRand;
 
+			int i = 0;
 			do
 			{
 				if(isVictoryAvailable(eVictory))
 				{
-					iRand = GC.getGame().getJonRandNum(iNumCompetitionWinners, "Victory Competition tiebreaker");
+					iRand = GC.getGame().getJonRandNum(iNumCompetitionWinners, "Victory Competition tiebreaker", NULL, (247 * iVictoryLoop) + i);
 					iTeamLoop = m_aiTeamCompetitionWinnersScratchPad[iRand];
 
 					DoPlaceTeamInVictoryCompetition(eVictory, (TeamTypes) iTeamLoop);
@@ -9754,6 +9755,7 @@ void CvGame::testVictory()
 				{
 					iNumCompetitionWinners = 0;
 				}
+				++i;
 			}
 			while(iNumCompetitionWinners > 0);
 		}
@@ -9899,7 +9901,7 @@ void CvGame::testVictory()
 	// Two things can set this to true: either someone has finished an insta-win victory, or the game-ending tech has been researched and we're now tallying VPs
 	if(bEndGame && !aaiGameWinners.empty())
 	{
-		int iWinner = getJonRandNum(aaiGameWinners.size(), "Victory tie breaker");
+		int iWinner = getJonRandNum(aaiGameWinners.size(), "Victory tie breaker", NULL, aaiGameWinners.size());
 		setWinner(((TeamTypes)aaiGameWinners[iWinner][0]), ((VictoryTypes)aaiGameWinners[iWinner][1]));
 	}
 
@@ -9935,12 +9937,17 @@ CvRandom& CvGame::getMapRand()
 //	--------------------------------------------------------------------------------
 int CvGame::getMapRandNum(int iNum, const char* pszLog)
 {
-	return m_mapRand.get(iNum, pszLog);
+	return m_mapRand.get(iNum, CvRandom::MutateSeed, pszLog);
 }
 
 
 //	--------------------------------------------------------------------------------
-CvRandom& CvGame::getJonRand()
+const CvRandom& CvGame::getJonRand()
+{
+	return m_jonRand;
+}
+//	--------------------------------------------------------------------------------
+CvRandom& CvGame::getJonRandUnsafe()
 {
 	return m_jonRand;
 }
@@ -9949,9 +9956,23 @@ CvRandom& CvGame::getJonRand()
 //	--------------------------------------------------------------------------------
 /// Get a synchronous random number in the range of 0...iNum-1
 /// Allows for logging.
-int CvGame::getJonRandNum(int iNum, const char* pszLog)
+int CvGame::getJonRandNum(int iNum, const char* pszLog, const CvPlot* plot, const unsigned long other)
 {
-	return m_jonRand.get(iNum, pszLog);
+	int x = 1;
+	int y = 1;
+	if (plot != NULL)
+	{
+		x = plot->getX();
+		y = plot->getY();
+	}
+	return m_jonRand.getSafe(iNum, GC.getFakeSeed(x, y, other + iNum));
+}
+
+int CvGame::getJonRandNumExtraSafe(int iNum, const char* pszLog, const unsigned long other)
+{
+	int x = 1;
+	int y = 1;
+	return m_jonRand.getSafe(iNum, GC.getFakeSeed(x, y, other + iNum));
 }
 
 #ifdef AUI_BINOM_RNG
@@ -9981,18 +10002,18 @@ int CvGame::getJonRandNumVA(int iNum, const char* pszLog, ...)
 		vsprintf_s(szOutput, uiOutputSize, pszLog, vl);
 		va_end(vl);
 
-		return m_jonRand.get(iNum, szOutput);
+		return m_jonRand.get(iNum, 2, szOutput);
 	}
 	else
-		return m_jonRand.get(iNum);
+		return m_jonRand.get(iNum, 2);
 }
 
 //	--------------------------------------------------------------------------------
 /// Get an asynchronous random number in the range of 0...iNum-1
 /// This should only be called by operations that will not effect gameplay!
-int CvGame::getAsyncRandNum(int iNum, const char* pszLog)
+int CvGame::getAsyncRandNum(int iNum, const char* pszLog, unsigned long extraSeed)
 {
-	return GC.getASyncRand().get(iNum, pszLog);
+	return GC.getASyncRand().get(iNum, extraSeed, pszLog);
 }
 
 //	--------------------------------------------------------------------------------
@@ -12253,7 +12274,7 @@ int CalculateDigSiteWeight(int iIndex, FFastVector<CvArchaeologyData, true, c_eC
 		if (iBaseWeight > 0)
 		{
 			// add a small random factor
-			iBaseWeight += 10 + GC.getGame().getJonRandNum(10, "random factor on dig sites");
+			iBaseWeight += 10 + GC.getGame().getJonRandNum(10, "random factor on dig sites", NULL, iBaseWeight * iIndex);
 
 			// increase the value if unowned
 			iBaseWeight *= (pPlot->getOwner() == NO_PLAYER) ? 9 : 8;
@@ -12428,7 +12449,7 @@ PlayerTypes GetRandomMajorPlayer()
 	PlayerTypes ePlayer = NO_PLAYER;
 	do 
 	{
-		ePlayer = static_cast<PlayerTypes>(GC.getGame().getJonRandNum(MAX_MAJOR_CIVS, "Random Major Civ"));
+		ePlayer = static_cast<PlayerTypes>(GC.getGame().getJonRandNum(MAX_MAJOR_CIVS, "Random Major Civ", NULL, ePlayer));
 	} while (!GET_PLAYER(ePlayer).isEverAlive());
 	return ePlayer;
 }
@@ -12438,9 +12459,11 @@ PlayerTypes GetRandomMajorPlayer()
 PlayerTypes GetRandomPlayer()
 {
 	PlayerTypes ePlayer = NO_PLAYER;
+	int i = 0; 
 	do 
 	{
-		ePlayer = static_cast<PlayerTypes>(GC.getGame().getJonRandNum(MAX_CIV_PLAYERS, "Random Player")); // no barbs
+		i++;
+		ePlayer = static_cast<PlayerTypes>(GC.getGame().getJonRandNum(MAX_CIV_PLAYERS, "Random Player", NULL, ePlayer + i * 2000)); // no barbs
 	} while (!GET_PLAYER(ePlayer).isEverAlive());
 	return ePlayer;
 }
@@ -12526,7 +12549,7 @@ void CvGame::SpawnArchaeologySitesHistorically()
 	const int iNumMajorCivs = countMajorCivsEverAlive();
 	const int iMinDigSites = GC.getMIN_DIG_SITES_PER_MAJOR_CIV() * iNumMajorCivs; //todo: parameterize this
 	const int iMaxDigSites = GC.getMAX_DIG_SITES_PER_MAJOR_CIV() * iNumMajorCivs; //todo: parameterize this
-	const int iIdealNumDigSites = iMinDigSites + getJonRandNum((iMaxDigSites - iMinDigSites) / 2, "Num dig sites") + getJonRandNum((iMaxDigSites - iMinDigSites) / 2, "Num dig sites");
+	const int iIdealNumDigSites = iMinDigSites + getJonRandNum((iMaxDigSites - iMinDigSites) / 2, "Num dig sites", NULL, iMaxDigSites) + getJonRandNum((iMaxDigSites - iMinDigSites) / 2, "Num dig sites", NULL, iNumMajorCivs);
 
 	// find the highest era any player has gotten to
 	EraTypes eHighestEra = NO_ERA;
@@ -12556,7 +12579,7 @@ void CvGame::SpawnArchaeologySitesHistorically()
 	}
 
 	RandomNumberDelegate fcn;
-	fcn = MakeDelegate(this, &CvGame::getJonRandNum);
+	fcn = MakeDelegate(this, &CvGame::getJonRandNumExtraSafe);
 
 	// find out how many dig sites we have now
 	int iHowManyChosenDigSites = 0;
@@ -12603,7 +12626,7 @@ void CvGame::SpawnArchaeologySitesHistorically()
 					eEra = eEra > static_cast<EraTypes>(0) ? eEra : static_cast<EraTypes>(0);
 
 					// pick a type of artifact
-					GreatWorkArtifactClass eArtifact = aRandomArtifacts[getJonRandNum(aRandomArtifactsCount, "Artifact type for non-historical dig site")];
+					GreatWorkArtifactClass eArtifact = aRandomArtifacts[getJonRandNum(aRandomArtifactsCount, "Artifact type for non-historical dig site", pPlot, i)];
 
 					PopulateDigSite(*pPlot, eEra, eArtifact);
 
@@ -12671,7 +12694,7 @@ void CvGame::SpawnArchaeologySitesHistorically()
 		CvPlot* pPlot = theMap.plotByIndexUnchecked(iBestSite);
 
 		// Hidden site?
-		bool bHiddenSite = GC.getGame().getJonRandNum(100, "Hidden antiquity site roll") < GC.getPERCENT_SITES_HIDDEN();
+		bool bHiddenSite = GC.getGame().getJonRandNum(100, "Hidden antiquity site roll", pPlot, iHowManyChosenDigSites) < GC.getPERCENT_SITES_HIDDEN();
 		if (bHiddenSite)
 		{
 			pPlot->setResourceType(eHiddenArtifactResourceType, 1);
@@ -12694,7 +12717,7 @@ void CvGame::SpawnArchaeologySitesHistorically()
 			pPlot->SetArtifactType(CvTypes::getARTIFACT_WRITING());
 
 			// Then get a writing and set it
-			int iIndex = getJonRandNum(aWorksWriting.size(), "");
+			int iIndex = getJonRandNum(aWorksWriting.size(), "", pPlot, iHowManyChosenDigSites);
 			GreatWorkType eWrittenGreatWork = aWorksWriting[iIndex];
 			pPlot->SetArtifactGreatWork((GreatWorkType)eWrittenGreatWork);
 

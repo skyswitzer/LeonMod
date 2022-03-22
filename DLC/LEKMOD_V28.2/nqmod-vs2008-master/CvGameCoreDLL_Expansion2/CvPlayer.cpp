@@ -82,7 +82,7 @@ void reveal(const TeamTypes forTeam, const CvPlot* center, const int radius, con
 			{
 				if (hexDistance(iDX, iDY) <= radius)
 				{
-					if (GC.getGame().getJonRandNum(100, "Reveal Plot Chance") < (probability * 100))
+					if (GC.getGame().getJonRandNum(100, "Reveal Plot Chance", pLoopPlot, radius + 1000 * probability) < (probability * 100))
 					{
 						pLoopPlot->setRevealed(forTeam, true);
 					}
@@ -634,7 +634,7 @@ void CvPlayer::init(PlayerTypes eID)
 					if(iI != GC.getBARBARIAN_LEADER() && iI != GC.getMINOR_CIVILIZATION())
 #endif
 					{
-						iValue = (1 + GC.getGame().getJonRandNum(10000, "Choosing Personality"));
+						iValue = (1 + getFakeRand(10000, "Choosing Personality", NULL, iI + GetID() * 10000));
 
 						for(iJ = 0; iJ < MAX_CIV_PLAYERS; iJ++)
 						{
@@ -1848,7 +1848,7 @@ CvPlot* CvPlayer::addFreeUnit(UnitTypes eUnit, UnitAITypes eUnitAI, const bool i
 				{
 					bDirectionValid = true;
 
-					eDirection = (DirectionTypes) GC.getGame().getJonRandNum(NUM_DIRECTION_TYPES, "Placing Starting Units (Human)");
+					eDirection = (DirectionTypes) getFakeRand(NUM_DIRECTION_TYPES, "Placing Starting Units (Human)", NULL, GetID() * 10000);
 
 					if(bDirectionValid)
 					{
@@ -2134,8 +2134,8 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bGift)
 
 		iCaptureGold += GC.getBASE_CAPTURE_GOLD();
 		iCaptureGold += (pOldCity->getPopulation() * GC.getCAPTURE_GOLD_PER_POPULATION());
-		iCaptureGold += GC.getGame().getJonRandNum(GC.getCAPTURE_GOLD_RAND1(), "Capture Gold 1");
-		iCaptureGold += GC.getGame().getJonRandNum(GC.getCAPTURE_GOLD_RAND2(), "Capture Gold 2");
+		iCaptureGold += getFakeRand(GC.getCAPTURE_GOLD_RAND1(), "Capture Gold 1", NULL, GetID() * 10000);
+		iCaptureGold += getFakeRand(GC.getCAPTURE_GOLD_RAND2(), "Capture Gold 2", NULL, GetID() * 10000);
 
 		if(GC.getCAPTURE_GOLD_MAX_TURNS() > 0)
 		{
@@ -2762,7 +2762,7 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bGift)
 							if(!isProductionMaxedBuildingClass(((BuildingClassTypes)(pkBuildingInfo->GetBuildingClassType())), true))
 							{
 								// here would be a good place to put additional checks (for example, influence)
-								if(!bConquest || bRecapture || (GC.getGame().getJonRandNum(100, "Capture Probability") < pkLoopBuildingInfo->GetConquestProbability()))
+								if(!bConquest || bRecapture || (getFakeRand(100, "Capture Probability", NULL, GetID() * 10000 + iI) < pkLoopBuildingInfo->GetConquestProbability()))
 								{
 									iNum += paiNumRealBuilding[iI];
 								}
@@ -3211,7 +3211,7 @@ CvString CvPlayer::getNewCityName() const
 			}
 		}
 
-		int iChosenPlayer = GC.getGame().getJonRandNum(iPlayersAlive, "Random Player To Steal City Name");
+		int iChosenPlayer = getFakeRand(iPlayersAlive, "Random Player To Steal City Name", NULL, GetID() * 10000);
 
 		int iPlayersFound = 0;
 		for(int iI = 0; iI < MAX_PLAYERS; iI++)
@@ -3252,7 +3252,7 @@ CvString CvPlayer::getNewCityName() const
 			}
 		}
 
-		int iChosenCiv = GC.getGame().getJonRandNum(iCivsInDB, "Random Civ To Steal City Name");
+		int iChosenCiv = getFakeRand(iCivsInDB, "Random Civ To Steal City Name", NULL, GetID() * 10000);
 
 		int iCivsFound = 0;
 #ifdef AUI_WARNING_FIXES
@@ -3296,7 +3296,7 @@ CvString CvPlayer::GetBorrowedCityName(CivilizationTypes eCivToBorrowFrom) const
 	if (pCivInfo)
 	{
 		int iRange = pCivInfo->getNumCityNames() - RESERVE_TOP_X_NAMES;
-		int iRandOffset = GC.getGame().getJonRandNum(iRange, "Random City Name To Steal");
+		int iRandOffset = getFakeRand(iRange, "Random City Name To Steal", NULL, GetID() * 10000 + eCivToBorrowFrom);
 		for(int iI = 0; iI < iRange; iI++)     
 		{
 			CvString strCityName = pCivInfo->getCityNames(RESERVE_TOP_X_NAMES + ((iI + iRandOffset) % iRange));
@@ -3328,7 +3328,7 @@ void CvPlayer::getCivilizationCityName(CvString& szBuffer, CivilizationTypes eCi
 
 	if(isBarbarian())
 	{
-		iRandOffset = GC.getGame().getJonRandNum(pkCivilizationInfo->getNumCityNames(), "Random Barb Name");
+		iRandOffset = getFakeRand(pkCivilizationInfo->getNumCityNames(), "Random Barb Name", NULL, eCivilization + GetID() * 10000);
 	}
 	else
 	{
@@ -3777,7 +3777,7 @@ void CvPlayer::disbandUnit(bool)
 				if(pLoopUnit->getUnitInfo().GetProductionCost() > 0)
 				{
 					{
-						iValue = (10000 + GC.getGame().getJonRandNum(1000, "Disband Unit"));
+						iValue = (10000 + getFakeRand(1000, "Disband Unit", pLoopUnit->plot(), GetID() * 10000));
 
 						iValue += (pLoopUnit->getUnitInfo().GetProductionCost() * 5);
 
@@ -6806,65 +6806,65 @@ bool CvPlayer::canReceiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pDiscov
 
 
 // random number
-int rand(int maxExclusive)
+int rand(int maxExclusive, const CvPlot* pPlot)
 {
-	return (GC.getGame().getJonRandNum(maxExclusive, "generic_rand"));
+	return (GC.getGame().getJonRandNum(maxExclusive, "generic_rand", pPlot, 1));
 }
 // randomly adjust this value by +/- 10%
-int varyByPercent(int original)
+int varyByPercent(int original, const CvPlot* pPlot)
 {
 	float percent = original * 0.10f;
 	int range = ceil(2 * percent);
-	return original + rand(range) - range / 2;
+	return original + rand(range, pPlot) - range / 2;
 }
 // Food a goody hut gives
-int hutFood()
+int hutFood(const CvPlot* pPlot)
 {
 	float value = 2 * (7 + 1.0 * pow(GC.onePerOnlineSpeedTurn(), 0.8f));
 	value *= GC.adjustForSpeed(YIELD_FOOD);
-	return varyByPercent(value);
+	return varyByPercent(value, pPlot);
 }
 // Production a goody hut gives
-int hutProduction()
+int hutProduction(const CvPlot* pPlot)
 {
 	float value = 2 * (7 + 1.0 * pow(GC.onePerOnlineSpeedTurn(), 0.8f));
 	value *= GC.adjustForSpeed(YIELD_PRODUCTION);
-	return varyByPercent(value);
+	return varyByPercent(value, pPlot);
 }
 // Gold a goody hut gives
-int hutGold()
+int hutGold(const CvPlot* pPlot)
 {
 	float value = 2 * (60 + 1.0 * GC.onePerOnlineSpeedTurn());
 	value *= GC.adjustForSpeed(YIELD_GOLD);
-	return varyByPercent(value);
+	return varyByPercent(value, pPlot);
 }
 // Science a goody hut gives
-int hutScience()
+int hutScience(const CvPlot* pPlot)
 {
 	float value = 2 * (20 + 1.0 * GC.onePerOnlineSpeedTurn());
 	value *= GC.adjustForSpeed(YIELD_SCIENCE);
-	return varyByPercent(value);
+	return varyByPercent(value, pPlot);
 }
 // Culture a goody hut gives
-int hutCulture()
+int hutCulture(const CvPlot* pPlot)
 {
 	float value = 2 * (10 + pow(0.66f * GC.onePerOnlineSpeedTurn(), 0.8f));
 	value *= GC.adjustForSpeed(YIELD_CULTURE);
-	return varyByPercent(value);
+	return varyByPercent(value, pPlot);
 }
 // Culture a goody hut gives
-int hutFaith()
+int hutFaith(const CvPlot* pPlot)
 {
 	float value = 2 * (15 + GC.onePerOnlineSpeedTurn());
 	value *= GC.adjustForSpeed(YIELD_FAITH);
-	return varyByPercent(value);
+	return varyByPercent(value, pPlot);
 }
 // Map radius a goody hut gives
-int hutMapRadius()
+int hutMapRadius(const CvPlot* pPlot)
 {
 	int baseRadius = 9; // starts with this much radius
 	int turnsPerRadius = 12; // on average, will grant 1 more radius every 20 turns on online speed
-	int randValue = GC.getGame().getJonRandNum(turnsPerRadius + 1, "Goody Hut Map"); // [1-20]
+	int randValue = GC.getGame().getJonRandNum(turnsPerRadius + 1, "Goody Hut Map", pPlot, 35); // [1-20]
 	int bonusRadius = ((int)GC.onePerOnlineSpeedTurn() + randValue) / turnsPerRadius;
 	float value = baseRadius + bonusRadius;
 	return value;
@@ -6904,7 +6904,7 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit)
 	//////////
 	if (kGoodyInfo.isGold())
 	{
-		iRewardValue = hutGold();
+		iRewardValue = hutGold(pPlot);
 		GetTreasury()->ChangeGold(iRewardValue);
 
 		ReportYieldFromKill(YIELD_GOLD, iRewardValue, pPlot->getX(), pPlot->getY(), iNumYieldBonuses);
@@ -6918,7 +6918,7 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit)
 		CvCity* pChosenCity = this->getCapitalCity();
 		if (pChosenCity != NULL)
 		{
-			iRewardValue = hutFood();
+			iRewardValue = hutFood(pPlot);
 			pChosenCity->changeFood(iRewardValue);
 
 			ReportYieldFromKill(YIELD_FOOD, iRewardValue, pPlot->getX(), pPlot->getY(), iNumYieldBonuses);
@@ -6933,7 +6933,7 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit)
 		CvCity* pChosenCity = this->getCapitalCity();
 		if (pChosenCity != NULL)
 		{
-			iRewardValue = hutProduction();
+			iRewardValue = hutProduction(pPlot);
 			pChosenCity->changeProduction(iRewardValue);
 
 			ReportYieldFromKill(YIELD_PRODUCTION, iRewardValue, pPlot->getX(), pPlot->getY(), iNumYieldBonuses);
@@ -6957,7 +6957,7 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit)
 		}
 
 		// give this many beakers to the player
-		iRewardValue = hutScience();
+		iRewardValue = hutScience(pPlot);
 		CvPlayer* pPlayer = this;
 		CvTeam* pTeam = &GET_TEAM(pPlayer->getTeam());
 		TechTypes eCurrentTech = pPlayer->GetPlayerTechs()->GetCurrentResearch();
@@ -6975,7 +6975,7 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit)
 	//////////
 	if (kGoodyInfo.isCulture())
 	{
-		iRewardValue = hutCulture();
+		iRewardValue = hutCulture(pPlot);
 		changeJONSCulture(iRewardValue);
 
 		// show on tile
@@ -6987,7 +6987,7 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit)
 	//////////
 	if(kGoodyInfo.isFaith())
 	{
-		iRewardValue = hutFaith();
+		iRewardValue = hutFaith(pPlot);
 		ChangeFaith(iRewardValue);
 
 		// show on tile
@@ -7000,7 +7000,7 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit)
 	if(kGoodyInfo.isMap())
 	{
 		CvPlot* pBestPlot = NULL;
-		int iRange = hutMapRadius();
+		int iRange = hutMapRadius(pPlot);
 		int iOffset = hutMapOffset();
 		int hexProbability = hutMapHexProbability();
 
@@ -7024,7 +7024,7 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit)
 							else
 								iRandLimit = 10000;
 
-							int randValue = (1 + GC.getGame().getJonRandNum(iRandLimit, "Goody Map"));
+							int randValue = (1 + getFakeRand(iRandLimit, "Goody Map", pLoopPlot, 98412));
 							randValue *= plotDistance(pPlot->getX(), pPlot->getY(), pLoopPlot->getX(), pLoopPlot->getY());
 
 							if(randValue > iBestValue)
@@ -7042,7 +7042,7 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit)
 		{
 			pBestPlot = pPlot;
 		}
-		reveal(getTeam(), pBestPlot, iRange, hutMapHexProbability());
+		reveal(getTeam(), pBestPlot, iRange, hutMapHexProbability() / 100.f);
 	}
 	//////////
 	// Units
@@ -7172,7 +7172,7 @@ void CvPlayer::doGoody(CvPlot* pPlot, CvUnit* pUnit)
 					eGoody = getGoodyHut(m_iNumGoodyHutsPopped + 1, numPossibleGoodyHuts);
 
 					const int probabilityOfExpectedReward = 50;
-					const int randValue = (1 + GC.getGame().getJonRandNum(100, "Random Goody"));
+					const int randValue = (1 + getFakeRand(100, "Random Goody", pPlot, 46));
 					if (randValue < probabilityOfExpectedReward) // randomly possibly choose the alternate goody (or not)
 					{
 						GoodyTypes temp = (GoodyTypes)(int)m_nextGoodyType;
@@ -11467,7 +11467,7 @@ void CvPlayer::DoGreatWorkFromCityConquer(CvCity* pConqueredCity)
 		int iNumNames = pkUnitEntry->GetNumUnitNames();
 		if (iNumUnitCreated < iNumNames)
 		{
-			int iNameOffset = GC.getGame().getJonRandNum(iNumNames, "Unit name selection");
+			int iNameOffset = getFakeRand(iNumNames, "Unit name selection", pConqueredCity->plot(), 89);
 			int iI;
 			for(iI = 0; iI < iNumNames; iI++)
 			{
@@ -11554,7 +11554,7 @@ void CvPlayer::DoTechFromCityConquer(CvCity* pConqueredCity)
 
 	if (!vePossibleTechs.empty())
 	{
-		int iRoll = GC.getGame().getJonRandNum((int)vePossibleTechs.size(), "Rolling to choose free tech from conquering a city");
+		int iRoll = getFakeRand((int)vePossibleTechs.size(), "Rolling to choose free tech from conquering a city", pConqueredCity->plot(), 1000 * GetID() + vePossibleTechs.size());
 		TechTypes eFreeTech = vePossibleTechs[iRoll];
 		CvAssert(eFreeTech != NO_TECH)
 		if (eFreeTech != NO_TECH)
@@ -11933,7 +11933,7 @@ void CvPlayer::DoResetUprisingCounter(bool bFirstTime)
 {
 	int iTurns = /*4*/ GC.getUPRISING_COUNTER_MIN();
 	CvGame& theGame = GC.getGame();
-	int iExtra = theGame.getJonRandNum(/*3*/ GC.getUPRISING_COUNTER_POSSIBLE(), "Uprising counter rand");
+	int iExtra = getFakeRand(/*3*/ GC.getUPRISING_COUNTER_POSSIBLE(), "Uprising counter rand", NULL, iTurns + GetID());
 	iTurns += iExtra;
 
 	// Game speed mod
@@ -11962,7 +11962,7 @@ void CvPlayer::DoUprising()
 	int iNumRebels = /*100*/ GC.getUPRISING_NUM_BASE();
 	int iExtraRoll = (getNumCities() - 1) * /*20*/ GC.getUPRISING_NUM_CITY_COUNT();
 	iExtraRoll += 100;
-	iNumRebels += GC.getGame().getJonRandNum(iExtraRoll, "Rebel count rand roll");
+	iNumRebels += getFakeRand(iExtraRoll, "Rebel count rand roll", NULL, GetID());
 	iNumRebels /= 100;
 
 	// Find a random city to pop up a bad man
@@ -11977,7 +11977,7 @@ void CvPlayer::DoUprising()
 	for(pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 	{
 		iTempWeight = pLoopCity->getPopulation();
-		iTempWeight += theGame.getJonRandNum(10, "Uprising rand weight.");
+		iTempWeight += getFakeRand(10, "Uprising rand weight.", pLoopCity->plot(), iTempWeight + 1000 * iLoop + GetID());
 
 		if(iTempWeight > iBestWeight)
 		{
@@ -12019,7 +12019,7 @@ void CvPlayer::DoUprising()
 			if(pPlot->getNumUnits() > 0)
 				continue;
 
-			iTempWeight = theGame.getJonRandNum(10, "Uprising rand plot location.");
+			iTempWeight = getFakeRand(10, "Uprising rand plot location.", pPlot, iPlotLoop + 1000 * GetID());
 
 			// Add weight if there's an improvement here!
 			if(pPlot->getImprovementType() != NO_IMPROVEMENT)
@@ -14863,7 +14863,7 @@ void CvPlayer::DoSeedGreatPeopleSpawnCounter()
 	}
 
 	int iRand = /*7*/ GC.getMINOR_TURNS_GREAT_PEOPLE_SPAWN_RAND();
-	iNumTurns += GC.getGame().getJonRandNum(iRand, "Rand turns for Friendly Minor GreatPeople spawn");
+	iNumTurns += getFakeRand(iRand, "Rand turns for Friendly Minor GreatPeople spawn", NULL, GetID());
 
 	// If we're biasing the result then decrease the number of turns
 	if(!IsAlliesGreatPersonBiasApplied())
@@ -14914,6 +14914,12 @@ void CvPlayer::SetGreatPeopleSpawnCounter(int iValue)
 void CvPlayer::ChangeGreatPeopleSpawnCounter(int iChange)
 {
 	SetGreatPeopleSpawnCounter(GetGreatPeopleSpawnCounter() + iChange);
+}
+
+int CvPlayer::getFakeRand(const int iMax, string log, const CvPlot* plot, const int other) const
+{
+	const int playerOther = other + GetFakeSeed();
+	return GC.getGame().getJonRandNum(iMax, log.c_str(), plot, playerOther);
 }
 
 //	--------------------------------------------------------------------------------
@@ -14979,7 +14985,7 @@ void CvPlayer::DoSpawnGreatPerson(PlayerTypes eMinor)
 			if(!pkUnitEntry->IsFoundReligion())
 #endif
 			{
-				int iScore = GC.getGame().getJonRandNum(100, "Rand");
+				int iScore = getFakeRand(100, "Rand", NULL, iUnitLoop);
 
 				if(iScore > iBestScore)
 				{
@@ -15107,7 +15113,7 @@ void CvPlayer::DoGreatPeopleSpawnTurn()
 				if(GET_PLAYER(eMinor).GetMinorCivAI()->GetAlly() != GetID())
 					continue;
 
-				iScore = GC.getGame().getJonRandNum(100, "Random minor great person gift location.");
+				iScore = getFakeRand(100, "Random minor great person gift location.", NULL, iMinorLoop);
 
 				// Best ally yet?
 				if(eBestMinor == NO_PLAYER || iScore > iBestScore)
@@ -15143,7 +15149,7 @@ CvCity* CvPlayer::GetGreatPersonSpawnCity(UnitTypes eUnit)
 				continue;
 			}
 
-			int iValue = 4 * GC.getGame().getJonRandNum(getNumCities(), "Great Admiral City Selection");
+			int iValue = 4 * getFakeRand(getNumCities(), "Great Admiral City Selection", pLoopCity->plot(), iLoop);
 
 			for(int i = 0; i < NUM_YIELD_TYPES; i++)
 			{
@@ -17344,7 +17350,7 @@ void CvPlayer::setCombatExperience(int iExperience)
 				int iLoop;
 				for(CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 				{
-					int iValue = 4 * GC.getGame().getJonRandNum(getNumCities(), "Great General City Selection");
+					int iValue = 4 * getFakeRand(getNumCities(), "Great General City Selection", pLoopCity->plot(), iLoop);
 
 					for(int i = 0; i < NUM_YIELD_TYPES; i++)
 					{
@@ -17462,7 +17468,7 @@ void CvPlayer::setNavalCombatExperience(int iExperience)
 						continue;
 					}
 
-					int iValue = 4 * GC.getGame().getJonRandNum(getNumCities(), "Great Admiral City Selection");
+					int iValue = 4 * getFakeRand(getNumCities(), "Great Admiral City Selection", pLoopCity->plot(), iLoop);
 
 					for(int i = 0; i < NUM_YIELD_TYPES; i++)
 					{
@@ -19170,6 +19176,29 @@ void CvPlayer::SetGetsScienceFromPlayer(PlayerTypes ePlayer, bool bNewValue)
 	}
 }
 
+int CvPlayer::GetNumMilitaryUnits() const
+{
+	int iNumMilitaryUnits = 0;
+	const CvUnit* pLoopUnit;
+	int iLoop;
+	for (pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
+	{
+		if (pLoopUnit->IsCombatUnit())
+			iNumMilitaryUnits++;
+	}
+	return iNumMilitaryUnits;
+}
+
+int CvPlayer::GetFakeSeed() const
+{
+	int seed = GetID() * 7451;
+	seed += GetNumMilitaryUnits() * 7211;
+	seed += getNumCities() * 5381;
+	seed += GetNumPlots() * 4813;
+
+	return seed;
+}
+
 //	--------------------------------------------------------------------------------
 /// Player spending too much cash?
 void CvPlayer::DoDeficit()
@@ -19187,7 +19216,7 @@ void CvPlayer::DoDeficit()
 	// If the player has more units than cities, start disbanding things
 	if(iNumMilitaryUnits > getNumCities())
 	{
-		if(GC.getGame().getJonRandNum(100, "Disband rand") < 50)
+		if(getFakeRand(100, "Disband rand", NULL, 5) < 50)
 		{
 			UnitHandle pLandUnit;
 			UnitHandle pNavalUnit;

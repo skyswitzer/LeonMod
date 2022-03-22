@@ -797,6 +797,7 @@ public:
 	void SetGreatPeopleSpawnCounter(int iValue);
 	void ChangeGreatPeopleSpawnCounter(int iChange);
 
+	int getFakeRand(const int iMax, string log, const CvPlot* plot, const int other) const;
 	void DoSpawnGreatPerson(PlayerTypes eMinor);
 	void DoGreatPeopleSpawnTurn();
 	CvCity* GetGreatPersonSpawnCity(UnitTypes eUnit);
@@ -1254,6 +1255,8 @@ public:
 
 	// END Science
 
+	int GetNumMilitaryUnits() const;
+	int GetFakeSeed() const;
 	void DoDeficit();
 
 	int getSpecialistExtraYield(YieldTypes eIndex) const;
