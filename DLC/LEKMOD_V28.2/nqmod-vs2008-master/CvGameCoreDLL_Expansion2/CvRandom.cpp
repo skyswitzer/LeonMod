@@ -161,7 +161,6 @@ unsigned int CvRandom::get(unsigned int uiNum, const char* pszLog)
 unsigned short CvRandom::get(unsigned short usNum, const char* pszLog)
 #endif
 {
-	return usNum / 2;
 #ifdef AUI_USE_SFMT_RNG
 	unsigned int uiRtnValue = 0;
 	if (uiNum > 1)
