@@ -217,6 +217,7 @@ public:
 	{
 		return m_aiPlotDirectionX;
 	}
+	unsigned long getFakeSeed(const int x = 1, const int y = 1, const int other = 1);
 	// number in range [0, maxInclusive]
 	int rand(int maxInclusive, string log);
 	int* getPlotDirectionY()

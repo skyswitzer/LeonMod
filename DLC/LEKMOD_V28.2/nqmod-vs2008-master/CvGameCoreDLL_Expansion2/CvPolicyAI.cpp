@@ -173,7 +173,7 @@ int CvPolicyAI::ChooseNextPolicy(CvPlayer* pPlayer)
 #endif
 {
 	RandomNumberDelegate fcn;
-	fcn = MakeDelegate(&GC.getGame(), &CvGame::getJonRandNum);
+	fcn = MakeDelegate(&GC.getGame(), &CvGame::getJonRandNumExtraSafe);
 #ifdef AUI_WARNING_FIXES
 	uint iRtnValue = (uint)NO_POLICY;
 	uint iPolicyLoop;

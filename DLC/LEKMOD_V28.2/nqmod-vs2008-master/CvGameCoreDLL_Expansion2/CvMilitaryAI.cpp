@@ -1204,7 +1204,7 @@ CvMilitaryTarget CvMilitaryAI::FindBestAttackTarget(AIOperationTypes eAIOperatio
 	if(weightedTargetList.GetTotalWeight() > 0)
 	{
 		RandomNumberDelegate fcn;
-		fcn = MakeDelegate(&GC.getGame(), &CvGame::getJonRandNum);
+		fcn = MakeDelegate(&GC.getGame(), &CvGame::getJonRandNumExtraSafe);
 		int iNumChoices = max (1, (weightedTargetList.size() * 25 / 100));
 		chosenTarget = weightedTargetList.ChooseFromTopChoices(iNumChoices, &fcn, "Choosing attack target from top 25%% of choices");
 		// if we need the winning score
@@ -3130,7 +3130,7 @@ void CvMilitaryAI::UpdateOperations()
 				if(weightedTargetList.GetTotalWeight() > 0)
 				{
 					RandomNumberDelegate fcn;
-					fcn = MakeDelegate(&GC.getGame(), &CvGame::getJonRandNum);
+					fcn = MakeDelegate(&GC.getGame(), &CvGame::getJonRandNumExtraSafe);
 					CvMilitaryTarget chosenTarget = weightedTargetList.ChooseByWeight(&fcn, "Choosing attack target by weight");
 
 					// declare that attack

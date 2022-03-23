@@ -450,13 +450,15 @@ public:
 	CvRandom& getMapRand();
 	int getMapRandNum(int iNum, const char* pszLog);
 
-	CvRandom& getJonRand();
-	int getJonRandNum(int iNum, const char* pszLog);
+	const CvRandom& getJonRand();
+	CvRandom& getJonRandUnsafe();
+	int getJonRandNum(int iNum, const char* pszLog, const CvPlot* plot = NULL, const unsigned long other = 1);
+	int getJonRandNumExtraSafe(int iNum, const char* pszLog, const unsigned long other);
 #ifdef AUI_BINOM_RNG
 	int getJonRandNumBinom(int iNum, const char* pszLog);
 #endif
 	int getJonRandNumVA(int iNum, const char* pszLog, ...);
-	int getAsyncRandNum(int iNum, const char* pszLog);
+	int getAsyncRandNum(int iNum, const char* pszLog, unsigned long extraSeed);
 
 	int calculateSyncChecksum();
 	int calculateOptionsChecksum();

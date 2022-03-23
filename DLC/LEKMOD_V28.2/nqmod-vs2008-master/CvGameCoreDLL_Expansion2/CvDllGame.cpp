@@ -208,7 +208,7 @@ HandicapTypes CvDllGame::GetHandicapType() const
 //------------------------------------------------------------------------------
 ICvRandom1* CvDllGame::GetRandomNumberGenerator()
 {
-	return new CvDllRandom(&m_pGame->getJonRand());
+	return new CvDllRandom(&m_pGame->getJonRandUnsafe());
 }
 //------------------------------------------------------------------------------
 int CvDllGame::GetJonRandNum(int iNum, const char* pszLog)

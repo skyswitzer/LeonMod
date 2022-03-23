@@ -18784,7 +18784,7 @@ const char* CvDiplomacyAI::GetGreetHumanMessage(LeaderheadAnimationTypes& eAnima
 	// Pick a random greeting from the valid ones (if there are any)
 	if(veValidGreetings.size() > 0)
 	{
-		int iIndex = GC.getGame().getAsyncRandNum(veValidGreetings.size(), "Diplomacy AI: Picking random Greeting for AI to give to human.");
+		int iIndex = GC.getGame().getAsyncRandNum(veValidGreetings.size(), "Diplomacy AI: Picking random Greeting for AI to give to human.", 1);
 
 		DiploMessageTypes eGreetingType = veValidGreetings[iIndex];
 		const char* strOptionalKey = "";
@@ -18832,7 +18832,7 @@ const char* CvDiplomacyAI::GetGreetHumanMessage(LeaderheadAnimationTypes& eAnima
 				if(GetCoopWarAcceptedState(eHuman, (PlayerTypes) iThirdPartyLoop) >= COOP_WAR_STATE_SOON)
 				{
 					// Rand roll
-					if(GC.getGame().getAsyncRandNum(100, "Diplomacy AI: Random coop war greeting.") < 33)
+					if(GC.getGame().getAsyncRandNum(100, "Diplomacy AI: Random coop war greeting.", 1) < 33)
 					{
 						strOptionalKey = GET_PLAYER((PlayerTypes) iThirdPartyLoop).getNameKey();
 						bFoundPlayer = true;
@@ -18893,7 +18893,7 @@ const char* CvDiplomacyAI::GetInsultHumanMessage()
 	// Pick a random insult from the valid ones
 	if(veValidInsults.size() > 0)
 	{
-		int iIndex = GC.getGame().getAsyncRandNum(veValidInsults.size(), "Picking random insult for AI to give to human.");
+		int iIndex = GC.getGame().getAsyncRandNum(veValidInsults.size(), "Picking random insult for AI to give to human.", 1);
 
 		return GetDiploStringForMessage(veValidInsults[iIndex]);
 	}

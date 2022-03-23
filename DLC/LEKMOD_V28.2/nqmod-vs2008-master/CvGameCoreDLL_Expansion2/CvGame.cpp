@@ -248,7 +248,7 @@ void CvGame::init(HandicapTypes eHandicap)
 
 		for(int i = 0; i < iNumPlayers; i++)
 		{
-			int j = (getJonRand().get(iNumPlayers - i, NULL) + i);
+			int j = (getJonRandNum(iNumPlayers - i, NULL) + i);
 
 			if(i != j)
 			{
@@ -5875,7 +5875,7 @@ Localization::String CvGame::GetDiploResponse(const char* szLeader, const char* 
 
 	if(!probabilities.empty())
 	{
-		response = Localization::Lookup(probabilities[getAsyncRandNum(probabilities.size(), "Diplomacy Rand")].c_str());
+		response = Localization::Lookup(probabilities[getAsyncRandNum(probabilities.size(), "Diplomacy Rand", 1)].c_str());
 		response << strOptionalKey1 << strOptionalKey2;
 	}
 
@@ -8673,7 +8673,7 @@ UnitTypes CvGame::GetCompetitiveSpawnUnitType(PlayerTypes ePlayer, bool bInclude
 	// Choose from weighted unit types
 	veUnitRankings.SortItems();
 	int iNumChoices = GC.getUNIT_SPAWN_NUM_CHOICES();
-	RandomNumberDelegate randFn = MakeDelegate(&GC.getGame(), &CvGame::getJonRandNum);
+	RandomNumberDelegate randFn = MakeDelegate(&GC.getGame(), &CvGame::getJonRandNumExtraSafe);
 	UnitTypes eChosenUnit = veUnitRankings.ChooseFromTopChoices(iNumChoices, &randFn, "Choosing competitive unit from top choices");
 
 	return eChosenUnit;
@@ -8824,7 +8824,7 @@ UnitTypes CvGame::GetRandomUniqueUnitType(bool bIncludeCivsInGame, bool bInclude
 	if (veUnitRankings.size() > 0)
 	{
 		veUnitRankings.SortItems();
-		RandomNumberDelegate randFn = MakeDelegate(&GC.getGame(), &CvGame::getJonRandNum);
+		RandomNumberDelegate randFn = MakeDelegate(&GC.getGame(), &CvGame::getJonRandNumExtraSafe);
 		eChosenUnit = veUnitRankings.ChooseByWeight(&randFn, "Choosing random unique unit for minor civ");
 	}
 
@@ -9935,12 +9935,17 @@ CvRandom& CvGame::getMapRand()
 //	--------------------------------------------------------------------------------
 int CvGame::getMapRandNum(int iNum, const char* pszLog)
 {
-	return m_mapRand.get(iNum, pszLog);
+	return m_mapRand.get(iNum, CvRandom::MutateSeed, pszLog);
 }
 
 
 //	--------------------------------------------------------------------------------
-CvRandom& CvGame::getJonRand()
+const CvRandom& CvGame::getJonRand()
+{
+	return m_jonRand;
+}
+//	--------------------------------------------------------------------------------
+CvRandom& CvGame::getJonRandUnsafe()
 {
 	return m_jonRand;
 }
@@ -9949,9 +9954,23 @@ CvRandom& CvGame::getJonRand()
 //	--------------------------------------------------------------------------------
 /// Get a synchronous random number in the range of 0...iNum-1
 /// Allows for logging.
-int CvGame::getJonRandNum(int iNum, const char* pszLog)
+int CvGame::getJonRandNum(int iNum, const char* pszLog, const CvPlot* plot, const unsigned long other)
 {
-	return m_jonRand.get(iNum, pszLog);
+	int x = 1;
+	int y = 1;
+	if (plot != NULL)
+	{
+		x = plot->getX();
+		y = plot->getY();
+	}
+	return m_jonRand.getSafe(iNum, GC.getFakeSeed(x, y, other));
+}
+
+int CvGame::getJonRandNumExtraSafe(int iNum, const char* pszLog, const unsigned long other)
+{
+	int x = 1;
+	int y = 1;
+	return m_jonRand.getSafe(iNum, GC.getFakeSeed(x, y, other));
 }
 
 #ifdef AUI_BINOM_RNG
@@ -9981,18 +10000,18 @@ int CvGame::getJonRandNumVA(int iNum, const char* pszLog, ...)
 		vsprintf_s(szOutput, uiOutputSize, pszLog, vl);
 		va_end(vl);
 
-		return m_jonRand.get(iNum, szOutput);
+		return m_jonRand.get(iNum, 2, szOutput);
 	}
 	else
-		return m_jonRand.get(iNum);
+		return m_jonRand.get(iNum, 2);
 }
 
 //	--------------------------------------------------------------------------------
 /// Get an asynchronous random number in the range of 0...iNum-1
 /// This should only be called by operations that will not effect gameplay!
-int CvGame::getAsyncRandNum(int iNum, const char* pszLog)
+int CvGame::getAsyncRandNum(int iNum, const char* pszLog, unsigned long extraSeed)
 {
-	return GC.getASyncRand().get(iNum, pszLog);
+	return GC.getASyncRand().get(iNum, extraSeed, pszLog);
 }
 
 //	--------------------------------------------------------------------------------
@@ -12556,7 +12575,7 @@ void CvGame::SpawnArchaeologySitesHistorically()
 	}
 
 	RandomNumberDelegate fcn;
-	fcn = MakeDelegate(this, &CvGame::getJonRandNum);
+	fcn = MakeDelegate(this, &CvGame::getJonRandNumExtraSafe);
 
 	// find out how many dig sites we have now
 	int iHowManyChosenDigSites = 0;
