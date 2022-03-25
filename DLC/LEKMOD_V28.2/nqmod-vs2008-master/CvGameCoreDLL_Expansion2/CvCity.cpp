@@ -6780,7 +6780,7 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst, 
 
 				if (validPlotCount > 0)
 				{
-					int iIndex = GC.getGame().getJonRandNum(validPlotCount, "Mali Treasury random plot selection");
+					int iIndex = GC.getGame().getJonRandNum(validPlotCount, "Mali Treasury random plot selection", NULL, (int)eBuilding);
 					CvPlot* pPlot = GetCityCitizens()->GetCityPlotFromIndex(validPlotList[iIndex]);
 
 					ResourceTypes eResourceGold = (ResourceTypes)GC.getInfoTypeForString("RESOURCE_GOLD", true);
