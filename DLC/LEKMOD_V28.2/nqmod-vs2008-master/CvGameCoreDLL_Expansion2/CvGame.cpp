@@ -248,7 +248,7 @@ void CvGame::init(HandicapTypes eHandicap)
 
 		for(int i = 0; i < iNumPlayers; i++)
 		{
-			int j = (getJonRandNum(iNumPlayers - i, NULL) + i);
+			int j = (getJonRandNum(iNumPlayers - i, NULL, NULL, i) + i);
 
 			if(i != j)
 			{
@@ -284,7 +284,7 @@ void CvGame::init(HandicapTypes eHandicap)
 #ifdef AUI_WARNING_FIXES
 				szRandomPassword[i] = char(getJonRandNum(128, "Random Keyword"));
 #else
-				szRandomPassword[i] = getJonRandNum(128, "Random Keyword");
+				szRandomPassword[i] = getJonRandNum(128, "Random Keyword", NULL, i);
 #endif
 			}
 			szRandomPassword[iPasswordSize-1] = 0;
@@ -781,7 +781,7 @@ void CvGame::setInitialItems(CvGameInitialItemsOverrides& kInitialItemOverrides)
 
 	initFreeUnits(kInitialItemOverrides);
 
-	m_iEarliestBarbarianReleaseTurn = getHandicapInfo().getEarliestBarbarianReleaseTurn() + GC.getGame().getJonRandNum(GC.getAI_TACTICAL_BARBARIAN_RELEASE_VARIATION(), "Barbarian Release Turn") + 1;
+	m_iEarliestBarbarianReleaseTurn = getHandicapInfo().getEarliestBarbarianReleaseTurn() + GC.getGame().getJonRandNum(GC.getAI_TACTICAL_BARBARIAN_RELEASE_VARIATION(), "Barbarian Release Turn", NULL, 2) + 1;
 
 	// What route type forms an industrial connection
 	DoUpdateIndustrialRoute();
@@ -8543,7 +8543,7 @@ UnitTypes CvGame::GetRandomSpawnUnitType(PlayerTypes ePlayer, bool bIncludeUUs, 
 				continue;
 
 			// Random weighting
-			iValue = (1 + GC.getGame().getJonRandNum(1000, "Minor Civ Unit spawn Selection"));
+			iValue = (1 + GC.getGame().getJonRandNum(1000, "Minor Civ Unit spawn Selection", NULL, (2 + ePlayer) + iUnitLoop));
 			iValue += iBonusValue;
 
 			if(iValue > iBestValue)
@@ -9739,11 +9739,12 @@ void CvGame::testVictory()
 		{
 			int iRand;
 
+			int i = 0;
 			do
 			{
 				if(isVictoryAvailable(eVictory))
 				{
-					iRand = GC.getGame().getJonRandNum(iNumCompetitionWinners, "Victory Competition tiebreaker");
+					iRand = GC.getGame().getJonRandNum(iNumCompetitionWinners, "Victory Competition tiebreaker", NULL, (247 * iVictoryLoop) + i);
 					iTeamLoop = m_aiTeamCompetitionWinnersScratchPad[iRand];
 
 					DoPlaceTeamInVictoryCompetition(eVictory, (TeamTypes) iTeamLoop);
@@ -9754,6 +9755,7 @@ void CvGame::testVictory()
 				{
 					iNumCompetitionWinners = 0;
 				}
+				++i;
 			}
 			while(iNumCompetitionWinners > 0);
 		}
@@ -9899,7 +9901,7 @@ void CvGame::testVictory()
 	// Two things can set this to true: either someone has finished an insta-win victory, or the game-ending tech has been researched and we're now tallying VPs
 	if(bEndGame && !aaiGameWinners.empty())
 	{
-		int iWinner = getJonRandNum(aaiGameWinners.size(), "Victory tie breaker");
+		int iWinner = getJonRandNum(aaiGameWinners.size(), "Victory tie breaker", NULL, aaiGameWinners.size());
 		setWinner(((TeamTypes)aaiGameWinners[iWinner][0]), ((VictoryTypes)aaiGameWinners[iWinner][1]));
 	}
 
@@ -12272,7 +12274,7 @@ int CalculateDigSiteWeight(int iIndex, FFastVector<CvArchaeologyData, true, c_eC
 		if (iBaseWeight > 0)
 		{
 			// add a small random factor
-			iBaseWeight += 10 + GC.getGame().getJonRandNum(10, "random factor on dig sites");
+			iBaseWeight += 10 + GC.getGame().getJonRandNum(10, "random factor on dig sites", NULL, iBaseWeight * iIndex);
 
 			// increase the value if unowned
 			iBaseWeight *= (pPlot->getOwner() == NO_PLAYER) ? 9 : 8;
@@ -12447,7 +12449,7 @@ PlayerTypes GetRandomMajorPlayer()
 	PlayerTypes ePlayer = NO_PLAYER;
 	do 
 	{
-		ePlayer = static_cast<PlayerTypes>(GC.getGame().getJonRandNum(MAX_MAJOR_CIVS, "Random Major Civ"));
+		ePlayer = static_cast<PlayerTypes>(GC.getGame().getJonRandNum(MAX_MAJOR_CIVS, "Random Major Civ", NULL, ePlayer));
 	} while (!GET_PLAYER(ePlayer).isEverAlive());
 	return ePlayer;
 }
@@ -12459,7 +12461,7 @@ PlayerTypes GetRandomPlayer()
 	PlayerTypes ePlayer = NO_PLAYER;
 	do 
 	{
-		ePlayer = static_cast<PlayerTypes>(GC.getGame().getJonRandNum(MAX_CIV_PLAYERS, "Random Player")); // no barbs
+		ePlayer = static_cast<PlayerTypes>(GC.getGame().getJonRandNum(MAX_CIV_PLAYERS, "Random Player", NULL, ePlayer)); // no barbs
 	} while (!GET_PLAYER(ePlayer).isEverAlive());
 	return ePlayer;
 }
@@ -12545,7 +12547,7 @@ void CvGame::SpawnArchaeologySitesHistorically()
 	const int iNumMajorCivs = countMajorCivsEverAlive();
 	const int iMinDigSites = GC.getMIN_DIG_SITES_PER_MAJOR_CIV() * iNumMajorCivs; //todo: parameterize this
 	const int iMaxDigSites = GC.getMAX_DIG_SITES_PER_MAJOR_CIV() * iNumMajorCivs; //todo: parameterize this
-	const int iIdealNumDigSites = iMinDigSites + getJonRandNum((iMaxDigSites - iMinDigSites) / 2, "Num dig sites") + getJonRandNum((iMaxDigSites - iMinDigSites) / 2, "Num dig sites");
+	const int iIdealNumDigSites = iMinDigSites + getJonRandNum((iMaxDigSites - iMinDigSites) / 2, "Num dig sites", NULL, iMaxDigSites) + getJonRandNum((iMaxDigSites - iMinDigSites) / 2, "Num dig sites");
 
 	// find the highest era any player has gotten to
 	EraTypes eHighestEra = NO_ERA;
@@ -12622,7 +12624,7 @@ void CvGame::SpawnArchaeologySitesHistorically()
 					eEra = eEra > static_cast<EraTypes>(0) ? eEra : static_cast<EraTypes>(0);
 
 					// pick a type of artifact
-					GreatWorkArtifactClass eArtifact = aRandomArtifacts[getJonRandNum(aRandomArtifactsCount, "Artifact type for non-historical dig site")];
+					GreatWorkArtifactClass eArtifact = aRandomArtifacts[getJonRandNum(aRandomArtifactsCount, "Artifact type for non-historical dig site", pPlot, i)];
 
 					PopulateDigSite(*pPlot, eEra, eArtifact);
 
@@ -12690,7 +12692,7 @@ void CvGame::SpawnArchaeologySitesHistorically()
 		CvPlot* pPlot = theMap.plotByIndexUnchecked(iBestSite);
 
 		// Hidden site?
-		bool bHiddenSite = GC.getGame().getJonRandNum(100, "Hidden antiquity site roll") < GC.getPERCENT_SITES_HIDDEN();
+		bool bHiddenSite = GC.getGame().getJonRandNum(100, "Hidden antiquity site roll", pPlot, iHowManyChosenDigSites) < GC.getPERCENT_SITES_HIDDEN();
 		if (bHiddenSite)
 		{
 			pPlot->setResourceType(eHiddenArtifactResourceType, 1);
@@ -12713,7 +12715,7 @@ void CvGame::SpawnArchaeologySitesHistorically()
 			pPlot->SetArtifactType(CvTypes::getARTIFACT_WRITING());
 
 			// Then get a writing and set it
-			int iIndex = getJonRandNum(aWorksWriting.size(), "");
+			int iIndex = getJonRandNum(aWorksWriting.size(), "", pPlot, iHowManyChosenDigSites);
 			GreatWorkType eWrittenGreatWork = aWorksWriting[iIndex];
 			pPlot->SetArtifactGreatWork((GreatWorkType)eWrittenGreatWork);
 

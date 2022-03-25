@@ -3850,7 +3850,7 @@ void CvCity::DoPickResourceDemanded(bool bCurrentResourceInvalid)
 
 	do
 	{
-		iVectorIndex = GC.getGame().getJonRandNum(veValidLuxuryResources.size(), "Picking random Luxury for City to demand.");
+		iVectorIndex = GC.getGame().getJonRandNum(veValidLuxuryResources.size(), "Picking random Luxury for City to demand.", NULL, iNumAttempts);
 		eResource = (ResourceTypes) veValidLuxuryResources[iVectorIndex];
 		bResourceValid = true;
 
@@ -6837,7 +6837,7 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst, 
 					{
 						const char* resourceName = "";
 						int resourceID;
-						int iRoll = GC.getGame().getJonRandNum(iTotalWeight, "Rolling for Mali Treasury resource type");
+						int iRoll = GC.getGame().getJonRandNum(iTotalWeight, "Rolling for Mali Treasury resource type", NULL, (int)eBuilding);
 						if (iRoll < iSilverWeight)
 						{
 							pPlot->setResourceType(eResourceSilver, 1);
@@ -7106,7 +7106,7 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst, 
 					int iNumNames = pkUnitEntry->GetNumUnitNames();
 					if (iNumUnitCreated < iNumNames)
 					{
-						int iNameOffset = GC.getGame().getJonRandNum(iNumNames, "Unit name selection");
+						int iNameOffset = GC.getGame().getJonRandNum(iNumNames, "Unit name selection", NULL, (int)eBuilding);
 						int iI;
 						for (iI = 0; iI < iNumNames; iI++)
 						{
@@ -12616,7 +12616,7 @@ CvPlot* CvCity::GetNextBuyablePlot(void)
 #endif
 	if(iListLength > 0)
 	{
-		int iPickedIndex = GC.getGame().getJonRandNum(iListLength, "GetNextBuyablePlot picker");
+		int iPickedIndex = GC.getGame().getJonRandNum(iListLength, "GetNextBuyablePlot picker", plot());
 		pPickedPlot = GC.getMap().plotByIndex(aiPlotList[iPickedIndex]);
 	}
 
@@ -15864,7 +15864,7 @@ void CvCity::doMeltdown()
 		{
 			if(pkBuildingInfo->GetNukeExplosionRand() != 0)
 			{
-				if(GC.getGame().getJonRandNum(pkBuildingInfo->GetNukeExplosionRand(), "Meltdown!!!") == 0)
+				if(GC.getGame().getJonRandNum(pkBuildingInfo->GetNukeExplosionRand(), "Meltdown!!!", NULL, iI) == 0)
 				{
 					if(m_pCityBuildings->GetNumRealBuilding((BuildingTypes)iI) > 0)
 					{
@@ -17090,7 +17090,7 @@ int CvCity::rangeCombatDamage(const CvUnit* pDefender, CvCity* pCity, bool bIncl
 		}
 		else
 #endif
-		iAttackerRoll = GC.getGame().getJonRandNum(/*300*/ GC.getRANGE_ATTACK_SAME_STRENGTH_POSSIBLE_EXTRA_DAMAGE(), "City Ranged Attack Damage");
+		iAttackerRoll = GC.getGame().getJonRandNum(/*300*/ GC.getRANGE_ATTACK_SAME_STRENGTH_POSSIBLE_EXTRA_DAMAGE(), "City Ranged Attack Damage", pCity->plot(), iAttackerStrength * iDefenderStrength);
 	}
 	else
 	{
@@ -17145,7 +17145,7 @@ int CvCity::GetAirStrikeDefenseDamage(const CvUnit* pAttacker, bool bIncludeRand
 		}
 		else
 #endif
-		iDefenderRoll = /*200*/ GC.getGame().getJonRandNum(GC.getAIR_STRIKE_SAME_STRENGTH_POSSIBLE_EXTRA_DEFENSE_DAMAGE(), "Unit Air Strike Combat Damage");
+		iDefenderRoll = /*200*/ GC.getGame().getJonRandNum(GC.getAIR_STRIKE_SAME_STRENGTH_POSSIBLE_EXTRA_DEFENSE_DAMAGE(), "Unit Air Strike Combat Damage", plot(), iAttackerStrength * iDefenderStrength);
 #ifndef NQM_COMBAT_RNG_USE_BINOM_RNG_OPTION
 		iDefenderRoll *= iDefenderDamageRatio;
 		iDefenderRoll /= GetMaxHitPoints();
