@@ -2473,7 +2473,7 @@ unsigned long CvGlobals::getFakeSeed(const int x, const int y, const int other)
 		seed += getGame().getGameTurn() * 6047;
 	}
 	seed += x * 2557;
-	seed += y * 709;
+	seed += y * 7901;
 	seed += other * 227;
 	return seed;
 }

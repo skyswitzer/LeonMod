@@ -6580,7 +6580,7 @@ void CvLeague::DoProjectReward(PlayerTypes ePlayer, LeagueProjectTypes eLeaguePr
 void CvLeague::UpdateName()
 {
 	// Roll for a new name type
-	int iRoll = GC.getGame().getJonRandNum(GC.getNumLeagueNameInfos(), "Rolling for league name variation");
+	int iRoll = GC.getGame().getJonRandNum(GC.getNumLeagueNameInfos(), "Rolling for league name variation", NULL, 981147);
 	CvLeagueNameEntry* pInfo = GC.getLeagueNameInfo((LeagueNameTypes)iRoll);
 	if (pInfo)
 	{

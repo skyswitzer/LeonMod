@@ -2485,7 +2485,7 @@ bool CvGameReligions::CheckSpawnGreatProphet(CvPlayer& kPlayer)
 	int iChance = GC.getRELIGION_BASE_CHANCE_PROPHET_SPAWN();
 	iChance += (iFaith - iCost);
 
-	int iRand = GC.getGame().getJonRandNum(100, "Religion: spawn Great Prophet roll.");
+	int iRand = GC.getGame().getJonRandNum(100, "Religion: spawn Great Prophet roll.", NULL, kPlayer.GetID());
 	if(iRand >= iChance)
 	{
 		return false;

@@ -107,7 +107,7 @@ void CvBarbarians::DoCampActivationNotice(CvPlot* pPlot)
 {
 	CvGame& kGame = GC.getGame();
 	// Default to between 8 and 12 turns per spawn
-	int iNumTurnsToSpawn = 8 + kGame.getJonRandNum(5, "Barb Spawn Rand call", pPlot);
+	int iNumTurnsToSpawn = 8 + kGame.getJonRandNum(5, "Barb Spawn Rand call", pPlot, 487);
 
 	// Raging
 	if (kGame.isOption(GAMEOPTION_RAGING_BARBARIANS))
@@ -363,7 +363,7 @@ void CvBarbarians::DoCamps()
 			// Every other turn of the game there's a 1 in 2 chance of adding a new camp if we're still below the target
 			else
 			{
-				if(kGame.getJonRandNum(/*2*/ GC.getBARBARIAN_CAMP_ODDS_OF_NEW_CAMP_SPAWNING(), "Random roll to see if Barb Camp spawns this turn", pLoopPlot) > 0)
+				if(kGame.getJonRandNum(/*2*/ GC.getBARBARIAN_CAMP_ODDS_OF_NEW_CAMP_SPAWNING(), "Random roll to see if Barb Camp spawns this turn", pLoopPlot, 6) > 0)
 				{
 					iNumCampsToAdd = 1;
 				}
@@ -383,7 +383,7 @@ void CvBarbarians::DoCamps()
 			int iNumLandPlots = kMap.getLandPlots();
 
 			// Do a random roll to bias in favor of Coastal land Tiles so that the Barbs will spawn Boats :) - required 1/6 of the time
-			bool bWantsCoastal = kGame.getJonRandNum(/*6*/ GC.getBARBARIAN_CAMP_COASTAL_SPAWN_ROLL(), "Barb Camp Plot-Finding Roll - Coastal Bias 1", pLoopPlot) == 0 ? true : false;
+			bool bWantsCoastal = kGame.getJonRandNum(/*6*/ GC.getBARBARIAN_CAMP_COASTAL_SPAWN_ROLL(), "Barb Camp Plot-Finding Roll - Coastal Bias 1", pLoopPlot, 3) == 0 ? true : false;
 
 			int iPlayerCapitalMinDistance = /*4*/ GC.getBARBARIAN_CAMP_MINIMUM_DISTANCE_CAPITAL();
 			int iBarbCampMinDistance = /*7*/ GC.getBARBARIAN_CAMP_MINIMUM_DISTANCE_ANOTHER_CAMP();
@@ -403,7 +403,7 @@ void CvBarbarians::DoCamps()
 			{
 				iCount++;
 
-				iPlotIndex = kGame.getJonRandNum(iNumPlots, "Barb Camp Plot-Finding Roll", pLoopPlot);
+				iPlotIndex = kGame.getJonRandNum(iNumPlots, "Barb Camp Plot-Finding Roll", pLoopPlot, iCount);
 
 				pLoopPlot = kMap.plotByIndex(iPlotIndex);
 
@@ -544,7 +544,7 @@ void CvBarbarians::DoCamps()
 													iNumCampsToAdd--;
 
 													// Seed the next Camp for Coast or not
-													bWantsCoastal = kGame.getJonRandNum(/*5*/ GC.getBARBARIAN_CAMP_COASTAL_SPAWN_ROLL(), "Barb Camp Plot-Finding Roll - Coastal Bias 2", pLoopPlot) == 0 ? true : false;
+													bWantsCoastal = kGame.getJonRandNum(/*5*/ GC.getBARBARIAN_CAMP_COASTAL_SPAWN_ROLL(), "Barb Camp Plot-Finding Roll - Coastal Bias 2", pLoopPlot, iCount) == 0 ? true : false;
 												}
 											}
 										}
@@ -847,7 +847,7 @@ void CvBarbarians::DoSpawnBarbarianUnit(CvPlot* pPlot, bool bIgnoreMaxBarbarians
 		// Any valid locations?
 		if(m_aeValidBarbSpawnDirections.size() > 0)
 		{
-			int iIndex = kGame.getJonRandNum(m_aeValidBarbSpawnDirections.size(), "Barb Unit Location Spawn Roll", pPlot);
+			int iIndex = kGame.getJonRandNum(m_aeValidBarbSpawnDirections.size(), "Barb Unit Location Spawn Roll", pPlot, m_aeValidBarbSpawnDirections.size());
 			eDirection = (DirectionTypes) m_aeValidBarbSpawnDirections[iIndex];
 			CvPlot* pSpawnPlot = plotDirection(pPlot->getX(), pPlot->getY(), eDirection);
 			UnitAITypes eUnitAI;

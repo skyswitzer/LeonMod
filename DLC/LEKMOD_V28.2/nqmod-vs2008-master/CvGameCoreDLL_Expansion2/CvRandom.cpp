@@ -97,6 +97,9 @@ void CvRandom::reset(unsigned long ulSeed)
 
 unsigned short rngFromSeed(unsigned short upper, unsigned long seed)
 {
+	seed = (RANDOM_A * seed) + RANDOM_C;
+	seed = (RANDOM_A * seed) + RANDOM_C;
+	seed = (RANDOM_A * seed) + RANDOM_C;
 	unsigned short us = ((unsigned short)((((seed >> RANDOM_SHIFT) & MAX_UNSIGNED_SHORT) * ((unsigned long)upper)) / (MAX_UNSIGNED_SHORT + 1)));
 	return us;
 }
@@ -128,6 +131,8 @@ void log(unsigned short upper, unsigned short newVal, unsigned long seed, const 
 		}
 	}
 }
+
+
 
 unsigned short CvRandom::get(unsigned short usNum, const unsigned long extraSeed, const char* pszLog)
 {

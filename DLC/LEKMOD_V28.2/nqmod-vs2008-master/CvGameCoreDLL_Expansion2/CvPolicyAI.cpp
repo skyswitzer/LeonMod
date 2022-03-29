@@ -565,9 +565,9 @@ void CvPolicyAI::DoChooseIdeology(CvPlayer *pPlayer)
 	LogIdeologyChoice(stage, iFreedomPriority, iAutocracyPriority, iOrderPriority);
 
 	// Small random add-on
-	iFreedomPriority += GC.getGame().getJonRandNum(10, "Freedom random priority bump");
-	iAutocracyPriority += GC.getGame().getJonRandNum(10, "Autocracy random priority bump");
-	iOrderPriority += GC.getGame().getJonRandNum(10, "Order random priority bump");
+	iFreedomPriority += GC.getGame().getJonRandNum(10, "Freedom random priority bump", NULL, pPlayer->GetID() + 98871);
+	iAutocracyPriority += GC.getGame().getJonRandNum(10, "Autocracy random priority bump", NULL, pPlayer->GetID() + 5);
+	iOrderPriority += GC.getGame().getJonRandNum(10, "Order random priority bump", NULL, pPlayer->GetID() + 2);
 
 	stage = "After Random (1 to 10)";
 	LogIdeologyChoice(stage, iFreedomPriority, iAutocracyPriority, iOrderPriority);

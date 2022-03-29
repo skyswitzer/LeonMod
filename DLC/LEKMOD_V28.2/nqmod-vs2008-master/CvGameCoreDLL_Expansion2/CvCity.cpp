@@ -12616,7 +12616,7 @@ CvPlot* CvCity::GetNextBuyablePlot(void)
 #endif
 	if(iListLength > 0)
 	{
-		int iPickedIndex = GC.getGame().getJonRandNum(iListLength, "GetNextBuyablePlot picker", plot());
+		int iPickedIndex = GC.getGame().getJonRandNum(iListLength, "GetNextBuyablePlot picker", plot(), iListLength);
 		pPickedPlot = GC.getMap().plotByIndex(aiPlotList[iPickedIndex]);
 	}
 

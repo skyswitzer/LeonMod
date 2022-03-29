@@ -452,7 +452,7 @@ public:
 
 	const CvRandom& getJonRand();
 	CvRandom& getJonRandUnsafe();
-	int getJonRandNum(int iNum, const char* pszLog, const CvPlot* plot = NULL, const unsigned long other = 17);
+	int getJonRandNum(int iNum, const char* pszLog, const CvPlot* plot, const unsigned long other);
 	int getJonRandNumExtraSafe(int iNum, const char* pszLog, const unsigned long other);
 #ifdef AUI_BINOM_RNG
 	int getJonRandNumBinom(int iNum, const char* pszLog);

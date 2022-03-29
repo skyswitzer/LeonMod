@@ -2987,8 +2987,9 @@ void CvMilitaryAI::UpdateOperations()
 			if(eLoopPlayer != m_pPlayer->GetID() && m_pPlayer->GetDiplomacyAI()->IsPlayerValid(eLoopPlayer))
 			{
 				bool bLaunchNuke = false;
+				const int numTimesNuked = m_pPlayer->getNumNukeUnits();
 				// only evaluate nukes when we have nukes and we've declared war on someone
-				if (m_pPlayer->getNumNukeUnits() > 0 && GET_TEAM(m_pPlayer->getTeam()).isAtWar(GET_PLAYER(eLoopPlayer).getTeam())) 
+				if (numTimesNuked > 0 && GET_TEAM(m_pPlayer->getTeam()).isAtWar(GET_PLAYER(eLoopPlayer).getTeam()))
 				{
 					// they nuked us, so we can nuke them.
 					if (m_pPlayer->GetDiplomacyAI()->GetNumTimesNuked(eLoopPlayer) > 0)
@@ -3021,8 +3022,8 @@ void CvMilitaryAI::UpdateOperations()
 						if (bRollForNuke)
 						{
 							int iFlavorNuke = m_pPlayer->GetGrandStrategyAI()->GetPersonalityAndGrandStrategy((FlavorTypes)GC.getInfoTypeForString("FLAVOR_USE_NUKE"));
-							int iRoll  = GC.getGame().getJonRandNum(10, "Roll to see if we're going to nuke!");
-							int iRoll2 = GC.getGame().getJonRandNum(10, "Second roll to see if we're going to nuke!");
+							int iRoll  = GC.getGame().getJonRandNum(10, "Roll to see if we're going to nuke!", NULL, iPlayerLoop + 200 * numTimesNuked);
+							int iRoll2 = GC.getGame().getJonRandNum(10, "Second roll to see if we're going to nuke!", NULL, iPlayerLoop * 2000 + numTimesNuked);
 							if (iRoll < iFlavorNuke && iRoll2 < iFlavorNuke)
 							{
 								bLaunchNuke = true;

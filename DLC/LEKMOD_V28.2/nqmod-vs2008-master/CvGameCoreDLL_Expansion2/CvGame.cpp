@@ -9965,14 +9965,14 @@ int CvGame::getJonRandNum(int iNum, const char* pszLog, const CvPlot* plot, cons
 		x = plot->getX();
 		y = plot->getY();
 	}
-	return m_jonRand.getSafe(iNum, GC.getFakeSeed(x, y, other));
+	return m_jonRand.getSafe(iNum, GC.getFakeSeed(x, y, other + iNum));
 }
 
 int CvGame::getJonRandNumExtraSafe(int iNum, const char* pszLog, const unsigned long other)
 {
 	int x = 1;
 	int y = 1;
-	return m_jonRand.getSafe(iNum, GC.getFakeSeed(x, y, other));
+	return m_jonRand.getSafe(iNum, GC.getFakeSeed(x, y, other + iNum));
 }
 
 #ifdef AUI_BINOM_RNG
@@ -12459,9 +12459,11 @@ PlayerTypes GetRandomMajorPlayer()
 PlayerTypes GetRandomPlayer()
 {
 	PlayerTypes ePlayer = NO_PLAYER;
+	int i = 0; 
 	do 
 	{
-		ePlayer = static_cast<PlayerTypes>(GC.getGame().getJonRandNum(MAX_CIV_PLAYERS, "Random Player", NULL, ePlayer)); // no barbs
+		i++;
+		ePlayer = static_cast<PlayerTypes>(GC.getGame().getJonRandNum(MAX_CIV_PLAYERS, "Random Player", NULL, ePlayer + i * 2000)); // no barbs
 	} while (!GET_PLAYER(ePlayer).isEverAlive());
 	return ePlayer;
 }
@@ -12547,7 +12549,7 @@ void CvGame::SpawnArchaeologySitesHistorically()
 	const int iNumMajorCivs = countMajorCivsEverAlive();
 	const int iMinDigSites = GC.getMIN_DIG_SITES_PER_MAJOR_CIV() * iNumMajorCivs; //todo: parameterize this
 	const int iMaxDigSites = GC.getMAX_DIG_SITES_PER_MAJOR_CIV() * iNumMajorCivs; //todo: parameterize this
-	const int iIdealNumDigSites = iMinDigSites + getJonRandNum((iMaxDigSites - iMinDigSites) / 2, "Num dig sites", NULL, iMaxDigSites) + getJonRandNum((iMaxDigSites - iMinDigSites) / 2, "Num dig sites");
+	const int iIdealNumDigSites = iMinDigSites + getJonRandNum((iMaxDigSites - iMinDigSites) / 2, "Num dig sites", NULL, iMaxDigSites) + getJonRandNum((iMaxDigSites - iMinDigSites) / 2, "Num dig sites", NULL, iNumMajorCivs);
 
 	// find the highest era any player has gotten to
 	EraTypes eHighestEra = NO_ERA;

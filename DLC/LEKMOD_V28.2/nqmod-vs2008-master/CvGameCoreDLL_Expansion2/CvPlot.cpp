@@ -502,7 +502,7 @@ void CvPlot::doImprovement()
 					{
 						if(thisImprovementInfo->GetImprovementResourceDiscoverRand(iI) > 0)
 						{
-							if(GC.getGame().getJonRandNum(thisImprovementInfo->GetImprovementResourceDiscoverRand(iI), "Resource Discovery") == 0)
+							if(GC.getGame().getJonRandNum(thisImprovementInfo->GetImprovementResourceDiscoverRand(iI), "Resource Discovery", this, iI) == 0)
 							{
 								iResourceNum = GC.getMap().getRandomResourceQuantity((ResourceTypes)iI);
 								setResourceType((ResourceTypes)iI, iResourceNum);

@@ -14398,7 +14398,7 @@ void CvDiplomacyAI::DoEmbassyExchange(PlayerTypes ePlayer, DiploStatementTypes& 
 						bSendStatement = true;
 
 					// 1 in 2 chance we don't actually send the message (don't want full predictability)
-					if(50 < GC.getGame().getJonRandNum(100, "Diplomacy AI: rand rool to see if we ask to exchange embassies"), NULL, ((int)ePlayer + 5) * iTurnsBetweenStatements)
+					if(50 < GC.getGame().getJonRandNum(100, "Diplomacy AI: rand rool to see if we ask to exchange embassies", NULL, 93), NULL, ((int)ePlayer + 5) * iTurnsBetweenStatements)
 						bSendStatement = false;
 
 					if(bSendStatement)

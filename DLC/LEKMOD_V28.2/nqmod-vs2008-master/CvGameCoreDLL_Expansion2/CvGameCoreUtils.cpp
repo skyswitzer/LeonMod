@@ -899,7 +899,7 @@ void shuffleArray(int* piShuffle, int iNum, const CvRandom& rand)
 
 	for(iI = 0; iI < iNum; iI++)
 	{
-		iJ = (rand.getSafe(iNum - iI, GC.getFakeSeed() + iI) + iI);
+		iJ = (rand.getSafe(iNum - iI, GC.getFakeSeed(iNum) + iI) + iI);
 
 		if(iI != iJ)
 		{
