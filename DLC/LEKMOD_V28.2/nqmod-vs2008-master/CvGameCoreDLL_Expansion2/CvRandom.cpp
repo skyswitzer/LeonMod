@@ -97,6 +97,8 @@ void CvRandom::reset(unsigned long ulSeed)
 
 unsigned short rngFromSeed(unsigned short upper, unsigned long seed)
 {
+	// do this 3 times, otherwise slight changes in seed seem to
+	// not do enough and patterns in for loops appear
 	seed = (RANDOM_A * seed) + RANDOM_C;
 	seed = (RANDOM_A * seed) + RANDOM_C;
 	seed = (RANDOM_A * seed) + RANDOM_C;
