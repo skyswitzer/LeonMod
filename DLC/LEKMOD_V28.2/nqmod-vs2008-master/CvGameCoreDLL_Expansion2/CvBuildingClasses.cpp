@@ -2577,6 +2577,7 @@ void CvCityBuildings::Reset()
 	m_buildingsThatExistAtLeastOnce.clear();
 }
 
+const int hasMaintenanceInStream = -1985651987;
 		
 /// Serialization read
 void CvCityBuildings::Read(FDataStream& kStream)
@@ -2588,8 +2589,18 @@ void CvCityBuildings::Read(FDataStream& kStream)
 	kStream >> uiVersion;
 
 	kStream >> m_iNumBuildings;
-	kStream >> m_iBuildingMaintenance;
-	kStream >> m_iBuildingProductionModifier;
+
+	// support versions without this 
+	int temp;
+	kStream >> temp;
+	if (temp == hasMaintenanceInStream)
+	{
+		kStream >> m_iBuildingMaintenance;
+		kStream >> m_iBuildingProductionModifier;
+	}
+	else
+		m_iBuildingProductionModifier = temp;
+
 	kStream >> m_iBuildingDefense;
 #ifdef NQ_BUILDING_DEFENSE_FROM_CITIZENS
 	kStream >> m_iBuildingDefensePerCitizen;
@@ -2622,7 +2633,11 @@ void CvCityBuildings::Write(FDataStream& kStream)
 	kStream << uiVersion;
 
 	kStream << m_iNumBuildings;
+
+	// support versions without this 
+	kStream << hasMaintenanceInStream;
 	kStream << m_iBuildingMaintenance;
+
 	kStream << m_iBuildingProductionModifier;
 	kStream << m_iBuildingDefense;
 #ifdef NQ_BUILDING_DEFENSE_FROM_CITIZENS
