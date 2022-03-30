@@ -2591,15 +2591,15 @@ void CvCityBuildings::Read(FDataStream& kStream)
 	kStream >> m_iNumBuildings;
 
 	// support versions without this 
-	int temp;
-	kStream >> temp;
-	if (temp == hasMaintenanceInStream)
+	//int temp;
+	//kStream >> temp;
+	//if (temp == hasMaintenanceInStream)
 	{
 		kStream >> m_iBuildingMaintenance;
 		kStream >> m_iBuildingProductionModifier;
 	}
-	else
-		m_iBuildingProductionModifier = temp;
+	//else
+	//	m_iBuildingProductionModifier = temp;
 
 	kStream >> m_iBuildingDefense;
 #ifdef NQ_BUILDING_DEFENSE_FROM_CITIZENS
@@ -2635,7 +2635,7 @@ void CvCityBuildings::Write(FDataStream& kStream)
 	kStream << m_iNumBuildings;
 
 	// support versions without this 
-	kStream << hasMaintenanceInStream;
+	//kStream << hasMaintenanceInStream;
 	kStream << m_iBuildingMaintenance;
 
 	kStream << m_iBuildingProductionModifier;
