@@ -463,7 +463,7 @@ public:
 	// could be a city, so you can't necessarily stop on it
 	bool CanBeUsedAsWater(const PlayerTypes ePlayer) const
 	{
-		return isWater() || IsAllowsSailLand(ePlayer) || isFriendlyCity(ePlayer);
+		return  isWater() || isLake() || IsAllowsSailLand(ePlayer) || isFriendlyCity(ePlayer);
 	};
 	// true if land units could consider this a land tile
 	bool CanBeUsedAsLand() const
