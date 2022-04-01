@@ -3467,11 +3467,16 @@ bool CvPlot::IsEnemyTerritory(const PlayerTypes ePlayer) const
 	}
 	else
 	{
-		if (ePlotOwnerTeam != ePlayerTeam) // different team
+		if (ePlotOwnerTeam == ePlayerTeam)
+		{
+			return false;
+		}
+		else // different team
 		{
 			return !IsFriendlyTerritory(ePlayer);
 		}
 	}
+	return false;
 }
 // --------------------------------------------------------------------------------- // from Izy
 bool CvPlot::IsAllowsSailLand(PlayerTypes ePlayer) const
