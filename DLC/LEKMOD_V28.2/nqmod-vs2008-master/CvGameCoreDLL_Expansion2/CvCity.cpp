@@ -7582,6 +7582,11 @@ void CvCity::processSpecialist(SpecialistTypes eSpecialist, int iChange)
 /// Process the majority religion changing for a city
 void CvCity::UpdateReligion(ReligionTypes eNewMajority)
 {
+	if (m_eOldMajority == eNewMajority)
+		return;
+
+	m_eOldMajority = eNewMajority;
+
 	updateYield();
 
 	// Reset city level yields
@@ -7661,83 +7666,38 @@ void CvCity::UpdateReligion(ReligionTypes eNewMajority)
 					}
 				}
 				
-				if (GetCityCitizens()->GetTotalSpecialistCount() > 0)
-				{
-					switch(iYield)
-					{
-					case YIELD_CULTURE:
-						ChangeJONSCulturePerTurnFromReligion(pReligion->m_Beliefs.GetYieldChangeAnySpecialist((YieldTypes)iYield));
-						break;
-					case YIELD_FAITH:
-						ChangeFaithPerTurnFromReligion(pReligion->m_Beliefs.GetYieldChangeAnySpecialist((YieldTypes)iYield));
-						break;
-					default:
-						ChangeBaseYieldRateFromReligion((YieldTypes)iYield, pReligion->m_Beliefs.GetYieldChangeAnySpecialist((YieldTypes)iYield));
-						break;
-					}
-				}
-
-				// Buildings
-//#ifdef AUI_WARNING_FIXES
-//				for (uint jJ = 0; jJ < GC.getNumBuildingClassInfos(); jJ++)
-//#else
-//				for(int jJ = 0; jJ < GC.getNumBuildingClassInfos(); jJ++)
-//#endif
-//				{
-//					BuildingClassTypes eBuildingClass = (BuildingClassTypes)jJ;
-//
-//					CvBuildingClassInfo* pkBuildingClassInfo = GC.getBuildingClassInfo(eBuildingClass);
-//					if(!pkBuildingClassInfo)
-//					{
-//						continue;
-//					}
-//
-//					CvCivilizationInfo& playerCivilizationInfo = getCivilizationInfo();
-//					BuildingTypes eBuilding = (BuildingTypes)playerCivilizationInfo.getCivilizationBuildings(eBuildingClass);
-//
-//					if(eBuilding != NO_BUILDING)
-//					{
-//						if(GetCityBuildings()->GetNumBuilding(eBuilding) > 0)
-//						{
-//							int iYieldFromBuilding = pReligion->m_Beliefs.GetBuildingClassYieldChange(eBuildingClass, (YieldTypes)iYield, iFollowers);
-//
-//							if (isWorldWonderClass(*pkBuildingClassInfo))
-//							{
-//								iYieldFromBuilding += pReligion->m_Beliefs.GetYieldChangeWorldWonder((YieldTypes)iYield);
-//							}
-//
-//#ifdef NQ_CHEAT_SACRED_SITES_AFFECTS_GOLD
-//							if (iYield == YIELD_GOLD || iYield == YIELD_FAITH) // and now also faith ... man this is getting ugly
-//							{
-//								CvBuildingEntry *pkEntry = GC.getBuildingInfo(eBuilding);
-//								if (pkEntry && pkEntry->GetFaithCost() > 0 && pkEntry->IsUnlockedByBelief() && pkEntry->GetProductionCost() == -1)
-//								{
-//									iYieldFromBuilding += pReligion->m_Beliefs.GetFaithBuildingTourism(); // ... super ugly...
-//								}
-//							} // ... may Google forgive my eSoul...
-//#endif
-//							switch(iYield)
-//							{
-//							case YIELD_CULTURE:
-//								ChangeJONSCulturePerTurnFromReligion(iYieldFromBuilding);
-//								break;
-//							case YIELD_FAITH:
-//								ChangeFaithPerTurnFromReligion(iYieldFromBuilding);
-//								break;
-//							default:
-//								ChangeBaseYieldRateFromReligion((YieldTypes)iYield, iYieldFromBuilding);
-//								break;
-//							}
-//						}
-//					}
-//				}
 			}
 		}
 	}
 
+	UpdateReligionSpecialistBenefits(m_eOldMajority);
+
 	UpdateBuildingYields();
 
 	GET_PLAYER(getOwner()).UpdateReligion();
+}
+void CvCity::UpdateReligionSpecialistBenefits(const ReligionTypes eNewMajority)
+{
+	const CvReligion* pReligion = GC.getGame().GetGameReligions()->GetReligion(eNewMajority, getOwner());
+	for (int iYield = 0; iYield < NUM_YIELD_TYPES; iYield++)
+	{
+		const YieldTypes eYield = (YieldTypes)iYield;
+		if (GetCityCitizens()->GetTotalSpecialistCount() > 0)
+		{
+			switch (eYield)
+			{
+			case YIELD_CULTURE:
+				ChangeJONSCulturePerTurnFromReligion(pReligion->m_Beliefs.GetYieldChangeAnySpecialist(eYield));
+				break;
+			case YIELD_FAITH:
+				ChangeFaithPerTurnFromReligion(pReligion->m_Beliefs.GetYieldChangeAnySpecialist(eYield));
+				break;
+			default:
+				ChangeBaseYieldRateFromReligion(eYield, pReligion->m_Beliefs.GetYieldChangeAnySpecialist(eYield));
+				break;
+			}
+		}
+	}
 }
 
 //	--------------------------------------------------------------------------------
