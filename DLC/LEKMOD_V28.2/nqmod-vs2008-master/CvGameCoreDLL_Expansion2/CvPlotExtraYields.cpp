@@ -454,7 +454,89 @@ int CvPlayer::GetExtraYieldForBuilding
 		if (eYieldType == YIELD_SCIENTIFIC_INSIGHT && !isPercentMod && hasRationalismFinisher && isPalace)
 			yieldChange += 8;
 	}
-	
+
+	{// TIBET_STUPA - Does what it says it does... This is an annoyingly long string of code. Tried using || for the techs, but that only applied it once. 
+		const bool isStupa = eBuildingClass == BuildingClass("BUILDINGCLASS_TIBET");
+		const bool hasEducation = player.HasTech("TECH_EDUCATION");
+		const bool hasAcoustics = player.HasTech("TECH_ACOUSTICS");
+		const bool hasIndustrialization = player.HasTech("TECH_INDUSTRIALIZATION");
+		const bool hasRadio = player.HasTech("TECH_RADIO");
+		const bool hasRadar = player.HasTech("TECH_RADAR");
+		const bool hasGlobalization = player.HasTech("TECH_GLOBALIZATION");
+		if (eYieldType == YIELD_CULTURE && !isPercentMod && isStupa && hasEducation)
+			yieldChange += 1;
+		if (eYieldType == YIELD_SCIENCE && !isPercentMod && isStupa && hasEducation)
+			yieldChange += 1;
+		if (eYieldType == YIELD_PRODUCTION && !isPercentMod && isStupa && hasEducation)
+			yieldChange += 1;
+		if (eYieldType == YIELD_FOOD && !isPercentMod && isStupa && hasEducation)
+			yieldChange += 1;
+		if (eYieldType == YIELD_GOLD && !isPercentMod && isStupa && hasEducation)
+			yieldChange += 1;
+		if (eYieldType == YIELD_FAITH && !isPercentMod && isStupa && hasEducation)
+			yieldChange += 1;
+		if (eYieldType == YIELD_CULTURE && !isPercentMod && isStupa && hasAcoustics)
+			yieldChange += 1;
+		if (eYieldType == YIELD_SCIENCE && !isPercentMod && isStupa && hasAcoustics)
+			yieldChange += 1;
+		if (eYieldType == YIELD_PRODUCTION && !isPercentMod && isStupa && hasAcoustics)
+			yieldChange += 1;
+		if (eYieldType == YIELD_FOOD && !isPercentMod && isStupa && hasAcoustics)
+			yieldChange += 1;
+		if (eYieldType == YIELD_GOLD && !isPercentMod && isStupa && hasAcoustics)
+			yieldChange += 1;
+		if (eYieldType == YIELD_FAITH && !isPercentMod && isStupa && hasAcoustics)
+			yieldChange += 1;
+		if (eYieldType == YIELD_CULTURE && !isPercentMod && isStupa && hasIndustrialization)
+			yieldChange += 1;
+		if (eYieldType == YIELD_SCIENCE && !isPercentMod && isStupa && hasIndustrialization)
+			yieldChange += 1;
+		if (eYieldType == YIELD_PRODUCTION && !isPercentMod && isStupa && hasIndustrialization)
+			yieldChange += 1;
+		if (eYieldType == YIELD_FOOD && !isPercentMod && isStupa && hasIndustrialization)
+			yieldChange += 1;
+		if (eYieldType == YIELD_GOLD && !isPercentMod && isStupa && hasIndustrialization)
+			yieldChange += 1;
+		if (eYieldType == YIELD_FAITH && !isPercentMod && isStupa && hasIndustrialization)
+			yieldChange += 1;
+		if (eYieldType == YIELD_CULTURE && !isPercentMod && isStupa && hasRadio)
+			yieldChange += 1;
+		if (eYieldType == YIELD_SCIENCE && !isPercentMod && isStupa && hasRadio)
+			yieldChange += 1;
+		if (eYieldType == YIELD_PRODUCTION && !isPercentMod && isStupa && hasRadio)
+			yieldChange += 1;
+		if (eYieldType == YIELD_FOOD && !isPercentMod && isStupa && hasRadio)
+			yieldChange += 1;
+		if (eYieldType == YIELD_GOLD && !isPercentMod && isStupa && hasRadio)
+			yieldChange += 1;
+		if (eYieldType == YIELD_FAITH && !isPercentMod && isStupa && hasRadio)
+			yieldChange += 1;
+		if (eYieldType == YIELD_CULTURE && !isPercentMod && isStupa && hasRadar)
+			yieldChange += 1;
+		if (eYieldType == YIELD_SCIENCE && !isPercentMod && isStupa && hasRadar)
+			yieldChange += 1;
+		if (eYieldType == YIELD_PRODUCTION && !isPercentMod && isStupa && hasRadar)
+			yieldChange += 1;
+		if (eYieldType == YIELD_FOOD && !isPercentMod && isStupa && hasRadar)
+			yieldChange += 1;
+		if (eYieldType == YIELD_GOLD && !isPercentMod && isStupa && hasRadar)
+			yieldChange += 1;
+		if (eYieldType == YIELD_FAITH && !isPercentMod && isStupa && hasRadar)
+			yieldChange += 1;
+		if (eYieldType == YIELD_CULTURE && !isPercentMod && isStupa && hasGlobalization)
+			yieldChange += 1;
+		if (eYieldType == YIELD_SCIENCE && !isPercentMod && isStupa && hasGlobalization)
+			yieldChange += 1;
+		if (eYieldType == YIELD_PRODUCTION && !isPercentMod && isStupa && hasGlobalization)
+			yieldChange += 1;
+		if (eYieldType == YIELD_FOOD && !isPercentMod && isStupa && hasGlobalization)
+			yieldChange += 1;
+		if (eYieldType == YIELD_GOLD && !isPercentMod && isStupa && hasGlobalization)
+			yieldChange += 1;
+		if (eYieldType == YIELD_FAITH && !isPercentMod && isStupa && hasGlobalization)
+			yieldChange += 1;
+	}
+		
 	return yieldChange;
 }
 
