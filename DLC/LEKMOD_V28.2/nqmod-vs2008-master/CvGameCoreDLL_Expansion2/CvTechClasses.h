@@ -179,18 +179,16 @@ public:
 
 	// Accessor functions
 	std::vector<CvTechEntry*>& GetTechEntries();
-#ifdef AUI_WARNING_FIXES
-	uint GetNumTechs() const;
-	_Ret_maybenull_ CvTechEntry* GetEntry(uint index);
-#else
-	int GetNumTechs();
-	_Ret_maybenull_ CvTechEntry* GetEntry(int index);
-#endif
+
+	int GetNumTechs() const;
+	CvTechEntry* GetEntry(int index) const;
 
 	void DeleteArray();
+	TechTypes Tech(const string name) const;
 
 private:
 	std::vector<CvTechEntry*> m_paTechEntries;
+	mutable std::map<string, TechTypes> map;
 };
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
