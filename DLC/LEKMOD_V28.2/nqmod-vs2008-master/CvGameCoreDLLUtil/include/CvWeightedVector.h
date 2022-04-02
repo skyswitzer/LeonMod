@@ -8,7 +8,7 @@
 #include "FFastVector.h"
 
 // Functor for random number callback routine
-typedef fastdelegate::FastDelegate3<int, const char *, unsigned long, int> RandomNumberDelegate;
+typedef fastdelegate::FastDelegate3<unsigned short, const char *, unsigned long, int> RandomNumberDelegate;
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //  CLASS:     CvWeightedVector

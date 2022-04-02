@@ -440,6 +440,7 @@ bool CvGame::init2()
 
 	initScoreCalculation();
 	setFinalInitialized(true);
+	vector<PlayerTypes> playersEverAlive;
 
 	return true;
 }
@@ -755,6 +756,14 @@ void CvGame::InitPlayers()
 
 		kPlayer.init(ePlayer);
 	}
+
+	for (int i = 0; i < MAX_CIV_PLAYERS; ++i)
+	{
+		if (GET_PLAYER((PlayerTypes)i).isEverAlive())
+		{
+			m_playersEverAlive.push_back((PlayerTypes)i);
+		}
+	}
 }
 
 //	--------------------------------------------------------------------------------
@@ -1031,6 +1040,7 @@ void CvGame::uninit()
 
 	m_aszDestroyedCities.clear();
 	m_aszGreatPeopleBorn.clear();
+	m_playersEverAlive.clear();
 
 	m_voteSelections.Uninit();
 	m_votesTriggered.Uninit();
@@ -4051,40 +4061,23 @@ int CvGame::getAdjustedLandPercent(VictoryTypes eVictory) const
 //	--------------------------------------------------------------------------------
 int CvGame::countCivPlayersAlive() const
 {
-	int iCount;
-	int iI;
-
-	iCount = 0;
-
-	for(iI = 0; iI < MAX_CIV_PLAYERS; iI++)
+	int count = 0;
+	for(int i = 0; i < m_playersEverAlive.size(); i++)
 	{
-		if(GET_PLAYER((PlayerTypes)iI).isAlive())
+		if(GET_PLAYER(m_playersEverAlive[i]).isAlive())
 		{
-			iCount++;
+			count++;
 		}
 	}
 
-	return iCount;
+	return count;
 }
 
 
 //	--------------------------------------------------------------------------------
 int CvGame::countCivPlayersEverAlive() const
 {
-	int iCount;
-	int iI;
-
-	iCount = 0;
-
-	for(iI = 0; iI < MAX_CIV_PLAYERS; iI++)
-	{
-		if(GET_PLAYER((PlayerTypes)iI).isEverAlive())
-		{
-			iCount++;
-		}
-	}
-
-	return iCount;
+	return m_playersEverAlive.size();
 }
 
 
@@ -4131,46 +4124,38 @@ int CvGame::countCivTeamsEverAlive() const
 //	--------------------------------------------------------------------------------
 int CvGame::countHumanPlayersAlive() const
 {
-	int iCount;
-	int iI;
-
-	iCount = 0;
-
-	for(iI = 0; iI < MAX_CIV_PLAYERS; iI++)
+	int count = 0;
+	for (int i = 0; i < m_playersEverAlive.size(); i++)
 	{
-		if(GET_PLAYER((PlayerTypes)iI).isAlive())
+		if (GET_PLAYER(m_playersEverAlive[i]).isAlive())
 		{
-			if(GET_PLAYER((PlayerTypes)iI).isHuman())
+			if (GET_PLAYER(m_playersEverAlive[i]).isHuman())
 			{
-				iCount++;
+				count++;
 			}
 		}
 	}
 
-	return iCount;
+	return count;
 }
 
 
 //	--------------------------------------------------------------------------------
 int CvGame::countHumanPlayersEverAlive() const
 {
-	int iCount;
-	int iI;
-
-	iCount = 0;
-
-	for(iI = 0; iI < MAX_CIV_PLAYERS; iI++)
+	int count = 0;
+	for (int i = 0; i < m_playersEverAlive.size(); i++)
 	{
-		if(GET_PLAYER((PlayerTypes)iI).isEverAlive())
+		if (GET_PLAYER(m_playersEverAlive[i]).isEverAlive())
 		{
-			if(GET_PLAYER((PlayerTypes)iI).isHuman())
+			if (GET_PLAYER(m_playersEverAlive[i]).isHuman())
 			{
-				iCount++;
+				count++;
 			}
 		}
 	}
 
-	return iCount;
+	return count;
 }
 
 #ifndef AUI_GAME_PLAYER_BASED_TURN_LENGTH
@@ -9956,7 +9941,7 @@ CvRandom& CvGame::getJonRandUnsafe()
 //	--------------------------------------------------------------------------------
 /// Get a synchronous random number in the range of 0...iNum-1
 /// Allows for logging.
-int CvGame::getJonRandNum(int iNum, const char* pszLog, const CvPlot* plot, const unsigned long other)
+int CvGame::getJonRandNum(unsigned short usMaxExclusive, const char* pszLog, const CvPlot* plot, const unsigned long other) const
 {
 	int x = 1;
 	int y = 1;
@@ -9965,14 +9950,14 @@ int CvGame::getJonRandNum(int iNum, const char* pszLog, const CvPlot* plot, cons
 		x = plot->getX();
 		y = plot->getY();
 	}
-	return m_jonRand.getSafe(iNum, GC.getFakeSeed(x, y, other + iNum));
+	return m_jonRand.getSafe(usMaxExclusive, GC.getFakeSeed(x, y, other + (unsigned long)usMaxExclusive));
 }
 
-int CvGame::getJonRandNumExtraSafe(int iNum, const char* pszLog, const unsigned long other)
+int CvGame::getJonRandNumExtraSafe(unsigned short usMaxExclusive, const char* pszLog, const unsigned long other) const
 {
 	int x = 1;
 	int y = 1;
-	return m_jonRand.getSafe(iNum, GC.getFakeSeed(x, y, other + iNum));
+	return m_jonRand.getSafe(usMaxExclusive, GC.getFakeSeed(x, y, other + (unsigned long)usMaxExclusive));
 }
 
 #ifdef AUI_BINOM_RNG
@@ -9990,7 +9975,7 @@ int CvGame::getJonRandNumBinom(int iNum, const char* pszLog)
 /// Allows for logging.
 // Unfortunately we need to name the method differently so that the non-va one can still exist without
 // causing ambiguous call errors.  The non VA one is needed for use as a delegate
-int CvGame::getJonRandNumVA(int iNum, const char* pszLog, ...)
+int CvGame::getJonRandNumVA(unsigned short usMaxExclusive, const char* pszLog, ...)
 {
 	if (pszLog)
 	{
@@ -10002,18 +9987,18 @@ int CvGame::getJonRandNumVA(int iNum, const char* pszLog, ...)
 		vsprintf_s(szOutput, uiOutputSize, pszLog, vl);
 		va_end(vl);
 
-		return m_jonRand.get(iNum, 2, szOutput);
+		return m_jonRand.get(usMaxExclusive, 2, szOutput);
 	}
 	else
-		return m_jonRand.get(iNum, 2);
+		return m_jonRand.get(usMaxExclusive, 2);
 }
 
 //	--------------------------------------------------------------------------------
 /// Get an asynchronous random number in the range of 0...iNum-1
 /// This should only be called by operations that will not effect gameplay!
-int CvGame::getAsyncRandNum(int iNum, const char* pszLog, unsigned long extraSeed)
+int CvGame::getAsyncRandNum(unsigned short usMaxExclusive, const char* pszLog, unsigned long extraSeed)
 {
-	return GC.getASyncRand().get(iNum, extraSeed, pszLog);
+	return GC.getASyncRand().get(usMaxExclusive, extraSeed, pszLog);
 }
 
 //	--------------------------------------------------------------------------------
@@ -12444,33 +12429,44 @@ int CvGame::GetNumHiddenArchaeologySites() const
 }
 
 //	--------------------------------------------------------------------------------
-PlayerTypes GetRandomMajorPlayer()
+PlayerTypes CvGame::GetRandomMajorPlayer(const int extraSeed, const PlayerTypes eRemove) const
 {
-	PlayerTypes ePlayer = NO_PLAYER;
-	do 
+	vector<PlayerTypes> filter;
+	for (int i = 0; i < m_playersEverAlive.size(); i++)
 	{
-		ePlayer = static_cast<PlayerTypes>(GC.getGame().getJonRandNum(MAX_MAJOR_CIVS, "Random Major Civ", NULL, ePlayer));
-	} while (!GET_PLAYER(ePlayer).isEverAlive());
+		if (m_playersEverAlive[i] != eRemove && GET_PLAYER(m_playersEverAlive[i]).isMajorCiv())
+			filter.push_back(m_playersEverAlive[i]);
+	}
+	if (filter.size() == 0)
+		return (PlayerTypes)0;
+
+	const int index = GC.getGame().getJonRandNum(filter.size(), "Random Player", NULL, 6389 * extraSeed);
+	const PlayerTypes ePlayer = filter[index];
 	return ePlayer;
 }
 
 
 //	--------------------------------------------------------------------------------
-PlayerTypes GetRandomPlayer()
+PlayerTypes CvGame::GetRandomPlayer(const int extraSeed, const PlayerTypes eRemove) const
 {
-	PlayerTypes ePlayer = NO_PLAYER;
-	int i = 0; 
-	do 
+	vector<PlayerTypes> filter;
+	for (int i = 0; i < m_playersEverAlive.size(); i++)
 	{
-		i++;
-		ePlayer = static_cast<PlayerTypes>(GC.getGame().getJonRandNum(MAX_CIV_PLAYERS, "Random Player", NULL, ePlayer + i * 2000)); // no barbs
-	} while (!GET_PLAYER(ePlayer).isEverAlive());
+		if (m_playersEverAlive[i] != eRemove)
+			filter.push_back(m_playersEverAlive[i]);
+	}
+	if (filter.size() == 0)
+		return (PlayerTypes)0;
+
+	const int index = GC.getGame().getJonRandNum(filter.size(), "Random Player", NULL, 6073 * extraSeed);
+	const PlayerTypes ePlayer = filter[index];
 	return ePlayer;
 }
 
 
 void CvGame::PopulateDigSite(CvPlot& kPlot, EraTypes eEra, GreatWorkArtifactClass eArtifact)
 {
+	countCivPlayersEverAlive();
 	CvMap& theMap = GC.getMap();
 	CvArchaeologyData digSite;
 
@@ -12506,7 +12502,7 @@ void CvGame::PopulateDigSite(CvPlot& kPlot, EraTypes eEra, GreatWorkArtifactClas
 			}
 			else // just make something up
 			{
-				digSite.m_ePlayer1 = GetRandomMajorPlayer();
+				digSite.m_ePlayer1 = GetRandomMajorPlayer(GC.getFakeSeed(kPlot.getX(), kPlot.getY(), 35));
 			}
 		}
 	}
@@ -12514,10 +12510,8 @@ void CvGame::PopulateDigSite(CvPlot& kPlot, EraTypes eEra, GreatWorkArtifactClas
 	if (eArtifact == CvTypes::getARTIFACT_BATTLE_MELEE() || eArtifact == CvTypes::getARTIFACT_BATTLE_RANGED() || eArtifact == CvTypes::getARTIFACT_RAZED_CITY())
 	{
 		PlayerTypes ePlayer2 = NO_PLAYER;
-		do 
-		{
-			ePlayer2 = GetRandomPlayer();
-		} while (ePlayer2 == digSite.m_ePlayer1);
+		int i = 0;
+		ePlayer2 = GetRandomPlayer(i, digSite.m_ePlayer1);
 		digSite.m_ePlayer2 = ePlayer2;
 	}
 
