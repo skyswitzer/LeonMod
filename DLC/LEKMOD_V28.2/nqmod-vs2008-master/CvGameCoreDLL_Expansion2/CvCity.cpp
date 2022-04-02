@@ -7520,6 +7520,7 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst, 
 	}
 
 	UpdateReligion(GetCityReligions()->GetReligiousMajority());
+	//UpdateBuildingYields(); // done in UpdateReligion
 
 	owningPlayer.DoUpdateHappiness();
 
@@ -7582,9 +7583,6 @@ void CvCity::processSpecialist(SpecialistTypes eSpecialist, int iChange)
 /// Process the majority religion changing for a city
 void CvCity::UpdateReligion(ReligionTypes eNewMajority)
 {
-	if (m_eOldMajority == eNewMajority)
-		return;
-
 	m_eOldMajority = eNewMajority;
 
 	updateYield();
@@ -7621,8 +7619,6 @@ void CvCity::UpdateReligion(ReligionTypes eNewMajority)
 			const CvReligion* pReligion = GC.getGame().GetGameReligions()->GetReligion(eNewMajority, getOwner());
 			if(pReligion)
 			{
-				int iFollowers = GetCityReligions()->GetNumFollowers(eNewMajority);
-
 				int iReligionYieldChange = pReligion->m_Beliefs.GetCityYieldChange(getPopulation(), (YieldTypes)iYield);
 				BeliefTypes eSecondaryPantheon = GetCityReligions()->GetSecondaryReligionPantheonBelief();
 				if (eSecondaryPantheon != NO_BELIEF && getPopulation() >= GC.GetGameBeliefs()->GetEntry(eSecondaryPantheon)->GetMinPopulation())
@@ -7679,22 +7675,26 @@ void CvCity::UpdateReligion(ReligionTypes eNewMajority)
 void CvCity::UpdateReligionSpecialistBenefits(const ReligionTypes eNewMajority)
 {
 	const CvReligion* pReligion = GC.getGame().GetGameReligions()->GetReligion(eNewMajority, getOwner());
-	for (int iYield = 0; iYield < NUM_YIELD_TYPES; iYield++)
+	const CvCityCitizens* pCitizens = GetCityCitizens();
+	if (pReligion != NULL && pCitizens != NULL)
 	{
-		const YieldTypes eYield = (YieldTypes)iYield;
-		if (GetCityCitizens()->GetTotalSpecialistCount() > 0)
+		for (int iYield = 0; iYield < NUM_YIELD_TYPES; iYield++)
 		{
-			switch (eYield)
+			const YieldTypes eYield = (YieldTypes)iYield;
+			if (pCitizens->GetTotalSpecialistCount() > 0)
 			{
-			case YIELD_CULTURE:
-				ChangeJONSCulturePerTurnFromReligion(pReligion->m_Beliefs.GetYieldChangeAnySpecialist(eYield));
-				break;
-			case YIELD_FAITH:
-				ChangeFaithPerTurnFromReligion(pReligion->m_Beliefs.GetYieldChangeAnySpecialist(eYield));
-				break;
-			default:
-				ChangeBaseYieldRateFromReligion(eYield, pReligion->m_Beliefs.GetYieldChangeAnySpecialist(eYield));
-				break;
+				switch (eYield)
+				{
+				case YIELD_CULTURE:
+					ChangeJONSCulturePerTurnFromReligion(pReligion->m_Beliefs.GetYieldChangeAnySpecialist(eYield));
+					break;
+				case YIELD_FAITH:
+					ChangeFaithPerTurnFromReligion(pReligion->m_Beliefs.GetYieldChangeAnySpecialist(eYield));
+					break;
+				default:
+					ChangeBaseYieldRateFromReligion(eYield, pReligion->m_Beliefs.GetYieldChangeAnySpecialist(eYield));
+					break;
+				}
 			}
 		}
 	}

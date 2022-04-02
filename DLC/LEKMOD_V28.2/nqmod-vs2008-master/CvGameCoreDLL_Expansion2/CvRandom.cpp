@@ -95,23 +95,23 @@ void CvRandom::reset(unsigned long ulSeed)
 	m_ulResetCount++;
 }
 
-unsigned short rngFromSeed(unsigned short upper, unsigned long seed)
+unsigned short rngFromSeed(unsigned short usMaxExclusive, unsigned long seed)
 {
 	// do this 3 times, otherwise slight changes in seed seem to
 	// not do enough and patterns in for loops appear
 	seed = (RANDOM_A * seed) + RANDOM_C;
 	seed = (RANDOM_A * seed) + RANDOM_C;
 	seed = (RANDOM_A * seed) + RANDOM_C;
-	unsigned short us = ((unsigned short)((((seed >> RANDOM_SHIFT) & MAX_UNSIGNED_SHORT) * ((unsigned long)upper)) / (MAX_UNSIGNED_SHORT + 1)));
+	unsigned short us = ((unsigned short)((((seed >> RANDOM_SHIFT) & MAX_UNSIGNED_SHORT) * ((unsigned long)usMaxExclusive)) / (MAX_UNSIGNED_SHORT + 1)));
 	return us;
 }
 
-unsigned short CvRandom::getSafe(unsigned short usNum, const unsigned long extraSeed) const
+unsigned short CvRandom::getSafe(unsigned short usMaxExclusive, const unsigned long extraSeed) const
 {
-	return rngFromSeed(usNum, m_ulRandomSeed + extraSeed);
+	return rngFromSeed(usMaxExclusive, m_ulRandomSeed + extraSeed);
 }
 
-void log(unsigned short upper, unsigned short newVal, unsigned long seed, const bool isSync, const char* pszLog)
+void log(unsigned short usMaxExclusive, unsigned short newVal, unsigned long seed, const bool isSync, const char* pszLog)
 {
 	if (GC.getLogging())
 	{
@@ -126,7 +126,7 @@ void log(unsigned short upper, unsigned short newVal, unsigned long seed, const 
 				if (pLog)
 				{
 					char szOut[1024] = { 0 };
-					sprintf_s(szOut, "%d, %d, %u, %u, %u, %8x, %s, %s\n", kGame.getGameTurn(), kGame.getTurnSlice(), (uint)upper, (uint)newVal, seed, (uint)0, isSync ? "sync" : "async", (pszLog != NULL) ? pszLog : "Unknown");
+					sprintf_s(szOut, "%d, %d, %u, %u, %u, %8x, %s, %s\n", kGame.getGameTurn(), kGame.getTurnSlice(), (uint)usMaxExclusive, (uint)newVal, seed, (uint)0, isSync ? "sync" : "async", (pszLog != NULL) ? pszLog : "Unknown");
 					pLog->Msg(szOut);
 				}
 			}
@@ -136,7 +136,7 @@ void log(unsigned short upper, unsigned short newVal, unsigned long seed, const 
 
 
 
-unsigned short CvRandom::get(unsigned short usNum, const unsigned long extraSeed, const char* pszLog)
+unsigned short CvRandom::get(unsigned short usMaxExclusive, const unsigned long extraSeed, const char* pszLog)
 {
 	unsigned short us = 0;
 
@@ -144,8 +144,8 @@ unsigned short CvRandom::get(unsigned short usNum, const unsigned long extraSeed
 	{
 		const unsigned long totalSeed = m_ulRandomSeed + extraSeed;
 
-		us = getSafe(usNum, extraSeed);
-		log(usNum, us, totalSeed, m_bSynchronous, pszLog);
+		us = getSafe(usMaxExclusive, extraSeed);
+		log(usMaxExclusive, us, totalSeed, m_bSynchronous, pszLog);
 	}
 	else
 	{
@@ -153,8 +153,8 @@ unsigned short CvRandom::get(unsigned short usNum, const unsigned long extraSeed
 		m_ulCallCount++;
 		unsigned long ulNewSeed = ((RANDOM_A * m_ulRandomSeed) + RANDOM_C);
 
-		us = getSafe(usNum, ulNewSeed);
-		log(usNum, us, ulNewSeed, m_bSynchronous, pszLog);
+		us = getSafe(usMaxExclusive, ulNewSeed);
+		log(usMaxExclusive, us, ulNewSeed, m_bSynchronous, pszLog);
 
 		m_ulRandomSeed = ulNewSeed;
 	}
