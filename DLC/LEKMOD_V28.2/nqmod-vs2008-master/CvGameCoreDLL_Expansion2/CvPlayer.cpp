@@ -13704,6 +13704,18 @@ bool CvPlayer::HasPolicy(const string name) const
 	return false;
 }
 
+bool CvPlayer::HasTech(const string name) const
+{
+	const CvTeamTechs* pTeamTechs = GET_TEAM(getTeam()).GetTeamTechs();
+	const TechTypes eTech = pTeamTechs->GetTechs()->Tech(name);
+	return pTeamTechs->HasTech(eTech);
+}
+
+bool CvPlayer::IsCiv(const string name) const
+{
+	return this->getCivilizationInfo().GetType() == name;
+}
+
 //	--------------------------------------------------------------------------------
 void CvPlayer::setHasPolicy(PolicyTypes eIndex, bool bNewValue)
 {

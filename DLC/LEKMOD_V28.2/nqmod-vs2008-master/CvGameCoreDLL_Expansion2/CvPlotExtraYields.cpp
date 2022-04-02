@@ -115,6 +115,8 @@ int CvPlot::getExtraYield
 			const int cityPopulation = city.getPopulation(); // number of people in this city
 			const int numTradeCityStates = player.GetTrade()->GetNumberOfCityStateTradeRoutes(); // number of trade routes we have with city states
 			const int numTradeMajorCivs = player.GetTrade()->GetNumForeignTradeRoutes(player.GetID()) - numTradeCityStates; // number of trade routes we have with other civ players (not city states)
+			//player.IsCiv("CIVILIZATION_AMERICA");
+			//player.HasTech("TECH_POTTERY");
 
 			const bool isGreatTile = plot.HasImprovement("IMPROVEMENT_ACADEMY") ||
 				plot.HasImprovement("IMPROVEMENT_CUSTOMS_HOUSE") ||
