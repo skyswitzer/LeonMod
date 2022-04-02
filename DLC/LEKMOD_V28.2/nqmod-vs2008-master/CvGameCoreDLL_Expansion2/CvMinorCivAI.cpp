@@ -666,7 +666,11 @@ int CvMinorCivQuest::GetInfluenceReward() const
 int getAStrengthNearAllBCities(PlayerTypes a, PlayerTypes b)
 {
 	int allStrength = 0;
-	const int iRange = 3;
+	const CvPlayerAI& aPlayer = GET_PLAYER(b);
+	const bool hasRangeExtension = aPlayer.HasPolicy("POLICY_LIGHTNING_WARFARE");
+	const int baseRange = 3;
+	const int iRange = hasRangeExtension ? baseRange + 1 : baseRange;
+
 	CvPlayerAI& bPlayer = GET_PLAYER(b);
 
 	// each city of player b
@@ -691,7 +695,7 @@ int getAStrengthNearAllBCities(PlayerTypes a, PlayerTypes b)
 						if (pLoopUnit && pLoopUnit->IsCombatUnit())
 						{
 							if (pLoopUnit->getOwner() == a) // unit is A's unit
-								allStrength += pLoopUnit->GetBaseCombatStrengthConsideringDamage();
+								allStrength += pLoopUnit->GetMaxAttackStrength(NULL, NULL, NULL);
 						}
 						pUnitNode = pLoopPlot->nextUnitNode(pUnitNode);
 					}
