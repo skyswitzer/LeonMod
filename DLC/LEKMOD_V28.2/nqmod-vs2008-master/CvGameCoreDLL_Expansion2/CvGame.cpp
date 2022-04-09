@@ -4963,6 +4963,7 @@ void CvGame::resetTurnTimer(bool resetGameTurnStart)
 //	--------------------------------------------------------------------------------
 int CvGame::getMaxTurnLen()
 {//returns the amount of time players are being given for this turn.
+	int ret = 0;
 #ifdef AUI_GAME_RELATIVE_TURN_TIMERS
 	if (getPitbossTurnTime() != 0 && !isOption("GAMEOPTION_RELATIVE_TURN_TIMER"))
 #else
@@ -4971,11 +4972,11 @@ int CvGame::getMaxTurnLen()
 	{//manually set turn time.
 		if(isPitboss())
 		{// Turn time is in hours
-			return (getPitbossTurnTime() * 3600);
+			ret = (getPitbossTurnTime() * 3600);
 		}
 		else
 		{
-			return getPitbossTurnTime();
+			ret = getPitbossTurnTime();
 		}
 	}
 	else
@@ -5017,8 +5018,10 @@ int CvGame::getMaxTurnLen()
 		        (kTurnTimer.getUnitResource() * iMaxUnits));
 #endif
 
-		return baseTurnTime;
+		ret = baseTurnTime;
 	}
+
+	return ret * 2;
 }
 #endif
 
