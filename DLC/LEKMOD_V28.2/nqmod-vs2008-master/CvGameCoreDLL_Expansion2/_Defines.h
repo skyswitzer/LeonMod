@@ -124,6 +124,8 @@
 #define AUI_TRADE_FIX_FSTATICVECTOR_CONTENTS_ARE_POD
 /// Fixes a possible crash that happens when flavors are broadcast
 #define AUI_FLAVORMANAGER_FIX_POSSIBLE_CRASH_ON_FLAVOR_BROADCAST
+/// Fast comparison functions (to be used for built-in types like int, float, double, etc.)
+#define NQM_FAST_COMP
 /*
 /// Can cache doubles from XML (Delnar: DatabaseUtility actually supports double-type, don't know why Firaxis didn't bother putting this in for good measure)
 #define NQM_CACHE_DOUBLE
@@ -133,8 +135,6 @@
 #define NQM_PRUNING
 /// Changes the scopes of certain functions to fall in line with other functions of the same type (eg. CvUnit::CanFallBackFromMelee() is public instead of protected)
 #define AUI_SCOPE_FIXES
-/// Fast comparison functions (to be used for built-in types like int, float, double, etc.)
-#define NQM_FAST_COMP
 /// CvWeightedVector's Top n Choices function now uses unsigned integers for indexes and choice numbers
 #define AUI_WEIGHTED_VECTOR_FIX_TOP_CHOICES_USE_UNSIGNED
 /// Tweaks to make performance logs a bit more consistent and easier to read
@@ -219,6 +219,8 @@
 */
 /// Fixes Iroquois' UA so friendly forest tiles will now connect with road tiles!
 #define AUI_UNIT_MOVEMENT_IROQUOIS_ROAD_TRANSITION_FIX
+/// FindTurnsAway() no longer returns raw distance, parameter dictates whether we're reusing paths and ignoring units (fast but rough) or not (slow but accurate)
+#define AUI_WORKER_FIND_TURNS_AWAY_USES_PATHFINDER (true)
 /*
 /// Fixes base heal mod from players not actually increasing base healing
 #define AUI_UNIT_FIX_BASE_HEAL_MOD
@@ -574,8 +576,6 @@
 #define AUI_WORKER_TWEAKED_DONT_HAVE_MULTIPLIER (6)
 /// Combat workers will increase the maximum allowed plot danger value to their current strength times this value
 #define AUI_WORKER_SHOULD_BUILDER_CONSIDER_PLOT_MAXIMUM_DANGER_BASED_ON_UNIT_STRENGTH (6)
-/// FindTurnsAway() no longer returns raw distance, parameter dictates whether we're reusing paths and ignoring units (fast but rough) or not (slow but accurate)
-#define AUI_WORKER_FIND_TURNS_AWAY_USES_PATHFINDER (true)
 #ifdef AUI_PLOT_CALCULATE_STRATEGIC_VALUE
 /// AddImprovingPlotsDirective() now processes improvement defense rate
 #define AUI_WORKER_ADD_IMPROVING_PLOTS_DIRECTIVE_DEFENSIVES

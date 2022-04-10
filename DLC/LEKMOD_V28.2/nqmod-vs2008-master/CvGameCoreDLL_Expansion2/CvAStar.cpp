@@ -3126,12 +3126,15 @@ int StepValid(CvAStarNode* parent, CvAStarNode* node, int data, const void* poin
 		return TRUE;
 	}
 
-	int iFlags = finder->GetInfo();
-	PlayerTypes ePlayer = (PlayerTypes)(iFlags & 0xFF);
+
+	short a = 0;
+	short b = 0;
+	finder->GetInfoAsTwo(&a, &b);
+	const PlayerTypes eOwner = (PlayerTypes)a;
 
 	PlayerTypes eEnemy = *(PlayerTypes*)pointer;
 
-	CvPlayer& thisPlayer = GET_PLAYER(ePlayer);
+	CvPlayer& thisPlayer = GET_PLAYER(eOwner);
 
 #ifdef AUI_ASTAR_CACHE_PLOTS_AT_NODES
 	CvPlot* pNewPlot = node->m_pPlot;
@@ -3167,7 +3170,7 @@ int StepValid(CvAStarNode* parent, CvAStarNode* node, int data, const void* poin
 	}
 
 	PlayerTypes ePlotOwnerPlayer = pNewPlot->getOwner();
-	if (ePlotOwnerPlayer != NO_PLAYER && ePlotOwnerPlayer != eEnemy && !pNewPlot->IsFriendlyTerritory(ePlayer))
+	if (ePlotOwnerPlayer != NO_PLAYER && ePlotOwnerPlayer != eEnemy && !pNewPlot->IsFriendlyTerritory(eOwner))
 	{
 		CvPlayer& plotOwnerPlayer = GET_PLAYER(ePlotOwnerPlayer);
 		bool bPlotOwnerIsMinor = plotOwnerPlayer.isMinorCiv();
@@ -3197,12 +3200,14 @@ int StepValidAnyArea(CvAStarNode* parent, CvAStarNode* node, int data, const voi
 		return TRUE;
 	}
 
-	int iFlags = finder->GetInfo();
-	PlayerTypes ePlayer = (PlayerTypes)(iFlags & 0xFF);
+	short a = 0;
+	short b = 0;
+	finder->GetInfoAsTwo(&a, &b);
+	const PlayerTypes eOwner = (PlayerTypes)a;
 
 	PlayerTypes eEnemy = *(PlayerTypes*)pointer;
 
-	CvPlayer& thisPlayer = GET_PLAYER(ePlayer);
+	CvPlayer& thisPlayer = GET_PLAYER(eOwner);
 
 #ifdef AUI_ASTAR_CACHE_PLOTS_AT_NODES
 	CvPlot* pNewPlot = node->m_pPlot;
@@ -3233,7 +3238,7 @@ int StepValidAnyArea(CvAStarNode* parent, CvAStarNode* node, int data, const voi
 	}
 
 	PlayerTypes ePlotOwnerPlayer = pNewPlot->getOwner();
-	if (ePlotOwnerPlayer != NO_PLAYER && ePlotOwnerPlayer != eEnemy && !pNewPlot->IsFriendlyTerritory(ePlayer))
+	if (ePlotOwnerPlayer != NO_PLAYER && ePlotOwnerPlayer != eEnemy && !pNewPlot->IsFriendlyTerritory(eOwner))
 	{
 		CvPlayer& plotOwnerPlayer = GET_PLAYER(ePlotOwnerPlayer);
 		bool bPlotOwnerIsMinor = plotOwnerPlayer.isMinorCiv();
@@ -3526,8 +3531,13 @@ int RouteValid(CvAStarNode* parent, CvAStarNode* node, int data, const void* poi
 		return TRUE;
 	}
 
+
+	short a = 0;
+	short b = 0;
+	finder->GetInfoAsTwo(&a, &b);
+	const PlayerTypes eOwner = (PlayerTypes)a;
+
 	int iFlags = finder->GetInfo();
-	PlayerTypes ePlayer = (PlayerTypes)(iFlags & 0xFF);
 #ifdef AUI_ASTAR_CACHE_PLOTS_AT_NODES
 #ifdef AUI_ASTAR_MINOR_OPTIMIZATION
 	const CvPlot* pNewPlot = node->m_pPlot;
@@ -3542,7 +3552,7 @@ int RouteValid(CvAStarNode* parent, CvAStarNode* node, int data, const void* poi
 	pNewPlot = GC.getMap().plotUnchecked(node->m_iX, node->m_iY);
 #endif
 
-	CvPlayer& kPlayer = GET_PLAYER(ePlayer);
+	const CvPlayer& kPlayer = GET_PLAYER(eOwner);
 	if((iFlags & MOVE_ROUTE_ALLOW_UNEXPLORED) == 0 && !(pNewPlot->isRevealed(kPlayer.getTeam())))
 	{
 		return FALSE;
@@ -3550,7 +3560,7 @@ int RouteValid(CvAStarNode* parent, CvAStarNode* node, int data, const void* poi
 
 	if(kPlayer.GetPlayerTraits()->IsMoveFriendlyWoodsAsRoad())
 	{
-		if(pNewPlot->getOwner() == ePlayer)
+		if(pNewPlot->getOwner() == eOwner)
 		{
 			if(pNewPlot->getFeatureType() == FEATURE_FOREST || pNewPlot->getFeatureType() == FEATURE_JUNGLE)
 			{
@@ -3570,22 +3580,22 @@ int RouteValid(CvAStarNode* parent, CvAStarNode* node, int data, const void* poi
 		return FALSE;
 	}
 
-	if(!pNewPlot->IsFriendlyTerritory(ePlayer))
+	if(!pNewPlot->IsFriendlyTerritory(eOwner))
 	{
 		PlayerTypes ePlotOwnerPlayer = pNewPlot->getOwner();
 		if(ePlotOwnerPlayer != NO_PLAYER)
 		{
 			PlayerTypes eMajorPlayer = NO_PLAYER;
 			PlayerTypes eMinorPlayer = NO_PLAYER;
-			CvPlayer& kPlotOwner = GET_PLAYER(ePlotOwnerPlayer);
+			const CvPlayer& kPlotOwner = GET_PLAYER(ePlotOwnerPlayer);
 			if(kPlayer.isMinorCiv() && !kPlotOwner.isMinorCiv())
 			{
 				eMajorPlayer = ePlotOwnerPlayer;
-				eMinorPlayer = ePlayer;
+				eMinorPlayer = eOwner;
 			}
 			else if(kPlotOwner.isMinorCiv() && !kPlayer.isMinorCiv())
 			{
-				eMajorPlayer = ePlayer;
+				eMajorPlayer = eOwner;
 				eMinorPlayer = ePlotOwnerPlayer;
 			}
 			else
@@ -3615,10 +3625,7 @@ int RouteValid(CvAStarNode* parent, CvAStarNode* node, int data, const void* poi
 	}
 	else
 	{
-		int iRoute = iFlags & 0xFF00;
-		iRoute = iRoute >> 8;
-		iRoute = iRoute - 1;
-		RouteTypes eRequiredRoute = (RouteTypes)(iRoute);
+		const RouteTypes eRequiredRoute = (RouteTypes)(b - 1);
 		if(eRouteType == eRequiredRoute)
 		{
 			return TRUE;
@@ -3776,14 +3783,13 @@ int BuildRouteCost(CvAStarNode* parent, CvAStarNode* node, int data, const void*
 #else
 	CvPlot* pPlot = GC.getMap().plotUnchecked(node->m_iX, node->m_iY);
 #endif
-	int iFlags = finder->GetInfo();
-	PlayerTypes ePlayer = (PlayerTypes)(iFlags & 0xFF);
-	TeamTypes eTeam = GET_PLAYER(ePlayer).getTeam();
+	short a = 0;
+	short b = 0;
+	finder->GetInfoAsTwo(&a, &b);
+	const PlayerTypes eOwner = (PlayerTypes)a;
+	RouteTypes eRoute = (RouteTypes)(b - 1);
 
-	int iRoute = iFlags & 0xFF00;
-	iRoute = iRoute >> 8;
-	iRoute = iRoute - 1;
-	RouteTypes eRoute = (RouteTypes)(iRoute);
+	TeamTypes eTeam = GET_PLAYER(eOwner).getTeam();
 
 	if(pPlot->getRouteType() != NO_ROUTE)
 	{
@@ -3815,7 +3821,7 @@ int BuildRouteCost(CvAStarNode* parent, CvAStarNode* node, int data, const void*
 	}
 
 	// if the tile already been tagged for building a road, then provide a discount
-	if(pPlot->GetBuilderAIScratchPadTurn() == GC.getGame().getGameTurn() && pPlot->GetBuilderAIScratchPadPlayer() == ePlayer)
+	if(pPlot->GetBuilderAIScratchPadTurn() == GC.getGame().getGameTurn() && pPlot->GetBuilderAIScratchPadPlayer() == eOwner)
 	{
 		iMaxValue = (int)(iMaxValue * PATH_BUILD_ROUTE_ALREADY_FLAGGED_DISCOUNT);
 	}
@@ -3843,10 +3849,12 @@ int BuildRouteValid(CvAStarNode* parent, CvAStarNode* node, int data, const void
 		return TRUE;
 	}
 
-	int iFlags = finder->GetInfo();
-	PlayerTypes ePlayer = (PlayerTypes)(iFlags & 0xFF);
+	short a = 0;
+	short b = 0;
+	finder->GetInfoAsTwo(&a, &b);
+	const PlayerTypes eOwner = (PlayerTypes)a;
 
-	CvPlayer& thisPlayer = GET_PLAYER(ePlayer);
+	CvPlayer& thisPlayer = GET_PLAYER(eOwner);
 	bool bThisPlayerIsMinor = thisPlayer.isMinorCiv();
 
 #ifdef AUI_ASTAR_CACHE_PLOTS_AT_NODES
@@ -3883,7 +3891,7 @@ int BuildRouteValid(CvAStarNode* parent, CvAStarNode* node, int data, const void
 	}
 
 	PlayerTypes ePlotOwnerPlayer = pNewPlot->getOwner();
-	if(ePlotOwnerPlayer != NO_PLAYER && !pNewPlot->IsFriendlyTerritory(ePlayer))
+	if(ePlotOwnerPlayer != NO_PLAYER && !pNewPlot->IsFriendlyTerritory(eOwner))
 	{
 		PlayerTypes eMajorPlayer = NO_PLAYER;
 		PlayerTypes eMinorPlayer = NO_PLAYER;
@@ -3891,11 +3899,11 @@ int BuildRouteValid(CvAStarNode* parent, CvAStarNode* node, int data, const void
 		if(bThisPlayerIsMinor && !bPlotOwnerIsMinor)
 		{
 			eMajorPlayer = ePlotOwnerPlayer;
-			eMinorPlayer = ePlayer;
+			eMinorPlayer = eOwner;
 		}
 		else if(bPlotOwnerIsMinor && !bThisPlayerIsMinor)
 		{
-			eMajorPlayer = ePlayer;
+			eMajorPlayer = eOwner;
 			eMinorPlayer = ePlotOwnerPlayer;
 		}
 		else

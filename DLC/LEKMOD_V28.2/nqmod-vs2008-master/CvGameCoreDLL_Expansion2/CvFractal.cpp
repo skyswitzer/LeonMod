@@ -478,7 +478,7 @@ void CvFractal::ridgeBuilder(CvRandom& random, int iNumVoronoiSeeds, int iRidgeF
 #elif defined(AUI_USE_SFMT_RNG) || defined(AUI_WARNING_FIXES)
 		thisVoronoiSeed.m_iWeakness = MAX(0, int(random.get(7, "Ridge Gen 3")) - 3); // ??? do we want to parameterize this???
 #elif defined(NQM_FAST_COMP)
-		thisVoronoiSeed.m_iWeakness = MAX(0, random.get(7, "Ridge Gen 3") - 3); // ??? do we want to parameterize this???
+		thisVoronoiSeed.m_iWeakness = MAX(0, random.get(m_iFracX, CvRandom::MutateSeed, "Ridge Gen 2") - 3); // ??? do we want to parameterize this???
 #else
 		thisVoronoiSeed.m_iWeakness = std::max(0,random.get(7, CvRandom::MutateSeed, "Ridge Gen 3")-3); // ??? do we want to parameterize this???
 #endif
@@ -488,7 +488,7 @@ void CvFractal::ridgeBuilder(CvRandom& random, int iNumVoronoiSeeds, int iRidgeF
 #elif defined(AUI_USE_SFMT_RNG) || defined(AUI_WARNING_FIXES)
 		thisVoronoiSeed.m_iDirectionalBiasStrength = MAX(0, int(random.get(8, "Ridge Gen 5")) - 4); // ??? do we want to parameterize this???
 #elif defined(NQM_FAST_COMP)
-		thisVoronoiSeed.m_iDirectionalBiasStrength = MAX(0, random.get(8, "Ridge Gen 5") - 4); // ??? do we want to parameterize this???
+		thisVoronoiSeed.m_iDirectionalBiasStrength = MAX(0, random.get(m_iFracX, CvRandom::MutateSeed, "Ridge Gen 2") - 4); // ??? do we want to parameterize this???
 #else
 		thisVoronoiSeed.m_iDirectionalBiasStrength = std::max(0,random.get(8, CvRandom::MutateSeed, "Ridge Gen 5") - 4); // ??? do we want to parameterize this???
 #endif
