@@ -61,6 +61,7 @@ int CvPlot::getExtraYield
 	const PlayerTypes tileOwner
 )
 {
+	return 0;
 	const CvPlot& plot = *this;
 	// city that is/could work this tile
 	const CvCity* pWorkingCity = plot.getWorkingCity();
@@ -341,6 +342,7 @@ int CvPlayer::GetExtraYieldForBuilding
 	const bool isPercentMod
 ) const
 {
+	return 0;
 	int yieldChange = 0;
 
 	const CvPlayer& player = *this;
@@ -473,6 +475,7 @@ int CvGlobals::getDIPLOMATIC_INFLUENCE_PER_QUEST(const PlayerTypes eMinor, const
 
 int CvPlayerTrade::GetTradeConnectionValueExtra(const TradeConnection& kTradeConnection, const YieldTypes eYieldType, const bool bIsOwner) const
 {
+	return 0;
 	float yieldChange = 0.0f;
 	const CvPlayer& playerOrigin = GET_PLAYER(kTradeConnection.m_eOriginOwner);
 	const CvPlayer& playerDest = GET_PLAYER(kTradeConnection.m_eDestOwner);

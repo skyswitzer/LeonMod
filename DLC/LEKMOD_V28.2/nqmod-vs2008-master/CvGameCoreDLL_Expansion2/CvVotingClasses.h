@@ -1026,7 +1026,7 @@ private:
 	int ScoreProposal(const CvLeague* pLeague, const CvActiveResolution* pResolution, PlayerTypes eProposalPlayer = NO_PLAYER) const;
 #elif defined(AUI_WARNING_FIXES) || defined(AUI_CONSTIFY)
 	int ScoreProposal(const CvLeague* pLeague, ResolutionTypes eResolution, int iChoice = LeagueHelpers::CHOICE_NONE) const;
-	int ScoreProposal(const CvLeague* pLeague, CvActiveResolution* pResolution) const;
+	int ScoreProposal(const CvLeague* pLeague, const CvActiveResolution* pResolution) const;
 #else
 	int ScoreProposal(CvLeague* pLeague, ResolutionTypes eResolution, int iChoice = LeagueHelpers::CHOICE_NONE);
 	int ScoreProposal(CvLeague* pLeague, CvActiveResolution* pResolution);

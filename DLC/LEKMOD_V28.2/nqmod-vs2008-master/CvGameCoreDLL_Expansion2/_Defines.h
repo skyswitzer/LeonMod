@@ -20,34 +20,123 @@
 #define M_GLDNRT	1.61803398874989484820
 #define fM_GLDNRT	1.618033989f		//!< (1 + sqrt(5))/2 (float), aka The Golden Ratio
 
+/// Fixes some sources for level 4 warnings
+//#define AUI_WARNING_FIXES
 // Technical Improvements
 /// New GUID for NQMod
 #define NQM_GUID
 /// Enables Minidump Generation (originally for Civ4 by terkhen, ported to Civ5 by ls612)
 #define NQM_MINIDUMPS
+/// Optimized parts of functions responsible for updating plot vision code
+#define AUI_PLOT_VISIBILITY_OPTIMIZATIONS
+/// Optimizations and fixes to reduce distance check overhead
+#define AUI_FIX_HEX_DISTANCE_INSTEAD_OF_PLOT_DISTANCE
+/// Performance optimizations related to bit twiddling (http://www.graphics.stanford.edu/~seander/bithacks.html)
+#define NQM_GAME_CORE_UTILS_OPTIMIZATIONS
+/// Replaces all instances of iterators with postfix incrementors to have prefix incrementors, increasing performance
+#define AUI_ITERATOR_POSTFIX_INCREMENT_OPTIMIZATIONS
+/// CvUnit::canMoveInto() is optimized to not perform redundant checks for attack flag (also improves pathfinder performance)
+#define AUI_UNIT_FIX_CAN_MOVE_INTO_OPTIMIZED
+/// Optimizes loops that iterate over relative coordinates to hexspace
+#define AUI_HEXSPACE_DX_LOOPS
+/// Eliminates an unneccessary loop and a few more steps from the function that stores a trade route's path into the trade route's data
+#define AUI_TRADE_OPTIMIZE_COPY_PATH_INTO_TRADE_CONNECTION
+
+// Pathfinder (A*) optimizations, tweaks, and fixes
+/// Removes instances of alloc, malloc, and firemalloc from AStar and replaces them with new (also replaced corresponding free calls with delete calls)
+#define AUI_ASTAR_REMOVE_MALLOC
+/// A* functions no longer run the canEnterTerrain() functions during validation (it should normally be run once and cached, but Firaxis did a bunch of stupids)
+#define AUI_ASTAR_FIX_CAN_ENTER_TERRAIN_NO_DUPLICATE_CALLS
+/// Moves the check for whether a node has no parent to the beginning of PathValid() (originally from Community Patch)
+#define AUI_ASTAR_FIX_PARENT_NODE_ALWAYS_VALID_OPTIMIZATION
+/// Reorders some checks to make sure ones that process faster get executed first (if they fail, then the function skips checking the slower ones)
+#define AUI_ASTAR_FIX_FASTER_CHECKS
+/// Calculates the neighbors of a tile on pathfinder initialization instead of at path construction (originally from Community Patch)
+#define AUI_ASTAR_PRECALCULATE_NEIGHBORS_ON_INITIALIZE
+/// Minor A* optimizations
+#define AUI_ASTAR_MINOR_OPTIMIZATION
+/// Pathfinders now have a built-in turn limiter that invalidates too long paths they are being built instead of after the best path has been calculated (also enables calculating turns to a target from a plot other than the unit's current plot)
+#define AUI_ASTAR_TURN_LIMITER
+/// Gets the last node before the parent (used for planning melee attacks to know where they'd attack from)
+#define AUI_ASTAR_GET_PENULTIMATE_NODE
+/// Fixes possible null pointer dereferences in A*
+#define AUI_ASTAR_FIX_POSSIBLE_NULL_POINTERS
+/// Human-controlled missionaries and units will still want to avoid undesirable tiles a bit when planning paths, though not to the full extent that an AI-controlled unit would (parameter value is the extra "cost" weight added)
+#define AUI_ASTAR_HUMAN_UNITS_GET_DIMINISHED_AVOID_WEIGHT (1)
+/// Pointers to the plot representing each A* node are stored in the A* node in question
+#define AUI_ASTAR_CACHE_PLOTS_AT_NODES
+/// Adds a new function that is a middle-of-the-road fix for allowing the functions to take account of roads and railroads without calling pathfinder too often
+#define AUI_ASTAR_TWEAKED_OPTIMIZED_BUT_CAN_STILL_USE_ROADS
+/// The danger of a tile will only be considered when checking path nodes, not when checking the destination (stops units from freezing in panic)
+#define AUI_ASTAR_FIX_CONSIDER_DANGER_ONLY_PATH
+/// The path's destination's danger value will be considered instead of the original plot's danger value, otherwise we're just immobilizing AI units (oddly enough, the Civ4 algorithm is fine, only the Civ5 ones needed to be fixed)
+#define AUI_ASTAR_FIX_CONSIDER_DANGER_USES_TO_PLOT_NOT_FROM_PLOT
+#ifdef AUI_ASTAR_FIX_CONSIDER_DANGER_USES_TO_PLOT_NOT_FROM_PLOT
+/// If the pathfinder does not ignore danger, the plot we're moving from must pass the danger check before we consider the destination plot's danger
+#define AUI_ASTAR_FIX_CONSIDER_DANGER_ONLY_POSITIVE_DANGER_DELTA
+#endif
+/// If the pathfinder does not ignore danger, use the unit's combat strength times this value as the danger limit instead of 0 (important for combat units)
+#define AUI_ASTAR_FIX_CONSIDER_DANGER_USES_COMBAT_STRENGTH (6)
+/// AI-controlled units no longer ignore all paths with peaks; since the peak plots are checked anyway for whether or not a unit can enter them, this check is pointless
+#define AUI_ASTAR_FIX_PATH_VALID_PATH_PEAKS_FOR_NONHUMAN
+/// Mountain tiles are no longer automatically marked as invalid steps
+#define AUI_ASTAR_FIX_STEP_VALID_CONSIDERS_MOUNTAINS
+#ifdef AUI_PLOT_GET_VISIBLE_ENEMY_DEFENDER_TO_UNIT
+/// When a unit will attack onto a plot, it will try to minimize the damage it would receive from each plot candidate. If it will always die, it will instead maximize dealt damage.
+#define AUI_ASTAR_CONSIDER_DAMAGE_WHEN_ATTACKING
+#endif
+#ifndef AUI_ASTAR_CONSIDER_DAMAGE_WHEN_ATTACKING // Already handled by the other algorithm
+/// When a unit will attack onto a plot, river crossings are avoided whenever possible
+#define AUI_ASTAR_AVOID_RIVER_CROSSING_WHEN_ATTACKING
+#endif
+/// Units without a defense bonus still consider a tile's defense penalties when pathfinding
+#define AUI_ASTAR_FIX_DEFENSE_PENALTIES_CONSIDERED_FOR_UNITS_WITHOUT_DEFENSE_BONUS
+/// Fixes a nonsense territory check in the Ignore Units pathfinder (can this unit enter territory owned by this unit's team?) by replacing it with one that actually makes sense (can this unit enter territory of the player who owns the target plot?)
+#define AUI_ASTAR_FIX_IGNORE_UNITS_PATHFINDER_TERRITORY_CHECK
+/// In addition to the movement cost from features on a tile, the route recommender will now also consider the movement cost of moving onto a tile with hills
+#define AUI_ASTAR_FIX_BUILD_ROUTE_COST_CONSIDER_HILLS_MOVEMENT
+/// When a unit is set to auto-explore, it will consider how many tiles are revealed past the 1st ring as well
+#define AUI_ASTAR_FIX_MAXIMIZE_EXPLORE_CONSIDER_2ND_RING_NONREVEALED
+/// Units that are on automated explore will prefer to visit tiles that have a higher "see from" stat instead of just hills (eg. helps with Carthage)
+#define AUI_ASTAR_FIX_MAXIMIZE_EXPLORE_UNHARDCODE_HILL_PREFERENCE
+/// Tweaks the amount of extra cost a tile receives for each new tile it doesn't reveal
+#define AUI_ASTAR_TWEAKED_PATH_EXPLORE_NON_REVEAL_WEIGHT (50)
+/// Units with the Explore UnitAIType will always move to maximize exploration
+#define AUI_ASTAR_EXPLORE_UNITAITYPE_ALWAYS_MAXIMIZES_EXPLORE
+/// Trade routes will prefer tiles owned by either party over unowned tiles, and will prefer unowned tiles over tiles owned by a third party
+#define AUI_ASTAR_TRADE_ROUTE_COST_TILE_OWNERSHIP_PREFS
+/// CvUnit::canMoveOrAttackInto() no longer calls certain expensive calls twice (also improves pathfinder performance)
+#define AUI_UNIT_FIX_CAN_MOVE_OR_ATTACK_INTO_NO_DUPLICATE_CALLS
+/// Fixes the influence cost calculator function to only enable the reuse pathfinder flag when it wouldn't result in incorrect data
+#define AUI_MAP_FIX_CALCULATE_INFLUENCE_DISTANCE_REUSE_PATHFINDER
+/// The object used to store danger values is changed to an array instead of an FFastVector
+#define AUI_DANGER_PLOTS_FIX_USE_ARRAY_NOT_FFASTVECTOR
+
+/// Enables const for functions, variables, and parameters that both allow it and are intended to be const
+#define AUI_CONSTIFY
+/// Fixes a possible crash when exiting the game caused by heap corruption when deallocating CvGameLeagues due to misuse of an FStaticVector
+#define AUI_LEAGUES_FIX_POSSIBLE_DEALLOCATION_CRASH
+/// Fixes a possible crash when exiting the game caused by too few items in a FStaticVector
+#define AUI_TRADE_FIX_POSSIBLE_DEALLOCATION_CRASH
+/// Adds explicit clearing functions to certain destructors to make sure they are executed to avoid memory corruption
+#define AUI_EXPLICIT_DESTRUCTION
+/// Fixes the fact that an FStaticVector type containing objects with trivial constructors (i.e. they are "Plain Old Data" = POD) is treated as the vector type wouldn't be POD (improves stability and performance)
+#define AUI_TRADE_FIX_FSTATICVECTOR_CONTENTS_ARE_POD
+/// Fixes a possible crash that happens when flavors are broadcast
+#define AUI_FLAVORMANAGER_FIX_POSSIBLE_CRASH_ON_FLAVOR_BROADCAST
 /*
 /// Can cache doubles from XML (Delnar: DatabaseUtility actually supports double-type, don't know why Firaxis didn't bother putting this in for good measure)
 #define NQM_CACHE_DOUBLE
-/// Enables const for functions, variables, and parameters that both allow it and are intended to be const
-#define AUI_CONSTIFY
 /// Replaces instances of vector loops using indeces with ones that use iterators
 #define AUI_ITERATORIZE
 /// Removes unused functions that simply increase file size of the DLL without providing any benefit
 #define NQM_PRUNING
-/// Fixes some sources for level 4 warnings
-#define AUI_WARNING_FIXES
 /// Changes the scopes of certain functions to fall in line with other functions of the same type (eg. CvUnit::CanFallBackFromMelee() is public instead of protected)
 #define AUI_SCOPE_FIXES
-/// Replaces all instances of iterators with postfix incrementors to have prefix incrementors, increasing performance
-#define AUI_ITERATOR_POSTFIX_INCREMENT_OPTIMIZATIONS
 /// Fast comparison functions (to be used for built-in types like int, float, double, etc.)
 #define NQM_FAST_COMP
-/// Performance optimizations related to bit twiddling (http://www.graphics.stanford.edu/~seander/bithacks.html)
-#define NQM_GAME_CORE_UTILS_OPTIMIZATIONS
 /// CvWeightedVector's Top n Choices function now uses unsigned integers for indexes and choice numbers
 #define AUI_WEIGHTED_VECTOR_FIX_TOP_CHOICES_USE_UNSIGNED
-/// Optimizations and fixes to reduce distance check overhead
-#define AUI_FIX_HEX_DISTANCE_INSTEAD_OF_PLOT_DISTANCE
 /// Tweaks to make performance logs a bit more consistent and easier to read
 #define AUI_PERF_LOGGING_FORMATTING_TWEAKS
 /// Slightly increases stopwatch (performance counter) precision by performing the time delta subtraction bit before casting the result as a double
@@ -56,16 +145,6 @@
 #define AUI_FIX_FFASTVECTOR_BASEVECTOR_ITERATOR
 /// Functions that called ints for variables used for indexes and choice numbers now call unsigned ints instead
 #define AUI_FIX_FFASTVECTOR_USE_UNSIGNED
-/// Optimized parts of functions responsible for updating plot vision code
-#define AUI_PLOT_VISIBILITY_OPTIMIZATIONS
-/// Optimizes loops that iterate over relative coordinates to hexspace
-#define AUI_HEXSPACE_DX_LOOPS
-/// CvUnit::canMoveOrAttackInto() no longer calls certain expensive calls twice (also improves pathfinder performance)
-#define AUI_UNIT_FIX_CAN_MOVE_OR_ATTACK_INTO_NO_DUPLICATE_CALLS
-/// CvUnit::canMoveInto() is optimized to not perform redundant checks for attack flag (also improves pathfinder performance)
-#define AUI_UNIT_FIX_CAN_MOVE_INTO_OPTIMIZED
-/// The object used to store danger values is changed to an array instead of an FFastVector
-#define AUI_DANGER_PLOTS_FIX_USE_ARRAY_NOT_FFASTVECTOR
 /// Units who are delayed dead will not be fetched by functions that get enemy defenders
 #define AUI_PLOT_FIX_ENEMY_DEFENDER_GETTER_DOES_NOT_GET_DELAYED_DEAD
 /// When the citizen manager reallocates all citizens, it no longer goes through the costly process of calculating the worst plot multiple times
@@ -76,18 +155,7 @@
 #define AUI_TRADE_FIX_GET_NUM_DIFFERENT_TRADING_PARTNERS_USES_ARRAY
 /// Fixes the fact that the game's Linear Congruential RNG is set to use constants that would require a modulus of 2^31 instead of ones that need 2^32 (I couldn't introduce a modulus step because Civ5's engine really dislikes modifications to the RNG system)
 #define AUI_RANDOM_FIX_CONSTANTS_SET_TO_MODULUS_2_POW_32
-/// Fixes a possible crash when exiting the game caused by heap corruption when deallocating CvGameLeagues due to misuse of an FStaticVector
-#define AUI_LEAGUES_FIX_POSSIBLE_DEALLOCATION_CRASH
-/// Fixes a possible crash when exiting the game caused by too few items in a FStaticVector
-#define AUI_TRADE_FIX_POSSIBLE_DEALLOCATION_CRASH
-/// Adds explicit clearing functions to certain destructors to make sure they are executed to avoid memory corruption
-#define AUI_EXPLICIT_DESTRUCTION
-/// Fixes the fact that an FStaticVector type containing objects with trivial constructors (i.e. they are "Plain Old Data" = POD) is treated as the vector type wouldn't be POD (improves stability and performance)
-#define AUI_TRADE_FIX_FSTATICVECTOR_CONTENTS_ARE_POD
-/// Eliminates an unneccessary loop and a few more steps from the function that stores a trade route's path into the trade route's data
-#define AUI_TRADE_OPTIMIZE_COPY_PATH_INTO_TRADE_CONNECTION
-/// Fixes a possible crash that happens when flavors are broadcast
-#define AUI_FLAVORMANAGER_FIX_POSSIBLE_CRASH_ON_FLAVOR_BROADCAST
+
 /// When CvCity's constructor is called, component objects of CvCity have their parent pointers set immediately when the components are constructed (improves stability)
 #define AUI_CITY_FIX_COMPONENT_CONSTRUCTORS_CONTAIN_POINTERS
 /// Visibility update is always triggered when a plot's visibility changes for a player, thus fixing situations like purchasing a plot not updating sight immediately
@@ -148,8 +216,6 @@
 /// Fixes cases of indirect radaring via ZOC.
 #define AUI_UNIT_MOVEMENT_FIX_RADAR_ZOC
 /*
-/// Fixes the influence cost calculator function to only enable the reuse pathfinder flag when it wouldn't result in incorrect data
-#define AUI_MAP_FIX_CALCULATE_INFLUENCE_DISTANCE_REUSE_PATHFINDER
 */
 /// Fixes Iroquois' UA so friendly forest tiles will now connect with road tiles!
 #define AUI_UNIT_MOVEMENT_IROQUOIS_ROAD_TRANSITION_FIX
@@ -344,69 +410,6 @@
 #define AUI_GAME_PLAYER_BASED_TURN_LENGTH
 #endif
 
-// Pathfinder (A*) optimizations, tweaks, and fixes
-/// Removes instances of alloc, malloc, and firemalloc from AStar and replaces them with new (also replaced corresponding free calls with delete calls)
-#define AUI_ASTAR_REMOVE_MALLOC
-/// A* functions no longer run the canEnterTerrain() functions during validation (it should normally be run once and cached, but Firaxis did a bunch of stupids)
-#define AUI_ASTAR_FIX_CAN_ENTER_TERRAIN_NO_DUPLICATE_CALLS
-/// Moves the check for whether a node has no parent to the beginning of PathValid() (originally from Community Patch)
-#define AUI_ASTAR_FIX_PARENT_NODE_ALWAYS_VALID_OPTIMIZATION
-/// Reorders some checks to make sure ones that process faster get executed first (if they fail, then the function skips checking the slower ones)
-#define AUI_ASTAR_FIX_FASTER_CHECKS
-/// Calculates the neighbors of a tile on pathfinder initialization instead of at path construction (originally from Community Patch)
-#define AUI_ASTAR_PRECALCULATE_NEIGHBORS_ON_INITIALIZE
-/// Minor A* optimizations
-#define AUI_ASTAR_MINOR_OPTIMIZATION
-/// Pathfinders now have a built-in turn limiter that invalidates too long paths they are being built instead of after the best path has been calculated (also enables calculating turns to a target from a plot other than the unit's current plot)
-#define AUI_ASTAR_TURN_LIMITER
-/// Gets the last node before the parent (used for planning melee attacks to know where they'd attack from)
-#define AUI_ASTAR_GET_PENULTIMATE_NODE
-/// Fixes possible null pointer dereferences in A*
-#define AUI_ASTAR_FIX_POSSIBLE_NULL_POINTERS
-/// Human-controlled missionaries and units will still want to avoid undesirable tiles a bit when planning paths, though not to the full extent that an AI-controlled unit would (parameter value is the extra "cost" weight added)
-#define AUI_ASTAR_HUMAN_UNITS_GET_DIMINISHED_AVOID_WEIGHT (1)
-/// Pointers to the plot representing each A* node are stored in the A* node in question
-#define AUI_ASTAR_CACHE_PLOTS_AT_NODES
-/// Adds a new function that is a middle-of-the-road fix for allowing the functions to take account of roads and railroads without calling pathfinder too often
-#define AUI_ASTAR_TWEAKED_OPTIMIZED_BUT_CAN_STILL_USE_ROADS
-/// The danger of a tile will only be considered when checking path nodes, not when checking the destination (stops units from freezing in panic)
-#define AUI_ASTAR_FIX_CONSIDER_DANGER_ONLY_PATH
-/// The path's destination's danger value will be considered instead of the original plot's danger value, otherwise we're just immobilizing AI units (oddly enough, the Civ4 algorithm is fine, only the Civ5 ones needed to be fixed)
-#define AUI_ASTAR_FIX_CONSIDER_DANGER_USES_TO_PLOT_NOT_FROM_PLOT
-#ifdef AUI_ASTAR_FIX_CONSIDER_DANGER_USES_TO_PLOT_NOT_FROM_PLOT
-/// If the pathfinder does not ignore danger, the plot we're moving from must pass the danger check before we consider the destination plot's danger
-#define AUI_ASTAR_FIX_CONSIDER_DANGER_ONLY_POSITIVE_DANGER_DELTA
-#endif
-/// If the pathfinder does not ignore danger, use the unit's combat strength times this value as the danger limit instead of 0 (important for combat units)
-#define AUI_ASTAR_FIX_CONSIDER_DANGER_USES_COMBAT_STRENGTH (6)
-/// AI-controlled units no longer ignore all paths with peaks; since the peak plots are checked anyway for whether or not a unit can enter them, this check is pointless
-#define AUI_ASTAR_FIX_PATH_VALID_PATH_PEAKS_FOR_NONHUMAN
-/// Mountain tiles are no longer automatically marked as invalid steps
-#define AUI_ASTAR_FIX_STEP_VALID_CONSIDERS_MOUNTAINS
-#ifdef AUI_PLOT_GET_VISIBLE_ENEMY_DEFENDER_TO_UNIT
-/// When a unit will attack onto a plot, it will try to minimize the damage it would receive from each plot candidate. If it will always die, it will instead maximize dealt damage.
-#define AUI_ASTAR_CONSIDER_DAMAGE_WHEN_ATTACKING
-#endif
-#ifndef AUI_ASTAR_CONSIDER_DAMAGE_WHEN_ATTACKING // Already handled by the other algorithm
-/// When a unit will attack onto a plot, river crossings are avoided whenever possible
-#define AUI_ASTAR_AVOID_RIVER_CROSSING_WHEN_ATTACKING
-#endif
-/// Units without a defense bonus still consider a tile's defense penalties when pathfinding
-#define AUI_ASTAR_FIX_DEFENSE_PENALTIES_CONSIDERED_FOR_UNITS_WITHOUT_DEFENSE_BONUS
-/// Fixes a nonsense territory check in the Ignore Units pathfinder (can this unit enter territory owned by this unit's team?) by replacing it with one that actually makes sense (can this unit enter territory of the player who owns the target plot?)
-#define AUI_ASTAR_FIX_IGNORE_UNITS_PATHFINDER_TERRITORY_CHECK
-/// In addition to the movement cost from features on a tile, the route recommender will now also consider the movement cost of moving onto a tile with hills
-#define AUI_ASTAR_FIX_BUILD_ROUTE_COST_CONSIDER_HILLS_MOVEMENT
-/// When a unit is set to auto-explore, it will consider how many tiles are revealed past the 1st ring as well
-#define AUI_ASTAR_FIX_MAXIMIZE_EXPLORE_CONSIDER_2ND_RING_NONREVEALED
-/// Units that are on automated explore will prefer to visit tiles that have a higher "see from" stat instead of just hills (eg. helps with Carthage)
-#define AUI_ASTAR_FIX_MAXIMIZE_EXPLORE_UNHARDCODE_HILL_PREFERENCE
-/// Tweaks the amount of extra cost a tile receives for each new tile it doesn't reveal
-#define AUI_ASTAR_TWEAKED_PATH_EXPLORE_NON_REVEAL_WEIGHT (50)
-/// Units with the Explore UnitAIType will always move to maximize exploration
-#define AUI_ASTAR_EXPLORE_UNITAITYPE_ALWAYS_MAXIMIZES_EXPLORE
-/// Trade routes will prefer tiles owned by either party over unowned tiles, and will prefer unowned tiles over tiles owned by a third party
-#define AUI_ASTAR_TRADE_ROUTE_COST_TILE_OWNERSHIP_PREFS
 
 // Binomial RNG Stuff (Delnar: the binomial RNG generates numbers in a binomial distribution instead of a flat one like the regular RNG)
 /// Enables the Binomial Random Number Generator (originally from Artificial Unintelligence)

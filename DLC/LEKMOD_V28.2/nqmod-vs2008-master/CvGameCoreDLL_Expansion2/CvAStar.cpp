@@ -1297,14 +1297,34 @@ int PathCost(CvAStarNode* parent, CvAStarNode* node, int data, const void* point
 
 	CvUnit* pUnit = ((CvUnit*)pointer);
 	const UnitPathCacheData* pCacheData = reinterpret_cast<const UnitPathCacheData*>(finder->GetScratchBuffer());
-
+#ifdef AUI_ASTAR_MINOR_OPTIMIZATION
+	bool bIsAIControl = !pCacheData->isHuman() || pCacheData->IsAutomated();
+#endif
 
 	DomainTypes eUnitDomain = pCacheData->getDomainType();
 
 	CvAssertMsg(eUnitDomain != DOMAIN_AIR, "pUnit->getDomainType() is not expected to be equal with DOMAIN_AIR");
 
-	// it's not clear WTF this code is doing, don't mess with it
+#if defined(AUI_ASTAR_MINOR_OPTIMIZATION) || defined (AUI_UNIT_FIX_HOVERING_EMBARK) || defined(AUI_UNIT_MOVEMENT_FIX_BAD_ALLOWS_WATER_WALK_CHECK)
 	bool bToPlotIsWater = !pToPlot->CanBeUsedAsLand();
+	bool bFromPlotIsWater = !pFromPlot->IsAllowsWalkWater();
+#ifdef AUI_UNIT_FIX_HOVERING_EMBARK
+	if (pUnit->IsHoveringUnit())
+	{
+		bToPlotIsWater = bToPlotIsWater && pToPlot->getTerrainType() == GC.getDEEP_WATER_TERRAIN();
+		bFromPlotIsWater = bFromPlotIsWater && pFromPlot->getTerrainType() == GC.getDEEP_WATER_TERRAIN();
+	}
+	else
+#endif
+	{
+		bToPlotIsWater = bToPlotIsWater && pToPlot->isWater();
+		bFromPlotIsWater = bFromPlotIsWater && pFromPlot->isWater();
+	}
+	int iBaseMoves = pCacheData->baseMoves(bFromPlotIsWater || pCacheData->isEmbarked() ? DOMAIN_SEA : pCacheData->getDomainType());
+	int iMaxMoves = iBaseMoves * GC.getMOVE_DENOMINATOR();
+#else
+	bool bToPlotIsWater = pToPlot->isWater() && !pToPlot->IsAllowsWalkWater();
+#endif
 
 	int iMax;
 	if(parent->m_iData1 > 0)
@@ -1313,6 +1333,9 @@ int PathCost(CvAStarNode* parent, CvAStarNode* node, int data, const void* point
 	}
 	else
 	{
+#ifdef AUI_ASTAR_MINOR_OPTIMIZATION
+		iMax = iMaxMoves;
+#else
 		if (CvUnitMovement::ConsumesAllMoves(pUnit, pFromPlot, pToPlot) || CvUnitMovement::IsSlowedByZOC(pUnit, pFromPlot, pToPlot))
 		{
 			// The movement would consume all moves, get the moves we will forfeit based on the source plot, rather than
@@ -1322,6 +1345,7 @@ int PathCost(CvAStarNode* parent, CvAStarNode* node, int data, const void* point
 		}
 		else
 			iMax = pCacheData->baseMoves(bToPlotIsWater?DOMAIN_SEA:DOMAIN_LAND) * GC.getMOVE_DENOMINATOR();
+#endif
 	}
 
 	// Get the cost of moving to the new plot, passing in our max moves or the moves we have left, in case the movementCost 
@@ -2993,7 +3017,11 @@ int IgnoreUnitsPathAdd(CvAStarNode* parent, CvAStarNode* node, int data, const v
 	if(data == ASNC_INITIALADD)
 	{
 		iTurns = 1;
+#ifdef AUI_ASTAR_MINOR_OPTIMIZATION
 		iMoves = pUnit->movesLeft();
+#else
+		iMoves = std::min(iMoves, pUnit->movesLeft());
+#endif
 	}
 	else
 	{
@@ -3007,18 +3035,30 @@ int IgnoreUnitsPathAdd(CvAStarNode* parent, CvAStarNode* node, int data, const v
 
 		int iStartMoves = parent->m_iData1;
 		iTurns = parent->m_iData2;
+#ifdef AUI_ASTAR_MINOR_OPTIMIZATION
 		int iBaseMoves = pCacheData->baseMoves((!pFromPlot->CanBeUsedAsLand() || pCacheData->isEmbarked()) ? DOMAIN_SEA : pCacheData->getDomainType());
+#endif
 
 		if(iStartMoves == 0)
 		{
 			iTurns++;
+#ifdef AUI_ASTAR_MINOR_OPTIMIZATION
+			iStartMoves = iBaseMoves * GC.getMOVE_DENOMINATOR();
+#else
 			iStartMoves = pCacheData->baseMoves(!pFromPlot->CanBeUsedAsLand() ? DOMAIN_SEA : DOMAIN_LAND) * GC.getMOVE_DENOMINATOR();
+#endif
 		}
 
+#ifdef AUI_ASTAR_MINOR_OPTIMIZATION
 		// We can just set maxMoves to the maximum integer value and use it for increased portability and no redundant checks, iMoves gets set to 0 anyway if it's negative
 		iMoves = iStartMoves - CvUnitMovement::MovementCostNoZOC(pUnit, pFromPlot, pToPlot, iBaseMoves, MAX_INT, iStartMoves);
 		if (iMoves < 0)
 			iMoves = 0;
+#else
+		// We can't use maxMoves, because that checks where the unit is currently, and we're plotting a path so we have to see
+		// what the max moves would be like if the unit was already at the desired location.
+		iMoves = std::min(iMoves, std::max(0, iStartMoves - CvUnitMovement::MovementCostNoZOC(pUnit, pFromPlot, pToPlot, pCacheData->baseMoves((pToPlot->isWater() || pCacheData->isEmbarked()) ? DOMAIN_SEA : pCacheData->getDomainType()), pCacheData->maxMoves())));
+#endif
 	}
 
 	FAssertMsg(iMoves >= 0, "iMoves is expected to be non-negative (invalid Index)");
@@ -3404,8 +3444,13 @@ int RouteGetExtraChild(CvAStarNode* node, int iIndex, int& iX, int& iY, CvAStar*
 	iX = -1;
 	iY = -1;
 
-	PlayerTypes ePlayer = ((PlayerTypes)(finder->GetInfo() & 0xFF));
-	CvPlayerAI& kPlayer = GET_PLAYER(ePlayer);
+	short a = 0;
+	short b = 0;
+	finder->GetInfoAsTwo(&a, &b);
+	const PlayerTypes eOwner = (PlayerTypes)a;
+	const PlayerTypes eDestination = (PlayerTypes)b;
+
+	CvPlayerAI& kPlayer = GET_PLAYER(eOwner);
 	TeamTypes eTeam = kPlayer.getTeam();
 #ifdef AUI_ASTAR_CACHE_PLOTS_AT_NODES
 	const CvPlot* pPlot = node->m_pPlot;
@@ -3588,8 +3633,13 @@ int RouteValid(CvAStarNode* parent, CvAStarNode* node, int data, const void* poi
 // This function does not require the global Tactical Analysis Map.
 int RouteGetNumExtraChildren(CvAStarNode* node,  CvAStar* finder)
 {
-	PlayerTypes ePlayer = ((PlayerTypes)(finder->GetInfo() & 0xFF));
-	CvPlayerAI& kPlayer = GET_PLAYER(ePlayer);
+	short a = 0;
+	short b = 0;
+	finder->GetInfoAsTwo(&a, &b);
+	const PlayerTypes eOwner = (PlayerTypes)a;
+	const PlayerTypes eDestination = (PlayerTypes)b;
+
+	CvPlayerAI& kPlayer = GET_PLAYER(eOwner);
 	TeamTypes eTeam = kPlayer.getTeam();
 #ifdef AUI_ASTAR_CACHE_PLOTS_AT_NODES
 	const CvPlot* pPlot = node->m_pPlot;
@@ -3675,8 +3725,13 @@ int WaterRouteValid(CvAStarNode* parent, CvAStarNode* node, int data, const void
 		return TRUE;
 	}
 
-	PlayerTypes ePlayer = (PlayerTypes)(finder->GetInfo());
-	TeamTypes eTeam = GET_PLAYER(ePlayer).getTeam();
+	short a = 0;
+	short b = 0;
+	finder->GetInfoAsTwo(&a, &b);
+	const PlayerTypes eOwner = (PlayerTypes)a;
+	const PlayerTypes eDestination = (PlayerTypes)b;
+
+	const TeamTypes eTeam = GET_PLAYER(eOwner).getTeam();
 
 #ifdef AUI_ASTAR_CACHE_PLOTS_AT_NODES
 #ifdef AUI_ASTAR_MINOR_OPTIMIZATION
@@ -3697,14 +3752,14 @@ int WaterRouteValid(CvAStarNode* parent, CvAStarNode* node, int data, const void
 		return FALSE;
 	}
 
-	CvCity* pCity = pNewPlot->getPlotCity();
+	const CvCity* pCity = pNewPlot->getPlotCity();
 	if(pCity && pCity->getTeam() == eTeam)
 	{
 		return TRUE;
 	}
 
 	// allow canals to be water routes
-	if (pNewPlot->CanBeUsedAsWater(ePlayer))
+	if (pNewPlot->CanBeUsedAsWater(eOwner))
 	{
 		return TRUE;
 	}
@@ -5656,20 +5711,33 @@ struct TradePathCacheData
 	inline bool IsRiverTradeRoad() const { return m_bIsRiverTradeRoad; }
 	inline bool IsMoveFriendlyWoodsAsRoad() const { return m_bIsMoveFriendlyWoodsAsRoad; }
 };
-
+void CvAStar::GetInfoAsTwo(short* eOwner, short* eDestination) const
+{
+	*eOwner = GetInfo() & 0xFF;
+	*eDestination = GetInfo() >> 8;
+}
+int CvAStar::InfoAsTwo(const short a, const short b)
+{
+	int iA = a;
+	int iB = b;
+	return iA + (iB << 8);
+}
 //	--------------------------------------------------------------------------------
 void TradePathInitialize(const void* pointer, CvAStar* finder)
 {
 #ifdef AUI_ASTAR_TRADE_ROUTE_COST_TILE_OWNERSHIP_PREFS
-	PlayerTypes ePlayer = PlayerTypes(finder->GetInfo() & 0x7f);
-	PlayerTypes eToPlayer = (PlayerTypes)(finder->GetInfo() >> 8);
+	short a = 0;
+	short b = 0;
+	finder->GetInfoAsTwo(&a, &b);
+	const PlayerTypes eOwner = (PlayerTypes)a;
+	const PlayerTypes eDestination = (PlayerTypes)b;
 #else
 	PlayerTypes ePlayer = (PlayerTypes)finder->GetInfo();
 #endif
 
 	TradePathCacheData* pCacheData = reinterpret_cast<TradePathCacheData*>(finder->GetScratchBuffer());
 
-	CvPlayer& kPlayer = GET_PLAYER(ePlayer);
+	CvPlayer& kPlayer = GET_PLAYER(eOwner);
 	TeamTypes eTeam = kPlayer.getTeam();
 	pCacheData->m_pTeam = &GET_TEAM(eTeam);
 	pCacheData->m_bCanEmbarkAllWaterPassage = pCacheData->m_pTeam->canEmbarkAllWaterPassage();
@@ -5687,7 +5755,7 @@ void TradePathInitialize(const void* pointer, CvAStar* finder)
 	}
 
 #ifdef AUI_ASTAR_TRADE_ROUTE_COST_TILE_OWNERSHIP_PREFS
-	pCacheData->m_pToPlayer = &GET_PLAYER(eToPlayer);
+	pCacheData->m_pToPlayer = &GET_PLAYER(eDestination);
 #endif
 }
 
@@ -5706,7 +5774,11 @@ int TradeRouteHeuristic(int iFromX, int iFromY, int iToX, int iToY)
 //	--------------------------------------------------------------------------------
 int TradeRouteLandPathCost(CvAStarNode* parent, CvAStarNode* node, int data, const void* pointer, CvAStar* finder)
 {
-	PlayerTypes ePlayer = (PlayerTypes)finder->GetInfo();
+	short a = 0;
+	short b = 0;
+	finder->GetInfoAsTwo(&a, &b);
+	const PlayerTypes eOwner = (PlayerTypes)a;
+	const PlayerTypes eDestination = (PlayerTypes)b;
 
 #ifdef AUI_ASTAR_CACHE_PLOTS_AT_NODES
 	const CvPlot* pFromPlot = parent->m_pPlot;
@@ -5842,7 +5914,11 @@ int TradeRouteLandValid(CvAStarNode* parent, CvAStarNode* node, int data, const 
 /// slewis's fault
 int TradeRouteWaterPathCost(CvAStarNode* parent, CvAStarNode* node, int data, const void* pointer, CvAStar* finder)
 {
-	PlayerTypes ePlayer = (PlayerTypes)finder->GetInfo();
+	short a = 0;
+	short b = 0;
+	finder->GetInfoAsTwo(&a, &b);
+	const PlayerTypes eOwner = (PlayerTypes)a;
+	const PlayerTypes eDestination = (PlayerTypes)b;
 #ifndef AUI_ASTAR_CACHE_PLOTS_AT_NODES
 	CvMap& kMap = GC.getMap();
 #endif
@@ -5879,7 +5955,7 @@ int TradeRouteWaterPathCost(CvAStarNode* parent, CvAStarNode* node, int data, co
 			iCost += 1000; // slewis - is this too prohibitive? Too cheap?
 		}
 
-		const bool isWaterPassable = pToPlot->CanBeUsedAsWater(ePlayer);
+		const bool isWaterPassable = pToPlot->CanBeUsedAsWater(eOwner);
 		if (!isWaterPassable)
 		{
 			iCost += 1000;
@@ -5911,7 +5987,12 @@ int TradeRouteWaterPathCost(CvAStarNode* parent, CvAStarNode* node, int data, co
 //	--------------------------------------------------------------------------------
 int TradeRouteWaterValid(CvAStarNode* parent, CvAStarNode* node, int data, const void* pointer, CvAStar* finder)
 {
-	const PlayerTypes ePlayer = (PlayerTypes)finder->GetInfo();
+	short a = 0;
+	short b = 0;
+	finder->GetInfoAsTwo(&a, &b);
+	const PlayerTypes eOwner = (PlayerTypes)a;
+	const PlayerTypes eDestination = (PlayerTypes)b;
+
 	if(parent == NULL)
 	{
 		return TRUE;
@@ -5930,7 +6011,7 @@ int TradeRouteWaterValid(CvAStarNode* parent, CvAStarNode* node, int data, const
 
 	if (!pNewPlot->isCity())
 	{
-		if (!pNewPlot->CanBeUsedAsWater(ePlayer))
+		if (!pNewPlot->CanBeUsedAsWater(eOwner))
 		{
 			return FALSE;
 		}

@@ -4112,10 +4112,10 @@ bool CvLeague::IsLuxuryHappinessBanned(ResourceTypes eResource)
 	return false;
 }
 
-int CvLeague::GetResearchMod(TechTypes eTech)
+int CvLeague::GetResearchMod(TechTypes eTech) const
 {
 	int allResolutionModifiers = 0;
-	for (ActiveResolutionList::iterator it = m_vActiveResolutions.begin(); it != m_vActiveResolutions.end(); it++)
+	for (ActiveResolutionList::const_iterator it = m_vActiveResolutions.begin(); it != m_vActiveResolutions.end(); it++)
 	{
 		if (it->GetEffects()->iMemberDiscoveredTechMod != 0)
 		{
@@ -7616,7 +7616,15 @@ bool CvGameLeagues::IsLuxuryHappinessBanned(PlayerTypes ePlayer, ResourceTypes e
 int CvGameLeagues::GetResearchMod(PlayerTypes ePlayer, TechTypes eTech)
 {
 	int allLeagueMods = 0;
+
+#ifdef AUI_LEAGUES_FIX_POSSIBLE_DEALLOCATION_CRASH
+	CvLeague* it = GetActiveLeague();
+	if (it)
+#elif defined(AUI_ITERATOR_POSTFIX_INCREMENT_OPTIMIZATIONS)
+	for (LeagueList::iterator it = m_vActiveLeagues.begin(); it != m_vActiveLeagues.end(); ++it)
+#else
 	for (LeagueList::iterator it = m_vActiveLeagues.begin(); it != m_vActiveLeagues.end(); it++)
+#endif
 	{
 		if (it->IsMember(ePlayer))
 		{
@@ -8540,7 +8548,7 @@ CvLeagueAI::DesireLevels CvLeagueAI::EvaluateVoteForTrade(int iResolutionID, int
 #ifdef AUI_VOTING_TWEAKED_PROPOSAL_SCORING
 CvLeagueAI::DesireLevels CvLeagueAI::EvaluateProposalForProposer(const CvLeague* pLeague, PlayerTypes eProposer, ResolutionTypes eResolution, int iProposerChoice) const
 #else
-CvLeagueAI::DesireLevels CvLeagueAI::EvaluateProposalForProposer(CvLeague* pLeague, PlayerTypes /*eProposer*/, ResolutionTypes eResolution, int iProposerChoice) const
+CvLeagueAI::DesireLevels CvLeagueAI::EvaluateProposalForProposer(const CvLeague* pLeague, PlayerTypes /*eProposer*/, ResolutionTypes eResolution, int iProposerChoice) const
 #endif
 #else
 #ifdef AUI_VOTING_TWEAKED_PROPOSAL_SCORING
@@ -8569,7 +8577,7 @@ CvLeagueAI::DesireLevels CvLeagueAI::EvaluateProposalForProposer(CvLeague* pLeag
 #ifdef AUI_VOTING_TWEAKED_PROPOSAL_SCORING
 CvLeagueAI::DesireLevels CvLeagueAI::EvaluateProposalForProposer(const CvLeague* pLeague, PlayerTypes eProposer, int iTargetResolutionID) const
 #else
-CvLeagueAI::DesireLevels CvLeagueAI::EvaluateProposalForProposer(CvLeague* pLeague, PlayerTypes /*eProposer*/, int iTargetResolutionID) const
+CvLeagueAI::DesireLevels CvLeagueAI::EvaluateProposalForProposer(const CvLeague* pLeague, PlayerTypes /*eProposer*/, int iTargetResolutionID) const
 #endif
 #else
 #ifdef AUI_VOTING_TWEAKED_PROPOSAL_SCORING

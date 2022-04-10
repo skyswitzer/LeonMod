@@ -320,7 +320,7 @@ bool CvGameTrade::CreateTradeRoute(CvCity* pOriginCity, CvCity* pDestCity, Domai
 		if (pOriginCity->isCoastal(0) && pDestCity->isCoastal(0))	// Both must be on the coast (a lake is ok)  A better check would be to see if they are adjacent to the same water body.
 		{
 #ifdef AUI_ASTAR_TRADE_ROUTE_COST_TILE_OWNERSHIP_PREFS
-			bSuccess = GC.GetInternationalTradeRouteWaterFinder().GeneratePath(iOriginX, iOriginY, iDestX, iDestY, eOriginPlayer + (eDestPlayer << 8), false);
+			bSuccess = GC.GetInternationalTradeRouteWaterFinder().GeneratePath(iOriginX, iOriginY, iDestX, iDestY, CvAStar::InfoAsTwo(eOriginPlayer, eDestPlayer), false);
 #else
 			bSuccess = GC.GetInternationalTradeRouteWaterFinder().GeneratePath(iOriginX, iOriginY, iDestX, iDestY, eOriginPlayer, false);
 #endif
@@ -1487,7 +1487,7 @@ PlayerTypes CvGameTrade::GetDestFromID (int iID)
 #ifdef NQ_UNIT_IMMUNE_TO_PLUNDER_FROM_TRAIT
 //	--------------------------------------------------------------------------------
 /// GetDomainFromID
-DomainTypes CvGameTrade::GetDomainFromID (int iID)
+DomainTypes CvGameTrade::GetDomainFromID(int iID) const
 {
 	int iIndex = GetIndexFromID(iID);
 	if (iIndex < -1)

@@ -3131,7 +3131,7 @@ int CvCityCitizens::GetNumSpecialistsAllowedByBuilding(const CvBuildingEntry& kB
 
 const int minBlueCollar = 8;
 const int divisor = 2;
-int CvCityCitizens::NeededPopForOneMoreSpecialist()
+int CvCityCitizens::NeededPopForOneMoreSpecialist() const
 {
 	const int start = minBlueCollar + 1;
 	const int pop = GetCity()->getPopulation();
@@ -3145,7 +3145,7 @@ int CvCityCitizens::NeededPopForOneMoreSpecialist()
 	return todo;
 }
 
-bool CvCityCitizens::CanAddOneMoreSpecialist()
+bool CvCityCitizens::CanAddOneMoreSpecialist() const
 {
 	const int currentSpecialists = GetTotalSpecialistCount();
 	const int specialistPool = max(0, GetCity()->getPopulation() - minBlueCollar);
@@ -3156,7 +3156,7 @@ bool CvCityCitizens::CanAddOneMoreSpecialist()
 }
 
 /// Are we in the position to add another Specialist to eBuilding?
-bool CvCityCitizens::IsCanAddSpecialistToBuilding(BuildingTypes eBuilding)
+bool CvCityCitizens::IsCanAddSpecialistToBuilding(BuildingTypes eBuilding) const
 {
 	CvAssert(eBuilding > -1);
 	CvAssert(eBuilding < GC.getNumBuildingInfos());

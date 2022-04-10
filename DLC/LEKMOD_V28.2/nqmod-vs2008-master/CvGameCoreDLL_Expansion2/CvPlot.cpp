@@ -3457,6 +3457,7 @@ bool CvPlot::IsAllowsWalkWater() const
 }
 bool CvPlot::IsEnemyTerritory(const PlayerTypes ePlayer) const
 {
+	if (ePlayer == NO_PLAYER) return false;
 	const TeamTypes ePlayerTeam = GET_PLAYER(ePlayer).getTeam();
 	const TeamTypes ePlotOwnerTeam = getTeam();
 
@@ -3495,6 +3496,8 @@ bool CvPlot::IsAllowsSailLand(PlayerTypes ePlayer) const
         const CvImprovementEntry *pkEntry = GC.getImprovementInfo(eImprovement);
 		if (pkEntry && pkEntry->IsAllowsSailLand())
 		{
+			if (ePlayer == NO_PLAYER) return true;
+
 			// no closed borders
 			if (IsEnemyTerritory(ePlayer))
 				return false;
@@ -4304,20 +4307,23 @@ bool CvPlot::isFriendlyCity(const PlayerTypes ePlayer) const
 /// Is this a plot that's friendly to our team? (owned by us or someone we have Open Borders with)
 bool CvPlot::IsFriendlyTerritory(const PlayerTypes ePlayer) const
 {
+	if (ePlayer == NO_PLAYER)
+		return true;
+
 	// No friendly territory for barbs!
 	if(GET_PLAYER(ePlayer).isBarbarian())
 	{
 		return false;
 	}
 
-	TeamTypes eTeam = GET_PLAYER(ePlayer).getTeam();
 	TeamTypes ePlotOwner = getTeam();
-
 	// Nobody owns this plot
-	if(ePlotOwner == NO_TEAM)
+	if (ePlotOwner == NO_TEAM)
 	{
 		return false;
 	}
+
+	TeamTypes eTeam = GET_PLAYER(ePlayer).getTeam();
 
 	// Our territory
 	if(ePlotOwner == eTeam)

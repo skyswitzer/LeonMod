@@ -164,6 +164,7 @@ public:
 	int GetIndexFromID(int iID) const;
 	PlayerTypes GetOwnerFromID(int iID) const;
 	PlayerTypes GetDestFromID(int iID) const;
+	DomainTypes GetDomainFromID(int iID) const;
 
 	int GetIndexFromUnitID(int iUnitID, PlayerTypes eOwner) const;
 	bool IsUnitIDUsed(int iUnitID) const;
@@ -174,7 +175,6 @@ public:
 	PlayerTypes GetOwnerFromID (int iID);
 	PlayerTypes GetDestFromID (int iID);
 #ifdef NQ_UNIT_IMMUNE_TO_PLUNDER_FROM_TRAIT
-	DomainTypes GetDomainFromID (int iID);
 #endif
 	
 	int GetIndexFromUnitID(int iUnitID, PlayerTypes eOwner);
@@ -255,6 +255,7 @@ public:
 	// Functions invoked each player turn
 	void DoTurn(void);
 	void MoveUnits(void);
+	int GetTradeConnectionValueExtra(const TradeConnection& kTradeConnection, const YieldTypes eYieldType, const bool bIsOwner) const;
 
 #ifdef AUI_CONSTIFY
 	int GetTradeConnectionBaseValueTimes100(const TradeConnection& kTradeConnection, YieldTypes eYield, bool bAsOriginPlayer) const;
@@ -280,7 +281,6 @@ public:
 	int GetTradeConnectionDomainValueModifierTimes100(const TradeConnection& kTradeConnection, YieldTypes eYield);
 	int GetTradeConnectionRiverValueModifierTimes100(const TradeConnection& kTradeConnection, YieldTypes eYield, bool bAsOriginPlayer);
 	int GetTradeConnectionValueTimes100 (const TradeConnection& kTradeConnection, YieldTypes eYield, bool bAsOriginPlayer);
-	int GetTradeConnectionValueExtra(const TradeConnection& kTradeConnection, const YieldTypes eYieldType, const bool bIsOwner) const;
 #endif
 	void UpdateTradeConnectionValues (void); // updates the all the values for the trade routes that go to and from this player
 
@@ -350,6 +350,7 @@ public:
 
 	bool PlunderTradeRoute(int iTradeConnectionID);
 
+	int GetNumForeignTradeRoutes(PlayerTypes ePlayer);
 #ifdef AUI_CONSTIFY
 	int GetTradeRouteRange(DomainTypes eDomain, const CvCity* pOriginCity) const;
 	int GetTradeRouteSpeed(DomainTypes eDomain) const;
@@ -370,7 +371,6 @@ public:
 	int GetNumDifferentTradingPartners (void);
 #ifdef NQ_FAITH_PER_FOREIGN_TRADE_ROUTE
 	// trade routes that are not internal
-	int GetNumForeignTradeRoutes(PlayerTypes ePlayer);
 #endif
 #endif
 

@@ -1209,22 +1209,13 @@ int CvEconomicAI::AmountAvailableForPurchase(PurchaseType ePurchase)
 	int iBalance = m_pPlayer->GetTreasury()->GetGold();
 
 	// Copy into temp array and sort by priority
-#ifdef AUI_WARNING_FIXES
+
 	FStaticVector<CvPurchaseRequest, NUM_PURCHASE_TYPES, true, c_eCiv5GameplayDLL, 0> vTempRequestedSavings = m_RequestedSavings;
 	std::stable_sort(vTempRequestedSavings.begin(), vTempRequestedSavings.end());
 
 	for (FStaticVector<CvPurchaseRequest, NUM_PURCHASE_TYPES, true, c_eCiv5GameplayDLL, 0>::iterator it = vTempRequestedSavings.begin(); it != vTempRequestedSavings.end(); ++it)
 	{
 		CvPurchaseRequest request = *it;
-#else
-	m_TempRequestedSavings = m_RequestedSavings;
-	std::stable_sort(m_TempRequestedSavings.begin(), m_TempRequestedSavings.end());
-
-	for(int iI = 0; iI < (int)m_TempRequestedSavings.size(); iI++)
-	{
-		CvPurchaseRequest request = m_TempRequestedSavings[iI];
-#endif
-
 		// Is this higher priority than the request we care about?
 		if(request.m_eType != ePurchase)
 		{

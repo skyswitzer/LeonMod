@@ -165,6 +165,7 @@ public:
 	}
 
 #ifdef AUI_CONSTIFY
+	// Often owner information. See GetInfoAsPlayerTypes.
 	inline int GetInfo() const
 #else
 	inline int GetInfo()
@@ -172,6 +173,10 @@ public:
 	{
 		return m_iInfo;
 	}
+	// Gets 2 players stored in our info.
+	void GetInfoAsTwo(short* eOwner, short* eDestination) const;
+	// Sets 2 players stored in our info.
+	static int InfoAsTwo(const short a, const short b);
 
 	inline void ForceReset()
 	{
