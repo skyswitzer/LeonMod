@@ -349,11 +349,11 @@
 */
 /// New option that allows custom turn timer settings to multiply/divide the default turn times by a certain amount instead of forcing turn times to be the custom amount
 #define AUI_GAME_RELATIVE_TURN_TIMERS
+/// Relaxed the limits on the slice limits before turn timers are forced to expire in network multiplayer games (should help stop resyncs due to last-second moves)
+#define NQM_GAME_MORE_RELAXED_TURN_SLICE_LIMIT_FOR_NETWORK_MULTIPLAYER
 /*
 /// New option that pauses the game when an active player disconnects and the game is not sequential
 #define AUI_GAME_AUTOPAUSE_ON_ACTIVE_DISCONNECT_IF_NOT_SEQUENTIAL
-/// Relaxed the limits on the slice limits before turn timers are forced to expire in network multiplayer games (should help stop resyncs due to last-second moves)
-#define NQM_GAME_MORE_RELAXED_TURN_SLICE_LIMIT_FOR_NETWORK_MULTIPLAYER
 
 // Deliberate AI hindrances
 */
