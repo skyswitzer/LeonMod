@@ -308,6 +308,7 @@ void CvDangerPlots::AddDanger(int iPlotX, int iPlotY, int iValue, bool bWithinOn
 /// Return the danger value of a given plot
 int CvDangerPlots::GetDanger(const CvPlot& pPlot) const
 {
+	return 0; // prevent desync. I do not understand why this value desyncs.
 	const int idx = pPlot.getX() + pPlot.getY() * GC.getMap().getGridWidth();
 	return m_DangerPlots[idx];
 }
