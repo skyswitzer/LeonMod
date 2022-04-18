@@ -307,12 +307,13 @@ int CvPlot::getExtraYield
 					yieldChange += 3;
 			}
 
-			{// POLICY_SOVEREIGNTY - gives +1 singularity to acadamies
+			{// POLICY_SOVEREIGNTY - gives +2 singularity to Acadamies
 				const bool hasSovereignty = player.HasPolicy("POLICY_SOVEREIGNTY");
 				const bool isAcadamy = plot.HasImprovement("IMPROVEMENT_ACADEMY");
 				if (eYieldType == YIELD_SCIENTIFIC_INSIGHT && hasSovereignty && isAcadamy)
-					yieldChange += 1;
+					yieldChange += 2;
 			}
+
 		}
 	}
 
@@ -450,11 +451,11 @@ int CvPlayer::GetExtraYieldForBuilding
 		}
 	}
 
-	{// POLICY_RATIONALISM_FINISHER - +8 Singularity from Rationalism Finisher
+	{// POLICY_RATIONALISM_FINISHER - +5 Singularity from Rationalism Finisher
 		const bool hasRationalismFinisher = player.HasPolicy("POLICY_RATIONALISM_FINISHER");
 		const bool isPalace = eBuildingClass == BuildingClass("BUILDINGCLASS_PALACE");
 		if (eYieldType == YIELD_SCIENTIFIC_INSIGHT && !isPercentMod && hasRationalismFinisher && isPalace)
-			yieldChange += 8;
+			yieldChange += 5;
 	}
 
 	{// TIBET_STUPA - Does what it says it does... This is an annoyingly long string of code. Tried using || for the techs, but that only applied it once. 
@@ -544,12 +545,26 @@ int CvPlayer::GetExtraYieldForBuilding
 
 // how much influence per turn a player gets from an ally
 int CvGlobals::getDIPLOMATIC_INFLUENCE_PER_TURN_ALLY(const PlayerTypes eMinor, const PlayerTypes ePlayer) const
-{
-	return 10;
+{	
+	float diplomaticInfluencePerTurn = 10;
+
+	const CvPlayer& player = GET_PLAYER(ePlayer);
+	const bool hasPatronageFinisher = player.HasPolicy("POLICY_PATRONAGE_FINISHER");
+	if (hasPatronageFinisher)
+		diplomaticInfluencePerTurn += 5;
+
+	return GC.round(diplomaticInfluencePerTurn);
 }
 int CvGlobals::getDIPLOMATIC_INFLUENCE_PER_QUEST(const PlayerTypes eMinor, const PlayerTypes ePlayer) const
 {
-	return 100;
+	float diplomaticInfluenceFromQuests = 100;
+
+	const CvPlayer& player = GET_PLAYER(ePlayer);
+	const bool hasPhilanthropy = player.HasPolicy("POLICY_PHILANTHROPY");
+	if (hasPhilanthropy)
+		diplomaticInfluenceFromQuests *= 1.5;
+
+	return GC.round(diplomaticInfluenceFromQuests);
 }
 
 
@@ -567,6 +582,9 @@ int CvPlayerTrade::GetTradeConnectionValueExtra(const TradeConnection& kTradeCon
 	const CvCity* cityDest = CvGameTrade::GetDestCity(kTradeConnection);
 	// how many tiles between the 2 cities
 	const int tradeDistance = kTradeConnection.m_aPlotList.size();
+	const bool hasSilkRoad = playerOrigin.HasPolicy("POLICY_CARAVANS");
+	const bool hasMerchantConfederacy = playerOrigin.HasPolicy("POLICY_MERCHANT_CONFEDERACY");
+	
 	if (!cityOrigin || !cityDest) return 0;
 
 
@@ -578,12 +596,20 @@ int CvPlayerTrade::GetTradeConnectionValueExtra(const TradeConnection& kTradeCon
 	}
 	else if (isDestMinor) // destination is City State
 	{
-
+		if (eYieldType == YIELD_DIPLOMATIC_SUPPORT && hasMerchantConfederacy)
+			yieldChange += 3;
+		if (eYieldType == YIELD_FOOD && hasMerchantConfederacy)
+			yieldChange += 2;
+		if (eYieldType == YIELD_PRODUCTION && hasMerchantConfederacy)
+			yieldChange += 2;
 
 	}
 	else // destination is another civ
 	{
-
+		if (eYieldType == YIELD_FOOD && hasSilkRoad)
+			yieldChange += 3;
+		if (eYieldType == YIELD_PRODUCTION && hasSilkRoad)
+			yieldChange += 3;
 
 	}
 
