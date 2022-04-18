@@ -1919,7 +1919,7 @@ bool CvPlayerEspionage::AttemptCoup(uint uiSpyIndex)
 	}
 
 	bool bAttemptSuccess = false;
-	int iRandRoll = GC.getGame().getJonRandNum(100, "Roll for the result of an attempted coup", NULL, uiSpyIndex);
+	int iRandRoll = GC.getGame().getJonRandNum(100, "Roll for the result of an attempted coup", NULL, uiSpyIndex * 89167);
 	if(iRandRoll <= GetCoupChanceOfSuccess(uiSpyIndex))
 	{
 		// swap influence from ally to 2nd place ally
@@ -2001,7 +2001,7 @@ bool CvPlayerEspionage::AttemptCoup(uint uiSpyIndex)
 			bNotify = true;
 		}
 
-		pMinorCivAI->ChangeFriendshipWithMajorTimes100(ePlayer, -50 * 100);
+		pMinorCivAI->ChangeFriendshipWithMajorTimes100(ePlayer, -GC.getESPIONAGE_COUP_OTHER_PLAYERS_INFLUENCE_DROP() * 100);
 
 		CvNotifications* pNotifications = GET_PLAYER(ePlayer).GetNotifications();
 		if(pNotifications && bMetMinor && bNotify)
@@ -2035,7 +2035,7 @@ bool CvPlayerEspionage::AttemptCoup(uint uiSpyIndex)
 		}
 	}
 	
-	pMinorCivAI->ChangeFriendshipWithMajorTimes100(m_pPlayer->GetID(), +50 * 100);
+	pMinorCivAI->ChangeFriendshipWithMajorTimes100(m_pPlayer->GetID(), GC.getESPIONAGE_COUP_OTHER_PLAYERS_INFLUENCE_DROP() * 100);
 	pMinorCivAI->SetDisableNotifications(false);
 
 	// send notification to player

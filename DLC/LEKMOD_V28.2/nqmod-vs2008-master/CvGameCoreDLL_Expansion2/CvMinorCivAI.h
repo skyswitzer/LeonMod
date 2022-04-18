@@ -414,7 +414,6 @@ public:
 
 	int GetEffectiveFriendshipWithMajor(PlayerTypes ePlayer);
 	int GetBaseFriendshipWithMajor(PlayerTypes ePlayer) const;
-	void ChangeFriendshipWithMajor(PlayerTypes ePlayer, int iChange, bool bFromQuest = false);
 
 	int GetFriendshipAnchorWithMajor(PlayerTypes ePlayer);
 	

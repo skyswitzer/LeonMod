@@ -4239,12 +4239,17 @@ int newCappedChange(const int currentT100, const int newT100, const int anchorT1
 	{
 		if (currentT100 < anchorT100 && newT100 > anchorT100) // went past anchor
 			return anchorT100;
+		if (newT100 > anchorT100) // already past anchor
+			return currentT100;
 	}
 	else if (newT100 < currentT100) // drop
 	{
 		if (currentT100 > anchorT100 && newT100 < anchorT100) // went past anchor
 			return anchorT100;
+		if (newT100 < anchorT100) // already past anchor
+			return currentT100;
 	}
+
 	return newT100;
 }
 
@@ -4348,6 +4353,8 @@ int CvMinorCivAI::GetFriendshipChangePerTurnTimes100(const PlayerTypes ePlayer)
 	if (newPredictedT100 > currentValueT100) // increase
 		newPredictedT100 = newCappedChange(currentValueT100, newPredictedT100, maxAnchorT100);
 
+	newPredictedT100 = max(minAnchorT100, min(maxAnchorT100, newPredictedT100));
+
 	return newPredictedT100 - currentValueT100;
 }
 
@@ -4389,9 +4396,9 @@ void CvMinorCivAI::SetFriendshipWithMajorTimes100(PlayerTypes ePlayer, int iNum,
 
 	m_aiFriendshipWithMajorTimes100[ePlayer] = iNum;
 
-	int iMinimumFriendship = GC.getMINOR_FRIENDSHIP_AT_WAR();
-	if(GetBaseFriendshipWithMajor(ePlayer) < iMinimumFriendship)
-		m_aiFriendshipWithMajorTimes100[ePlayer] = iMinimumFriendship * 100;
+	int iMinimumFriendshipT100 = GC.getMINOR_FRIENDSHIP_AT_WAR() * 100;
+	if (GetBaseFriendshipWithMajorTimes100(ePlayer) < iMinimumFriendshipT100)
+		m_aiFriendshipWithMajorTimes100[ePlayer] = iMinimumFriendshipT100;
 
 	int iNewEffectiveFriendship = GetEffectiveFriendshipWithMajorTimes100(ePlayer);
 
@@ -4470,12 +4477,6 @@ int CvMinorCivAI::GetBaseFriendshipWithMajor(PlayerTypes ePlayer) const
 void CvMinorCivAI::SetFriendshipWithMajor(PlayerTypes ePlayer, int iNum, bool bFromQuest)
 {
 	SetFriendshipWithMajorTimes100(ePlayer, iNum * 100, bFromQuest);
-}
-
-/// Changes the base level of Friendship between this Minor and the specified Major Civ
-void CvMinorCivAI::ChangeFriendshipWithMajor(PlayerTypes ePlayer, int iChange, bool bFromQuest)
-{
-	ChangeFriendshipWithMajorTimes100(ePlayer, iChange * 100, bFromQuest);
 }
 
 /// What is the resting point of Influence this major has?  Affected by religion, social policies, Wary Of, etc.
@@ -5349,7 +5350,7 @@ void CvMinorCivAI::DoIntrusion()
 							// Ignore if the player trait allows us to intrude without angering
 							if(!GET_PLAYER(pLoopUnit->getOwner()).GetPlayerTraits()->IsAngerFreeIntrusionOfCityStates())
 							{
-								ChangeFriendshipWithMajor(pLoopUnit->getOwner(), /*-6*/ GC.getFRIENDSHIP_PER_UNIT_INTRUDING());
+								ChangeFriendshipWithMajorTimes100(pLoopUnit->getOwner(), /*-6*/ GC.getFRIENDSHIP_PER_UNIT_INTRUDING() * 100);
 
 								// only modify if the unit isn't automated nor having a pending order
 								if(!pLoopUnit->IsAutomated() && pLoopUnit->GetLengthMissionQueue() == 0)
@@ -7830,7 +7831,7 @@ void CvMinorCivAI::DoElection()
 				}
 
 				int iInfluenceModifier = GET_PLAYER(ePlayer).GetPlayerPolicies()->GetNumericModifier(POLICYMOD_RIGGING_ELECTION_MODIFIER); // NQMP GJS - new Covert Action
-				ChangeFriendshipWithMajor(ePlayer, GC.getESPIONAGE_INFLUENCE_GAINED_FOR_RIGGED_ELECTION() * (100 + iInfluenceModifier) / 100, false); // NQMP GJS - new Covert Action
+				ChangeFriendshipWithMajorTimes100(ePlayer, GC.getESPIONAGE_INFLUENCE_GAINED_FOR_RIGGED_ELECTION() * (100 + iInfluenceModifier), false); // NQMP GJS - new Covert Action
 
 				//Achievements!
 				if(ePlayer == GC.getGame().getActivePlayer())
@@ -7939,7 +7940,7 @@ void CvMinorCivAI::DoUnitGiftFromMajor(PlayerTypes eFromPlayer, CvUnit* pGiftUni
 	const bool isCombat = pGiftUnit->GetBaseCombatStrength() > 4;
 	// Influence (even if no quest)
 	int iInfluence = GetFriendshipFromUnitGift(eFromPlayer, pGiftUnit->IsGreatPerson(), bDistanceGift, isCombat);
-	ChangeFriendshipWithMajor(eFromPlayer, iInfluence);
+	ChangeFriendshipWithMajorTimes100(eFromPlayer, iInfluence * 100);
 
 	const bool isGreat = pGiftUnit->IsGreatPerson();
 	const bool isWorker = !isGreat && pGiftUnit->IsWork();
@@ -8173,7 +8174,7 @@ void CvMinorCivAI::DoFaithGiftFromMajor(PlayerTypes ePlayer, int iFaith)
 		// GJS: we're not gifting gold, so it's fine to skip this.
 		//ChangeNumGoldGifted(ePlayer, iGold);
 		
-		ChangeFriendshipWithMajor(ePlayer, iFriendshipChange);
+		ChangeFriendshipWithMajorTimes100(ePlayer, iFriendshipChange);
 
 		// GJS: this is no longer applicable, but might want to do somethign with this in the future: 
 		// In case we had a Gold Gift quest active, complete it now

@@ -19675,7 +19675,7 @@ void CvPlayer::DoCivilianReturnLogic(bool bReturn, PlayerTypes eToPlayer, int iU
 		if(GET_PLAYER(eToPlayer).isMinorCiv())
 		{
 			int iInfluence = /*45*/ GC.getRETURN_CIVILIAN_FRIENDSHIP();
-			GET_PLAYER(eToPlayer).GetMinorCivAI()->ChangeFriendshipWithMajor(GetID(), iInfluence);
+			GET_PLAYER(eToPlayer).GetMinorCivAI()->ChangeFriendshipWithMajorTimes100(GetID(), iInfluence * 100);
 		}
 		// Returned to major power
 		else if(!GET_PLAYER(eToPlayer).isHuman())

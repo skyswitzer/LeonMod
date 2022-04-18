@@ -1429,7 +1429,7 @@ void CvActiveResolution::DoEffects(PlayerTypes ePlayer)
 
 					if (pLeague->IsMember(eMinor))
 					{
-						GET_PLAYER(eMinor).GetMinorCivAI()->ChangeFriendshipWithMajor(ePlayer, deltaNeeded);
+						GET_PLAYER(eMinor).GetMinorCivAI()->ChangeFriendshipWithMajorTimes100(ePlayer, 100 * deltaNeeded);
 					}
 				}
 			}
@@ -6539,7 +6539,7 @@ void CvLeague::DoProjectReward(PlayerTypes ePlayer, LeagueProjectTypes eLeaguePr
 				PlayerTypes eMinorCivLoop = (PlayerTypes) iMinorCivLoop;
 				if (GET_PLAYER(eMinorCivLoop).isAlive() && GET_TEAM(GET_PLAYER(ePlayer).getTeam()).isHasMet(GET_PLAYER(eMinorCivLoop).getTeam()))
 				{
-					GET_PLAYER(eMinorCivLoop).GetMinorCivAI()->ChangeFriendshipWithMajor(ePlayer, pRewardInfo->GetCityStateInfluenceBoost());
+					GET_PLAYER(eMinorCivLoop).GetMinorCivAI()->ChangeFriendshipWithMajorTimes100(ePlayer, 100 * pRewardInfo->GetCityStateInfluenceBoost());
 				}
 			}
 		}
