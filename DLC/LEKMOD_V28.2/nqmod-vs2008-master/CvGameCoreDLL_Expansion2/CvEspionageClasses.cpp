@@ -1875,38 +1875,27 @@ bool CvPlayerEspionage::AttemptCoup(uint uiSpyIndex)
 	{
 		return false;
 	}
-
-	CvCity* pCity = GetCityWithSpy(uiSpyIndex);
+	const CvCity* pCity = GetCityWithSpy(uiSpyIndex);
 	CvAssertMsg(pCity, "Spy isn't in a city.");
 	if(!pCity)
 	{
 		return false;
 	}
-
-	PlayerTypes eCityOwner = pCity->getOwner();
+	const PlayerTypes eCityOwner = pCity->getOwner();
 	if(!GET_PLAYER(eCityOwner).isMinorCiv())
 	{
 		// this city state is not a minor civ
 		return false;
 	}
 
+
 	CvMinorCivAI* pMinorCivAI = GET_PLAYER(eCityOwner).GetMinorCivAI();
 
-	PlayerTypes ePreviousAlly = pMinorCivAI->GetAlly();
+	const PlayerTypes ePreviousAlly = pMinorCivAI->GetAlly();
 	CvAssertMsg(ePreviousAlly != NO_PLAYER, "City state has no ally. Something's going wrong");
 	if(ePreviousAlly == NO_PLAYER)
 	{
 		return false;
-	}
-
-	int aiNewInfluenceValueTimes100[MAX_MAJOR_CIVS];
-	for(uint ui = 0; ui < MAX_MAJOR_CIVS; ui++)
-	{
-#ifdef NQ_COUP_FORMULA_USES_BASE_FRIENDSHIP_NOT_EFFECTIVE_FRIENDSHIP
-		aiNewInfluenceValueTimes100[ui] = pMinorCivAI->GetBaseFriendshipWithMajorTimes100((PlayerTypes)ui);
-#else
-		aiNewInfluenceValueTimes100[ui] = pMinorCivAI->GetEffectiveFriendshipWithMajorTimes100((PlayerTypes)ui);
-#endif
 	}
 
 	m_aSpyList[uiSpyIndex].m_bEvaluateReassignment = true; // flag for reassignment
@@ -1919,123 +1908,75 @@ bool CvPlayerEspionage::AttemptCoup(uint uiSpyIndex)
 	}
 
 	bool bAttemptSuccess = false;
-	int iRandRoll = GC.getGame().getJonRandNum(100, "Roll for the result of an attempted coup", NULL, uiSpyIndex * 89167);
-	if(iRandRoll <= GetCoupChanceOfSuccess(uiSpyIndex))
+	const int iRandRoll = GC.getGame().getJonRandNum(100, "Roll for the result of an attempted coup", NULL, uiSpyIndex * 89167);
+	if (iRandRoll <= GetCoupChanceOfSuccess(uiSpyIndex))
 	{
-		// swap influence from ally to 2nd place ally
-		int iInfluenceTemp = aiNewInfluenceValueTimes100[ePreviousAlly];
-		aiNewInfluenceValueTimes100[ePreviousAlly] = aiNewInfluenceValueTimes100[m_pPlayer->GetID()];
-		aiNewInfluenceValueTimes100[m_pPlayer->GetID()] = iInfluenceTemp;
-
-		// reduce the influence of all the other players
-#ifdef AUI_WARNING_FIXES
-		for (int ui = 0; ui < MAX_MAJOR_CIVS; ui++)
-#else
-		for(uint ui = 0; ui < MAX_MAJOR_CIVS; ui++)
-#endif
-		{
-			if(ui == m_pPlayer->GetID())
-			{
-				continue;
-			}
-
-			// only drop the influence if they have positive influence
-			if(aiNewInfluenceValueTimes100[ui] > 0)
-			{
-				int iNewInfluence = aiNewInfluenceValueTimes100[ui] - (GC.getESPIONAGE_COUP_OTHER_PLAYERS_INFLUENCE_DROP() * 100);
-				iNewInfluence = max(iNewInfluence, 0);
-#ifdef NQ_COUP_FORMULA_USES_BASE_FRIENDSHIP_NOT_EFFECTIVE_FRIENDSHIP
-				// cap all others at the ally threshold of 60 though (it's further reduced by 20 later)
-				iNewInfluence = min(iNewInfluence, GC.getFRIENDSHIP_THRESHOLD_ALLIES() * 100);
-#endif
-				aiNewInfluenceValueTimes100[ui] = iNewInfluence;
-			}
-		}
-
 		bAttemptSuccess = true;
 	}
 	else
 	{
-		// reduce influence of player
-		// right now move the influence into a negative space
-		aiNewInfluenceValueTimes100[m_pPlayer->GetID()] = (-10 * 100);
 		bAttemptSuccess = false;
 
 		// kill the spy
-		ExtractSpyFromCity(uiSpyIndex); // move the dead body out so that someone else can move in
-		m_aSpyList[uiSpyIndex].m_eSpyState = SPY_STATE_DEAD; // have to official kill him after the extraction
+		ExtractSpyFromCity(uiSpyIndex); // move the dead body out
+		m_aSpyList[uiSpyIndex].m_eSpyState = SPY_STATE_DEAD;
 	}
 
 	// do others influence first so that the potential coup person will be the ally
 	pMinorCivAI->SetDisableNotifications(true);
-	for(uint ui = 0; ui < MAX_MAJOR_CIVS; ui++)
 	{
-		PlayerTypes ePlayer = (PlayerTypes)ui;
-		if(!GET_PLAYER(ePlayer).isAlive())
+		for (uint ui = 0; ui < MAX_MAJOR_CIVS; ui++)
 		{
-			continue;
-		}
+			const PlayerTypes ePlayer = (PlayerTypes)ui;
+			if(!GET_PLAYER(ePlayer).isAlive() || ePlayer == m_pPlayer->GetID()) // skip the spy player or a dead player
+				continue;
 
-		// skip the spy player
-		if(ePlayer == m_pPlayer->GetID())
-		{
-			continue;
-		}
+			// send notification to other civs if they have met this minor
+			const bool bMetMinor = GET_TEAM(GET_PLAYER(ePlayer).getTeam()).isHasMet(GET_PLAYER(eCityOwner).getTeam());
 
-		// send notification to other civs if they have met this minor
-		bool bMetMinor = GET_TEAM(GET_PLAYER(ePlayer).getTeam()).isHasMet(GET_PLAYER(eCityOwner).getTeam());
-		bool bNotify = false;
-		int iFriendship = pMinorCivAI->GetEffectiveFriendshipWithMajor(ePlayer);
-		int iRelationshipAnchor = pMinorCivAI->GetFriendshipAnchorWithMajor(ePlayer);
-		bool bFriends = pMinorCivAI->IsFriends(ePlayer);
+			CvNotifications* pNotifications = GET_PLAYER(ePlayer).GetNotifications();
+			// influence change
+			if (bAttemptSuccess && bMetMinor)
+				pMinorCivAI->ChangeFriendshipWithMajorTimes100Instant(ePlayer, -GC.getESPIONAGE_COUP_OTHER_PLAYERS_INFLUENCE_DROP() * 100);
 
-		if (iFriendship > iRelationshipAnchor || bFriends)
-		{
-			bNotify = true;
-		}
-
-		CvPlayerEspionage* pOtherEspionage = GET_PLAYER(ePlayer).GetEspionage();
-		int iSpyIndex = pOtherEspionage->GetSpyIndexInCity(pCity);
-		if (iSpyIndex >= 0)
-		{
-			bNotify = true;
-		}
-
-		pMinorCivAI->ChangeFriendshipWithMajorTimes100(ePlayer, -GC.getESPIONAGE_COUP_OTHER_PLAYERS_INFLUENCE_DROP() * 100);
-
-		CvNotifications* pNotifications = GET_PLAYER(ePlayer).GetNotifications();
-		if(pNotifications && bMetMinor && bNotify)
-		{
-			NotificationTypes eNotification;
-			Localization::String strSummary;
-			Localization::String strNotification;
-			if(bAttemptSuccess)
+			// notify all
+			if (pNotifications)
 			{
-				eNotification = NOTIFICATION_SPY_STAGE_COUP_SUCCESS;
-				strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SPY_STAGE_COUP_SUCCESS_S");
-				strSummary << m_pPlayer->getCivilizationAdjectiveKey();
-				strSummary << pCity->getNameKey();
-				strNotification = Localization::Lookup("TXT_KEY_NOTIFICATION_SPY_STAGE_COUP_SUCCESS");
-				strNotification << m_pPlayer->getCivilizationShortDescriptionKey();
-				strNotification << pCity->getNameKey();
-				strNotification << GET_PLAYER(ePreviousAlly).getCivilizationAdjectiveKey();
+				NotificationTypes eNotification;
+				Localization::String strSummary;
+				Localization::String strNotification;
+				if (bAttemptSuccess)
+				{
+					eNotification = NOTIFICATION_SPY_STAGE_COUP_SUCCESS;
+					strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SPY_STAGE_COUP_SUCCESS_S");
+					strSummary << m_pPlayer->getCivilizationAdjectiveKey();
+					strSummary << pCity->getNameKey();
+					strNotification = Localization::Lookup("TXT_KEY_NOTIFICATION_SPY_STAGE_COUP_SUCCESS");
+					strNotification << m_pPlayer->getCivilizationShortDescriptionKey();
+					strNotification << pCity->getNameKey();
+					strNotification << GET_PLAYER(ePreviousAlly).getCivilizationAdjectiveKey();
+				}
+				else
+				{
+					eNotification = NOTIFICATION_SPY_STAGE_COUP_FAILURE;
+					strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SPY_STAGE_COUP_FAILURE_S");
+					strSummary << m_pPlayer->getCivilizationAdjectiveKey();
+					strSummary << pCity->getNameKey();
+					strNotification = Localization::Lookup("TXT_KEY_NOTIFICATION_SPY_STAGE_COUP_FAILURE");
+					strNotification << m_pPlayer->getCivilizationShortDescriptionKey();
+					strNotification << pCity->getNameKey();
+					strNotification << GET_PLAYER(ePreviousAlly).getCivilizationAdjectiveKey();
+				}
+				pNotifications->Add(eNotification, strNotification.toUTF8(), strSummary.toUTF8(), pCity->getX(), pCity->getY(), -1);
 			}
-			else
-			{
-				eNotification = NOTIFICATION_SPY_STAGE_COUP_FAILURE;
-				strSummary = Localization::Lookup("TXT_KEY_NOTIFICATION_SPY_STAGE_COUP_FAILURE_S");
-				strSummary << m_pPlayer->getCivilizationAdjectiveKey();
-				strSummary << pCity->getNameKey();
-				strNotification = Localization::Lookup("TXT_KEY_NOTIFICATION_SPY_STAGE_COUP_FAILURE");
-				strNotification << m_pPlayer->getCivilizationShortDescriptionKey();
-				strNotification << pCity->getNameKey();
-				strNotification << GET_PLAYER(ePreviousAlly).getCivilizationAdjectiveKey();
-			}
-			pNotifications->Add(eNotification, strNotification.toUTF8(), strSummary.toUTF8(), pCity->getX(), pCity->getY(), -1);
 		}
+
+		// gain or lose influence
+		int influenceChangeT100 = GC.getESPIONAGE_COUP_OTHER_PLAYERS_INFLUENCE_DROP() * 100;
+		if (!bAttemptSuccess)
+			influenceChangeT100 = -influenceChangeT100;
+		pMinorCivAI->ChangeFriendshipWithMajorTimes100Instant(m_pPlayer->GetID(), influenceChangeT100);
 	}
-	
-	pMinorCivAI->ChangeFriendshipWithMajorTimes100(m_pPlayer->GetID(), GC.getESPIONAGE_COUP_OTHER_PLAYERS_INFLUENCE_DROP() * 100);
 	pMinorCivAI->SetDisableNotifications(false);
 
 	// send notification to player
@@ -2071,12 +2012,12 @@ bool CvPlayerEspionage::AttemptCoup(uint uiSpyIndex)
 	}
 
 	//Achievements!
-	if(bAttemptSuccess && m_pPlayer->GetID() == GC.getGame().getActivePlayer())
+	if (bAttemptSuccess && m_pPlayer->GetID() == GC.getGame().getActivePlayer())
 	{
 		gDLL->UnlockAchievement(ACHIEVEMENT_XP1_13);
 	}
 
-	// Update City banners and game info
+	// city banners
 	GC.GetEngineUserInterface()->setDirty(GameData_DIRTY_BIT, true);
 	GC.GetEngineUserInterface()->setDirty(CityInfo_DIRTY_BIT, true);
 

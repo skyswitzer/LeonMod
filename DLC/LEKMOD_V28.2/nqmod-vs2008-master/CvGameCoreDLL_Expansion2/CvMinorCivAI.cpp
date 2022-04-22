@@ -126,7 +126,7 @@ string compileRewards(QuestReward rewards)
 
 string CvMinorCivQuest::GetStatusMessage(const CvPlayer* pMinor, const CvPlayer* pMajor, MessageType messageType, string value3) const
 {
-	const int turnsRemaining = GetEndTurn() - GC.getGame().getGameTurn();
+	const int turnsRemaining = GetTurnsRemaining(GC.getGame().getGameTurn());
 	const QuestReward rewards = m_rewards;
 	const MinorCivQuestTypes quest = m_eType;
 	const string civName = Localization::Lookup(pMinor->getNameKey()).toUTF8();
@@ -167,7 +167,7 @@ string CvMinorCivQuest::GetStatusMessage(const CvPlayer* pMinor, const CvPlayer*
 		}
 		if (messageType == LOSE_DESC)
 		{
-			s << "Another civilization assisted us. They have been awarded: ";
+			s << "Another civilization has given us military assistance. They have been awarded: ";
 			s << compileRewards(rewards);
 		}
 	}
@@ -205,7 +205,7 @@ string CvMinorCivQuest::GetStatusMessage(const CvPlayer* pMinor, const CvPlayer*
 		}
 		if (messageType == LOSE_DESC)
 		{
-			s << "Our citizens are unimpressed by your civilization. You could have earned: ";
+			s << "You never constructed a {WORLD_WONDER}, and our citizens are unimpressed. You could have earned: ";
 			s << compileRewards(rewards);
 		}
 	}
@@ -279,7 +279,7 @@ string CvMinorCivQuest::GetStatusMessage(const CvPlayer* pMinor, const CvPlayer*
 		}
 		if (messageType == LOSE_DESC)
 		{
-			s << "It appears the rumors were just that, as you never constructed a {NATIONAL_WONDER}. We would have awarded you with: ";
+			s << "It appears the rumors of your greatness were just that. You never constructed a {NATIONAL_WONDER}. We would have awarded you with: ";
 			s << compileRewards(rewards);
 		}
 	}
@@ -593,76 +593,6 @@ int CvMinorCivQuest::GetSecondaryData() const
 	return m_iData2;
 }
 
-// Influence gained if the quest is completed
-int CvMinorCivQuest::GetInfluenceReward() const
-{
-	int iReward = 0;
-
-	switch(m_eType)
-	{
-	case MINOR_CIV_QUEST_ROUTE:
-		iReward = /*50*/ GC.getMINOR_QUEST_FRIENDSHIP_ROUTE();
-		break;
-	case MINOR_CIV_QUEST_CONNECT_RESOURCE:
-		iReward = /*40*/ GC.getMINOR_QUEST_FRIENDSHIP_CONNECT_RESOURCE();
-		break;
-	case MINOR_CIV_QUEST_CONSTRUCT_WONDER:
-		iReward = /*40*/ GC.getMINOR_QUEST_FRIENDSHIP_CONSTRUCT_WONDER();
-		break;
-	case MINOR_CIV_QUEST_GREAT_PERSON:
-		iReward = /*40*/ GC.getMINOR_QUEST_FRIENDSHIP_GREAT_PERSON();
-		break;
-	case MINOR_CIV_QUEST_KILL_CITY_STATE:
-		iReward = /*80*/ GC.getMINOR_QUEST_FRIENDSHIP_KILL_CITY_STATE();
-		break;
-	case MINOR_CIV_QUEST_FIND_PLAYER:
-		iReward = /*35*/ GC.getMINOR_QUEST_FRIENDSHIP_FIND_PLAYER();
-		break;
-	case MINOR_CIV_QUEST_FIND_NATURAL_WONDER:
-		iReward = /*40*/ GC.getMINOR_QUEST_FRIENDSHIP_FIND_NATURAL_WONDER();
-		break;
-	case MINOR_CIV_QUEST_GIVE_GOLD:
-		iReward = /*20*/ GC.getMINOR_QUEST_FRIENDSHIP_GIVE_GOLD();
-		break;
-	case MINOR_CIV_QUEST_PLEDGE_TO_PROTECT:
-		iReward = /*20*/ GC.getMINOR_QUEST_FRIENDSHIP_PLEDGE_TO_PROTECT();
-		break;
-	case MINOR_CIV_QUEST_CONTEST_CULTURE:
-		iReward = /*40*/ GC.getMINOR_QUEST_FRIENDSHIP_CONTEST_CULTURE();
-		break;
-	case MINOR_CIV_QUEST_CONTEST_FAITH:
-		iReward = /*40*/ GC.getMINOR_QUEST_FRIENDSHIP_CONTEST_FAITH();
-		break;
-	case MINOR_CIV_QUEST_CONTEST_TECHS:
-		iReward = /*40*/ GC.getMINOR_QUEST_FRIENDSHIP_CONTEST_TECHS();
-		break;
-	case QUEST_UNREST:
-		iReward = /*40*/ GC.getMINOR_QUEST_FRIENDSHIP_CONTEST_TECHS();
-		break;
-	case MINOR_CIV_QUEST_INVEST:
-		// Reward is indirect; increased gains from gold gifts
-		iReward = /*0*/ GC.getMINOR_QUEST_FRIENDSHIP_INVEST();
-		break;
-	case MINOR_CIV_QUEST_BULLY_CITY_STATE:
-		iReward = /*40*/ GC.getMINOR_QUEST_FRIENDSHIP_BULLY_CITY_STATE();
-		break;
-	case MINOR_CIV_QUEST_DENOUNCE_MAJOR:
-		iReward = /*40*/ GC.getMINOR_QUEST_FRIENDSHIP_DENOUNCE_MAJOR();
-		break;
-	case MINOR_CIV_QUEST_SPREAD_RELIGION:
-		iReward = /*40*/ GC.getMINOR_QUEST_FRIENDSHIP_SPREAD_RELIGION();
-		break;
-	case MINOR_CIV_QUEST_TRADE_ROUTE:
-		iReward = /*40*/ GC.getMINOR_QUEST_FRIENDSHIP_TRADE_ROUTE();
-		break;
-	default:
-		iReward = 0;
-		break;
-	}
-
-	return iReward;
-}
-
 int getAStrengthNearAllBCities(PlayerTypes a, PlayerTypes b)
 {
 	int allStrength = 0;
@@ -719,25 +649,25 @@ int CvMinorCivQuest::GetContestValueForPlayer(PlayerTypes ePlayer) const
 	if(!pMinor->GetMinorCivAI()->IsActiveQuestForPlayer(ePlayer, eType))
 		return iValue;
 
-	if(eType == MINOR_CIV_QUEST_CONTEST_CULTURE)
-	{
-		int iStartCulture = pMinor->GetMinorCivAI()->GetQuestData1(ePlayer, eType);
-		int iEndCulture = GET_PLAYER(ePlayer).GetJONSCultureEverGenerated();
-		iValue = iEndCulture - iStartCulture;
-	}
-	else if(eType == MINOR_CIV_QUEST_CONTEST_FAITH)
-	{
-		int iStartFaith = pMinor->GetMinorCivAI()->GetQuestData1(ePlayer, eType);
-		int iEndFaith = GET_PLAYER(ePlayer).GetFaithEverGenerated();
-		iValue = iEndFaith - iStartFaith;
-	}
-	else if (eType == MINOR_CIV_QUEST_CONTEST_TECHS)
-	{
-		int iStartTechs = pMinor->GetMinorCivAI()->GetQuestData1(ePlayer, eType);
-		int iEndTechs = GET_TEAM(GET_PLAYER(ePlayer).getTeam()).GetTeamTechs()->GetNumTechsKnown();
-		iValue = iEndTechs - iStartTechs;
-	}
-	else if (eType == QUEST_UNREST)
+	//if(eType == MINOR_CIV_QUEST_CONTEST_CULTURE)
+	//{
+	//	int iStartCulture = pMinor->GetMinorCivAI()->GetQuestData1(ePlayer, eType);
+	//	int iEndCulture = GET_PLAYER(ePlayer).GetJONSCultureEverGenerated();
+	//	iValue = iEndCulture - iStartCulture;
+	//}
+	//else if(eType == MINOR_CIV_QUEST_CONTEST_FAITH)
+	//{
+	//	int iStartFaith = pMinor->GetMinorCivAI()->GetQuestData1(ePlayer, eType);
+	//	int iEndFaith = GET_PLAYER(ePlayer).GetFaithEverGenerated();
+	//	iValue = iEndFaith - iStartFaith;
+	//}
+	//else if (eType == MINOR_CIV_QUEST_CONTEST_TECHS)
+	//{
+	//	int iStartTechs = pMinor->GetMinorCivAI()->GetQuestData1(ePlayer, eType);
+	//	int iEndTechs = GET_TEAM(GET_PLAYER(ePlayer).getTeam()).GetTeamTechs()->GetNumTechsKnown();
+	//	iValue = iEndTechs - iStartTechs;
+	//}
+	if (eType == QUEST_UNREST)
 	{
 		iValue = getAStrengthNearAllBCities(ePlayer, GetMinor());
 	}
@@ -747,22 +677,18 @@ int CvMinorCivQuest::GetContestValueForPlayer(PlayerTypes ePlayer) const
 
 int CvMinorCivQuest::GetContestValueForLeader() const
 {
-	MinorCivQuestTypes eType = GetType();
-	int iHighestValue = 0;
+	const MinorCivQuestTypes eType = GetType();
+	const CvPlayer& minor = GET_PLAYER(GetMinor());
 
-	if
-	(
-		eType == MINOR_CIV_QUEST_CONTEST_CULTURE ||
-		eType == MINOR_CIV_QUEST_CONTEST_FAITH ||
-		eType == MINOR_CIV_QUEST_CONTEST_TECHS
-	)
+	int iHighestValue = 0;
+	const bool isContest = minor.GetMinorCivAI()->IsGlobalQuest(eType);
+	if (isContest)
 	{
 		// What is the largest value a participant has for this contest?
 		for(int iPlayerLoop = 0; iPlayerLoop < MAX_MAJOR_CIVS; iPlayerLoop++)
 		{
-			PlayerTypes ePlayerLoop = (PlayerTypes) iPlayerLoop;
-
-			int iPlayerValue = GetContestValueForPlayer(ePlayerLoop);
+			const PlayerTypes ePlayerLoop = (PlayerTypes)iPlayerLoop;
+			const int iPlayerValue = GetContestValueForPlayer(ePlayerLoop);
 			if(iPlayerValue > iHighestValue)
 			{
 				iHighestValue = iPlayerValue;
@@ -776,24 +702,23 @@ int CvMinorCivQuest::GetContestValueForLeader() const
 // Returns a list, since ties are allowed
 CivsList CvMinorCivQuest::GetContestLeaders()
 {
-	MinorCivQuestTypes eType = GetType();
-	CivsList veTiedForLead;
-	int iHighestValue = GetContestValueForLeader();
+	const MinorCivQuestTypes eType = GetType();
+	const int iHighestValue = GetContestValueForLeader();
+	const CvPlayer& minor = GET_PLAYER(GetMinor());
+	const bool isContest = minor.GetMinorCivAI()->IsGlobalQuest(eType);
 
-	if(eType == MINOR_CIV_QUEST_CONTEST_CULTURE ||
-	        eType == MINOR_CIV_QUEST_CONTEST_FAITH ||
-		eType == MINOR_CIV_QUEST_CONTEST_TECHS)
+	CivsList veTiedForLead;
+	if (isContest)
 	{
-		for(int iPlayerLoop = 0; iPlayerLoop < MAX_MAJOR_CIVS; iPlayerLoop++)
+		for (int iPlayerLoop = 0; iPlayerLoop < MAX_MAJOR_CIVS; iPlayerLoop++)
 		{
-			PlayerTypes ePlayerLoop = (PlayerTypes) iPlayerLoop;
-			int iPlayerValue = GetContestValueForPlayer(ePlayerLoop);
+			const PlayerTypes ePlayerLoop = (PlayerTypes) iPlayerLoop;
+			const int iPlayerValue = GetContestValueForPlayer(ePlayerLoop);
 			CvAssertMsg(iPlayerValue <= iHighestValue, "Calculation error for calculating the leaders of a contest! Please send Anton your save file and version.");
 			if(iPlayerValue == iHighestValue && iPlayerValue != 0) // don't allow 0 to count for ties
 				veTiedForLead.push_back(ePlayerLoop);
 		}
 	}
-
 	return veTiedForLead;
 }
 
@@ -814,13 +739,8 @@ bool CvMinorCivQuest::IsContestLeader(PlayerTypes ePlayer)
 	if(!pMinor->GetMinorCivAI()->IsActiveQuestForPlayer(ePlayer, eType))
 		return false;
 
-	if
-	(
-		eType == MINOR_CIV_QUEST_CONTEST_CULTURE ||
-	    eType == MINOR_CIV_QUEST_CONTEST_FAITH ||
-	    eType == MINOR_CIV_QUEST_CONTEST_TECHS ||
-		eType == QUEST_UNREST
-	)
+	const bool isContest = pMinor->GetMinorCivAI()->IsGlobalQuest(eType);
+	if (isContest)
 	{
 		CivsList veTiedForLead = GetContestLeaders();
 		for(uint ui = 0; ui < veTiedForLead.size(); ui++)
@@ -887,7 +807,7 @@ bool CvMinorCivQuest::IsComplete()
 	else if (m_eType == QUEST_UNREST)
 	{
 		// Is it time to compare the score?
-		if (GetEndTurn() == GC.getGame().getGameTurn())
+		if (GetTurnsRemaining(GC.getGame().getGameTurn()) == 0)
 			if (IsContestLeader(GetPlayerAssignedTo()))
 				return true;
 	}
@@ -910,11 +830,15 @@ bool CvMinorCivQuest::IsComplete()
 	return false;
 }
 
-/// Is this quest now revoked (ie. because the player bullied us)?
 bool CvMinorCivQuest::IsRevoked()
 {
-	// always revoke if bullied
-	if(GET_PLAYER(m_eMinor).GetMinorCivAI()->IsRecentlyBulliedByMajor(m_eAssignedPlayer))
+	// bullied
+	if (GET_PLAYER(m_eMinor).GetMinorCivAI()->IsRecentlyBulliedByMajor(m_eAssignedPlayer))
+	{
+		return true;
+	}
+	// negative friendship
+	if (GET_PLAYER(m_eMinor).GetMinorCivAI()->GetBaseFriendshipWithMajorTimes100(m_eAssignedPlayer) < 0)
 	{
 		return true;
 	}
@@ -922,12 +846,11 @@ bool CvMinorCivQuest::IsRevoked()
 	return false;
 }
 
-/// Is this quest now expired (ie. time limit is up or condition is no longer valid)?
 bool CvMinorCivQuest::IsExpired()
 {
 	if (m_eType == QUEST_UNREST)
 	{
-		if (GC.getGame().getGameTurn() > GetEndTurn() && !IsComplete())
+		if (GetTurnsRemaining(GC.getGame().getGameTurn()) < 0 && !IsComplete())
 			return true;
 	}
 	else if(m_eType == QUEST_SPREAD_RELIGION)
@@ -938,7 +861,7 @@ bool CvMinorCivQuest::IsExpired()
 	// If this quest type has an end turn, have we passed it?
 	if (GetEndTurn() != NO_TURN)
 	{
-		if (GC.getGame().getGameTurn() > GetEndTurn())
+		if (GetTurnsRemaining(GC.getGame().getGameTurn()) < 0)
 			return true;
 	}
 
@@ -1066,7 +989,7 @@ bool CvMinorCivQuest::DoFinishQuest(const float bonusFactor)
 	CvPlayer* pMinor = &GET_PLAYER(m_eMinor);
 	const CvPlayer* pMajor = &GET_PLAYER(m_eAssignedPlayer);
 	const PlayerTypes eMajor = pMajor->GetID();
-	const int friendshipRewardT100 = 100 * GetInfluenceReward() * bonusFactor;
+	const int friendshipRewardT100 = 100 * m_rewards.friendship * bonusFactor;
 	const int diplomaticSupportReward = GC.getDIPLOMATIC_INFLUENCE_PER_QUEST(m_eMinor, eMajor) * bonusFactor;
 
 
@@ -2793,7 +2716,7 @@ WeightedCivsList CvMinorCivAI::CalculateFriendshipFromQuests()
 			{
 				if (itr_quest->IsComplete())
 				{
-					iInfTimes100 += (itr_quest->GetInfluenceReward() * 100);
+					iInfTimes100 += (itr_quest->m_rewards.friendship * 100);
 				}
 			}
 		}

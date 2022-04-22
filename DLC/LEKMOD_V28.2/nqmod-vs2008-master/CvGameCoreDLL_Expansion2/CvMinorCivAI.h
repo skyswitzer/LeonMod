@@ -190,7 +190,6 @@ public:
 	int GetTurnsRemaining(int iCurrentTurn) const;
 	int GetPrimaryData() const;
 	int GetSecondaryData() const;
-	int GetInfluenceReward() const;
 
 	// Contest helper functions
 	int GetContestValueForPlayer(PlayerTypes ePlayer) const;
@@ -200,8 +199,11 @@ public:
 	// Quest status for assigned player
 	bool IsContestLeader(PlayerTypes ePlayer = NO_PLAYER);
 	bool IsComplete();
+	// city state took back quest because attitude
 	bool IsRevoked();
+	/// Is this quest now expired (ie. time limit is up or condition is no longer valid)?
 	bool IsExpired();
+	// quest can no longer be completed
 	bool IsObsolete();
 	bool IsHandled();
 	void SetHandled(bool bValue);
@@ -348,6 +350,7 @@ public:
 	bool IsEnabledQuest(MinorCivQuestTypes eQuest);
 	bool IsValidQuestForPlayer(PlayerTypes ePlayer, MinorCivQuestTypes eQuest);
 	bool IsValidQuestCopyForPlayer(PlayerTypes ePlayer, CvMinorCivQuest* pQuest);
+	// True if this quest is a global contest.
 	bool IsGlobalQuest(MinorCivQuestTypes eQuest) const;
 	bool IsPersonalQuest(MinorCivQuestTypes eQuest) const;
 	int GetMinPlayersNeededForQuest(MinorCivQuestTypes eQuest) const;
