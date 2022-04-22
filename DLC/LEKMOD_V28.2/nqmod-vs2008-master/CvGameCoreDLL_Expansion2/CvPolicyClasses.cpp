@@ -2853,7 +2853,7 @@ bool CvPlayerPolicies::HasPolicy(PolicyTypes eIndex) const
 }
 
 /// Accessor: set whether player has a policy
-void CvPlayerPolicies::SetPolicy(PolicyTypes eIndex, bool bNewValue)
+void CvPlayerPolicies::SetPolicy(PolicyTypes eIndex, bool hasPolicy)
 {
 	CvAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
 	CvAssertMsg(eIndex < m_pPolicies->GetNumPolicies(), "eIndex is expected to be within maximum bounds (invalid Index)");
@@ -2862,14 +2862,14 @@ void CvPlayerPolicies::SetPolicy(PolicyTypes eIndex, bool bNewValue)
 	if(pkPolicyInfo == NULL)
 		return;
 
-	if(HasPolicy(eIndex) != bNewValue)
+	if(HasPolicy(eIndex) != hasPolicy)
 	{
-		m_pabHasPolicy[eIndex] = bNewValue;
+		m_pabHasPolicy[eIndex] = hasPolicy;
 
-		int iChange = bNewValue ? 1 : -1;
+		int iChange = hasPolicy ? 1 : -1;
 		GetPlayer()->ChangeNumPolicies(iChange);
 
-		if(bNewValue)
+		if(hasPolicy)
 		{
 			DoNewPolicyPickedForHistory(eIndex);
 
@@ -2877,65 +2877,18 @@ void CvPlayerPolicies::SetPolicy(PolicyTypes eIndex, bool bNewValue)
 				GC.GetEngineUserInterface()->SetPolicyNotificationSeen(false);
 		}
 
-		PolicyBranchTypes eThisBranch = (PolicyBranchTypes) pkPolicyInfo->GetPolicyBranchType();
+		const PolicyBranchTypes eThisBranch = (PolicyBranchTypes) pkPolicyInfo->GetPolicyBranchType();
 
 		if(eThisBranch != NO_POLICY_BRANCH_TYPE)
 		{
-			bool bBranchFinished;
-
+			bool bBranchFinished = false;
 			// We don't have this Policy, so this branch is definitely not finished
-			if(!bNewValue)
+			if(hasPolicy)
 			{
-				bBranchFinished = false;
-			}
-			// We now have this Policy, so we MAY have this branch finished
-			else
-			{
-				bBranchFinished = true;
-
-				// Is the branch this policy is in finished?
-#ifdef AUI_WARNING_FIXES
-				for (uint iPolicyLoop = 0; iPolicyLoop < GetPolicies()->GetNumPolicies(); iPolicyLoop++)
-#else
-				for(int iPolicyLoop = 0; iPolicyLoop < GetPolicies()->GetNumPolicies(); iPolicyLoop++)
-#endif
-				{
-					const PolicyTypes eLoopPolicy = static_cast<PolicyTypes>(iPolicyLoop);
-
-					CvPolicyEntry* pkLoopPolicyInfo = GC.getPolicyInfo(eLoopPolicy);
-					if(pkLoopPolicyInfo)
-					{
-						// This policy belongs to our branch
-						if(pkLoopPolicyInfo->GetPolicyBranchType() == eThisBranch)
-						{
-							// We don't have this policy!
-							if(!HasPolicy(eLoopPolicy) || !IsPolicyBranchUnlocked(eThisBranch))
-							{
-								bBranchFinished = false;
-
-								// No need to continue, we already know we don't have the branch
-								break;
-							}
-						}
-					}
-				}
+				bBranchFinished = CheckIsPolicyBranchFinished(eThisBranch);
 			}
 
 			SetPolicyBranchFinished(eThisBranch, bBranchFinished);
-
-			if(bBranchFinished)
-			{
-				CvPolicyBranchEntry* pkPolicyBranchInfo = GC.getPolicyBranchInfo(eThisBranch);
-				if(pkPolicyBranchInfo)
-				{
-					PolicyTypes eFinisher = (PolicyTypes)pkPolicyBranchInfo->GetFreeFinishingPolicy();
-					if(eFinisher != NO_POLICY)
-					{
-						GetPlayer()->setHasPolicy(eFinisher, true);
-						GetPlayer()->ChangeNumFreePoliciesEver(1);
-					}
-				}
-			}
 		}
 	}
 }
@@ -3698,6 +3651,9 @@ bool CvPlayerPolicies::CanAdoptPolicy(PolicyTypes eIndex, bool bIgnoreCost) cons
 		// if it is an ideology policy
 		if (pkPolicyBranchInfo->IsPurchaseByLevel())
 		{
+			if (!IsPolicyBranchUnlocked(eBranch))
+				return false;
+
 			// If below level 1, can't have as many of this level as of the previous one
 			int iLevel = pkPolicyEntry->GetLevel();
 			if (iLevel > 1)
@@ -3838,6 +3794,10 @@ void CvPlayerPolicies::DoUnlockPolicyBranch(PolicyBranchTypes eBranchType)
 	if(eFreePolicy != NO_POLICY)
 	{
 		GetPlayer()->setHasPolicy(eFreePolicy, true);
+		if (CheckIsPolicyBranchFinished(eBranchType))
+		{
+			SetPolicyBranchFinished(eBranchType, true);
+		}
 	}
 
 	// Pay Culture cost - if applicable
@@ -4301,18 +4261,45 @@ int CvPlayerPolicies::GetNumPolicyBranchesFinished() const
 	return iNumBranchesFinished;
 }
 
+bool CvPlayerPolicies::CheckIsPolicyBranchFinished(const PolicyBranchTypes eBranchType) const
+{
+	bool bBranchFinished = true;
+	// Is the branch this policy is in finished?
+	for (int iPolicyLoop = 0; iPolicyLoop < GetPolicies()->GetNumPolicies(); iPolicyLoop++)
+	{
+		const PolicyTypes eLoopPolicy = (PolicyTypes)iPolicyLoop;
+		const CvPolicyEntry* pkLoopPolicyInfo = GC.getPolicyInfo(eLoopPolicy);
+		if (pkLoopPolicyInfo)
+		{
+			// This policy belongs to our branch
+			if (pkLoopPolicyInfo->GetPolicyBranchType() == eBranchType)
+			{
+				// We don't have this policy!
+				if (!HasPolicy(eLoopPolicy) || !IsPolicyBranchUnlocked(eBranchType))
+				{
+					bBranchFinished = false;
+
+					// No need to continue, we already know we don't have the branch
+					break;
+				}
+			}
+		}
+	}
+	return bBranchFinished;
+}
+
 /// Accessor: is eBranchType finished?
-void CvPlayerPolicies::SetPolicyBranchFinished(PolicyBranchTypes eBranchType, bool bValue)
+void CvPlayerPolicies::SetPolicyBranchFinished(PolicyBranchTypes eBranchType, bool isFinished)
 {
 	CvAssertMsg(eBranchType >= 0, "eIndex is expected to be non-negative (invalid Index)");
 	CvAssertMsg(eBranchType < m_pPolicies->GetNumPolicyBranches(), "eIndex is expected to be within maximum bounds (invalid Index)");
 
-	if(bValue != IsPolicyBranchFinished(eBranchType))
+	if(isFinished != IsPolicyBranchFinished(eBranchType))
 	{
-		m_pabPolicyBranchFinished[eBranchType] = bValue;
+		m_pabPolicyBranchFinished[eBranchType] = isFinished;
 
 
-		bool bUsingXP1Scenario3 = gDLL->IsModActivated(CIV5_XP1_SCENARIO3_MODID);
+		const bool bUsingXP1Scenario3 = gDLL->IsModActivated(CIV5_XP1_SCENARIO3_MODID);
 
 		//Achievements for fulfilling branches
 		if(!GC.getGame().isGameMultiPlayer() && GET_PLAYER(GC.getGame().getActivePlayer()).isHuman())
@@ -4320,11 +4307,7 @@ void CvPlayerPolicies::SetPolicyBranchFinished(PolicyBranchTypes eBranchType, bo
 			//Must not be playing smokey skies scenario.
 			if(m_pPlayer->GetID() == GC.getGame().getActivePlayer() && !bUsingXP1Scenario3)
 			{
-#ifdef AUI_WARNING_FIXES
-				switch (static_cast<int>(eBranchType))
-#else
 				switch(eBranchType)
-#endif
 				{
 				case 0:
 					gDLL->UnlockAchievement(ACHIEVEMENT_POLICY_TRADITION);
@@ -4362,6 +4345,16 @@ void CvPlayerPolicies::SetPolicyBranchFinished(PolicyBranchTypes eBranchType, bo
 			}
 		}
 
+		const CvPolicyBranchEntry* pkPolicyBranchInfo = GC.getPolicyBranchInfo(eBranchType);
+		if (pkPolicyBranchInfo)
+		{
+			const PolicyTypes eFinisher = (PolicyTypes)pkPolicyBranchInfo->GetFreeFinishingPolicy();
+			if (eFinisher != NO_POLICY)
+			{
+				GetPlayer()->setHasPolicy(eFinisher, isFinished);
+				GetPlayer()->ChangeNumFreePoliciesEver(isFinished ? 1 : -1);
+			}
+		}
 	}
 }
 
@@ -4969,7 +4962,7 @@ void CvPlayerPolicies::DoPolicyAI()
 			}
 			else
 			{
-				m_pPlayer->doAdoptPolicy((PolicyTypes)(iNextPolicy - m_pPolicies->GetNumPolicyBranches()));
+				m_pPlayer->doAdoptPolicy((PolicyTypes)(iNextPolicy - GC.getNumPolicyBranchInfos()));
 			}
 		}
 	}

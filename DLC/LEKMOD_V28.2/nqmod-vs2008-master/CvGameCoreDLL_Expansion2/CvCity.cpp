@@ -7244,11 +7244,6 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst, 
 			owningPlayer.ChangeUnhappinessMod(pBuildingInfo->GetUnhappinessModifier() * iChange);
 		}
 
-		{
-			int iBuildingCultureRateModifier = owningPlayer.GetTotalYieldForBuilding(this, eBuilding, YIELD_CULTURE, true);
-			changeCultureRateModifier(iBuildingCultureRateModifier * iChange);
-		}
-
 		changePlotCultureCostModifier(pBuildingInfo->GetPlotCultureCostModifier() * iChange);
 		changePlotBuyCostModifier(pBuildingInfo->GetPlotBuyCostModifier() * iChange);
 
@@ -9221,7 +9216,8 @@ void CvCity::changeScientificInfluence(int iChange)
 int CvCity::getCultureRateModifier() const
 {
 	VALIDATE_OBJECT
-	return m_iCultureRateModifier;
+	return getYieldRateModifier(YIELD_CULTURE);
+	//return m_iCultureRateModifier;
 }
 
 //	--------------------------------------------------------------------------------
@@ -9230,8 +9226,10 @@ void CvCity::changeCultureRateModifier(int iChange)
 	VALIDATE_OBJECT
 	if(iChange != 0)
 	{
-		m_iCultureRateModifier = (m_iCultureRateModifier + iChange);
+		changeYieldRateModifier(YIELD_CULTURE, iChange);
+		//m_iCultureRateModifier = (m_iCultureRateModifier + iChange);
 	}
+
 }
 
 
@@ -11217,7 +11215,7 @@ void CvCity::UpdateBuildingYields()
 {
 	for (int y = 0; y < NUM_YIELD_TYPES; y++)
 	{
-		const YieldTypes eYield = (YieldTypes)y;
+		const YieldTypes eYieldType = (YieldTypes)y;
 		int newYield = 0;
 		int newYieldRate = 0;
 		// for each building
@@ -11239,17 +11237,17 @@ void CvCity::UpdateBuildingYields()
 					if (iBuildingCount > 0)
 					{
 						// process new yield value
-						newYield += GetPlayer()->GetTotalYieldForBuilding(this, eBuilding, eYield, false);
-						newYieldRate += GetPlayer()->GetTotalYieldForBuilding(this, eBuilding, eYield, true);
+						newYield += GetPlayer()->GetTotalYieldForBuilding(this, eBuilding, eYieldType, false);
+						newYieldRate += GetPlayer()->GetTotalYieldForBuilding(this, eBuilding, eYieldType, true);
 					}
 				}
 			}
 		}
-		const int oldYield = GetBaseYieldRateFromBuildings(eYield);
-		ChangeBaseYieldRateFromBuildings(eYield, newYield - oldYield);
+		const int oldYield = GetBaseYieldRateFromBuildings(eYieldType);
+		ChangeBaseYieldRateFromBuildings(eYieldType, newYield - oldYield);
 
-		const int oldYieldRate = getYieldRateModifier(eYield);
-		changeYieldRateModifier(eYield, newYieldRate - oldYieldRate);
+		const int oldYieldRate = getYieldRateModifier(eYieldType);
+		changeYieldRateModifier(eYieldType, newYieldRate - oldYieldRate);
 	}
 
 	GetCityBuildings()->UpdateTotalBaseBuildingMaintenance();
@@ -14758,7 +14756,7 @@ bool CvCity::IsCanPurchase(bool bTestPurchaseCost, bool bTestTrainable, UnitType
 				return false;
 			}
 
-			CvUnitEntry* pkUnitInfo = GC.getUnitInfo(eUnitType);
+			const CvUnitEntry* pkUnitInfo = GC.getUnitInfo(eUnitType);
 			if(pkUnitInfo)
 			{
 				if (pkUnitInfo->IsRequiresEnhancedReligion() && !(GC.getGame().GetGameReligions()->GetReligion(eReligion, NO_PLAYER)->m_bEnhanced))
@@ -14766,6 +14764,11 @@ bool CvCity::IsCanPurchase(bool bTestPurchaseCost, bool bTestTrainable, UnitType
 					return false;
 				}
 
+				// make sure this isn't a civ specific unit
+				if (!canTrain(eUnitType, false, !bTestTrainable, true /*bIgnoreCost*/, true /*bWillPurchase*/))
+				{
+					return false;
+				}
 				
 				if (pkUnitInfo->IsRequiresFaithPurchaseEnabled())
 				{

@@ -869,6 +869,8 @@ public:
 
 	// Finished branches
 	int GetNumPolicyBranchesFinished() const;
+	// true if every policy has been adopted AND opener
+	bool CheckIsPolicyBranchFinished(const PolicyBranchTypes eBranchType) const;
 	void SetPolicyBranchFinished(PolicyBranchTypes eBranchType, bool bValue);
 	bool IsPolicyBranchFinished(PolicyBranchTypes eBranchType) const;
 	bool WillFinishBranchIfAdopted(PolicyTypes eType) const;

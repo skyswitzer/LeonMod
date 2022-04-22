@@ -773,7 +773,7 @@ void CvUnit::initWithNameOffset(int iID, UnitTypes eUnit, int iNameOffset, UnitA
 			PlayerTypes eMinorCivLoop = (PlayerTypes) iMinorCivLoop;
 			if (GET_PLAYER(eMinorCivLoop).isAlive() && GET_TEAM(kPlayer.getTeam()).isHasMet(GET_PLAYER(eMinorCivLoop).getTeam()))
 			{
-				GET_PLAYER(eMinorCivLoop).GetMinorCivAI()->ChangeFriendshipWithMajor(kPlayer.GetID(), kPlayer.GetPlayerPolicies()->GetNumericModifier(POLICYMOD_INFLUENCE_BOOST_PER_GREAT_PERSON_BORN));
+				GET_PLAYER(eMinorCivLoop).GetMinorCivAI()->ChangeFriendshipWithMajorTimes100(kPlayer.GetID(), 100 * kPlayer.GetPlayerPolicies()->GetNumericModifier(POLICYMOD_INFLUENCE_BOOST_PER_GREAT_PERSON_BORN));
 			}
 		}
 #endif
@@ -8970,7 +8970,7 @@ bool CvUnit::trade()
 	PlayerTypes eMinor = pPlot->getOwner();
 	CvAssertMsg(eMinor != NO_PLAYER, "Performing a trade mission and not in city state territory. This is bad. Please send Jon this with your last 5 autosaves and what changelist # you're playing.");
 	int iFriendship = getTradeInfluence(pPlot);
-	GET_PLAYER(eMinor).GetMinorCivAI()->ChangeFriendshipWithMajor(getOwner(), iFriendship);
+	GET_PLAYER(eMinor).GetMinorCivAI()->ChangeFriendshipWithMajorTimes100(getOwner(), 100 * iFriendship);
 
 	if(getOwner() == GC.getGame().getActivePlayer())
 	{
@@ -9507,7 +9507,7 @@ void CvUnit::PerformCultureBomb(int iRadius)
 			if(pPlayer->isMinorCiv())
 			{
 				int iFriendship = /*-50*/ GC.getCULTURE_BOMB_MINOR_FRIENDSHIP_CHANGE();
-				pPlayer->GetMinorCivAI()->ChangeFriendshipWithMajor(getOwner(), iFriendship);
+				pPlayer->GetMinorCivAI()->ChangeFriendshipWithMajorTimes100(getOwner(), 100 * iFriendship);
 			}
 			// Major civ response
 			else
@@ -9687,7 +9687,7 @@ void CvUnit::PerformNeutralCultureBomb(int iRadius)
 			if(pPlayer->isMinorCiv())
 			{
 				int iFriendship = /*-50*/ GC.getCULTURE_BOMB_MINOR_FRIENDSHIP_CHANGE();
-				pPlayer->GetMinorCivAI()->ChangeFriendshipWithMajor(getOwner(), iFriendship);
+				pPlayer->GetMinorCivAI()->ChangeFriendshipWithMajorTimes100(getOwner(), 100 * iFriendship);
 			}
 			// Major civ response
 			else

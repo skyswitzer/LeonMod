@@ -2210,7 +2210,7 @@ void CvPlayerCulture::DoArchaeologyChoice (ArchaeologyChoiceType eChoice)
 						if (kOwner.isMinorCiv())
 						{
 							int iFriendship = GC.getLANDMARK_MINOR_FRIENDSHIP_CHANGE();
-							kOwner.GetMinorCivAI()->ChangeFriendshipWithMajor(m_pPlayer->GetID(), iFriendship);
+							kOwner.GetMinorCivAI()->ChangeFriendshipWithMajorTimes100(m_pPlayer->GetID(), iFriendship * 100);
 						}
 
 						// AI major civ owned territory?
@@ -2919,9 +2919,8 @@ int CvPlayerCulture::GetTourismModifierTechnologyT100(const PlayerTypes eOtherPl
 	}
 
 	double internetFactor = GC.toFactor(m_pPlayer->GetInfluenceSpreadModifier() + (percentPerAcceleration * GC.getGame().GetVpAcceleration()));
-	internetFactor *= changeFactor;
 
-	return max(0, GC.toPercentT100(internetFactor));
+	return max(0, (int)GC.round(GC.toPercentT100(internetFactor) * changeFactor));
 
 }
 

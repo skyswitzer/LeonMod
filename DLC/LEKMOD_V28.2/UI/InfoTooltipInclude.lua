@@ -172,8 +172,14 @@ function GetHelpTextForBuilding(iBuildingID, bExcludeName, bExcludeHeader, bNoMa
 	if (iCulture ~= nil and iCulture ~= 0) then
 		table.insert(lines, Locale.ConvertTextKey("TXT_KEY_PRODUCTION_BUILDING_CULTURE", iCulture));
 	end
+	
+	-- Culture Percent Mod
+	local iCultureMod = pActivePlayer:GetTotalBuildingYields(pCity, iBuildingID, YieldTypes.YIELD_CULTURE, true);
+	if (iCultureMod ~= nil and iCultureMod ~= 0) then
+		table.insert(lines, Locale.ConvertTextKey("TXT_KEY_PRODUCTION_BUILDING_CULTURE_MOD", iCultureMod));
+	end
 
-	-- Tourism
+	-- Golden Age Points
 	local golden = pActivePlayer:GetTotalBuildingYields(pCity, iBuildingID, YieldTypes.YIELD_GOLDEN, false);
 	if (golden ~= nil and golden ~= 0) then
 		table.insert(lines, Locale.ConvertTextKey("TXT_KEY_PRODUCTION_BUILDING_GOLDEN", golden));

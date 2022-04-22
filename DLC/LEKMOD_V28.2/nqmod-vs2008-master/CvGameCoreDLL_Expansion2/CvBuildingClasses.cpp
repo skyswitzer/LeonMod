@@ -1892,7 +1892,10 @@ int CvBuildingEntry::GetYieldModifier(int i) const
 {
 	CvAssertMsg(i < NUM_YIELD_TYPES, "Index out of bounds");
 	CvAssertMsg(i > -1, "Index out of bounds");
-	return m_piYieldModifier ? m_piYieldModifier[i] : -1;
+	if (i == YIELD_CULTURE)
+		return GetCultureRateModifier();
+	else
+		return m_piYieldModifier ? m_piYieldModifier[i] : -1;
 }
 
 /// Array of yield modifiers

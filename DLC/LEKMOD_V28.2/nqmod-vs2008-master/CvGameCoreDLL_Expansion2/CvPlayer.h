@@ -175,7 +175,8 @@ public:
 	void RespositionInvalidUnits();
 
 	// total yield this player should get from a building
-	int GetTotalYieldForBuilding(const CvCity* pCity, const BuildingTypes eBuilding, const YieldTypes eYieldType, const bool isPercentMod = false) const;
+	// recursive call is used to make sure buildings don't have maintenance AND positive gold
+	int GetTotalYieldForBuilding(const CvCity* pCity, const BuildingTypes eBuilding, const YieldTypes eYieldType, const bool isPercentMod = false, const bool inRecursiveCall = false) const;
 	// extra yields this player/city should get from this building
 private:
 	int GetExtraYieldForBuilding
