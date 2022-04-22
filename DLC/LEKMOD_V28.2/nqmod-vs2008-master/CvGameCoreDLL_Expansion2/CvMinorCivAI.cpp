@@ -3138,10 +3138,10 @@ void CvMinorCivAI::DoTestSeedGlobalQuestCountdown(bool bForceSeed)
 	int iNumTurns = 0;
 
 	// Quests are now available for the first time?
-	if(GC.getGame().getElapsedGameTurns() == GetFirstPossibleTurnForGlobalQuests())
+	if (GC.getGame().getElapsedGameTurns() == GetFirstPossibleTurnForGlobalQuests())
 	{
 		int iRand = /*20*/ GC.getMINOR_CIV_GLOBAL_QUEST_FIRST_POSSIBLE_TURN_RAND();
-		iNumTurns += GC.getGame().getJonRandNum(iRand, "Random # of turns for Minor Civ global quest counter - first time.", NULL, GetPlayer()->GetID());
+		iNumTurns += GC.getGame().getJonRandNum(iRand, "Random # of turns for Minor Civ global quest counter - first time.", NULL, 137 * GetPlayer()->GetID());
 	}
 	else
 	{

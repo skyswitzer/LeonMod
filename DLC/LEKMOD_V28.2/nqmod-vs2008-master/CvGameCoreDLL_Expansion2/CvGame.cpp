@@ -9953,14 +9953,14 @@ int CvGame::getJonRandNum(unsigned short usMaxExclusive, const char* pszLog, con
 		x = plot->getX();
 		y = plot->getY();
 	}
-	return m_jonRand.getSafe(usMaxExclusive, GC.getFakeSeed(x, y, other + (unsigned long)usMaxExclusive));
+	return m_jonRand.getSafe(usMaxExclusive, GC.getFakeSeed(x, y, (15139 * other) + (unsigned long)usMaxExclusive));
 }
 
 int CvGame::getJonRandNumExtraSafe(unsigned short usMaxExclusive, const char* pszLog, const unsigned long other) const
 {
 	int x = 1;
 	int y = 1;
-	return m_jonRand.getSafe(usMaxExclusive, GC.getFakeSeed(x, y, other + (unsigned long)usMaxExclusive));
+	return m_jonRand.getSafe(usMaxExclusive, GC.getFakeSeed(x, y, (15139 * other) + (unsigned long)usMaxExclusive));
 }
 
 #ifdef AUI_BINOM_RNG
