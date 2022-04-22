@@ -5225,7 +5225,7 @@ void CvPlayer::RespositionInvalidUnits()
 	}
 }
 
-int CvPlayer::GetTotalYieldForBuilding(const CvCity* pCity, const BuildingTypes eBuilding, const YieldTypes eYieldType, const bool isPercentMod) const
+int CvPlayer::GetTotalYieldForBuilding(const CvCity* pCity, const BuildingTypes eBuilding, const YieldTypes eYieldType, const bool isPercentMod, const bool inRecursiveCall) const
 {
 	int iYield = 0;
 	const CvBuildingEntry* pBuildingInfo = GC.getBuildingInfo(eBuilding);
@@ -5310,11 +5310,27 @@ int CvPlayer::GetTotalYieldForBuilding(const CvCity* pCity, const BuildingTypes 
 		{ // other changes
 			iYield += GetExtraYieldForBuilding(pCity, eBuilding, eBuildingClass, pBuildingInfo, eYieldType, isPercentMod);
 		}
+
+		// adjust gold from maintenance
+		if (iYield > 0 && eYieldType == YIELD_GOLD && !isPercentMod && !inRecursiveCall)
+		{
+			iYield -= GetTotalYieldForBuilding(pCity, eBuilding, YIELD_MAINTENANCE, isPercentMod, true);
+			if (iYield < 0)
+				iYield = 0;
+		}
 	}
 	else if (eYieldType == YIELD_MAINTENANCE) // maintenace checks
 	{
 		iYield += pBuildingInfo->GetGoldMaintenance(*this);
 		iYield += GetExtraYieldForBuilding(pCity, eBuilding, eBuildingClass, pBuildingInfo, eYieldType, isPercentMod);
+
+		// adjust maintenance from gold
+		if (iYield > 0 && eYieldType == YIELD_MAINTENANCE && !isPercentMod && !inRecursiveCall)
+		{ 
+			iYield -= GetTotalYieldForBuilding(pCity, eBuilding, YIELD_GOLD, isPercentMod, true);
+			if (iYield < 0)
+				iYield = 0;
+		}
 	}
 
 	return iYield;
