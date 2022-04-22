@@ -799,6 +799,7 @@ local iGoldGiftMedium = GameDefines["MINOR_GOLD_GIFT_MEDIUM"];
 local iGoldGiftSmall = GameDefines["MINOR_GOLD_GIFT_SMALL"];
 local maxFriendshipFromGold = GameDefines["MINOR_CIV_MAX_GOLD_FRIENDSHIP"];
 local minGoldGift = 25;
+local investAmount = 0;
 
 function PopulateGiftChoices()
 	
@@ -845,8 +846,9 @@ function PopulateGiftChoices()
 	Controls.SmallGift:SetText(buttonText);
 	SetButtonSize(Controls.SmallGift, Controls.SmallGiftButton, Controls.SmallGiftAnim, Controls.SmallGiftButtonHL);
 
+	investAmount = pPlayer:GetInvestGoldGift(iActivePlayer);
 	-- Invest Gold
-	buttonText = "Invest 400 [ICON_GOLD] Gold";
+	buttonText = "Invest " .. investAmount .. " [ICON_GOLD] Gold";
 	local mouseoverText = Locale.ConvertTextKey("Complete the [ICON_INVEST] Investment quest and gain {FRIENDSHIP}");
 	local QUEST_GIFT_GOLD = 8;
 	local isInvestQuestActive = pPlayer:IsMinorCivActiveQuestForPlayer(iActivePlayer, QUEST_GIFT_GOLD);
@@ -855,7 +857,7 @@ function PopulateGiftChoices()
 		mouseoverText = "[COLOR_WARNING_TEXT]You do not have an [ICON_INVEST] Investment quest active.[ENDCOLOR]";
 		Controls.InvestAnim:SetHide(true);
 		Controls.InvestButton:ClearCallback(Mouse.eLClick);
-	elseif (iNumGoldPlayerHas < 400) then
+	elseif (iNumGoldPlayerHas < investAmount) then
 		buttonText = "[COLOR_WARNING_TEXT]" .. buttonText .. "[ENDCOLOR]";
 		mouseoverText = "[COLOR_WARNING_TEXT]You do not have enough [ICON_GOLD] Gold[ENDCOLOR]";
 		Controls.InvestAnim:SetHide(true);
@@ -942,7 +944,7 @@ Controls.SmallGiftButton:RegisterCallback( Mouse.eLClick, OnSmallGold );
 -- Invest
 ----------------------------------------------------------------
 function OnInvestGold ()
-	Game.DoMinorGoldGift(g_iMinorCivID, 400);
+	Game.DoMinorGoldGift(g_iMinorCivID, investAmount);
 	m_iLastAction = kiGiftedGold;
 	OnCloseGive();
 end

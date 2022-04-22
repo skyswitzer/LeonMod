@@ -189,8 +189,8 @@
             </ShowOnMouseOver>
           </Button>
           <!-- Invest Quest -->
-          <Button ID="InvestButton" Size="500,32" Hidden="0" Anchor="C,C" Offset="0,0" ToolTip="TXT_KEY_POP_CSTATE_GOLD_TT">
-            <Label ID="Invest" Anchor="C,C" Offset="0,0" String="Invest 400 [ICON_GOLD] Gold"/>
+          <Button ID="InvestButton" Size="500,32" Hidden="0" Anchor="C,C" Offset="0,0" ToolTip="TXT_KEY_POP_CSTATE_GOLD_INVEST">
+            <Label ID="Invest" Anchor="C,C" Offset="0,0" String="Invest..."/>
             <Image Anchor="C,B" Offset="0,0" Texture="bar500x2.dds" Size="500.1"/>
             <ShowOnMouseOver>
               <AlphaAnim ID="InvestAnim" Anchor="C,C" Offset="0,0" Size="500,35" Pause="0" Cycle="Bounce" Speed="1" AlphaStart="2" AlphaEnd="1">
