@@ -165,6 +165,25 @@ void CvPolicyAI::AddFlavorWeights(FlavorTypes eFlavor, int iWeight, int iPropaga
 	}
 }
 
+const int branchOpenerOffset = 1000;
+// preprogram shitty ai to pick good policies
+const int policy_pick_order[] = {
+	// TRADITION 6
+	/*open*/0 + branchOpenerOffset, /*legalism*/9, /*landed elite*/10, /*monarchy*/11, /*aristocracy*/7, /*oligarchy*/8,
+
+	// LIBERTY 1
+	/*open*/1 + branchOpenerOffset,
+
+	// PIETY 1
+	/*organized religion*/19,
+
+	// EXPLORATION 2
+	/*maritime infrastructure*/57, /*treasure fleets*/61,
+
+	// AESTHETICS 1
+	/*cultural centers*/50,
+};
+const int policy_pick_order_size = sizeof(policy_pick_order) / sizeof(int);
 /// Choose a player's next policy purchase (could be opening a branch)
 #ifdef AUI_WARNING_FIXES
 uint CvPolicyAI::ChooseNextPolicy(CvPlayer* pPlayer)
@@ -172,6 +191,41 @@ uint CvPolicyAI::ChooseNextPolicy(CvPlayer* pPlayer)
 int CvPolicyAI::ChooseNextPolicy(CvPlayer* pPlayer)
 #endif
 {
+	const int branchOffset = GC.getNumPolicyBranchInfos();
+	// use new picking logic
+	const bool bMustChooseTenet = (pPlayer->GetNumFreeTenets() > 0);
+	if (!bMustChooseTenet)
+	{
+		for (int i = 0; i < policy_pick_order_size; ++i)
+		{
+			const PolicyTypes eChoice = (PolicyTypes)policy_pick_order[i];
+			if (eChoice < branchOpenerOffset)
+			{
+				if (!m_pCurrentPolicies->HasPolicy(eChoice))
+				{
+					if (m_pCurrentPolicies->CanAdoptPolicy(eChoice))
+					{
+						return eChoice + branchOffset;
+					}
+				}
+			}
+			else
+			{
+				const PolicyBranchTypes eBranch = (PolicyBranchTypes)(eChoice - branchOpenerOffset);
+				if (!m_pCurrentPolicies->IsPolicyBranchUnlocked(eBranch))
+				{
+					if (m_pCurrentPolicies->CanUnlockPolicyBranch(eBranch))
+					{
+						return eBranch;
+					}
+				}
+			}
+		}
+	}
+
+
+
+
 	RandomNumberDelegate fcn;
 	fcn = MakeDelegate(&GC.getGame(), &CvGame::getJonRandNumExtraSafe);
 #ifdef AUI_WARNING_FIXES
@@ -183,7 +237,6 @@ int CvPolicyAI::ChooseNextPolicy(CvPlayer* pPlayer)
 #endif
 	vector<int> aLevel3Tenets;
 
-	bool bMustChooseTenet = (pPlayer->GetNumFreeTenets() > 0);
 
 	// Create a new vector holding only policies we can currently adopt
 	m_AdoptablePolicies.clear();
@@ -210,7 +263,7 @@ int CvPolicyAI::ChooseNextPolicy(CvPlayer* pPlayer)
 					}
 				}
 			}
-			m_AdoptablePolicies.push_back(iPolicyLoop + GC.getNumPolicyBranchInfos(), iWeight);
+			m_AdoptablePolicies.push_back(iPolicyLoop + branchOffset, iWeight);
 
 			if (m_pCurrentPolicies->GetPolicies()->GetPolicyEntry(iPolicyLoop)->GetLevel() == 3)
 			{
@@ -308,7 +361,7 @@ int CvPolicyAI::ChooseNextPolicy(CvPlayer* pPlayer)
 					if (pEntry->GetFlavorValue((FlavorTypes)GC.getInfoTypeForString("FLAVOR_OFFENSE")) > 0)
 					{
 						LogPolicyChoice((PolicyTypes)*it);
-						return (*it) + GC.getNumPolicyBranchInfos();
+						return (*it) + branchOffset;
 					}
 				}
 				else if(eGrandStrategy == GC.getInfoTypeForString("AIGRANDSTRATEGY_SPACESHIP"))
@@ -316,7 +369,7 @@ int CvPolicyAI::ChooseNextPolicy(CvPlayer* pPlayer)
 					if (pEntry->GetFlavorValue((FlavorTypes)GC.getInfoTypeForString("FLAVOR_SPACESHIP")) > 0)
 					{
 						LogPolicyChoice((PolicyTypes)*it);
-						return (*it) + GC.getNumPolicyBranchInfos();
+						return (*it) + branchOffset;
 					}
 				}
 				else if(eGrandStrategy == GC.getInfoTypeForString("AIGRANDSTRATEGY_UNITED_NATIONS"))
@@ -324,7 +377,7 @@ int CvPolicyAI::ChooseNextPolicy(CvPlayer* pPlayer)
 					if (pEntry->GetFlavorValue((FlavorTypes)GC.getInfoTypeForString("FLAVOR_DIPLOMACY")) > 0)
 					{
 						LogPolicyChoice((PolicyTypes)*it);
-						return (*it) + GC.getNumPolicyBranchInfos();
+						return (*it) + branchOffset;
 					}
 				}
 				else if(eGrandStrategy == GC.getInfoTypeForString("AIGRANDSTRATEGY_CULTURE"))
@@ -332,7 +385,7 @@ int CvPolicyAI::ChooseNextPolicy(CvPlayer* pPlayer)
 					if (pEntry->GetFlavorValue((FlavorTypes)GC.getInfoTypeForString("FLAVOR_CULTURE")) > 0)
 					{
 						LogPolicyChoice((PolicyTypes)*it);
-						return (*it) + GC.getNumPolicyBranchInfos();
+						return (*it) + branchOffset;
 					}
 				}
 			}
@@ -360,9 +413,9 @@ int CvPolicyAI::ChooseNextPolicy(CvPlayer* pPlayer)
 	if(iRtnValue != (int)NO_POLICY)
 #endif
 	{
-		if(iRtnValue >= GC.getNumPolicyBranchInfos())
+		if(iRtnValue >= branchOffset)
 		{
-			LogPolicyChoice((PolicyTypes)(iRtnValue - GC.getNumPolicyBranchInfos()));
+			LogPolicyChoice((PolicyTypes)(iRtnValue - branchOffset));
 		}
 		else
 		{

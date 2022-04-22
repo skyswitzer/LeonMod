@@ -3698,6 +3698,9 @@ bool CvPlayerPolicies::CanAdoptPolicy(PolicyTypes eIndex, bool bIgnoreCost) cons
 		// if it is an ideology policy
 		if (pkPolicyBranchInfo->IsPurchaseByLevel())
 		{
+			if (!IsPolicyBranchUnlocked(eBranch))
+				return false;
+
 			// If below level 1, can't have as many of this level as of the previous one
 			int iLevel = pkPolicyEntry->GetLevel();
 			if (iLevel > 1)
@@ -4969,7 +4972,7 @@ void CvPlayerPolicies::DoPolicyAI()
 			}
 			else
 			{
-				m_pPlayer->doAdoptPolicy((PolicyTypes)(iNextPolicy - m_pPolicies->GetNumPolicyBranches()));
+				m_pPlayer->doAdoptPolicy((PolicyTypes)(iNextPolicy - GC.getNumPolicyBranchInfos()));
 			}
 		}
 	}
