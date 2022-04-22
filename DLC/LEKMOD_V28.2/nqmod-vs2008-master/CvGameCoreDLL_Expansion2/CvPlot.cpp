@@ -1312,23 +1312,13 @@ bool CvPlot::isCoastalLand(int iMinWaterSize) const
 
 		if (pAdjacentPlot)
 		{
-			// allow travel through special improvements
-			bool allowSailLand = false;
-			ImprovementTypes eImprovement = getImprovementType();
-			if (eImprovement != NO_IMPROVEMENT)
-			{
-				CvImprovementEntry* pkEntry = GC.getImprovementInfo(eImprovement);
-				if (pkEntry)
-					allowSailLand = pkEntry->IsAllowsSailLand();
-			}
-
 			// this tile is effectively water
-			if (pAdjacentPlot->isWater() || pAdjacentPlot->isLake() || allowSailLand)
+			if (pAdjacentPlot->CanBeUsedAsWater(NO_PLAYER))
 			{
 				if(iMinWaterSize <= 1) // any non 0 amount is fine
 					return true;
 
-				CvLandmass* pAdjacentBodyOfWater = GC.getMap().getLandmass(pAdjacentPlot->getLandmass());
+				const CvLandmass* pAdjacentBodyOfWater = GC.getMap().getLandmass(pAdjacentPlot->getLandmass());
 				if(pAdjacentBodyOfWater && pAdjacentBodyOfWater->getNumTiles() >= iMinWaterSize)
 					return true;
 			}
@@ -3457,6 +3447,8 @@ bool CvPlot::IsAllowsWalkWater() const
 }
 bool CvPlot::IsEnemyTerritory(const PlayerTypes ePlayer) const
 {
+	if (ePlayer == NO_PLAYER) return false;
+
 	const TeamTypes ePlayerTeam = GET_PLAYER(ePlayer).getTeam();
 	const TeamTypes ePlotOwnerTeam = getTeam();
 
@@ -3495,15 +3487,18 @@ bool CvPlot::IsAllowsSailLand(PlayerTypes ePlayer) const
         const CvImprovementEntry *pkEntry = GC.getImprovementInfo(eImprovement);
 		if (pkEntry && pkEntry->IsAllowsSailLand())
 		{
-			// no closed borders
-			if (IsEnemyTerritory(ePlayer))
-				return false;
+			if (ePlayer != NO_PLAYER)
+			{
+				// no closed borders
+				if (IsEnemyTerritory(ePlayer))
+					return false;
 
-			const TeamTypes ePlayerTeam = GET_PLAYER(ePlayer).getTeam();
-			// adjacent enemy units stop canal usage
-			const bool bAnyNearbyEnemyUnits = isEnemyUnit(ePlayer, true, false, false) || GetAdjacentEnemyMilitaryUnits(ePlayerTeam).size() != 0;
-			if (bAnyNearbyEnemyUnits)
-				return false;
+				const TeamTypes ePlayerTeam = GET_PLAYER(ePlayer).getTeam();
+				// adjacent enemy units stop canal usage
+				const bool bAnyNearbyEnemyUnits = isEnemyUnit(ePlayer, true, false, false) || GetAdjacentEnemyMilitaryUnits(ePlayerTeam).size() != 0;
+				if (bAnyNearbyEnemyUnits)
+					return false;
+			}
 
 			// improvement allows it
 			return true;
@@ -3639,6 +3634,8 @@ vector<CvUnit*> CvPlot::getAllUnits()
 
 bool CvPlot::isEnemyUnit(PlayerTypes ePlayer, bool militaryUnit, bool bCheckVisibility, bool bIgnoreBarbs) const
 {
+	if (ePlayer == NO_PLAYER) return false;
+
 	TeamTypes eTeam = GET_PLAYER(ePlayer).getTeam();
 
 	if (bCheckVisibility && !isVisible(eTeam))
@@ -4304,6 +4301,8 @@ bool CvPlot::isFriendlyCity(const PlayerTypes ePlayer) const
 /// Is this a plot that's friendly to our team? (owned by us or someone we have Open Borders with)
 bool CvPlot::IsFriendlyTerritory(const PlayerTypes ePlayer) const
 {
+	if (ePlayer == NO_PLAYER) return false;
+
 	// No friendly territory for barbs!
 	if(GET_PLAYER(ePlayer).isBarbarian())
 	{
