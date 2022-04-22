@@ -14756,7 +14756,7 @@ bool CvCity::IsCanPurchase(bool bTestPurchaseCost, bool bTestTrainable, UnitType
 				return false;
 			}
 
-			CvUnitEntry* pkUnitInfo = GC.getUnitInfo(eUnitType);
+			const CvUnitEntry* pkUnitInfo = GC.getUnitInfo(eUnitType);
 			if(pkUnitInfo)
 			{
 				if (pkUnitInfo->IsRequiresEnhancedReligion() && !(GC.getGame().GetGameReligions()->GetReligion(eReligion, NO_PLAYER)->m_bEnhanced))
@@ -14764,6 +14764,11 @@ bool CvCity::IsCanPurchase(bool bTestPurchaseCost, bool bTestTrainable, UnitType
 					return false;
 				}
 
+				// make sure this isn't a civ specific unit
+				if (!canTrain(eUnitType, false, !bTestTrainable, true /*bIgnoreCost*/, true /*bWillPurchase*/))
+				{
+					return false;
+				}
 				
 				if (pkUnitInfo->IsRequiresFaithPurchaseEnabled())
 				{
