@@ -172,6 +172,7 @@ public:
 	// Constants
 	static const int NO_QUEST_DATA = -1;
 	static const int NO_TURN = -1;
+	static int GetGoldForInvest(const PlayerTypes ePlayer);
 
 	string GetCompetitionStatusText(const PlayerTypes ePlayer) const;
 	string GetStatusMessage(const CvPlayer* pMinor, const CvPlayer* pMajor, MessageType messageType, string value3) const;

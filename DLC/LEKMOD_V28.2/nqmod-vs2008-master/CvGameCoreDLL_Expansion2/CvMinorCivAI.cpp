@@ -37,6 +37,25 @@ const int minAnchorT100 = -200 * 100;
 
 
 
+float GetGameProgressFactor()
+{
+	// Game progress factor based on how far into the game we are
+	double fGameProgressFactor = float(GC.getGame().getElapsedGameTurns()) / GC.getGame().getEstimateEndTurn();
+	fGameProgressFactor = min(fGameProgressFactor, 1.0); // Don't count above 1.0, otherwise it will end up negative!
+
+	// Tweak factor slightly, otherwise Gold will do literally NOTHING once we reach the end of the game!
+	fGameProgressFactor *= /*2*/ GC.getMINOR_CIV_GOLD_GIFT_GAME_MULTIPLIER();
+	fGameProgressFactor /= /*3*/ GC.getMINOR_CIV_GOLD_GIFT_GAME_DIVISOR();
+	fGameProgressFactor = 1 - fGameProgressFactor;
+	fGameProgressFactor = max(0.2, fGameProgressFactor);
+
+	// Game Speed Mod
+	fGameProgressFactor *= GC.getGame().getGameSpeedInfo().getGoldGiftMod();
+	fGameProgressFactor /= 100;
+
+	return fGameProgressFactor;
+}
+
 string religionToReligionName(const ReligionTypes eReligion)
 {
 	string strReligionName = "";
@@ -68,6 +87,13 @@ string txtTurnsRemain(int turns)
 	stringstream s;
 	s << "[NEWLINE][COLOR_WARNING_TEXT]" << turns << "[ENDCOLOR] Turns Remaining[NEWLINE]";
 	return s.str();
+}
+
+int CvMinorCivQuest::GetGoldForInvest(const PlayerTypes ePlayer)
+{
+	int iGold = 400;
+	iGold /= GetGameProgressFactor();
+	return iGold;
 }
 
 string CvMinorCivQuest::GetCompetitionStatusText(const PlayerTypes ePlayer) const
@@ -921,7 +947,7 @@ void CvMinorCivQuest::DoStartQuest(int iStartTurn)
 	else if (m_eType == QUEST_GIFT_GOLD)
 	{
 		int iGoldAlreadyGiven = pMinor->GetMinorCivAI()->GetNumGoldGifted(m_eAssignedPlayer);
-		const int goldNeeded = 400; // XML
+		const int goldNeeded = GetGoldForInvest(m_eAssignedPlayer) / GetGameProgressFactor(); // XML
 		m_iData1 = goldNeeded;
 		m_iData2 = iGoldAlreadyGiven;
 	}
@@ -8018,7 +8044,6 @@ void CvMinorCivAI::DoGoldGiftFromMajor(const PlayerTypes ePlayer, const int iGol
 	GC.GetEngineUserInterface()->setDirty(GameData_DIRTY_BIT, true);
 }
 
-
 /// How many friendship points gained from a gift of Gold
 int CvMinorCivAI::GetFriendshipFromGoldGift(PlayerTypes eMajor, int iGold)
 {
@@ -8027,18 +8052,8 @@ int CvMinorCivAI::GetFriendshipFromGoldGift(PlayerTypes eMajor, int iGold)
 	// The higher this divisor the less Friendship is gained
 	float iFriendship = iGold;
 
-	// Game progress factor based on how far into the game we are
-	double fGameProgressFactor = float(GC.getGame().getElapsedGameTurns()) / GC.getGame().getEstimateEndTurn();
-	fGameProgressFactor = min(fGameProgressFactor, 1.0); // Don't count above 1.0, otherwise it will end up negative!
-	
-	// Tweak factor slightly, otherwise Gold will do literally NOTHING once we reach the end of the game!
-	fGameProgressFactor *= /*2*/ GC.getMINOR_CIV_GOLD_GIFT_GAME_MULTIPLIER();
-	fGameProgressFactor /= /*3*/ GC.getMINOR_CIV_GOLD_GIFT_GAME_DIVISOR();
-	fGameProgressFactor = 1 - fGameProgressFactor;
-	fGameProgressFactor = max(0.2, fGameProgressFactor);
-
 	// prevent bad progress factors
-	iFriendship *= fGameProgressFactor;
+	iFriendship *= GetGameProgressFactor();
 
 	// Mod (Policies, etc.)
 	int iFriendshipMod = GET_PLAYER(eMajor).getMinorGoldFriendshipMod();
@@ -8049,10 +8064,6 @@ int CvMinorCivAI::GetFriendshipFromGoldGift(PlayerTypes eMajor, int iGold)
 		iFriendship /= 100;
 		iFriendship *= !GET_PLAYER(eMajor).isHuman() ? 1.5 : 1.0; // non humans get 50% more friendship from gold gifts
 	}
-
-	// Game Speed Mod
-	iFriendship *= GC.getGame().getGameSpeedInfo().getGoldGiftMod();
-	iFriendship /= 100;
 
 	if(IsActiveQuestForPlayer(eMajor, MINOR_CIV_QUEST_INVEST))
 	{

@@ -605,6 +605,7 @@ void CvLuaPlayer::PushMethods(lua_State* L, int t)
 	Method(GetTurnsSinceThreatenedAnnouncement);
 	Method(GetFriendshipFromGoldGift);
 	Method(GetCappedGoldGift);
+	Method(GetInvestGoldGift);
 #ifdef NQ_BELIEF_TOGGLE_ALLOW_FAITH_GIFTS_TO_MINORS
 	Method(GetFriendshipFromFaithGift);
 	Method(IsSameReligionAsMajor);
@@ -6576,6 +6577,20 @@ int CvLuaPlayer::lGetFriendshipFromGoldGift(lua_State* L)
 	const int iGold = lua_tointeger(L, 3);
 
 	const int iResult = pkPlayer->GetMinorCivAI()->GetFriendshipFromGoldGift(eMajor, iGold);
+	lua_pushinteger(L, iResult);
+	return 1;
+}
+//------------------------------------------------------------------------------
+int CvLuaPlayer::lGetInvestGoldGift(lua_State* L)
+{
+	CvPlayerAI* pkPlayer = GetInstance(L);
+	const PlayerTypes eMajor = (PlayerTypes)lua_tointeger(L, 2);
+
+	int iResult = pkPlayer->GetMinorCivAI()->GetQuestData1(eMajor, QUEST_GIFT_GOLD);
+	if (iResult == CvMinorCivQuest::NO_QUEST_DATA)
+	{
+		iResult = CvMinorCivQuest::GetGoldForInvest(eMajor);
+	}
 	lua_pushinteger(L, iResult);
 	return 1;
 }
