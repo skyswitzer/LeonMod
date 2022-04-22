@@ -459,7 +459,7 @@ int CvPlayer::GetExtraYieldForBuilding
 }
 
 // how much influence per turn a player gets from an ally
-int CvGlobals::getDIPLOMATIC_INFLUENCE_PER_TURN_ALLY(const PlayerTypes eMinor, const PlayerTypes ePlayer) const
+int CvGlobals::getDIPLOMATIC_INFLUENCE_PER_TURN_ALLY(const PlayerTypes eMinor, const PlayerTypes ePlayer, const bool isCaptured) const
 {
 	return 10;
 }

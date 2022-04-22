@@ -2034,22 +2034,14 @@ void CvCity::doTurn()
 			m_bRouteToCapitalConnectedLastTurn = m_bRouteToCapitalConnectedThisTurn;
 		}
 
-		const PlayerTypes originalOwner = this->getOriginalOwner();
-		if (originalOwner != NO_PLAYER)
+		const PlayerTypes eOriginalOwner = this->getOriginalOwner();
+		if (eOriginalOwner != NO_PLAYER)
 		{
 			// if we own a city state, gain some influence
 			CvPlayer& owner = GET_PLAYER(getOwner());
-			if (GET_PLAYER(originalOwner).isMinorCiv() && !owner.isMinorCiv())
+			if (GET_PLAYER(eOriginalOwner).isMinorCiv() && !owner.isMinorCiv())
 			{
-				int ownedMinorPoints = 5;
-				
-				// TODO
-				//if (owner.HasPolicy("SOMETHING"))
-				//{
-				//	ownedMinorPoints += 5;
-				//}
-
-				owner.ChangeDiplomaticInfluence(+ownedMinorPoints);
+				owner.ChangeDiplomaticInfluence(GC.getDIPLOMATIC_INFLUENCE_PER_TURN_ALLY(eOriginalOwner, owner.GetID(), true));
 			}
 		}
 
