@@ -221,16 +221,17 @@ int CvTechEntry::GetAITradeModifier() const
 /// Research/science points required to obtain tech
 int CvTechEntry::GetResearchCost() const
 {
-	return m_iResearchCost;
+	//return m_iResearchCost;
 
 	// increase cost based on era
-	const float percentPerEraT100 = 5;
+	const float percentPerEraT100 = 10;
+	const int offset = -30;
 	const int era = GetEra();
 
-	const float percentT100 = max(0, era) * percentPerEraT100;
-	const float increaseFactor = 1.0f + min(1.0f, percentT100 / 100.0f);
-	const float adjustedCost = m_iResearchCost * increaseFactor;
-	return adjustedCost;
+	const float percentT100 = (max(0, era) * percentPerEraT100) + offset;
+	const float beakersFactor = GC.toFactor(percentT100);
+	const float adjustedCost = m_iResearchCost * beakersFactor;
+	return max(1, (int)GC.round(adjustedCost));
 }
 
 /// Cost if starting midway through game
