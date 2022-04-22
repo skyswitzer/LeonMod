@@ -1226,6 +1226,7 @@ public:
 
 	// Science
 
+	void RecalculateNonLeaderBoost();
 	// [0, 1] where 1 would be a 100% science boost
 	float GetNonLeaderBoost() const;
 	int leaderTechDiff; // if they have 5 techs and we have 4, this would be ~0.01 with 100 techs in the tree
@@ -2056,6 +2057,7 @@ protected:
 	int m_iNumCitiesFreeWalls; // NQMP GJS - New Oligarchy add support for NumCitiesFreeWalls
 	int m_iNumCitiesFreeCultureBuilding;
 	int m_iNumCitiesFreeFoodBuilding;
+	float m_fScienceRubberBand;
 	FAutoVariable<int, CvPlayer> m_iUnitPurchaseCostModifier;
 	FAutoVariable<int, CvPlayer> m_iAllFeatureProduction;
 	FAutoVariable<int, CvPlayer> m_iCityDistanceHighwaterMark; // this is used to determine camera zoom

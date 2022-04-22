@@ -376,6 +376,7 @@ CvPlayer::CvPlayer() :
 	, m_iNumCitiesFreeWalls(0) // NQMP GJS - New Oligarchy add support for NumCitiesFreeWalls
 	, m_iNumCitiesFreeCultureBuilding(0)
 	, m_iNumCitiesFreeFoodBuilding(0)
+	, m_fScienceRubberBand(0)
 	, m_iUnitPurchaseCostModifier("CvPlayer::m_iUnitPurchaseCostModifier", m_syncArchive)
 	, m_iAllFeatureProduction("CvPlayer::m_iAllFeatureProduction", m_syncArchive)
 	, m_iCityDistanceHighwaterMark("CvPlayer::m_iCityDistanceHighwaterMark", m_syncArchive)
@@ -1077,6 +1078,7 @@ void CvPlayer::uninit()
 	m_iNumCitiesFreePietyGardens = 0;
 	m_iNumCitiesFreeWalls = 0; // NQMP GJS - New Oligarchy add support for NumCitiesFreeWalls
 	m_iNumCitiesFreeCultureBuilding = 0;
+	m_fScienceRubberBand = 0;
 	m_iNumCitiesFreeFoodBuilding = 0;
 	m_iUnitPurchaseCostModifier = 0;
 	m_iAllFeatureProduction = 0;
@@ -18880,7 +18882,7 @@ void CvPlayer::updateExtraYieldThreshold(YieldTypes eIndex)
 	}
 }
 
-float CvPlayer::GetNonLeaderBoost() const
+void CvPlayer::RecalculateNonLeaderBoost()
 {
 	const float allowedLag = GC.getSCIENCE_CATCHUP_DIFF_NONE(); // how far a player can fall behind without getting a boost in turns
 	const float reachMaxBoost = 3.0f; // reach 100% boost early
@@ -18889,7 +18891,12 @@ float CvPlayer::GetNonLeaderBoost() const
 	const float naiveBoost = (leaderTechDiff - allowedLag) / (GC.getSCIENCE_CATCHUP_DIFF() - allowedLag);
 	const float boost = min(1.0f, max(0.0f, naiveBoost)); // tech boost
 	const float resultBoost = min(1.0f, boost * max(0.10f, effectiveGameDone));
-	return resultBoost;
+	m_fScienceRubberBand = resultBoost;
+}
+
+float CvPlayer::GetNonLeaderBoost() const
+{
+	return m_fScienceRubberBand;
 }
 
 //	--------------------------------------------------------------------------------
@@ -22042,6 +22049,7 @@ void CvPlayer::doResearch()
 
 	if(GetPlayerTechs()->IsResearch())
 	{
+		RecalculateNonLeaderBoost();
 		bForceResearchChoice = false;
 
 		// Force player to pick Research if he doesn't have anything assigned
@@ -24438,6 +24446,8 @@ bool CvPlayer::HasActiveDiplomacyRequests() const
 	return false;
 }
 
+const int marker_scienceBoost = 9843579;
+
 //	--------------------------------------------------------------------------------
 //
 // read object from a stream
@@ -24445,6 +24455,7 @@ bool CvPlayer::HasActiveDiplomacyRequests() const
 //
 void CvPlayer::Read(FDataStream& kStream)
 {
+	int temp;
 	// Init data before load
 	reset();
 
@@ -24745,7 +24756,16 @@ void CvPlayer::Read(FDataStream& kStream)
 	kStream >> m_iNumCitiesFreeWalls; // NQMP GJS - New Oligarchy add support for NumCitiesFreeWalls
 	kStream >> m_iNumCitiesFreeCultureBuilding;
 	kStream >> m_iNumCitiesFreeFoodBuilding;
-	kStream >> m_iUnitPurchaseCostModifier;
+	kStream >> temp;
+	if (temp == marker_scienceBoost)
+	{
+		kStream >> m_fScienceRubberBand;
+		kStream >> m_iUnitPurchaseCostModifier;
+	}
+	else
+	{
+		m_iUnitPurchaseCostModifier = temp;
+	}
 	kStream >> m_iAllFeatureProduction;
 	kStream >> m_iCityDistanceHighwaterMark;
 	kStream >> m_iOriginalCapitalX;
@@ -24772,7 +24792,6 @@ void CvPlayer::Read(FDataStream& kStream)
 	{
 		m_iNumFreeTenets = 0;
 	}
-	int temp;
 	kStream >> m_iNumGoodyHutsPopped;
 	kStream >> m_nextGoodyType;
 	kStream >> m_iNumFreeGreatPeople;
@@ -25303,6 +25322,8 @@ void CvPlayer::Write(FDataStream& kStream) const
 	kStream << m_iNumCitiesFreeWalls; // NQMP GJS - New Oligarchy add support for NumCitiesFreeWalls
 	kStream << m_iNumCitiesFreeCultureBuilding;
 	kStream << m_iNumCitiesFreeFoodBuilding;
+	kStream << marker_scienceBoost;
+	kStream << m_fScienceRubberBand;
 	kStream << m_iUnitPurchaseCostModifier;
 	kStream << m_iAllFeatureProduction;
 	kStream << m_iCityDistanceHighwaterMark;
