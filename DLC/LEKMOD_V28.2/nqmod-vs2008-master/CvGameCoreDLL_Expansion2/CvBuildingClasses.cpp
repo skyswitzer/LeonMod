@@ -644,7 +644,12 @@ bool CvBuildingEntry::CacheResults(Database::Results& kResults, CvDatabaseUtilit
 	}
 	//ImprovementYieldChanges
 	{
+#ifdef AUI_DATABASE_UTILITY_PROPER_2D_ALLOCATION_AND_DESTRUCTION
+		kUtility.Initialize2DArray(m_ppaiImprovementYieldChange.first, "Improvements", "Yields");
+		m_ppaiImprovementYieldChange.second = kUtility.MaxRows("Improvements");
+#else
 		kUtility.Initialize2DArray(m_ppaiImprovementYieldChange, "Improvements", "Yields");
+#endif
 
 		std::string strKey("Building_ImprovementYieldChanges");
 		Database::Results* pResults = kUtility.GetResults(strKey);
@@ -661,12 +666,17 @@ bool CvBuildingEntry::CacheResults(Database::Results& kResults, CvDatabaseUtilit
 			const int YieldID = pResults->GetInt(1);
 			const int yield = pResults->GetInt(2);
 
-			m_ppaiImprovementYieldChange[ImprovementID][YieldID] = yield;
+			m_ppaiImprovementYieldChange.first[ImprovementID][YieldID] = yield;
 		}
 	}
 	//ImprovementYieldChangesGlobal
 	{
+#ifdef AUI_DATABASE_UTILITY_PROPER_2D_ALLOCATION_AND_DESTRUCTION
+		kUtility.Initialize2DArray(m_ppaiImprovementYieldChangeGlobal.first, "Improvements", "Yields");
+		m_ppaiImprovementYieldChangeGlobal.second = kUtility.MaxRows("Improvements");
+#else
 		kUtility.Initialize2DArray(m_ppaiImprovementYieldChangeGlobal, "Improvements", "Yields");
+#endif
 
 		std::string strKey("Building_ImprovementYieldChangesGlobal");
 		Database::Results* pResults = kUtility.GetResults(strKey);
@@ -683,7 +693,7 @@ bool CvBuildingEntry::CacheResults(Database::Results& kResults, CvDatabaseUtilit
 			const int YieldID = pResults->GetInt(1);
 			const int yield = pResults->GetInt(2);
 
-			m_ppaiImprovementYieldChangeGlobal[ImprovementID][YieldID] = yield;
+			m_ppaiImprovementYieldChangeGlobal.first[ImprovementID][YieldID] = yield;
 		}
 	}
 
@@ -2230,7 +2240,7 @@ int CvBuildingEntry::GetImprovementYieldChange(int i, int j) const
 	CvAssertMsg(i > -1, "Index out of bounds");
 	CvAssertMsg(j < NUM_YIELD_TYPES, "Index out of bounds");
 	CvAssertMsg(j > -1, "Index out of bounds");
-	return m_ppaiImprovementYieldChange ? m_ppaiImprovementYieldChange[i][j] : -1;
+	return m_ppaiImprovementYieldChange.first ? m_ppaiImprovementYieldChange.first[i][j] : -1;
 }
 
 /// Array of changes to Improvement yield
@@ -2238,7 +2248,7 @@ int* CvBuildingEntry::GetImprovementYieldChangeArray(int i) const
 {
 	CvAssertMsg(i < GC.getNumImprovementInfos(), "Index out of bounds");
 	CvAssertMsg(i > -1, "Index out of bounds");
-	return m_ppaiImprovementYieldChange[i];
+	return m_ppaiImprovementYieldChange.first[i];
 }
 /// Change to Improvement yield by type
 int CvBuildingEntry::GetImprovementYieldChangeGlobal(int i, int j) const
@@ -2247,7 +2257,7 @@ int CvBuildingEntry::GetImprovementYieldChangeGlobal(int i, int j) const
 	CvAssertMsg(i > -1, "Index out of bounds");
 	CvAssertMsg(j < NUM_YIELD_TYPES, "Index out of bounds");
 	CvAssertMsg(j > -1, "Index out of bounds");
-	return m_ppaiImprovementYieldChangeGlobal ? m_ppaiImprovementYieldChangeGlobal[i][j] : -1;
+	return m_ppaiImprovementYieldChangeGlobal.first ? m_ppaiImprovementYieldChangeGlobal.first[i][j] : -1;
 }
 
 /// Array of changes to Improvement yield
@@ -2255,7 +2265,7 @@ int* CvBuildingEntry::GetImprovementYieldChangeGlobalArray(int i) const
 {
 	CvAssertMsg(i < GC.getNumFeatureInfos(), "Index out of bounds");
 	CvAssertMsg(i > -1, "Index out of bounds");
-	return m_ppaiImprovementYieldChangeGlobal[i];
+	return m_ppaiImprovementYieldChangeGlobal.first[i];
 }
 
 /// Change to specialist yield by type

@@ -2237,7 +2237,7 @@ int CvPolicyEntry::GetBuildingClassYieldModifiers(int eBuildingClass, int yieldT
 	CvAssertMsg(yieldType < NUM_YIELD_TYPES, "Index out of bounds");
 	CvAssertMsg(yieldType > -1, "Index out of bounds");
 
-	value += m_ppiBuildingClassYieldModifiers[eBuildingClass][yieldType];
+	value += m_ppiBuildingClassYieldModifiers.first[eBuildingClass][yieldType];
 	return value;
 }
 
@@ -2255,7 +2255,7 @@ int CvPolicyEntry::GetBuildingClassYieldChanges(int eBuildingClass, int yieldTyp
 	CvAssertMsg(yieldType < NUM_YIELD_TYPES, "Index out of bounds");
 	CvAssertMsg(yieldType > -1, "Index out of bounds");
 
-	value += m_ppiBuildingClassYieldChanges[eBuildingClass][yieldType];
+	value += m_ppiBuildingClassYieldChanges.first[eBuildingClass][yieldType];
 	return value;
 }
 

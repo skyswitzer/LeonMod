@@ -36,7 +36,7 @@ public:
 
 	virtual void Init();
 	virtual void ComputeFlavorMultipliers(CvPlayer* pPlayer);
-	virtual bool CanFound(CvPlot* pPlot, const CvPlayer* pPlayer, bool bTestVisible) const;
+	virtual bool CanFound(const CvPlot* pPlot, const CvPlayer* pPlayer, bool bTestVisible) const;
 	virtual int PlotFoundValue(CvPlot* pPlot, CvPlayer* pPlayer, YieldTypes eYield = NO_YIELD, bool bCoastOnly=true);
 	virtual int PlotFertilityValue(CvPlot* pPlot);
 	virtual int BestFoundValueForSpecificYield(CvPlayer* pPlayer, YieldTypes eYield);

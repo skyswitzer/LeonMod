@@ -7101,7 +7101,7 @@ void CvGameLeagues::DoTurn()
 #ifdef AUI_VOTING_RANDOMIZED_LEAGUE_FOUNDER
 			if (vePossibleFounders.size() > 0)
 			{
-				FoundLeague(vePossibleFounders.at(uint(GC.getGame().getJonRandNum(int(vePossibleFounders.size()), NULL))));
+				FoundLeague(vePossibleFounders.at(uint(GC.getGame().getJonRandNum(int(vePossibleFounders.size()), NULL, NULL, vePossibleFounders.size() * 891337))));
 			}
 #endif
 		}

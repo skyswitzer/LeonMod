@@ -3827,7 +3827,7 @@ int BuildRouteCost(CvAStarNode* parent, CvAStarNode* node, int data, const void*
 	}
 
 #ifdef AUI_WORKER_INCA_HILLS
-	if (GET_PLAYER(ePlayer).GetPlayerTraits()->IsNoHillsImprovementMaintenance() && pPlot->isHills())
+	if (GET_PLAYER(eOwner).GetPlayerTraits()->IsNoHillsImprovementMaintenance() && pPlot->isHills())
 	{
 		iMaxValue /= 2;
 	}

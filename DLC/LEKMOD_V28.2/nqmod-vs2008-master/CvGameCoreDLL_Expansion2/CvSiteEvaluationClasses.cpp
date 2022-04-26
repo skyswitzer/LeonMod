@@ -56,13 +56,12 @@ void CvCitySiteEvaluator::Init()
 }
 
 /// Is it valid for this player to found a city here?
-bool CvCitySiteEvaluator::CanFound(CvPlot* pPlot, const CvPlayer* pPlayer, bool bTestVisible) const
+bool CvCitySiteEvaluator::CanFound(const CvPlot* pPlot, const CvPlayer* pPlayer, bool bTestVisible) const
 {
 	CvAssert(pPlot);
 	if(!pPlot)
 		return false;
 
-	CvPlot* pLoopPlot(NULL);
 	bool bValid(false);
 	int iRange(0), iDX(0), iDY(0);
 
@@ -160,7 +159,7 @@ bool CvCitySiteEvaluator::CanFound(CvPlot* pPlot, const CvPlayer* pPlayer, bool 
 			iMaxDX = iRange - MAX(0, iDY);
 			for (iDX = -iRange - MIN(0, iDY); iDX <= iMaxDX; iDX++) // MIN() and MAX() stuff is to reduce loops (hexspace!)
 			{
-				pLoopPlot = plotXY(pPlot->getX(), pPlot->getY(), iDX, iDY);
+				const CvPlot* pLoopPlot = plotXY(pPlot->getX(), pPlot->getY(), iDX, iDY);
 #else
 		for(iDX = -(iRange); iDX <= iRange; iDX++)
 		{
@@ -189,10 +188,10 @@ bool CvCitySiteEvaluator::CanFound(CvPlot* pPlot, const CvPlayer* pPlayer, bool 
 
 
 	// cannot found next to non-barb enemy units
-	vector<CvUnit*> enemyUnits = pPlot->GetAdjacentEnemyMilitaryUnits(pPlayer->getTeam(), DOMAIN_LAND);
+	const vector<CvUnit*> enemyUnits = pPlot->GetAdjacentEnemyMilitaryUnits(pPlayer->getTeam(), DOMAIN_LAND);
 	for (int i = 0; i < enemyUnits.size(); ++i)
 	{
-		CvUnit* enemyUnit = enemyUnits[i];
+		const CvUnit* enemyUnit = enemyUnits[i];
 		if (enemyUnit->getOwner() != BARBARIAN_PLAYER) // non barbarian enemy
 			return false;
 	}

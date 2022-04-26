@@ -985,7 +985,7 @@ EndHarborLoop:;
 				}
 #endif
 #ifdef AUI_CITYSTRATEGY_FIX_CHOOSE_PRODUCTION_SLIDING_LOGISTIC_MAINTENANCE_SCALE
-				int iEffectiveMaintenanceT100 = pkBuildingInfo->GetGoldMaintenance() * (100 + GetCity()->GetPlayer()->GetBuildingGoldMaintenanceMod());
+				int iEffectiveMaintenanceT100 = pkBuildingInfo->GetGoldMaintenance(kPlayer) * (100 + GetCity()->GetPlayer()->GetBuildingGoldMaintenanceMod());
 				int iBonusGoldFromYield = pkBuildingInfo->GetYieldChange(YIELD_GOLD) + GetCity()->getPopulation() * pkBuildingInfo->GetYieldChangePerPop(YIELD_GOLD);
 				iBonusGoldFromYield += GetCity()->GetCityBuildings()->GetBuildingYieldChange((BuildingClassTypes)pkBuildingInfo->GetBuildingClassType(), YIELD_GOLD);
 				iBonusGoldFromYield *= GetCity()->getYieldRateModifier(YIELD_GOLD) + pkBuildingInfo->GetYieldModifier(YIELD_GOLD);

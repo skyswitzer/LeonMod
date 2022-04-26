@@ -530,9 +530,13 @@ private:
 	bool* m_pbBuildingClassNeededInCity;
 	int* m_piNumFreeUnits;
 
+	std::map<int, std::map<int, int>> m_ppiResourceYieldChangeGlobal;
 #ifdef AUI_DATABASE_UTILITY_PROPER_2D_ALLOCATION_AND_DESTRUCTION
 	std::pair<int**, size_t> m_ppaiResourceYieldChange;
 	std::pair<int**, size_t> m_ppaiFeatureYieldChange;
+	std::pair<int**, size_t> m_ppaiImprovementYieldChange;
+	std::pair<int**, size_t> m_ppaiImprovementYieldChangeGlobal;
+	
 	std::pair<int**, size_t> m_ppaiSpecialistYieldChange;
 	std::pair<int**, size_t> m_ppaiResourceYieldModifier;
 	std::pair<int**, size_t> m_ppaiTerrainYieldChange;
@@ -540,9 +544,9 @@ private:
 #else
 	int** m_ppaiResourceYieldChange;
 	int** m_ppaiFeatureYieldChange;
-	std::map<int, std::map<int, int>> m_ppiResourceYieldChangeGlobal;
 	int** m_ppaiImprovementYieldChange;
 	int** m_ppaiImprovementYieldChangeGlobal;
+
 	int** m_ppaiSpecialistYieldChange;
 	int** m_ppaiResourceYieldModifier;
 	int** m_ppaiTerrainYieldChange;
