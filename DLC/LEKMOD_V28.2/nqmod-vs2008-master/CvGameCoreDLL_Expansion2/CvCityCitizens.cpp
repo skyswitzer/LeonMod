@@ -284,165 +284,25 @@ void CvCityCitizens::DoTurn()
 
 	CvPlayerAI& thisPlayer = GET_PLAYER(GetOwner());
 
-	if(m_pCity->IsPuppet())
+	// ai citizen focus logic
+	if (!thisPlayer.isHuman() || m_pCity->IsPuppet())
 	{
-		SetFocusType(CITY_AI_FOCUS_TYPE_GOLD);
-		SetNoAutoAssignSpecialists(false);
-		SetForcedAvoidGrowth(false);
-#ifndef AUI_CITIZENS_PUPPET_STILL_WANTS_GROWTH
-		int iExcessFoodTimes100 = m_pCity->getYieldRateTimes100(YIELD_FOOD, false) - (m_pCity->foodConsumption() * 100);
-		if(iExcessFoodTimes100 < 0)
-		{
-			SetFocusType(NO_CITY_AI_FOCUS_TYPE);
-			//SetNoAutoAssignSpecialists(true);
-			SetForcedAvoidGrowth(false);
-		}
-#endif
-	}
-	else if(!thisPlayer.isHuman())
-	{
-		CitySpecializationTypes eWonderSpecializationType = thisPlayer.GetCitySpecializationAI()->GetWonderSpecialization();
-
-		if(GC.getGame().getGameTurn() % 8 == 0)
-		{
-			SetFocusType(CITY_AI_FOCUS_TYPE_GOLD_GROWTH);
-			SetNoAutoAssignSpecialists(true);
-			SetForcedAvoidGrowth(false);
-			int iExcessFoodTimes100 = m_pCity->getYieldRateTimes100(YIELD_FOOD, false) - (m_pCity->foodConsumption() * 100);
-			if(iExcessFoodTimes100 < 200)
-			{
-				SetFocusType(NO_CITY_AI_FOCUS_TYPE);
-				//SetNoAutoAssignSpecialists(true);
-			}
-		}
-		if(m_pCity->isCapital() && !thisPlayer.isMinorCiv() && m_pCity->GetCityStrategyAI()->GetSpecialization() != eWonderSpecializationType)
-		{
-			SetFocusType(NO_CITY_AI_FOCUS_TYPE);
-			SetNoAutoAssignSpecialists(false);
-			SetForcedAvoidGrowth(false);
-			int iExcessFoodTimes100 = m_pCity->getYieldRateTimes100(YIELD_FOOD, false) - (m_pCity->foodConsumption() * 100);
-			if(iExcessFoodTimes100 < 400)
-			{
-				SetFocusType(CITY_AI_FOCUS_TYPE_FOOD);
-				//SetNoAutoAssignSpecialists(true);
-			}
-		}
-		else if(m_pCity->GetCityStrategyAI()->GetSpecialization() == eWonderSpecializationType)
-		{
-			SetFocusType(CITY_AI_FOCUS_TYPE_PRODUCTION);
-			SetNoAutoAssignSpecialists(false);
-			//SetForcedAvoidGrowth(true);
-			int iExcessFoodTimes100;// = m_pCity->getYieldRateTimes100(YIELD_FOOD) - (m_pCity->foodConsumption() * 100);
-			//if (iExcessFoodTimes100 < 200)
-			//{
-			SetForcedAvoidGrowth(false);
-			//}
-			iExcessFoodTimes100 = m_pCity->getYieldRateTimes100(YIELD_FOOD, false) - (m_pCity->foodConsumption() * 100);
-			if(iExcessFoodTimes100 < 200)
-			{
-				SetFocusType(CITY_AI_FOCUS_TYPE_PROD_GROWTH);
-				//SetNoAutoAssignSpecialists(true);
-				SetForcedAvoidGrowth(false);
-			}
-			iExcessFoodTimes100 = m_pCity->getYieldRateTimes100(YIELD_FOOD, false) - (m_pCity->foodConsumption() * 100);
-			if(iExcessFoodTimes100 < 200)
-			{
-				SetFocusType(NO_CITY_AI_FOCUS_TYPE);
-				//SetNoAutoAssignSpecialists(true);
-				SetForcedAvoidGrowth(false);
-			}
-		}
-		else if(m_pCity->getPopulation() < 5)  // we want a balanced growth
-		{
-			SetFocusType(NO_CITY_AI_FOCUS_TYPE);
-			//SetNoAutoAssignSpecialists(true);
-			SetForcedAvoidGrowth(false);
-		}
+		if (m_pCity->getPopulation() < 4)
+			SetFocusType(CITY_AI_FOCUS_TYPE_FOOD);
 		else
-		{
-			// Are we running at a deficit?
-			EconomicAIStrategyTypes eStrategyLosingMoney = (EconomicAIStrategyTypes) GC.getInfoTypeForString("ECONOMICAISTRATEGY_LOSING_MONEY", true);
-			bool bInDeficit = false;
-			if (eStrategyLosingMoney != NO_ECONOMICAISTRATEGY)
-			{
-				bInDeficit = thisPlayer.GetEconomicAI()->IsUsingStrategy(eStrategyLosingMoney);
-			}
+			SetFocusType(NO_CITY_AI_FOCUS_TYPE);
 
-			if(bInDeficit)
-			{
-				SetFocusType(CITY_AI_FOCUS_TYPE_GOLD_GROWTH);
-				SetNoAutoAssignSpecialists(false);
-				SetForcedAvoidGrowth(false);
-				int iExcessFoodTimes100 = m_pCity->getYieldRateTimes100(YIELD_FOOD, false) - (m_pCity->foodConsumption() * 100);
-				if(iExcessFoodTimes100 < 200)
-				{
-					SetFocusType(NO_CITY_AI_FOCUS_TYPE);
-					//SetNoAutoAssignSpecialists(true);
-				}
-			}
-			else if(GC.getGame().getGameTurn() % 3 == 0 && thisPlayer.GetGrandStrategyAI()->GetActiveGrandStrategy() == (AIGrandStrategyTypes) GC.getInfoTypeForString("AIGRANDSTRATEGY_CULTURE"))
-			{
-				SetFocusType(CITY_AI_FOCUS_TYPE_CULTURE);
-				SetNoAutoAssignSpecialists(true);
-				SetForcedAvoidGrowth(false);
-				int iExcessFoodTimes100 = m_pCity->getYieldRateTimes100(YIELD_FOOD, false) - (m_pCity->foodConsumption() * 100);
-				if(iExcessFoodTimes100 < 200)
-				{
-					SetFocusType(NO_CITY_AI_FOCUS_TYPE);
-					//SetNoAutoAssignSpecialists(true);
-				}
-			}
-			else // we aren't a small city, building a wonder, or going broke
-			{
-				SetNoAutoAssignSpecialists(false);
-				SetForcedAvoidGrowth(false);
-				CitySpecializationTypes eSpecialization = m_pCity->GetCityStrategyAI()->GetSpecialization();
-				if(eSpecialization != -1)
-				{
-					CvCitySpecializationXMLEntry* pCitySpecializationEntry =  GC.getCitySpecializationInfo(eSpecialization);
-					if(pCitySpecializationEntry)
-					{
-						YieldTypes eYield = pCitySpecializationEntry->GetYieldType();
-						if(eYield == YIELD_FOOD)
-						{
-							SetFocusType(CITY_AI_FOCUS_TYPE_FOOD);
-						}
-						else if(eYield == YIELD_PRODUCTION)
-						{
-							SetFocusType(CITY_AI_FOCUS_TYPE_PROD_GROWTH);
-						}
-						else if(eYield == YIELD_GOLD)
-						{
-							SetFocusType(CITY_AI_FOCUS_TYPE_GOLD);
-						}
-						else if(eYield == YIELD_SCIENCE)
-						{
-							SetFocusType(CITY_AI_FOCUS_TYPE_SCIENCE);
-						}
-						else
-						{
-							SetFocusType(NO_CITY_AI_FOCUS_TYPE);
-						}
-					}
-					else
-					{
-						SetFocusType(NO_CITY_AI_FOCUS_TYPE);
-					}
-				}
-				else
-				{
-					SetFocusType(NO_CITY_AI_FOCUS_TYPE);
-				}
-			}
-		}
+		SetForcedAvoidGrowth(false);
+		SetNoAutoAssignSpecialists(false); // pass false to auto assign specialists
+
+		// only do reallocation if ai
+		CvAssertMsg((GetNumCitizensWorkingPlots() + GetTotalSpecialistCount() + GetNumUnassignedCitizens()) <= GetCity()->getPopulation(), "Gameplay: More workers than population in the city.");
+		DoReallocateCitizens();
+		CvAssertMsg((GetNumCitizensWorkingPlots() + GetTotalSpecialistCount() + GetNumUnassignedCitizens()) <= GetCity()->getPopulation(), "Gameplay: More workers than population in the city.");
+		DoSpecialists();
+		CvAssertMsg((GetNumCitizensWorkingPlots() + GetTotalSpecialistCount() + GetNumUnassignedCitizens()) <= GetCity()->getPopulation(), "Gameplay: More workers than population in the city.");
 	}
-
-	CvAssertMsg((GetNumCitizensWorkingPlots() + GetTotalSpecialistCount() + GetNumUnassignedCitizens()) <= GetCity()->getPopulation(), "Gameplay: More workers than population in the city.");
-	DoReallocateCitizens();
-	CvAssertMsg((GetNumCitizensWorkingPlots() + GetTotalSpecialistCount() + GetNumUnassignedCitizens()) <= GetCity()->getPopulation(), "Gameplay: More workers than population in the city.");
-	DoSpecialists();
-
-	CvAssertMsg((GetNumCitizensWorkingPlots() + GetTotalSpecialistCount() + GetNumUnassignedCitizens()) <= GetCity()->getPopulation(), "Gameplay: More workers than population in the city.");
+	// will no longer auto reallocate citizens at the end of each turn
 }
 
 /// What is the overall value of the current Plot?
@@ -501,32 +361,33 @@ int CvCityCitizens::GetPlotValue(CvPlot* pPlot, bool bUseAllowGrowthFlag)
 #endif
 
 	bool bAvoidGrowth = IsAvoidGrowth();
+	const int focusMultiplier = 10;
 
 	// City Focus
-	CityAIFocusTypes eFocus = GetFocusType();
+	const CityAIFocusTypes eFocus = GetFocusType();
 	if(eFocus == CITY_AI_FOCUS_TYPE_FOOD)
-		iFoodYieldValue *= 3;
+		iFoodYieldValue *= focusMultiplier;
 	else if(eFocus == CITY_AI_FOCUS_TYPE_PRODUCTION)
-		iProductionYieldValue *= 3;
+		iProductionYieldValue *= focusMultiplier;
 	else if(eFocus == CITY_AI_FOCUS_TYPE_GOLD)
-		iGoldYieldValue *= 3;
+		iGoldYieldValue *= focusMultiplier;
 	else if(eFocus == CITY_AI_FOCUS_TYPE_SCIENCE)
-		iScienceYieldValue *= 3;
+		iScienceYieldValue *= focusMultiplier;
 	else if(eFocus == CITY_AI_FOCUS_TYPE_CULTURE)
-		iCultureYieldValue *= 3;
+		iCultureYieldValue *= focusMultiplier;
 	else if(eFocus == CITY_AI_FOCUS_TYPE_GOLD_GROWTH)
 	{
-		iFoodYieldValue *= 2;
-		iGoldYieldValue *= 2;
+		iFoodYieldValue *= focusMultiplier;
+		iGoldYieldValue *= focusMultiplier;
 	}
 	else if(eFocus == CITY_AI_FOCUS_TYPE_PROD_GROWTH)
 	{
-		iFoodYieldValue *= 2;
-		iProductionYieldValue *= 2;
+		iFoodYieldValue *= focusMultiplier;
+		iProductionYieldValue *= focusMultiplier;
 	}
 	else if(eFocus == CITY_AI_FOCUS_TYPE_FAITH)
 	{
-		iFaithYieldValue *= 3;
+		iFaithYieldValue *= focusMultiplier;
 	}
 
 #ifdef AUI_CITIZENS_GET_VALUE_ALTER_FOOD_VALUE_IF_FOOD_PRODUCTION
