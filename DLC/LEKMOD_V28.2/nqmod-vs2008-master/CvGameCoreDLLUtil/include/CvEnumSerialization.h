@@ -40,8 +40,11 @@ FDataStream & operator>>(FDataStream &, ChatTargetTypes &);
 FDataStream & operator<<(FDataStream &, const TeamTypes &);
 FDataStream & operator>>(FDataStream &, TeamTypes &);
 
-FDataStream & operator<<(FDataStream &, const PlayerTypes &);
-FDataStream & operator>>(FDataStream &, PlayerTypes &);
+FDataStream& operator<<(FDataStream&, const PlayerTypes&);
+FDataStream& operator>>(FDataStream&, PlayerTypes&);
+
+FDataStream& operator<<(FDataStream&, const MiniCompetitionTypes&);
+FDataStream& operator>>(FDataStream&, MiniCompetitionTypes&);
 
 FDataStream & operator<<(FDataStream &, const ReligionTypes &);
 FDataStream & operator>>(FDataStream &, ReligionTypes &);

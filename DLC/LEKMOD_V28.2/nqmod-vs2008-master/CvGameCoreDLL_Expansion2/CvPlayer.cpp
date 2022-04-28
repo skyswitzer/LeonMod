@@ -4039,6 +4039,20 @@ CvPlot *CvPlayer::GetGreatAdmiralSpawnPlot (CvUnit *pUnit)
 	return pInitialPlot;
 }
 
+int CvPlayer::GetNumMinorAllies() const
+{
+	int count = 0;
+	for (int i = 0; i < MAX_PLAYERS; ++i)
+	{
+		const PlayerTypes otherId = (PlayerTypes)i;
+		const CvPlayer& other = GET_PLAYER(otherId);
+		if (other.isAlive() && other.isMinorCiv() && other.GetMinorCivAI()->IsAllies(otherId))
+		{
+			count++;
+		}
+	}
+	return count;
+}
 
 //	--------------------------------------------------------------------------------
 /// The number of Builders a player has
@@ -4629,6 +4643,8 @@ void CvPlayer::doTurn()
 		doTurnPostDiplomacy();
 	}
 
+	applyGlobalCompetitions();
+
 	ICvEngineScriptSystem1* pkScriptSystem = gDLL->GetScriptSystem();
 	if(pkScriptSystem)
 	{
@@ -4640,6 +4656,13 @@ void CvPlayer::doTurn()
 	}
 
 	m_kPlayerAchievements.StartTurn();
+}
+
+//	--------------------------------------------------------------------------------
+void CvPlayer::applyGlobalCompetitions()
+{
+	{ // diplomatic influence
+	}
 }
 
 //	--------------------------------------------------------------------------------

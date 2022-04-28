@@ -232,11 +232,11 @@ void CvGame::init(HandicapTypes eHandicap)
 		setOption(GAMEOPTION_PITBOSS, false);
 	}
 
+	int iNumPlayers = 0;
 	if(isMPOption(MPOPTION_SHUFFLE_TEAMS))
 	{
 		int aiTeams[MAX_CIV_PLAYERS];
 
-		int iNumPlayers = 0;
 		for(int i = 0; i < MAX_CIV_PLAYERS; i++)
 		{
 			if(CvPreGame::slotStatus((PlayerTypes)i) == SS_TAKEN)
@@ -268,6 +268,9 @@ void CvGame::init(HandicapTypes eHandicap)
 			}
 		}
 	}
+
+	for (int i = 0; i < COMPETITION_MAX_VALUE; ++i)
+		m_competitions.push_back(CvCompetition(MAX_MAJOR_CIVS, (MiniCompetitionTypes)i));
 
 	if(isOption(GAMEOPTION_LOCK_MODS))
 	{
@@ -1044,6 +1047,7 @@ void CvGame::uninit()
 
 	m_voteSelections.Uninit();
 	m_votesTriggered.Uninit();
+	m_competitions.clear();
 
 	m_mapRand.uninit();
 	m_jonRand.uninit();
@@ -8172,6 +8176,9 @@ void CvGame::doTurn()
 	}
 #endif
 
+	// update global competition winners
+	calculateGlobalCompetitions();
+
 	// Configure turn active status for the beginning of the new turn.
 #ifdef AUI_GAME_BETTER_HYBRID_MODE
 	if (isAnySimultaneousTurns())
@@ -8292,6 +8299,11 @@ void CvGame::doTurn()
 	}
 
 	gDLL->PublishNewGameTurn(getGameTurn());
+}
+
+void CvGame::calculateGlobalCompetitions()
+{
+
 }
 
 #ifdef AUI_GAME_BETTER_HYBRID_MODE
@@ -10420,6 +10432,7 @@ void CvGame::Read(FDataStream& kStream)
 	kStream >> m_aszGreatPeopleBorn;
 	kStream >> m_voteSelections;
 	kStream >> m_votesTriggered;
+	kStream >> m_competitions;
 
 	m_mapRand.read(kStream);
 	bool wasCallStackDebuggingEnabled = m_jonRand.callStackDebuggingEnabled();
@@ -10653,6 +10666,7 @@ void CvGame::Write(FDataStream& kStream) const
 	kStream << m_aszGreatPeopleBorn;
 	kStream << m_voteSelections;
 	kStream << m_votesTriggered;
+	kStream << m_competitions;
 
 	m_mapRand.write(kStream);
 	m_jonRand.write(kStream);

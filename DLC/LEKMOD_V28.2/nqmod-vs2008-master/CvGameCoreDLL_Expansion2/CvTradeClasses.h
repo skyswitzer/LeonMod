@@ -349,7 +349,7 @@ public:
 #endif
 
 	bool PlunderTradeRoute(int iTradeConnectionID);
-
+	// trade routes with any foriegn city (minor or major)
 	int GetNumForeignTradeRoutes(PlayerTypes ePlayer);
 #ifdef AUI_CONSTIFY
 	int GetTradeRouteRange(DomainTypes eDomain, const CvCity* pOriginCity) const;

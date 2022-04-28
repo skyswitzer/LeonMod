@@ -113,6 +113,8 @@ public:
 
 	CvPlot *GetGreatAdmiralSpawnPlot (CvUnit *pUnit);
 
+	// how many city state allies does this player have?
+	int GetNumMinorAllies() const;
 	int GetNumBuilders() const;
 	void SetNumBuilders(int iNum);
 	void ChangeNumBuilders(int iChange);
@@ -161,6 +163,8 @@ public:
 #endif
 
 	void doTurn();
+	// Global competitions which give some benefit.
+	void applyGlobalCompetitions();
 	void doTurnPostDiplomacy();
 #ifdef AUI_YIELDS_APPLIED_AFTER_TURN_NOT_BEFORE
 	void cacheYields();

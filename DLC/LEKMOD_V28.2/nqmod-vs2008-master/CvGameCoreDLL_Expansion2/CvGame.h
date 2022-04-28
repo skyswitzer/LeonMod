@@ -19,6 +19,7 @@
 #include <CvLocalization.h>
 
 #include "CvDealClasses.h"
+#include "CvCompetition.h"
 
 class CvPlot;
 class CvCity;
@@ -756,6 +757,7 @@ protected:
 
 	FFreeListTrashArray<VoteSelectionData> m_voteSelections;
 	FFreeListTrashArray<VoteTriggeredData> m_votesTriggered;
+	std::vector<CvCompetition> m_competitions;
 
 	CvRandom m_mapRand;
 	CvRandom m_jonRand;
@@ -832,6 +834,8 @@ protected:
 	void DoCacheMapScoreMod();
 
 	void doTurn();
+	// find the winners of the global competitions
+	void calculateGlobalCompetitions();
 
 #ifdef AUI_GAME_BETTER_HYBRID_MODE
 	void constructTurnOrders();

@@ -167,6 +167,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CvCityManager.cpp" />
+    <ClCompile Include="CvCompetition.cpp" />
     <ClCompile Include="CvPlotExtraYields.cpp" />
     <ClCompile Include="CvTargeting.cpp" />
     <ClCompile Include="_precompile.cpp">
@@ -357,6 +358,7 @@
     <ClInclude Include="CvCityManager.h" />
     <ClInclude Include="CvCitySpecializationAI.h" />
     <ClInclude Include="CvCityStrategyAI.h" />
+    <ClInclude Include="CvCompetition.h" />
     <ClInclude Include="CvCultureClasses.h" />
     <ClInclude Include="CvDangerPlots.h" />
     <ClInclude Include="CvDatabaseUtility.h" />

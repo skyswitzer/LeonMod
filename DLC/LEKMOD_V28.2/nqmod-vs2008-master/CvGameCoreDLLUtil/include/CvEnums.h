@@ -15,6 +15,16 @@ enum eCiv5GameCoreMPoolType
 	c_eCiv5GameplayDLL = c_eMPoolTypeUserStart + 0x100,		// Adding 0x100 because we don't want to collide with the app's IDs
 };
 
+enum MiniCompetitionTypes
+{
+	/* diplomatic */
+	// Whoever has the most international trade routes.
+	COMPETITION_TRADE_ROUTES_MOST_INTERNATIONAL,
+	COMPETITION_ALLIES,
+
+	COMPETITION_MAX_VALUE,
+};
+
 //! An enumeration for indexing units within a CvBattleDefinition
 enum BattleUnitTypes
 {
