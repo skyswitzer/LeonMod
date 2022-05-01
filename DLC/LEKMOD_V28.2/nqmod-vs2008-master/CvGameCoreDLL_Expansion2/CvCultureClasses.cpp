@@ -2697,11 +2697,12 @@ CvString CvPlayerCulture::GetTourismModifierWith_Tooltip(const PlayerTypes eOthe
 	{
 		int totalLinearModT100 = 0;
 
-		{ // Trade route bonus
-			int mod = GetTourismModifierTradeRoutesT100(eOtherPlayer);
-			addColoredValue(stream, mod, "from Trade Routes"); // TXT_KEY_CO_PLAYER_TOURISM_TRADE_ROUTE
-			totalLinearModT100 += mod;
-		}
+		// now lives as a boost to diplomatic influence
+		//{ // Trade route bonus
+		//	int mod = GetTourismModifierTradeRoutesT100(eOtherPlayer);
+		//	addColoredValue(stream, mod, "from Trade Routes"); // TXT_KEY_CO_PLAYER_TOURISM_TRADE_ROUTE
+		//	totalLinearModT100 += mod;
+		//}
 		
 		{ // shared religion
 			ReligionTypes ePlayerReligion = m_pPlayer->GetReligions()->GetReligionInMostCities();
@@ -2738,12 +2739,13 @@ CvString CvPlayerCulture::GetTourismModifierWith_Tooltip(const PlayerTypes eOthe
 			totalLinearModT100 += mod;
 		}
 
-		{ // diplomat bonus
-			int mod = 0;
-			if (m_pPlayer->GetEspionage()->IsMyDiplomatVisitingThem(eOtherPlayer)) mod = GC.getTOURISM_MODIFIER_DIPLOMAT();
-			addColoredValue(stream, mod, "from Diplomats"); // TXT_KEY_CO_PLAYER_TOURISM_PROPAGANDA
-			totalLinearModT100 += mod;
-		}
+		// now a bonus to diplomatic influence
+		//{ // diplomat bonus
+		//	int mod = 0;
+		//	if (m_pPlayer->GetEspionage()->IsMyDiplomatVisitingThem(eOtherPlayer)) mod = GC.getTOURISM_MODIFIER_DIPLOMAT();
+		//	addColoredValue(stream, mod, "from Diplomats"); // TXT_KEY_CO_PLAYER_TOURISM_PROPAGANDA
+		//	totalLinearModT100 += mod;
+		//}
 
 		{ // Cult of personality
 			int mod = 0;
@@ -2758,7 +2760,7 @@ CvString CvPlayerCulture::GetTourismModifierWith_Tooltip(const PlayerTypes eOthe
 
 		{ // happiness
 			const int mod = GetTourismModifierHappinessT100(eOtherPlayer);
-			addColoredValue(stream, mod, "from difference in Empire Happiness");
+			addColoredValue(stream, mod, "from more Empire Happiness");
 			totalLinearModT100 += mod;
 		}
 
@@ -2813,6 +2815,9 @@ int CvPlayerCulture::GetTourismModifierWithT100(PlayerTypes eOtherPlayer, bool b
 	int newTourismT100 = 0;
 	GetTourismModifierWith_Tooltip(eOtherPlayer, newTourismT100);
 
+	if (newTourismT100 < 1 || oldTourismT100 < 1)
+		return 0;
+
 	return GC.toPercentT100((double)newTourismT100 / (double)oldTourismT100);
 }
 
@@ -2849,7 +2854,7 @@ double CvPlayerCulture::GetTourismModifierHappinessT100(const PlayerTypes eOther
 	// if our happiness higher
 	if (m_pPlayer->GetExcessHappiness() > GET_PLAYER(eOtherPlayer).GetExcessHappiness())
 	{
-		modT100 += 5;
+		modT100 += 10;
 		modT100 += m_pPlayer->GetPlayerPolicies()->GetNumericModifier(POLICYMOD_TOURISM_MOD_LESS_HAPPY);
 	}
 

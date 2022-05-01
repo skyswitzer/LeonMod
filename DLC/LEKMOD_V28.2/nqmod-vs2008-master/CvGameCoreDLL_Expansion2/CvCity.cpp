@@ -2034,15 +2034,11 @@ void CvCity::doTurn()
 			m_bRouteToCapitalConnectedLastTurn = m_bRouteToCapitalConnectedThisTurn;
 		}
 
-		const PlayerTypes eOriginalOwner = this->getOriginalOwner();
-		if (eOriginalOwner != NO_PLAYER)
+		if (IsOwnedMinorCapital())
 		{
-			// if we own a city state, gain some influence
 			CvPlayer& owner = GET_PLAYER(getOwner());
-			if (GET_PLAYER(eOriginalOwner).isMinorCiv() && !owner.isMinorCiv())
-			{
-				owner.ChangeDiplomaticInfluence(GC.getDIPLOMATIC_INFLUENCE_PER_TURN_ALLY(eOriginalOwner, owner.GetID(), true));
-			}
+			// if we own a city state, gain some influence
+			owner.ChangeDiplomaticInfluence(GC.getDIPLOMATIC_INFLUENCE_PER_TURN_ALLY(getOriginalOwner(), owner.GetID(), true));
 		}
 
 		// XXX
@@ -3242,6 +3238,20 @@ bool CvCity::canJoin() const
 {
 	VALIDATE_OBJECT
 	return true;
+}
+
+//	--------------------------------------------------------------------------------
+bool CvCity::IsOwnedMinorCapital() const
+{
+	const PlayerTypes eOriginalOwner = this->getOriginalOwner();
+	if (eOriginalOwner != NO_PLAYER)
+	{
+		if (IsOriginalCapital() && GET_PLAYER(eOriginalOwner).isMinorCiv())
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 //	--------------------------------------------------------------------------------

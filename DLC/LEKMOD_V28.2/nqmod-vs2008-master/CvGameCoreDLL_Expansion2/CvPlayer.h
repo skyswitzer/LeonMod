@@ -395,6 +395,10 @@ public:
 	int GetJONSCulturePerTurnForFree() const;
 	void ChangeJONSCulturePerTurnForFree(int iChange);
 
+	// number of city states this player "controls" for the sake of victory conditions.
+	// Includes allies and captured city state capitals.
+	int GetNumMinorsControlled() const;
+
 	int GetJONSCulturePerTurnFromMinorCivs() const; // DEPRECATED, use GetCulturePerTurnFromMinorCivs() instead
 	void ChangeJONSCulturePerTurnFromMinorCivs(int iChange); // DEPRECATED, does nothing
 	int GetCulturePerTurnFromMinorCivs() const;
@@ -1109,7 +1113,9 @@ public:
 	bool GetHasEverBuiltRoyalLibrary();
 #endif
 
+	// true if this is a city state player
 	bool isMinorCiv() const;
+	// true if this is a civilization that is not a city state
 	bool isMajorCiv() const;
 	bool IsHasBetrayedMinorCiv() const;
 	void SetHasBetrayedMinorCiv(bool bValue);

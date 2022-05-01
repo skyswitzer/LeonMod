@@ -14,29 +14,40 @@ public:
 	CvCompetitionEntry(PlayerTypes _ePlayer)
 	{
 		ePlayer = _ePlayer;
-		iValue = 0;
+		iScore = 0;
 	}
 	// player this score is for
 	PlayerTypes ePlayer;
 	// score in the competition
-	int iValue;
+	int iScore;
 };
 FDataStream& operator <<(FDataStream& kStream, const CvCompetitionEntry& data);
 FDataStream& operator >>(FDataStream& kStream, CvCompetitionEntry& data);
 class CvCompetition
 {
 public:
-	CvCompetition() {};
+	CvCompetition();
 	CvCompetition(const int iNumPlayers, const MiniCompetitionTypes eCompetition);
 
-	// 0 is first place NO_PLAYER if
-	PlayerTypes GetPlayer(const int iPlace) const;
+
+	// 0 is first place. NO_PLAYER if iRank is invalid
+	PlayerTypes GetPlayerOfRank(const int iRank) const;
 	// get what place a player is in (0 is first place)
-	int GetPlace(const PlayerTypes ePlayer) const;
+	int GetRankOfPlayer(const PlayerTypes ePlayer) const;
 	// get what competition value this player has
-	int GetValue(const PlayerTypes ePlayer) const;
+	int GetScoreOfPlayer(const PlayerTypes ePlayer) const;
+	// get first place score
+	int GetCompetitionWinnerScore() const;
+	// get the short description of this competition
+	string GetDescriptionShort() const;
+	// get the short description of this competition
+	string GetDescriptionReward() const;
+	// get the description of this competition
+	string GetDescription(const PlayerTypes ePlayer = NO_PLAYER) const;
+
+
 	// calculates values for the competition and sorts the values
-	void updateAndSort();
+	void UpdateAndSort();
 
 	// which type of competition is this?
 	MiniCompetitionTypes m_eCompetitionType;

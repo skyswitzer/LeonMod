@@ -272,6 +272,7 @@ void CvGame::init(HandicapTypes eHandicap)
 	for (int i = 0; i < NUM_COMPETITIONS; ++i)
 	{
 		m_competitions.push_back(CvCompetition(MAX_MAJOR_CIVS, (MiniCompetitionTypes)i));
+		m_competitions[i].UpdateAndSort();
 	}
 
 	if(isOption(GAMEOPTION_LOCK_MODS))
@@ -4244,6 +4245,12 @@ int CvGame::countSeqHumanTurnsUntilPlayerTurn( PlayerTypes playerID ) const
 #endif
 
 //	--------------------------------------------------------------------------------
+const CvCompetition& CvGame::getCompetition(const MiniCompetitionTypes eType) const
+{
+	return m_competitions[eType];
+}
+
+//	--------------------------------------------------------------------------------
 int CvGame::countMajorCivsAlive() const
 {
 	int iCount;
@@ -4251,11 +4258,11 @@ int CvGame::countMajorCivsAlive() const
 
 	iCount = 0;
 
-	for(iI = 0; iI < MAX_CIV_PLAYERS; iI++)
+	for (iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 	{
-		if(GET_PLAYER((PlayerTypes)iI).isAlive())
+		if (GET_PLAYER((PlayerTypes)iI).isAlive())
 		{
-			if(!GET_PLAYER((PlayerTypes)iI).isMinorCiv())
+			if (!GET_PLAYER((PlayerTypes)iI).isMinorCiv())
 			{
 				iCount++;
 			}
@@ -4263,34 +4270,6 @@ int CvGame::countMajorCivsAlive() const
 	}
 
 	return iCount;
-}
-
-//	--------------------------------------------------------------------------------
-PlayerTypes CvGame::getCompetitionWinner(const MiniCompetitionTypes eType) const
-{
-	return m_competitions[eType].GetPlayer(0);
-}
-
-//	--------------------------------------------------------------------------------
-int CvGame::getCompetitionValueWinner(const MiniCompetitionTypes eType) const
-{
-	return m_competitions[eType].m_entries[0].iValue;
-}
-
-//	--------------------------------------------------------------------------------
-int CvGame::getCompetitionValue(const MiniCompetitionTypes eType, const PlayerTypes ePlayer) const
-{
-	return m_competitions[eType].GetValue(ePlayer);
-}
-
-string CvGame::getCompetitionDescriptionString(const MiniCompetitionTypes eType) const
-{
-
-}
-
-string CvGame::getCompetitionRewardString(const MiniCompetitionTypes eType) const
-{
-
 }
 
 //	--------------------------------------------------------------------------------
@@ -8295,6 +8274,8 @@ void CvGame::doTurn()
 	ChangeVpAdjustment(GetVpAcceleration());
 
 	updateScienceCatchup();
+	for (int i = 0; i < NUM_COMPETITIONS; ++i)
+		m_competitions[i].UpdateAndSort();
 
 	// Who's Winning
 	if(GET_PLAYER(getActivePlayer()).isAlive() && !IsStaticTutorialActive())

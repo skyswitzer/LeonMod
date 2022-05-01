@@ -385,6 +385,13 @@ void CvLuaGame::RegisterMembers(lua_State* L)
 
 	Method(GetNumArchaeologySites);
 	Method(GetNumHiddenArchaeologySites);
+
+	Method(GetCompetitionWinnerPlayer);
+	Method(GetCompetitionWinnerScore);
+	Method(GetCompetitionScore);
+	Method(GetCompetitionDesc);
+	Method(GetCompetitionDescShort);
+	Method(GetCompetitionDescReward);
 }
 //------------------------------------------------------------------------------
 
@@ -3023,5 +3030,63 @@ int CvLuaGame::lGetNumArchaeologySites(lua_State* L)
 int CvLuaGame::lGetNumHiddenArchaeologySites(lua_State* L)
 {
 	lua_pushinteger(L, GC.getGame().GetNumHiddenArchaeologySites());
+	return 1;
+}
+//------------------------------------------------------------------------------
+int CvLuaGame::lGetCompetitionWinnerPlayer(lua_State* L)
+{
+	const MiniCompetitionTypes eCompetition = (MiniCompetitionTypes)lua_tointeger(L, 1);
+
+	const PlayerTypes ePlayer = GC.getGame().getCompetition(eCompetition).GetPlayerOfRank(0);
+
+	lua_pushinteger(L, (int)ePlayer);
+	return 1;
+}
+//------------------------------------------------------------------------------
+int CvLuaGame::lGetCompetitionWinnerScore(lua_State* L)
+{
+	const MiniCompetitionTypes eCompetition = (MiniCompetitionTypes)lua_tointeger(L, 1);
+
+	int iScore = GC.getGame().getCompetition(eCompetition).GetCompetitionWinnerScore(); 
+
+	lua_pushinteger(L, iScore);
+	return 1;
+}
+int CvLuaGame::lGetCompetitionScore(lua_State* L)
+{
+	const PlayerTypes ePlayer = (PlayerTypes)lua_tointeger(L, 1);
+	const MiniCompetitionTypes eCompetition = (MiniCompetitionTypes)lua_tointeger(L, 2);
+
+	int iScore = GC.getGame().getCompetition(eCompetition).GetScoreOfPlayer(ePlayer);
+
+	lua_pushinteger(L, iScore);
+	return 1;
+}
+int CvLuaGame::lGetCompetitionDesc(lua_State* L)
+{
+	const MiniCompetitionTypes eCompetition = (MiniCompetitionTypes)lua_tointeger(L, 1);
+	const PlayerTypes ePlayer = (PlayerTypes)lua_tointeger(L, 2);
+
+	string sDesc = GC.getGame().getCompetition(eCompetition).GetDescription(ePlayer);
+
+	lua_pushstring(L, sDesc.c_str());
+	return 1;
+}
+int CvLuaGame::lGetCompetitionDescShort(lua_State* L)
+{
+	const MiniCompetitionTypes eCompetition = (MiniCompetitionTypes)lua_tointeger(L, 1);
+
+	string sDesc = GC.getGame().getCompetition(eCompetition).GetDescriptionShort();
+
+	lua_pushstring(L, sDesc.c_str());
+	return 1;
+}
+int CvLuaGame::lGetCompetitionDescReward(lua_State* L)
+{
+	const MiniCompetitionTypes eCompetition = (MiniCompetitionTypes)lua_tointeger(L, 1);
+
+	string sDesc = GC.getGame().getCompetition(eCompetition).GetDescriptionReward();
+
+	lua_pushstring(L, sDesc.c_str());
 	return 1;
 }

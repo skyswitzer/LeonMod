@@ -33,10 +33,11 @@ int CvLuaEnums::pRegister(lua_State* L)
 
 	// City Update Types
 	EnumStart(L, "MiniCompetitionTypes");
-	RegisterEnum(COMPETITION_CULTURE_START);
+	RegisterEnum(COMPETITION_DIPLOMATIC_START);
 
-	RegisterEnum(COMPETITION_TRADE_ROUTES_MOST_INTERNATIONAL);
+	RegisterEnum(COMPETITION_TRADE_ROUTES_INTERNATIONAL);
 	RegisterEnum(COMPETITION_ALLIES);
+	RegisterEnum(COMPETITION_DIPLOMATS);
 
 	RegisterEnum(COMPETITION_DIPLOMATIC_END);
 	RegisterEnum(COMPETITION_CULTURE_START);

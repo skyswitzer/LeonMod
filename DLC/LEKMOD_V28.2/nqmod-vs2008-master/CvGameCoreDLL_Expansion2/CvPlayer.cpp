@@ -10399,6 +10399,36 @@ int CvPlayer::GetJONSCulturePerTurnForFree() const
 }
 
 //	--------------------------------------------------------------------------------
+int CvPlayer::GetNumMinorsControlled() const
+{
+	int iCount = 0;
+
+	// check for allies
+	for (int iMinorLoop = MAX_MAJOR_CIVS; iMinorLoop < MAX_CIV_PLAYERS; iMinorLoop++)
+	{
+		const PlayerTypes eMinor = (PlayerTypes)iMinorLoop;
+		const CvPlayer& player = GET_PLAYER(eMinor);
+		if (player.isAlive() && player.isMinorCiv())
+		{
+			if (player.GetMinorCivAI()->IsAllies(GetID()))
+				iCount++;
+		}
+	}
+
+	// check our owned cities
+	int iCityLoop = 0;
+	for (const CvCity* pLoopCity = firstCity(&iCityLoop); pLoopCity != NULL; pLoopCity = nextCity(&iCityLoop))
+	{
+		if (pLoopCity->IsOwnedMinorCapital())
+		{
+			iCount++;
+		}
+	}
+
+	return iCount;
+}
+
+//	--------------------------------------------------------------------------------
 /// Culture per turn player starts with for free
 void CvPlayer::ChangeJONSCulturePerTurnForFree(int iChange)
 {

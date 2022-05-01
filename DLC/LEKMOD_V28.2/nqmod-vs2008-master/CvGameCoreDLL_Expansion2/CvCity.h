@@ -129,6 +129,8 @@ public:
 	bool canMaintain(ProcessTypes eProcess, bool bContinue = false) const;
 	bool canJoin() const;
 
+	// true if this city is a captured city state capital
+	bool IsOwnedMinorCapital() const;
 	bool IsFeatureSurrounded() const;
 	void SetFeatureSurrounded(bool bValue);
 	void DoUpdateFeatureSurrounded();

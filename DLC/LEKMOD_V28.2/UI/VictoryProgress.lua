@@ -38,6 +38,8 @@ MAX_CULTURE_ICONS_PER_ROW = 8;
 local g_ScoreIM = InstanceManager:new( "ScoreCiv", "Civ", Controls.ScoreStack );
 local g_ScoreList = {};
 
+local g_VictorBoxSize = 250;
+
 ----------------------------------------------------------------
 ----------------------------------------------------------------
 function OnBack()
@@ -430,6 +432,7 @@ end
 ----------------------------------------------------------------
 ----------------------------------------------------------------
 function PopulateSpaceRace()
+	Controls.TechBox:SetSizeY(g_VictorBoxSize);
 	local pPlayer = Players[Game.GetActivePlayer()];
 	local have = pPlayer:GetScientificInfluence();
 	local needed = pPlayer:GetScientificInfluenceNeeded();
@@ -522,6 +525,7 @@ end
 ----------------------------------------------------------------
 ----------------------------------------------------------------
 function PopulateDiplomatic()
+	Controls.DiploBox:SetSizeY(g_VictorBoxSize);
 	Controls.UNIcon:SetHide(true);
 	Controls.TurnsUntilSessionLabel:SetHide(true);
 	Controls.TurnsUntilSession:SetHide(true);
@@ -607,7 +611,8 @@ end
 ----------------------------------------------------------------
 ----------------------------------------------------------------
 function PopulateCultural()
-	
+	Controls.CultureBox:SetSizeY(g_VictorBoxSize);
+
 	local cultureVictory = GameInfo.Victories["VICTORY_CULTURAL"];
 	if(cultureVictory ~= nil and PreGame.IsVictory(cultureVictory.ID))then
 		for i, v in pairs(g_CultureItemIMList) do
@@ -656,8 +661,8 @@ function PopulateCultural()
 			end
 		end
 
-		-- populate culture competitions
-		for iCompetition = MiniCompetitionTypes.COMPETITION_CULTURE_START, MiniCompetitionTypes.COMPETITION_CULTURE_END-1, 1 do
+		-- populate culture competitions TODO MiniCompetitionTypes.COMPETITION_DIPLOMATIC_START
+		for iCompetition = 0, MiniCompetitionTypes.COMPETITION_DIPLOMATIC_END-1, 1 do
 			-- Create new row if one does not already exist
 			if(curRow == nil) then
 				numRows = numRows + 1;
@@ -673,16 +678,27 @@ function PopulateCultural()
 			g_CultureItemList[numItems] = item;
 			numItems = numItems + 1;
 			
-			local iPlayer = 0;--TODO getwinner
-			item.RowDesc:SetText("edited text");
-			item.RowDesc:SetToolTipString("edited tooltip");
+			local iWinningPlayer = Game.GetCompetitionWinnerPlayer(iCompetition);
+			local sDesc = Game.GetCompetitionDesc(iCompetition, iActivePlayer);
+			local sDescShort = Game.GetCompetitionDescShort(iCompetition);
+			local sDescReward = Game.GetCompetitionDescReward(iCompetition);
+			-- prefix
+			item.RowDesc:SetText(sDescShort);
+			item.RowDesc:SetToolTipString(sDesc);
+			-- post fix
+			item.RowDescReward:SetText(sDescReward);
+			item.RowDescReward:SetToolTipString(sDesc);
 
-			-- Set Civ Icon
-			local pPlayer = Players[iPlayer];
+			item.CultureItemChild:SetToolTipString(sDesc);
+
+			-- civ icon
+			local pWinningPlayer = Players[iWinningPlayer];
 			local activeTeam = Teams[pActivePlayer:GetTeam()];
-			local bHasMet = activeTeam:IsHasMet(pPlayer:GetTeam());
-			local iPlayerIcon = bHasMet and iPlayer or -1;
-			CivIconHookup(0, 32, item.Icon, item.IconBackground, item.IconShadow, false, true);
+			local bHasMet = activeTeam:IsHasMet(pWinningPlayer:GetTeam());
+			local iPlayerIcon = bHasMet and iWinningPlayer or -1;
+			local sCivName = pWinningPlayer:GetCivNameSafe(iActivePlayer);
+			item.IconBox:SetToolTipString(sCivName);
+			CivIconHookup(iPlayerIcon, 32, item.Icon, item.IconBackground, item.IconShadow, false, true);
 		end
 		--[[
 		local iPlayerIcon = 0;

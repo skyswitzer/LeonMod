@@ -91,8 +91,8 @@
   <Instance Name="CultureItem">
     <Stack ID="CultureItemChild" Anchor="L,T" StackGrowth="Right" Offset="0,0" Padding="0" >
       <!-- Description -->
-      <Container Size="100,32">
-        <Label ID="RowDesc" Anchor="R,T" Font="TwCenMT14" String="String A" ToolTip="tooltip a"/>
+      <Container Size="300,32">
+        <Label ID="RowDesc" Anchor="R,T" Font="TwCenMT14" String="RowDesc" ToolTip="tooltip a"/>
       </Container>
       <!-- Icon -->
       <Box ID="IconBox" Size="32,32" Color="White.0" >
@@ -100,6 +100,7 @@
         <Image ID="IconShadow" Size="24.24" Anchor="C,C" Offset="1,-11" Texture="CivSymbolAtlas16.dds" Color="Black.128"/>
         <Image ID="Icon" Size="24.24" Anchor="C,C" Offset="0,-12"  Texture="CivSymbolsColor256.dds" />
       </Box>
+      <Label ID="RowDescReward" Anchor="L,T" Font="TwCenMT14" String="RowDescReward" ToolTip="tooltip a"/>
     </Stack>
   </Instance>
   <!-- Score Details Item Instance -->
@@ -123,8 +124,8 @@
   </Instance>
   <!-- Screen Main Body -->
   <Box Style="BGBlock_ClearTopBar"/>
-  <Box Size="1024,768" Anchor="C,C" Color="255,255,255,0"/>
-  <Grid Size="960,658" Anchor="C,C" Offset="0,36" Padding="0,0" Style="Grid9DetailFive140">
+  <Box Size="1024,900" Anchor="C,C" Color="255,255,255,0"/>
+  <Grid Size="960,850" Anchor="C,C" Offset="0,36" Padding="0,0" Style="Grid9DetailFive140">
     <Image Anchor="C,T" AnchorSide="I.O" Size="256,64" Offset="0,-14" Texture="assets\UI\Art\Icons\Top512IconTrim.dds">
       <Image ID="Icon" Anchor="C,C" Size="64,64" Offset="-1,-1" Texture="assets\UI\Art\Icons\CivSymbolsColor512.dds"/>
     </Image>
@@ -141,7 +142,7 @@
           <Box Anchor="L,T" Size="300,24" Offset="0,0" Color="0.0.0.128">
             <Label Anchor="c,C" Offset="0,0" ColorSet="Beige_Black" Font="TwCenMT22" FontStyle="Shadow" String="TXT_KEY_VP_SCORE"/>
           </Box>
-          <Image Anchor="R,T" Offset="0,0" Texture="VerticalTrim.dds" Size="5.572"/>
+          <Image Anchor="R,T" Offset="0,0" Texture="VerticalTrim.dds" Size="5.764"/>
           <Box Anchor="C,T" Size="626,24" Offset="0,0" Color="255.255.255.0">
           </Box>
         </Stack>

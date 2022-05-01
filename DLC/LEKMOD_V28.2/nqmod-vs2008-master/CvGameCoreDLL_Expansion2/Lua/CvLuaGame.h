@@ -375,8 +375,15 @@ protected:
 
 	static int lMouseoverUnit(lua_State* L);
 
-	static int lGetNumArchaeologySites(lua_State *L);
-	static int lGetNumHiddenArchaeologySites(lua_State *L);
+	static int lGetNumArchaeologySites(lua_State* L);
+	static int lGetNumHiddenArchaeologySites(lua_State* L);
+
+	static int lGetCompetitionWinnerPlayer(lua_State* L);
+	static int lGetCompetitionWinnerScore(lua_State* L);
+	static int lGetCompetitionScore(lua_State* L);
+	static int lGetCompetitionDesc(lua_State* L);
+	static int lGetCompetitionDescShort(lua_State* L);
+	static int lGetCompetitionDescReward(lua_State* L);
 };
 
 #endif //CVLUAGAME_H
