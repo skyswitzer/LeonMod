@@ -11,11 +11,13 @@ class CvCompetitionEntry
 {
 public:
 	CvCompetitionEntry() {}
-	CvCompetitionEntry(PlayerTypes _ePlayer)
+	CvCompetitionEntry(PlayerTypes _ePlayer, MiniCompetitionTypes _type)
 	{
+		eType = _type;
 		ePlayer = _ePlayer;
 		iScore = 0;
 	}
+	MiniCompetitionTypes eType;
 	// player this score is for
 	PlayerTypes ePlayer;
 	// score in the competition

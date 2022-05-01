@@ -5947,6 +5947,11 @@ void CvPlayer::ChangeScoreFromScenario4(int iChange)
 		m_iScenarioScore4 += iChange;
 }
 //	--------------------------------------------------------------------------------
+int CvPlayer::GetDiplomaticInfluenceThisTurn() const
+{
+	asdf
+}
+//	--------------------------------------------------------------------------------
 int CvPlayer::GetDiplomaticInfluence() const
 {
 	return m_iDiplomaticInfluence;
@@ -5976,6 +5981,11 @@ int CvPlayer::GetDiplomaticInfluenceNeeded() const
 
 	const int truncate = 50;
 	return (influenceNeeded / truncate) * truncate;
+}
+//	--------------------------------------------------------------------------------
+int CvPlayer::GetScientificInfluenceThisTurn() const
+{
+	return abf;
 }
 //	--------------------------------------------------------------------------------
 int CvPlayer::GetScientificInfluence() const

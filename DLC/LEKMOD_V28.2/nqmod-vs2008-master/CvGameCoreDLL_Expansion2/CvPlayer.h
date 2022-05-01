@@ -238,11 +238,15 @@ public:
 	int GetScoreFromScenario4() const;
 	void ChangeScoreFromScenario4(int iChange);
 
+	// how much we will earn at the end of this turn
+	int GetDiplomaticInfluenceThisTurn() const;
 	int GetDiplomaticInfluence() const;
 	void ChangeDiplomaticInfluence(const int iChange);
 	// how much needed to achieve condition
 	int GetDiplomaticInfluenceNeeded() const;
 
+	// how much we will earn at the end of this turn
+	int GetScientificInfluenceThisTurn() const;
 	int GetScientificInfluence() const;
 	void ChangeScientificInfluence(const int iChange);
 	// how much needed to achieve condition

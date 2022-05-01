@@ -138,12 +138,14 @@ FDataStream& operator>>(FDataStream& kStream, MiniCompetitionTypes& data)
 }
 FDataStream& operator <<(FDataStream& kStream, const CvCompetitionEntry& data)
 {
+	kStream << data.eType;
 	kStream << data.ePlayer;
 	kStream << data.iScore;
 	return kStream;
 }
 FDataStream& operator >>(FDataStream& kStream, CvCompetitionEntry& data)
 {
+	kStream >> data.eType;
 	kStream >> data.ePlayer;
 	kStream >> data.iScore;
 	return kStream;
@@ -167,7 +169,7 @@ CvCompetition::CvCompetition()
 CvCompetition::CvCompetition(const int iNumPlayers, const MiniCompetitionTypes eCompetition)
 {
 	for (int i = 0; i < iNumPlayers; ++i) // add an entry for each player
-		m_entries.push_back(CvCompetitionEntry((PlayerTypes)i));
+		m_entries.push_back(CvCompetitionEntry((PlayerTypes)i, eCompetition));
 
 	m_eCompetitionType = eCompetition;
 }
@@ -215,10 +217,10 @@ bool compareEntries(const CvCompetitionEntry& lhs, const CvCompetitionEntry& rhs
 	if (lhs.iScore == rhs.iScore) // randomly determine a tie
 	{
 		unsigned long seed = 0;
-		seed += 321891373 + lhs.ePlayer;
+		seed += 98456213594 * lhs.eType;
 		seed += 98615 * lhs.iScore;
-		seed += 96429789 + rhs.ePlayer;
-		seed += 927 * rhs.iScore;
+		seed += 321891373 * lhs.ePlayer;
+		seed += 96429789 * rhs.ePlayer;
 		int randomTieResolution = GC.rand(1, "Competition Tie Resolution", NULL, seed);
 		return (bool)randomTieResolution;
 	}

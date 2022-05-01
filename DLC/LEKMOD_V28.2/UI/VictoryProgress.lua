@@ -23,8 +23,10 @@ local g_TechIM = InstanceManager:new( "TechCiv", "Civ", Controls.TechStack );
 local g_TechList = {};
 
 -- Diplo Details Variables
-local g_DiploIM = InstanceManager:new( "DiploCiv", "Civ", Controls.DiploStack );
-local g_DiploList = {};
+local g_DiploRowsIM = InstanceManager:new( "DiploRow", "RowStack", Controls.DiploStack );
+local g_DiploRowList = {};
+local g_DiploItemIMList = {};
+local g_DiploItemList = {};
 
 -- Cultural Details Variables
 local g_CultureRowsIM = InstanceManager:new( "CultureRow", "RowStack", Controls.CultureStack );
@@ -38,7 +40,10 @@ MAX_CULTURE_ICONS_PER_ROW = 8;
 local g_ScoreIM = InstanceManager:new( "ScoreCiv", "Civ", Controls.ScoreStack );
 local g_ScoreList = {};
 
-local g_VictorBoxSize = 250;
+local g_VictorBoxSizeX = 850;
+local g_VictorBoxSizeY = 250;
+local g_VictorTrimSizeX = 860;
+local g_LabelContainerSizeX = 400;
 
 ----------------------------------------------------------------
 ----------------------------------------------------------------
@@ -432,7 +437,8 @@ end
 ----------------------------------------------------------------
 ----------------------------------------------------------------
 function PopulateSpaceRace()
-	Controls.TechBox:SetSizeY(g_VictorBoxSize);
+	Controls.TechBox:SetSizeX(g_VictorBoxSizeX);
+	Controls.TechBox:SetSizeY(g_VictorBoxSizeY);
 	local pPlayer = Players[Game.GetActivePlayer()];
 	local have = pPlayer:GetScientificInfluence();
 	local needed = pPlayer:GetScientificInfluenceNeeded();
@@ -444,14 +450,9 @@ function PopulateSpaceRace()
 			local iTeam = Game.GetActiveTeam();
 			if(Teams[iTeam]:GetProjectCount(apolloProj) == 1) then
 				Controls.TechProgress:SetHide(true);
-				Controls.ApolloProject:SetHide(false);
+				--Controls.ApolloProject:SetHide(false);
 				Controls.BubblesAnim:SetHide(true);
 				Controls.ApolloIcon:SetColor(white);
-				
-				SetProjectValue("PROJECT_SS_BOOSTER", iTeam, Controls, "Booster");
-				SetProjectValue("PROJECT_SS_COCKPIT", iTeam, Controls, "Cockpit");
-				SetProjectValue("PROJECT_SS_STASIS_CHAMBER", iTeam, Controls, "Chamber");
-				SetProjectValue("PROJECT_SS_ENGINE", iTeam, Controls, "Engine");
 			else
 				local totalPreReqs = #g_TechPreReqList;
 				
@@ -493,6 +494,7 @@ function PopulateSpaceRace()
 		
 		Controls.ScienceVictoryProgress:SetHide(false);
 		Controls.ScienceVictoryDisabled:SetHide(true);
+		Controls.SpaceRaceDetails:ReprocessAnchoring();
 	else
 		Controls.ScienceVictoryProgress:SetHide(true);
 		Controls.ScienceVictoryDisabled:SetHide(false);
@@ -525,15 +527,17 @@ end
 ----------------------------------------------------------------
 ----------------------------------------------------------------
 function PopulateDiplomatic()
-	Controls.DiploBox:SetSizeY(g_VictorBoxSize);
+	Controls.DiploBox:SetSizeX(g_VictorBoxSizeX);
+	Controls.DiploBox:SetSizeY(g_VictorBoxSizeY);
 	Controls.UNIcon:SetHide(true);
-	Controls.TurnsUntilSessionLabel:SetHide(true);
-	Controls.TurnsUntilSession:SetHide(true);
+	--Controls.TurnsUntilSessionLabel:SetHide(true);
+	--Controls.TurnsUntilSession:SetHide(true);
 	Controls.DiploVictoryProgress:SetHide(true);
 	Controls.DiploVictoryDisabled:SetHide(false);
-	Controls.VotesNeededLabel:SetHide(true);
-	Controls.VotesHaveLabel:SetHide(true);
+	--Controls.VotesNeededLabel:SetHide(true);
+	--Controls.VotesHaveLabel:SetHide(true);
 	 
+	--[[
 	local player = Players[Game.GetActivePlayer()];
 	local victoryId;
 	local victoryInfo = GameInfo.Victories["VICTORY_DIPLOMATIC"];
@@ -542,25 +546,6 @@ function PopulateDiplomatic()
 	end
 	 
 	if (victoryId ~= nil and PreGame.IsVictory(victoryId))then
-	
-		--[[
-		if(Game.GetVictory() == victoryId) then
-		
-			local team = Teams[Game.GetWinner()];
-			local leader = Players[team:GetLeaderID()];
-			
-			local playerName;
-			if(Game:IsNetworkMultiPlayer() and leader:GetNickName() ~= "" and leader:IsHuman() ) then
-				playerName = leader:GetNickName();
-			else
-				playerName = leader:GetNameKey();
-			end
-      			
-			Controls.UNInfo:LocalizeAndSetText("TXT_KEY_VP_DIPLO_SOMEONE_WON", playerName);
-			Controls.VotesNeeded:SetHide(true);
-			Controls.VotesHave:SetHide(true);	
-		else
-		--]]
 			local iVotesControlled = 0;
 			local sUNInfo = Locale.Lookup("TXT_KEY_VP_DIPLO_UN_INACTIVE");
 			if (Game.GetNumActiveLeagues() > 0) then
@@ -590,9 +575,6 @@ function PopulateDiplomatic()
 			Controls.DiploBoxLabel:SetHide(false);
 			Controls.DiploBoxLabel:LocalizeAndSetText("{TXT_KEY_VICTORYSCREEN_DIPLOMATIC}" .. doneLabel);
 
-			-- show progress
-			local status = Locale.ConvertTextKey("You have " .. have .. " of " .. needed .. " {TXT_KEY_DIPLOMATIC_INFLUENCE} needed.");			
-			Controls.UNInfo:SetText(status .. "[NEWLINE]" .. sUNInfo);
 
 			Controls.VotesNeeded:SetText(Game.GetVotesNeededForDiploVictory());
 			Controls.VotesHave:SetText(iVotesControlled);
@@ -606,12 +588,128 @@ function PopulateDiplomatic()
 		Controls.DiploVictoryProgress:SetHide(false);
 		Controls.DiploVictoryDisabled:SetHide(true);		
 	end
+	--]]
+
+
+	local player = Players[Game.GetActivePlayer()];
+	local victoryId;
+	local victoryInfo = GameInfo.Victories["VICTORY_DIPLOMATIC"];
+	if(victoryInfo ~= nil) then
+		victoryId = victoryInfo.ID;
+	end
+	 
+	-- is victory enabled?
+	if (victoryId ~= nil and PreGame.IsVictory(victoryId)) then
+		DeleteDiploScreen();
+		
+		local curRow = nil;
+		local numRows = 0;
+		local curItemIM = nil;
+		local numItemIM = 0;
+		local curCol = 0;
+		local numItems = 0;	
+
+		local have = 0;
+		local needed = 0;
+		
+		local iActivePlayer = Game.GetActivePlayer();
+		local pActivePlayer = Players[iActivePlayer];
+			
+		-- populate Diplo competitions TODO MiniCompetitionTypes.COMPETITION_DIPLOMATIC_START
+		for iCompetition = 0, MiniCompetitionTypes.COMPETITION_DIPLOMATIC_END-1, 1 do
+			-- Create new row if one does not already exist
+			if(curRow == nil) then
+				numRows = numRows + 1;
+				curRow = g_DiploRowsIM:GetInstance();
+				g_DiploRowList[numRows] = curRow;
+				
+				numItemIM = numItemIM + 1;
+				curItemIM = InstanceManager:new( "DiploItem", "DiploItemChild", curRow.RowStack );
+				g_DiploItemIMList[numItemIM] = curItemIM;
+				
+			end							
+			local item = curItemIM:GetInstance();
+			g_DiploItemList[numItems] = item;
+			numItems = numItems + 1;
+			
+			local iWinningPlayer = Game.GetCompetitionWinnerPlayer(iCompetition);
+			local sDesc = Game.GetCompetitionDesc(iCompetition, iActivePlayer);
+			local sDescShort = Game.GetCompetitionDescShort(iCompetition);
+			local sDescReward = Game.GetCompetitionDescReward(iCompetition);
+			-- prefix
+			item.RowDesc:SetText(sDescShort);
+			item.RowDesc:SetToolTipString(sDesc);
+			-- post fix
+			item.RowDescReward:SetText(sDescReward);
+			item.RowDescReward:SetToolTipString(sDesc);
+
+			item.DiploItemChild:SetToolTipString(sDesc);
+			item.DiploItemLabelContainer:SetSizeX(g_LabelContainerSizeX);
+
+			-- civ icon
+			local pWinningPlayer = Players[iWinningPlayer];
+			local activeTeam = Teams[pActivePlayer:GetTeam()];
+			local bHasMet = activeTeam:IsHasMet(pWinningPlayer:GetTeam());
+			local iPlayerIcon = bHasMet and iWinningPlayer or -1;
+			local sCivName = pWinningPlayer:GetCivNameSafe(iActivePlayer);
+			item.IconBox:SetToolTipString(sCivName);
+			CivIconHookup(iPlayerIcon, 32, item.Icon, item.IconBackground, item.IconShadow, false, true);
+		end
+
+		local have = player:GetTeamDiplomaticInfluence();
+		local needed = player:GetTeamDiplomaticInfluenceNeeded();
+
+		-- show progress
+		local status = Locale.ConvertTextKey("You have " .. have .. " of " .. needed .. " {TXT_KEY_DIPLOMATIC_INFLUENCE} needed.");
+		-- show turns remaining
+		local statusDelta = "";
+		local perTurn = 30;
+		if ((have < needed) and (perTurn > 0)) then
+			local turnsTillCompletion = math.ceil((needed - have) / perTurn);
+			statusDelta = Locale.ConvertTextKey("You are receiving " .. perTurn .. " per turn, and will complete this in " .. turnsTillCompletion .. " turns.");
+		end
+			
+		Controls.UNInfo:SetText(status .. "[NEWLINE]" .. statusDelta);-- .. sUNInfo);
+
+		-- is done?
+		local doneLabel = "";
+		if (have >= needed) then
+			doneLabel = doneString;
+		end
+		Controls.DiploBoxLabel:SetHide(false);
+		Controls.DiploBoxLabel:LocalizeAndSetText("{TXT_KEY_VICTORYSCREEN_DIPLOMATIC}" .. doneLabel);
+
+		--Controls.VotesNeeded:SetText(Game.GetVotesNeededForDiploVictory());
+		--Controls.VotesHave:SetText(iVotesControlled);
+		--Controls.VotesNeededLabel:SetHide(false);
+		--Controls.VotesHaveLabel:SetHide(false);
+
+		--Controls.VotesNeeded:SetHide(false);
+		--Controls.VotesHave:SetHide(false);
+	
+		Controls.DiploVictoryProgress:SetHide(false);
+		Controls.DiploVictoryDisabled:SetHide(true);
+
+		local sUNInfo = Locale.Lookup("TXT_KEY_VP_DIPLO_UN_INACTIVE");
+		if (Game.GetNumActiveLeagues() > 0) then
+			local pLeague = Game.GetActiveLeague();
+			
+			if (pLeague ~= nil and Game.IsUnitedNationsActive()) then
+				Controls.UNIcon:SetHide(false);
+				sUNInfo = Locale.Lookup("TXT_KEY_VP_DIPLO_UN_ACTIVE");
+				Controls.TurnsUntilSessionLabel:SetHide(false);
+				Controls.TurnsUntilSession:SetHide(false);
+				Controls.TurnsUntilSession:SetText(pLeague:GetTurnsUntilVictorySession());
+			end
+		end
+	end
 end
 
 ----------------------------------------------------------------
 ----------------------------------------------------------------
 function PopulateCultural()
-	Controls.CultureBox:SetSizeY(g_VictorBoxSize);
+	Controls.CultureBox:SetSizeX(g_VictorBoxSizeX);
+	Controls.CultureBox:SetSizeY(g_VictorBoxSizeY);
 
 	local cultureVictory = GameInfo.Victories["VICTORY_CULTURAL"];
 	if(cultureVictory ~= nil and PreGame.IsVictory(cultureVictory.ID))then
@@ -690,6 +788,7 @@ function PopulateCultural()
 			item.RowDescReward:SetToolTipString(sDesc);
 
 			item.CultureItemChild:SetToolTipString(sDesc);
+			item.CultureItemLabelContainer:SetSizeX(g_LabelContainerSizeX);
 
 			-- civ icon
 			local pWinningPlayer = Players[iWinningPlayer];
@@ -746,6 +845,9 @@ function SetupScreen()
 	-- Set Player Score
 	PopulateScoreBreakdown();
 	
+	Controls.HorizontalTrimWide0:SetSizeX(g_VictorTrimSizeX);
+	Controls.HorizontalTrimWide1:SetSizeX(g_VictorTrimSizeX);
+
 	-- Populate Victories
 	--PopulateDomination();
 	PopulateSpaceRace();
@@ -838,11 +940,6 @@ function PopulateSpaceRaceScreen()
 			-- Fill in Apollo Project
 			if(Teams[pTeam]:GetProjectCount(apolloProj) == 1) then
 				controlTable.ApolloIcon:SetColor(white);
-				
-				SetProjectValue("PROJECT_SS_BOOSTER", pTeam, controlTable, "Booster");
-				SetProjectValue("PROJECT_SS_COCKPIT", pTeam, controlTable, "Cockpit");
-				SetProjectValue("PROJECT_SS_STASIS_CHAMBER", pTeam, controlTable, "Chamber");
-				SetProjectValue("PROJECT_SS_ENGINE", pTeam, controlTable, "Engine");
 			end
 		end	
 	end
@@ -1265,11 +1362,17 @@ function DeleteSpaceRaceScreen()
 end
 
 ----------------------------------------------------------------
-----------------------------------------------------------------
+--------------------------------------------------------------
 function DeleteDiploScreen()
-	g_DiploIM:ResetInstances();
-	g_DiploList = {};
+	for i, v in pairs(g_DiploItemIMList) do
+		v:ResetInstances();
+	end
+	g_DiploRowsIM:ResetInstances();
+	g_DiploRowList = {};
+	g_DiploItemList = {};
+	g_DiploItemIMList = {};
 end
+
 
 --------------------------------------------
 --------------------------------------------
