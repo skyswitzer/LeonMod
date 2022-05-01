@@ -61,6 +61,7 @@
       <Container ID="CultureItemLabelContainer" Size="300,32">
         <Label ID="RowDesc" Anchor="R,T" Font="TwCenMT14" String="RowDesc"/>
       </Container>
+      <Label Anchor="L,T" Font="TwCenMT14" String="    "/><!--tab-->
       <!-- Icon -->
       <Box ID="IconBox" Size="32,32" Color="White.0" >
         <Image ID="IconBackground" Size="32.32" Anchor="C,C" Offset="0,-12" Texture="CivIconBGSizes.dds" TextureOffset="32,0" />

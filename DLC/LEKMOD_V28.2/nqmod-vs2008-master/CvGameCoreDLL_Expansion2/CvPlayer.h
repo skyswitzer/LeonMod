@@ -163,8 +163,6 @@ public:
 #endif
 
 	void doTurn();
-	// Global competitions which give some benefit.
-	void applyGlobalCompetitions();
 	void doTurnPostDiplomacy();
 #ifdef AUI_YIELDS_APPLIED_AFTER_TURN_NOT_BEFORE
 	void cacheYields();
@@ -238,15 +236,17 @@ public:
 	int GetScoreFromScenario4() const;
 	void ChangeScoreFromScenario4(int iChange);
 
-	// how much we will earn at the end of this turn
-	int GetDiplomaticInfluenceThisTurn() const;
+	// 1. How much we will earn at the end of this turn?
+	// 2. Number of city states this player "controls" for the sake of victory conditions.
+	// Includes allies and captured city state capitals.
+	void GetDiplomaticInfluencePerTurn(int* influenceThisTurn, int* iNumMinorCapitalsControlled) const;
 	int GetDiplomaticInfluence() const;
 	void ChangeDiplomaticInfluence(const int iChange);
 	// how much needed to achieve condition
 	int GetDiplomaticInfluenceNeeded() const;
 
 	// how much we will earn at the end of this turn
-	int GetScientificInfluenceThisTurn() const;
+	void GetScientificInfluencePerTurn(int* influenceThisTurn) const;
 	int GetScientificInfluence() const;
 	void ChangeScientificInfluence(const int iChange);
 	// how much needed to achieve condition
@@ -398,10 +398,6 @@ public:
 
 	int GetJONSCulturePerTurnForFree() const;
 	void ChangeJONSCulturePerTurnForFree(int iChange);
-
-	// number of city states this player "controls" for the sake of victory conditions.
-	// Includes allies and captured city state capitals.
-	int GetNumMinorsControlled() const;
 
 	int GetJONSCulturePerTurnFromMinorCivs() const; // DEPRECATED, use GetCulturePerTurnFromMinorCivs() instead
 	void ChangeJONSCulturePerTurnFromMinorCivs(int iChange); // DEPRECATED, does nothing

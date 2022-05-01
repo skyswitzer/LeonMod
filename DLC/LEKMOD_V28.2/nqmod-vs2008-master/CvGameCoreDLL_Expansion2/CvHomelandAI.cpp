@@ -178,8 +178,8 @@ static bool SortUnitDistance(const DistancePlotEntry& kEntry1, const DistancePlo
 bool CvHomelandAI::IsAnyValidExploreMoves(const CvUnit* pUnit) const
 {
 	CvEconomicAI* pEconomicAI = m_pPlayer->GetEconomicAI();
-	FFastVector<int>& aiExplorationPlots = pEconomicAI->GetExplorationPlots();
-	FFastVector<int>& aiExplorationPlotRatings = pEconomicAI->GetExplorationPlotRatings();
+	vector<int>& aiExplorationPlots = pEconomicAI->GetExplorationPlots();
+	vector<int>& aiExplorationPlotRatings = pEconomicAI->GetExplorationPlotRatings();
 
 	if (aiExplorationPlots.size() > 0)
 	{
@@ -2540,10 +2540,10 @@ void CvHomelandAI::ExecuteExplorerMoves()
 
 		if(!pBestPlot && iMovementRange > 0)
 		{
-			FFastVector<int>& aiExplorationPlots = pEconomicAI->GetExplorationPlots();
+			vector<int>& aiExplorationPlots = pEconomicAI->GetExplorationPlots();
 			if (aiExplorationPlots.size() > 0)
 			{
-				FFastVector<int>& aiExplorationPlotRatings = pEconomicAI->GetExplorationPlotRatings();
+				vector<int>& aiExplorationPlotRatings = pEconomicAI->GetExplorationPlotRatings();
 
 				aBestPlotList.clear();
 				aBestPlotList.reserve(aiExplorationPlots.size());

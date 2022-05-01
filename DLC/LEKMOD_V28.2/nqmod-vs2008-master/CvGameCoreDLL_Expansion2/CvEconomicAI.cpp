@@ -907,7 +907,7 @@ void AppendToLog(CvString& strHeader, CvString& strLog, CvString strHeaderValue,
 	strLog += str;
 }
 
-FFastVector<int>& CvEconomicAI::GetExplorationPlots()
+vector<int>& CvEconomicAI::GetExplorationPlots()
 {
 	if(m_bExplorationPlotsDirty)
 	{
@@ -917,7 +917,7 @@ FFastVector<int>& CvEconomicAI::GetExplorationPlots()
 	return m_aiExplorationPlots;
 }
 
-FFastVector<int>& CvEconomicAI::GetExplorationPlotRatings()
+vector<int>& CvEconomicAI::GetExplorationPlotRatings()
 {
 	if(m_bExplorationPlotsDirty)
 	{

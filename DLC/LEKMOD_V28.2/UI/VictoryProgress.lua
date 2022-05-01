@@ -315,11 +315,6 @@ function PopulateDomination()
 				end
 			end
 			
-			--print("iNumCapitals: " .. iNumCapitals);
-			--print("iNumPlayersOnTeam: " .. iNumPlayersOnTeam);
-			--print("iLeadingNumCapitals: " .. iLeadingNumCapitals);
-			--print("iLeadingNumPlayersOnTeam: " .. iLeadingNumPlayersOnTeam);
-			
 			if (iNumCapitals - iNumPlayersOnTeam > iLeadingNumCapitals - iLeadingNumPlayersOnTeam) then
 				iLeadingTeam = iTeamLoop;
 				iLeadingNumCapitals = iNumCapitals;
@@ -480,9 +475,15 @@ function PopulateSpaceRace()
 
 			-- show status
 			local status = Locale.ConvertTextKey("You have " .. have .. " of " .. needed .. " {SCIENTIFIC_INFLUENCE} needed.");
-			local apolloProgress = Locale.ConvertTextKey("TXT_KEY_VP_DIPLO_PROJECT_PLAYERS_COMPLETE", numApollo, "TXT_KEY_PROJECT_APOLLO_PROGRAM");
+			-- show turns remaining
+			local statusDelta = "";
+			local perTurn = pPlayer:GetScientificInfluencePerTurn();
+			if ((have < needed) and (perTurn > 0)) then
+				local turnsTillCompletion = math.ceil((needed - have) / perTurn);
+				statusDelta = Locale.ConvertTextKey("You are receiving " .. perTurn .. " per turn, and will complete this in " .. turnsTillCompletion .. " turns.");
+			end
 
-			Controls.SpaceInfo:LocalizeAndSetText(status .. "[NEWLINE]" .. apolloProgress);
+			Controls.SpaceInfo:LocalizeAndSetText(status .. "[NEWLINE]" .. statusDelta);
 		end
 
 		local doneLabel = "";
@@ -530,68 +531,10 @@ function PopulateDiplomatic()
 	Controls.DiploBox:SetSizeX(g_VictorBoxSizeX);
 	Controls.DiploBox:SetSizeY(g_VictorBoxSizeY);
 	Controls.UNIcon:SetHide(true);
-	--Controls.TurnsUntilSessionLabel:SetHide(true);
-	--Controls.TurnsUntilSession:SetHide(true);
 	Controls.DiploVictoryProgress:SetHide(true);
 	Controls.DiploVictoryDisabled:SetHide(false);
-	--Controls.VotesNeededLabel:SetHide(true);
-	--Controls.VotesHaveLabel:SetHide(true);
-	 
-	--[[
-	local player = Players[Game.GetActivePlayer()];
-	local victoryId;
-	local victoryInfo = GameInfo.Victories["VICTORY_DIPLOMATIC"];
-	if(victoryInfo ~= nil) then
-		victoryId = victoryInfo.ID;
-	end
-	 
-	if (victoryId ~= nil and PreGame.IsVictory(victoryId))then
-			local iVotesControlled = 0;
-			local sUNInfo = Locale.Lookup("TXT_KEY_VP_DIPLO_UN_INACTIVE");
-			if (Game.GetNumActiveLeagues() > 0) then
-				local pLeague = Game.GetActiveLeague();
-				
-				if (pLeague ~= nil and Game.IsUnitedNationsActive()) then
-					Controls.UNIcon:SetHide(false);
-					sUNInfo = Locale.Lookup("TXT_KEY_VP_DIPLO_UN_ACTIVE");
-					Controls.TurnsUntilSessionLabel:SetHide(false);
-					Controls.TurnsUntilSession:SetHide(false);
-					Controls.TurnsUntilSession:SetText(pLeague:GetTurnsUntilVictorySession());
-				end
-				
-				if (pLeague ~= nil) then
-					iVotesControlled = pLeague:CalculateStartingVotesForMember(Game.GetActivePlayer());
-				end
-			end
 
-			-- do influence
-			local have = player:GetTeamDiplomaticInfluence();
-			local needed = player:GetTeamDiplomaticInfluenceNeeded();
-
-			local doneLabel = "";
-			if (have >= needed) then
-				doneLabel = doneString;
-			end
-			Controls.DiploBoxLabel:SetHide(false);
-			Controls.DiploBoxLabel:LocalizeAndSetText("{TXT_KEY_VICTORYSCREEN_DIPLOMATIC}" .. doneLabel);
-
-
-			Controls.VotesNeeded:SetText(Game.GetVotesNeededForDiploVictory());
-			Controls.VotesHave:SetText(iVotesControlled);
-			Controls.VotesNeededLabel:SetHide(false);
-			Controls.VotesHaveLabel:SetHide(false);
-	
-			Controls.VotesNeeded:SetHide(false);
-			Controls.VotesHave:SetHide(false);
-		--end
-	
-		Controls.DiploVictoryProgress:SetHide(false);
-		Controls.DiploVictoryDisabled:SetHide(true);		
-	end
-	--]]
-
-
-	local player = Players[Game.GetActivePlayer()];
+	local pPlayer = Players[Game.GetActivePlayer()];
 	local victoryId;
 	local victoryInfo = GameInfo.Victories["VICTORY_DIPLOMATIC"];
 	if(victoryInfo ~= nil) then
@@ -656,14 +599,14 @@ function PopulateDiplomatic()
 			CivIconHookup(iPlayerIcon, 32, item.Icon, item.IconBackground, item.IconShadow, false, true);
 		end
 
-		local have = player:GetTeamDiplomaticInfluence();
-		local needed = player:GetTeamDiplomaticInfluenceNeeded();
+		local have = pPlayer:GetTeamDiplomaticInfluence();
+		local needed = pPlayer:GetTeamDiplomaticInfluenceNeeded();
 
 		-- show progress
 		local status = Locale.ConvertTextKey("You have " .. have .. " of " .. needed .. " {TXT_KEY_DIPLOMATIC_INFLUENCE} needed.");
 		-- show turns remaining
 		local statusDelta = "";
-		local perTurn = 30;
+		local perTurn = pPlayer:GetTeamDiplomaticInfluencePerTurn();
 		if ((have < needed) and (perTurn > 0)) then
 			local turnsTillCompletion = math.ceil((needed - have) / perTurn);
 			statusDelta = Locale.ConvertTextKey("You are receiving " .. perTurn .. " per turn, and will complete this in " .. turnsTillCompletion .. " turns.");
@@ -678,14 +621,6 @@ function PopulateDiplomatic()
 		end
 		Controls.DiploBoxLabel:SetHide(false);
 		Controls.DiploBoxLabel:LocalizeAndSetText("{TXT_KEY_VICTORYSCREEN_DIPLOMATIC}" .. doneLabel);
-
-		--Controls.VotesNeeded:SetText(Game.GetVotesNeededForDiploVictory());
-		--Controls.VotesHave:SetText(iVotesControlled);
-		--Controls.VotesNeededLabel:SetHide(false);
-		--Controls.VotesHaveLabel:SetHide(false);
-
-		--Controls.VotesNeeded:SetHide(false);
-		--Controls.VotesHave:SetHide(false);
 	
 		Controls.DiploVictoryProgress:SetHide(false);
 		Controls.DiploVictoryDisabled:SetHide(true);
@@ -999,107 +934,6 @@ end
 
 ----------------------------------------------------------------
 ----------------------------------------------------------------
---[[
-function PopulateDiploScreen()
-	g_DiploIM:ResetInstances();
-	g_DiploList = {};
-	
-	local numDiplo = 0;
-	local tintColor = {x = 1, y = 1, z = 1, w = 0.25};
-	local totalVotes = 0;
-	
-	local sortedPlayerList = {};
-	-- Loop through all the civs the active player knows
-	for iPlayerLoop = 0, GameDefines.MAX_CIV_PLAYERS-1, 1 do
-		local pPlayer = Players[iPlayerLoop];
-		if(not pPlayer:IsMinorCiv() and pPlayer:IsEverAlive()) then
-			table.insert(sortedPlayerList, iPlayerLoop);			
-		end
-	end
-	
-	table.sort(sortedPlayerList, function(a, b) return Teams[Players[b]:GetTeam()]:GetTotalSecuredVotes() < 
-													   Teams[Players[a]:GetTeam()]:GetTotalSecuredVotes() end );
-
-	for i, v in ipairs(sortedPlayerList) do	
-		local pPlayer = Players[v];
-		local pTeam = pPlayer:GetTeam();
-		local iPlayerLoop = pPlayer:GetID();
-
-		-- Create Instance
-		numDiplo = numDiplo + 1;
-		local controlTable = g_DiploIM:GetInstance();
-		g_DiploList[numDiplo] = controlTable;
-
-		-- Set Civ Number
-		controlTable.Name:SetText( Locale.ConvertTextKey("TXT_KEY_NUMBERING_FORMAT", numDiplo) );
-		
-		-- Set Civ Icon
-		SetCivIcon(pPlayer, 45, controlTable.Icon, controlTable.IconFrame, controlTable.IconOut,
-				    not pPlayer:IsAlive() or Teams[pTeam]:GetLiberatedByTeam() ~= -1,
-				    controlTable.CivIconBG, controlTable.CivIconShadow);
-		
-		-- Alternate Colors
-		if(numDiplo % 2 == 0) then
-			controlTable.Civ:SetColor(tintColor);
-		end
-		
-		-- Set Votes
-		local selfVote = 0;
-		local csVotes = 0;
-		local libCityState = 0;
-		local libCiv = 0;
-		totalVotes = 0;
-		for i, v in pairs(Teams) do
-		    local iLeader = v:GetLeaderID();
-		    if( iLeader ~= -1 ) then
-    			local curPlayer = Players[v:GetLeaderID()];
-    			if(v:IsAlive()) then
-    				totalVotes = totalVotes + 1;
-    			end
-    			
-    			if(v:IsHomeOfUnitedNations()) then
-    				totalVotes = totalVotes + 1;
-    			end
-    			
-    			if(curPlayer:IsAlive()) then
-    				if(v:GetTeamVotingForInDiplo() == pTeam) then
-    					if(i == pTeam) then
-    						if(v:IsHomeOfUnitedNations()) then
-    							selfVote = 2;
-    						else
-    							selfVote = 1;
-    						end
-    					elseif(v:IsMinorCiv()) then
-    						if(pTeam == v:GetLiberatedByTeam()) then
-    							libCityState = libCityState + 1;
-    						elseif(iPlayerLoop == curPlayer:GetAlly()) then
-    							csVotes = csVotes + 1;
-    						end
-    					else
-    						if(pTeam == v:GetLiberatedByTeam()) then
-    							libCiv = libCiv + 1;
-    						end
-    					end
-    				end
-    			end
-			end
-		end	
-		
-		controlTable.TotalVotes:SetText(Teams[pTeam]:GetTotalSecuredVotes());
-		controlTable.SelfVote:SetText(selfVote);
-		controlTable.CityStates:SetText(csVotes);	
-		controlTable.LiberatedCityStates:SetText(libCityState);		
-		controlTable.LiberatedCivs:SetText(libCiv);		
-
-	end	
-	Controls.TotalDiploVotes:SetText(Locale.ConvertTextKey("TXT_KEY_VP_DIPLO_VOTES").." "..totalVotes);
-	Controls.NeededVotes:SetText(Locale.ConvertTextKey("TXT_KEY_VP_DIPLO_VOTES_NEEDED").." "..Game.GetVotesNeededForDiploVictory());
-	Controls.DiploScrollPanel:CalculateInternalSize();
-end
---]]
-
-----------------------------------------------------------------
-----------------------------------------------------------------
 function SetCivLeader(pPlayer, iconSize, controlTable)
 	-- Use the Civilization_Leaders table to cross reference from this civ to the Leaders table
 	local pTeam = Teams[pPlayer:GetTeam()];
@@ -1233,25 +1067,8 @@ function SetConquestCivIcon(pPlayer, iconSize, controlTable, controlTableTT, con
 	
 	if (iPlayer == iDominatingPlayer) then
 		controlDominatingPlayer:SetHide(true);
-		--controlIconOut:SetHide(true);
 	else
 		controlDominatingPlayer:SetHide(false);
-		--controlIconOut:SetHide(false);
-		--if (controlConqueredCivIcon) then
-		--	print("controlDominatingPlayer.ConqueredCivIcon: " .. controlConqueredCivIcon);
-		--else
-		--	print("controlDominatingPlayer.ConqueredCivIcon: nil");
-		--end
-		--if (controlConqueredCivIconBG) then
-		--	print("controlDominatingPlayer.ConqueredCivIconBG: " .. controlConqueredCivIconBG);
-		--else
-		--	print("controlDominatingPlayer.ConqueredCivIconBG: nil");		
-		--end
-		--if (controlConqueredCivIconShadow) then
-		--	print("controlDominatingPlayer.ConqueredCivIconShadow" .. controlConqueredCivIconShadow);
-		--else
-		--	print("controlDominatingPlayer.ConqueredCivIconShadow: nil");
-		--end
 		if (pDominatingTeam:IsHasMet(Game.GetActiveTeam())) then
 			CivIconHookup(iDominatingPlayer, 45, controlConqueredCivIcon, controlConqueredCivIconBG, controlConqueredCivIconShadow, false, true);
 		else
@@ -1326,23 +1143,6 @@ function SetConquestCivIcon(pPlayer, iconSize, controlTable, controlTableTT, con
 				end
 			end
 		end
-	
-		-- if not domination
-		--    if known player
-		--       "player controls their original capital of capital name"
-		--    else
-		--       "unknown player controls their original capital"
-		-- else
-		--    if known player
-		--       if known conquerer
-		--          "Dominating player controls the original adj capital of capital name"
-		--       else 
-		--          "An unmet player controls the original adj capital of capital name"
-		--    else unknown player
-		--       if known conquerer
-		--			"Dominating player controls the original capital of another civilization"
-		--       else
-		--          "An unmet player controls the original capital of another unmet civilization."
 	end
 end
 

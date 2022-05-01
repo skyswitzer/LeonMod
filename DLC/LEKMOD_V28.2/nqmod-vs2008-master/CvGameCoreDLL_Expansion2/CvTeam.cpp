@@ -5152,7 +5152,25 @@ void CvTeam::resetVictoryProgress()
 		}
 	}
 }
-
+int CvTeam::GetTotalDiplomaticInfluencePerTurn() const
+{
+	int total = 0;
+	// for each player
+	for (int iPlayerLoop = 0; iPlayerLoop < MAX_MAJOR_CIVS; iPlayerLoop++)
+	{
+		const PlayerTypes ePlayer = (PlayerTypes)iPlayerLoop;
+		const CvPlayer& player = GET_PLAYER(ePlayer);
+		// on our team
+		if (player.getTeam() == GetID())
+		{
+			// sum the influence
+			int perTurn, count;
+			player.GetDiplomaticInfluencePerTurn(&perTurn, &count);
+			total += perTurn;
+		}
+	}
+	return total;
+}
 int CvTeam::GetTotalDiplomaticInfluence() const
 {
 	int totalInfluence = 0;
@@ -5187,8 +5205,6 @@ int CvTeam::GetTotalDiplomaticInfluenceNeeded() const
 	}
 	return totalInfluenceNeeded;
 }
-
-
 //	--------------------------------------------------------------------------------
 bool CvTeam::isVictoryAchieved(VictoryTypes eVictory) const
 {

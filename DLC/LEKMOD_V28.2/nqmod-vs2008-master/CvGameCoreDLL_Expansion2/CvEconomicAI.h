@@ -171,8 +171,8 @@ public:
 
 	CvCity* GetBestGreatWorkCity(CvPlot *pStartPlot, GreatWorkType eGreatWork) const;
 
-	FFastVector<int>& GetExplorationPlots();
-	FFastVector<int>& GetExplorationPlotRatings();
+	vector<int>& GetExplorationPlots();
+	vector<int>& GetExplorationPlotRatings();
 	FFastVector<int>& GetGoodyHutPlots();
 	CvPlot* GetUnitTargetGoodyPlot(CvUnit* pUnit, CvPlot** ppkStepPlot = NULL);
 	void ClearUnitTargetGoodyStepPlot(CvUnit* pUnit);
@@ -278,8 +278,8 @@ private:
 	FFastVector<uint> m_auiYields;
 
 	// for the exploration plots
-	FFastVector<int> m_aiExplorationPlots;
-	FFastVector<int> m_aiExplorationPlotRatings;
+	vector<int> m_aiExplorationPlots;
+	vector<int> m_aiExplorationPlotRatings;
 	FFastVector<int> m_aiGoodyHutPlots;
 	struct GoodyHutUnitAssignment
 	{

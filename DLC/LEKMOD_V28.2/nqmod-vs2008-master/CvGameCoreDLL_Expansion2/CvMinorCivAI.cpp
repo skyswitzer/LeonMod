@@ -2433,14 +2433,6 @@ void CvMinorCivAI::DoTurnQuests()
 			DoTestStartPersonalQuest(ePlayer);
 		}
 	}
-
-	// add allyship victory points
-	PlayerTypes ally = GetAlly();
-	if (ally != NO_PLAYER)
-	{
-		const PlayerTypes eMinor = GetPlayer()->GetID();
-		GET_PLAYER(ally).ChangeDiplomaticInfluence(GC.getDIPLOMATIC_INFLUENCE_PER_TURN_ALLY(eMinor, ally));
-	}
 }
 
 /// What is the first possible turn of the game we can fire off a Quest for a player?
@@ -5431,6 +5423,7 @@ void CvMinorCivAI::DoLiberationByMajor(PlayerTypes eLiberator, TeamTypes eConque
 
 	// diplo points
 	const int diplomaticInfluenceReward = 250;
+	// reward liberator
 	liberator.ChangeDiplomaticInfluence(diplomaticInfluenceReward);
 
 	// Influence for liberator - raise to ally status

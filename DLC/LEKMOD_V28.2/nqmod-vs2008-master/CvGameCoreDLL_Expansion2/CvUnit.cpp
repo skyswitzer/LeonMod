@@ -8963,7 +8963,7 @@ bool CvUnit::trade()
 		return false;
 
 	int iTradeGold = getTradeGold(pPlot);
-	
+	// do great merchant burst
 	GET_PLAYER(getOwner()).ChangeDiplomaticInfluence(iTradeGold);
 
 	// Improve relations with the Minor

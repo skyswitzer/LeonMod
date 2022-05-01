@@ -373,6 +373,8 @@ public:
 	void setCanLaunch(VictoryTypes eVictory, bool bCan);
 	void resetVictoryProgress();
 	// the summed diplomatic influence of players on this team
+	int GetTotalDiplomaticInfluencePerTurn() const;
+	// the summed diplomatic influence of players on this team
 	int GetTotalDiplomaticInfluence() const;
 	// the REQUIRED summed diplomatic influence of players on this team
 	int GetTotalDiplomaticInfluenceNeeded() const;

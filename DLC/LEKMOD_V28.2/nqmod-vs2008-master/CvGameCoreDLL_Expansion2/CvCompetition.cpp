@@ -34,7 +34,7 @@ string tryAddCurrentScore(const CvCompetition& rCompetition, const PlayerTypes e
 string TradeRoutesDescShort(int iWinningScore)
 {
 	stringstream ss;
-	ss << "Most International {TRADE_ROUTE}s ([COLOR_POSITIVE_TEXT]" << iWinningScore << "[ENDCOLOR])";
+	ss << "Most International {TRADE_ROUTE}s: [COLOR_POSITIVE_TEXT]" << iWinningScore << "[ENDCOLOR]";
 	return ss.str();
 }
 string TradeRoutesDescReward(const CvCompetition& rCompetition)
@@ -61,7 +61,7 @@ int TradeRoutesScore(const CvPlayer& player)
 string AlliesDescShort(int iWinningScore)
 {
 	stringstream ss;
-	ss << "Most Controlled {CITY_STATE}s ([COLOR_POSITIVE_TEXT]" << iWinningScore << "[ENDCOLOR])";
+	ss << "Most Controlled {CITY_STATE}s: [COLOR_POSITIVE_TEXT]" << iWinningScore << "[ENDCOLOR]";
 	return ss.str();
 }
 string AlliesDescReward(const CvCompetition& rCompetition)
@@ -79,8 +79,9 @@ string AlliesDesc(const CvCompetition& rCompetition, const PlayerTypes ePlayer)
 }
 int AlliesScore(const CvPlayer& player)
 {
-	int score = player.GetNumMinorsControlled();
-	return score;
+	int perTurn, numControlled;
+	player.GetDiplomaticInfluencePerTurn(&perTurn, &numControlled);
+	return numControlled;
 }
 
 

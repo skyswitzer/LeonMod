@@ -540,10 +540,14 @@ protected:
 	static int lChangeScoreFromScenario3(lua_State* L);
 	static int lGetScoreFromScenario4(lua_State* L);
 	static int lChangeScoreFromScenario4(lua_State* L);
+
 	static int lGetTeamDiplomaticInfluence(lua_State* L);
 	static int lGetTeamDiplomaticInfluenceNeeded(lua_State* L);
+	static int lGetTeamDiplomaticInfluencePerTurn(lua_State* L);
+
 	static int lGetScientificInfluence(lua_State* L);
 	static int lGetScientificInfluenceNeeded(lua_State* L);
+	static int lGetScientificInfluencePerTurn(lua_State* L);
 
 	static int lIsGoldenAgeCultureBonusDisabled(lua_State* L);
 

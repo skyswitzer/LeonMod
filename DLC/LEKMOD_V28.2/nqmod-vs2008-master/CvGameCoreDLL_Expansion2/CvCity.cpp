@@ -1894,7 +1894,6 @@ void CvCity::doTurn()
 		// add scientific influence to player total
 		CvPlayer& owner = GET_PLAYER(getOwner());
 		owner.ChangeScientificInfluence(getScientificInfluence());
-		owner.ChangeDiplomaticInfluence(getYieldRate(YIELD_DIPLOMATIC_SUPPORT, false));
 
 		owner.ChangeGoldenAgeProgressMeter(getYieldRate(YIELD_GOLDEN, false));
 
@@ -2032,13 +2031,6 @@ void CvCity::doTurn()
 			}
 
 			m_bRouteToCapitalConnectedLastTurn = m_bRouteToCapitalConnectedThisTurn;
-		}
-
-		if (IsOwnedMinorCapital())
-		{
-			CvPlayer& owner = GET_PLAYER(getOwner());
-			// if we own a city state, gain some influence
-			owner.ChangeDiplomaticInfluence(GC.getDIPLOMATIC_INFLUENCE_PER_TURN_ALLY(getOriginalOwner(), owner.GetID(), true));
 		}
 
 		// XXX
@@ -11039,6 +11031,7 @@ int CvCity::getYieldRate(YieldTypes eIndex, bool bIgnoreTrade) const
 int CvCity::getYieldRateTimes100(YieldTypes eIndex, bool bIgnoreTrade) const
 {
 	VALIDATE_OBJECT
+	int iBaseYield = 0;
 
 	// Resistance - no Science, Gold or Production (Prod handled in ProductionDifference)
 	if(IsResistance() || IsRazing())
@@ -11058,8 +11051,14 @@ int CvCity::getYieldRateTimes100(YieldTypes eIndex, bool bIgnoreTrade) const
 		iProcessYield = getYieldRateTimes100(YIELD_PRODUCTION, false) * getProductionToYieldModifier(eIndex) / 100;
 	}
 
+	if (eIndex == YIELD_DIPLOMATIC_SUPPORT && IsOwnedMinorCapital())
+	{
+		CvPlayer& owner = GET_PLAYER(getOwner());
+		iBaseYield += 100 * GC.getDIPLOMATIC_INFLUENCE_PER_TURN_ALLY(getOriginalOwner(), owner.GetID(), true);
+	}
+
 	// Sum up yield rate
-	int iBaseYield = getBaseYieldRate(eIndex) * 100;
+	iBaseYield += getBaseYieldRate(eIndex) * 100;
 #ifdef AUI_PLOT_FIX_CITY_YIELD_CHANGE_RELOCATED
 	iBaseYield += GET_PLAYER(getOwner()).GetCityYieldChange(eIndex);
 	if (isCapital())

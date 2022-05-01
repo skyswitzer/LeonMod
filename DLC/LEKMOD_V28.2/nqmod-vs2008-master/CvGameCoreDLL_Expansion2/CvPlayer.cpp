@@ -4643,8 +4643,6 @@ void CvPlayer::doTurn()
 		doTurnPostDiplomacy();
 	}
 
-	applyGlobalCompetitions();
-
 	ICvEngineScriptSystem1* pkScriptSystem = gDLL->GetScriptSystem();
 	if(pkScriptSystem)
 	{
@@ -4656,13 +4654,10 @@ void CvPlayer::doTurn()
 	}
 
 	m_kPlayerAchievements.StartTurn();
-}
 
-//	--------------------------------------------------------------------------------
-void CvPlayer::applyGlobalCompetitions()
-{
-	{ // diplomatic influence
-	}
+	int diploThisTurn, numControlled;
+	GetDiplomaticInfluencePerTurn(&diploThisTurn, &numControlled);
+	ChangeDiplomaticInfluence(diploThisTurn);
 }
 
 //	--------------------------------------------------------------------------------
@@ -5947,9 +5942,42 @@ void CvPlayer::ChangeScoreFromScenario4(int iChange)
 		m_iScenarioScore4 += iChange;
 }
 //	--------------------------------------------------------------------------------
-int CvPlayer::GetDiplomaticInfluenceThisTurn() const
+void CvPlayer::GetDiplomaticInfluencePerTurn(int* influenceThisTurn, int* iNumMinorCapitalsControlled) const
 {
-	asdf
+	int controlled = 0;
+	int influenceT100 = 0;
+
+	// check for allies
+	for (int iMinorLoop = MAX_MAJOR_CIVS; iMinorLoop < MAX_CIV_PLAYERS; iMinorLoop++)
+	{
+		const PlayerTypes eMinor = (PlayerTypes)iMinorLoop;
+		const CvPlayer& player = GET_PLAYER(eMinor);
+		if (player.isAlive() && player.isMinorCiv())
+		{
+			if (player.GetMinorCivAI()->IsAllies(GetID()))
+			{
+				controlled++;
+				influenceT100 += 100 * GC.getDIPLOMATIC_INFLUENCE_PER_TURN_ALLY(eMinor, GetID(), false);
+			}
+		}
+	}
+
+	// check our owned cities
+	int iCityLoop = 0;
+	for (const CvCity* pLoopCity = firstCity(&iCityLoop); pLoopCity != NULL; pLoopCity = nextCity(&iCityLoop))
+	{
+		// yield rate checks to see if it's a minor capital
+		influenceT100 += pLoopCity->getYieldRateTimes100(YIELD_DIPLOMATIC_SUPPORT, false);
+		if (pLoopCity->IsOwnedMinorCapital())
+		{
+			controlled++;
+		}
+	}
+
+	// TODO check competitions
+
+	*influenceThisTurn = influenceT100 / 100;
+	*iNumMinorCapitalsControlled = controlled;
 }
 //	--------------------------------------------------------------------------------
 int CvPlayer::GetDiplomaticInfluence() const
@@ -5983,9 +6011,18 @@ int CvPlayer::GetDiplomaticInfluenceNeeded() const
 	return (influenceNeeded / truncate) * truncate;
 }
 //	--------------------------------------------------------------------------------
-int CvPlayer::GetScientificInfluenceThisTurn() const
+void CvPlayer::GetScientificInfluencePerTurn(int* influenceThisTurn) const
 {
-	return abf;
+	int influenceT100 = 0;
+
+	// check our owned cities
+	int iCityLoop = 0;
+	for (const CvCity* pLoopCity = firstCity(&iCityLoop); pLoopCity != NULL; pLoopCity = nextCity(&iCityLoop))
+	{
+		influenceT100 += pLoopCity->getYieldRateTimes100(YIELD_SCIENTIFIC_INSIGHT, false);
+	}
+
+	*influenceThisTurn = influenceT100 / 100;
 }
 //	--------------------------------------------------------------------------------
 int CvPlayer::GetScientificInfluence() const
@@ -10406,36 +10443,6 @@ int CvPlayer::GetJONSCulturePerTurnFromTraits() const
 int CvPlayer::GetJONSCulturePerTurnForFree() const
 {
 	return m_iJONSCulturePerTurnForFree;
-}
-
-//	--------------------------------------------------------------------------------
-int CvPlayer::GetNumMinorsControlled() const
-{
-	int iCount = 0;
-
-	// check for allies
-	for (int iMinorLoop = MAX_MAJOR_CIVS; iMinorLoop < MAX_CIV_PLAYERS; iMinorLoop++)
-	{
-		const PlayerTypes eMinor = (PlayerTypes)iMinorLoop;
-		const CvPlayer& player = GET_PLAYER(eMinor);
-		if (player.isAlive() && player.isMinorCiv())
-		{
-			if (player.GetMinorCivAI()->IsAllies(GetID()))
-				iCount++;
-		}
-	}
-
-	// check our owned cities
-	int iCityLoop = 0;
-	for (const CvCity* pLoopCity = firstCity(&iCityLoop); pLoopCity != NULL; pLoopCity = nextCity(&iCityLoop))
-	{
-		if (pLoopCity->IsOwnedMinorCapital())
-		{
-			iCount++;
-		}
-	}
-
-	return iCount;
 }
 
 //	--------------------------------------------------------------------------------
