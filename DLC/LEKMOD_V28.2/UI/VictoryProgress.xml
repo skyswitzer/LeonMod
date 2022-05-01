@@ -7,20 +7,7 @@
     </Stack>
   </Instance>
   <!-- Domination Victory Item Instance -->
-  <Instance Name="DominationItem">
-    <Image ID="IconFrame" Anchor="C,C" Size="64,64" Offset="0,0" Texture="assets\UI\Art\Notification\NotificationIconsInfoFrame.dds">
-      <Image ID="CivIconBG" Size="64.64" Anchor="C,C" Offset="0,0" TextureOffset="77,0" Texture="CivIconBGSizes.dds"/>
-      <Image ID="CivIconShadow" Size="48.48" Anchor="C,C" Offset="1,1" Texture="CivSymbolAtlas48.dds" Color="Black.128"/>
-      <Image ID="Icon" Size="48,48" Offset="0,0" Anchor="C,C" Texture="CivSymbolsColor512.dds"/>
-      <Image ID="IconOut" Anchor="C,C" Size="64,64" Offset="0,0" Texture="assets\UI\Art\Icons\Swords64.dds" Hidden="1"/>
-      <Image Anchor="R,B" Offset="-10,0" Size="45,45" Texture="assets\UI\Art\Notification\CivSymbolsFrame360.dds" ID="ConqueredCivSmallFrame" Hidden="1">
-        <Image ID="ConqueredCivIconBG" Size="45.45" Anchor="C,C" Offset="0,0"/>
-        <Image ID="ConqueredCivIconShadow" Size="32.32" Anchor="C,C" Offset="0,0" Color="Black.128"/>
-        <Image ID="ConqueredCivIcon" Size="32,32" Offset="-1,-1" Anchor="C,C"/>
-      </Image>
-      <Label Anchor="C,B" Offset="0,10" Font="TwCenMT14" ColorSet="Beige_Black_Alpha" FontStyle="Stroke" String="Team 1" ID="TeamID"/>
-    </Image>
-  </Instance>
+
   <!-- Tech Details Item Instance -->
   <Instance Name="TechCiv">
     <Box ID="Civ" Size="618,110" Offset="0,0" Color="255,255,255,0">
@@ -96,20 +83,24 @@
     </Grid>
   </Instance>
   <!-- Culture Victory Row Instance -->
-  <Instance Name="CultureRow" Size="64,64">
-    <Stack ID="RowStack" Anchor="L,T" StackGrowth="Right" Padding="13" Size="64,64">
+  <Instance Name="CultureRow" Size="32,32">
+    <Stack ID="RowStack" Anchor="L,T" StackGrowth="Bottom" Padding="0" Size="32,32">
     </Stack>
   </Instance>
   <!-- Culture Victory Item Instance -->
   <Instance Name="CultureItem">
-    <Image ID="IconFrame" Anchor="L,C" Size="64,64" Offset="0,0" Texture="assets\UI\Art\Notification\NotificationIconsInfoFrame.dds">
-      <Image ID="IconBG" Size="64,64" Anchor="C,C" Offset="-1,-1" Texture="CivIconBGSizes.dds"/>
-      <Image ID="IconShadow" Size="48.48" Anchor="C,C" Offset="1,1" Texture="CivSymbolAtlas48.dds" Color="Black.128"/>
-      <Image ID="Icon" Size="48,48" Offset="0,0" Anchor="C,C" Texture="CivSymbolsColor512.dds"/>
-      <Image ID="IconHL" Size="64,64" Anchor="C,C" Offset="0,0" TextureOffset="77,0" Texture="CivIconBGSizes_Highlight.dds"/>
-      <AlphaAnim ID="IconFrameGlow" Anchor="C,C" AnchorSide="O.O" Offset="0,0" Size="64,64" Texture="NotificationShineGlow.dds" MaskTexture="NotificationShineMask.dds" Pause="0" Cycle="Bounce" Speed="1" AlphaStart=".5" AlphaEnd="0" Hidden="1"/>
-      <Image ID="IconDark" Anchor="L,T" Color="0,0,0,200" Size="64,32" Offset="-1,-1" TextureOffset="77,0" Texture="CivIconBGSizes.dds" Hidden="0"/>
-    </Image>
+    <Stack ID="CultureItemChild" Anchor="L,T" StackGrowth="Right" Offset="0,0" Padding="0" >
+      <!-- Description -->
+      <Container Size="100,32">
+        <Label ID="RowDesc" Anchor="R,T" Font="TwCenMT14" String="String A" ToolTip="tooltip a"/>
+      </Container>
+      <!-- Icon -->
+      <Box ID="IconBox" Size="32,32" Color="White.0" >
+        <Image ID="IconBackground" Size="32.32" Anchor="C,C" Offset="0,-12" Texture="CivIconBGSizes.dds" TextureOffset="32,0" />
+        <Image ID="IconShadow" Size="24.24" Anchor="C,C" Offset="1,-11" Texture="CivSymbolAtlas16.dds" Color="Black.128"/>
+        <Image ID="Icon" Size="24.24" Anchor="C,C" Offset="0,-12"  Texture="CivSymbolsColor256.dds" />
+      </Box>
+    </Stack>
   </Instance>
   <!-- Score Details Item Instance -->
   <Instance Name="ScoreCiv">
@@ -253,28 +244,12 @@
     </Box>
     <!-- Main Right Hand Size Panel -->
     <Stack ID="YourDetails" Anchor="L,T" Size="0,0" Offset="325,44" Padding="0" StackGrowth="Bottom">
-      <!-- DOMINATION -->
-      <Box Size="618,142" Color="255,255,255,0">
-        <Image Size="128,128" Anchor="R,C" Texture="VictoryConditions_128_Shared.dds" TextureOffset="128,128" Color="255,255,255,100"/>
-        <Label Offset="5,3" Font="TwCenMT24" String="TXT_KEY_VICTORYSCREEN_DOMINATION" ToolTip="TXT_KEY_VICTORYSCREEN_DOMINATION_DETAILS"/>
-        <Label ID="DominationLabel" Offset="5,5" Anchor="R.T" Font="TwCenMT16"/>
-        <Box ID="DominationVictoryProgress" Size="618,142" Color="0,0,0,0">
-          <ScrollPanel Anchor="L,T" Offset="0,20" Size="596,114" Vertical="1" ID="DominationScrollPanel">
-            <ScrollBar Offset="0.0" Style="VertSlider" Anchor="R,C" AnchorSide="O,I" Length="79"/>
-            <UpButton Anchor="R,T" AnchorSide="O,I" Style="ScrollBarUp"/>
-            <DownButton Anchor="R,B" AnchorSide="O,I" Style="ScrollBarDown"/>
-            <Stack ID="DominationStack" Padding="-9" StackGrowth="Bottom"/>
-          </ScrollPanel>
-        </Box>
-        <Label ID="DominationDisabledLabel" Offset="5,5" Anchor="C,C" Font="TwCenMT16" String="TXT_KEY_VP_DOMINATION_VICTORY_DISABLED"/>
-        <Image Anchor="L,B" Offset="-3,0" Texture="HorizontalTrim.dds" Size="622.5"/>
-      </Box>
       <!-- TECH -->
-      <Box ID="TechBox" Size="618,142" Color="255,255,255,0">
+      <Box ID="TechBox" Size="618,180" Color="255,255,255,0">
         <Image Size="128,128" Anchor="R,C" Texture="VictoryConditions_128_Shared.dds" TextureOffset="0,0" Color="255,255,255,100"/>
         <Label ID="TechBoxLabel" Offset="5,5" Font="TwCenMT24" String="" ToolTip="TXT_KEY_VP_TECH_PROGRESS"/>
         <Label ID="SpaceInfo" Offset="5,5" Anchor="R.T" Font="TwCenMT16"/>
-        <Box ID="ScienceVictoryProgress" Size="618,142" Color="0,0,0,0">
+        <Box ID="ScienceVictoryProgress" Size="618,180" Color="0,0,0,0">
           <!-- TechMeter -->
           <Image Anchor="L,C" Offset="0,8" Size="128,128" Texture="assets\UI\Art\Icons\LeaderPortraits1024Frame.dds" ToolTip="TXT_KEY_VP_TECH_PROGRESS">
             <TextureBar Hidden="1" ID="TechProgress" Anchor="C,C" Offset="0,1" Size="86.86" Texture="assets\UI\Art\Notification\TechMeter.dds" Direction="Up"/>
@@ -310,11 +285,11 @@
         <Image Anchor="L,B" Offset="-3,0" Texture="HorizontalTrim.dds" Size="622.5"/>
       </Box>
       <!-- DIPLOMACY  -->
-      <Box ID="DiploBox" Size="618,142" Color="255,255,255,0">
+      <Box ID="DiploBox" Size="618,180" Color="255,255,255,0">
         <Image Size="128,128" Anchor="R,C" Texture="VictoryConditions_128_Shared.dds" TextureOffset="0,128" Color="255,255,255,100"/>
         <Label ID="DiploBoxLabel" Offset="5,5" Font="TwCenMT24" String="" ToolTip="TXT_KEY_VP_DIPLOMATIC_PROGRESS"/>
         <Label ID="UNInfo" Offset="5,5" Anchor="R.T" Font="TwCenMT16"/>
-        <Box ID="DiploVictoryProgress" Size="618,142" Color="0,0,0,0">
+        <Box ID="DiploVictoryProgress" Size="618,180" Color="0,0,0,0">
           <Image ID="UNIconFrame" Anchor="L,C" Offset="0,8" Size="128,128" Texture="assets\UI\Art\Icons\LeaderPortraits1024Frame.dds">
             <Image Anchor="C,C" Offset="-1,1" Size="128,128" Texture="assets\UI\Art\Icons\UN128.dds" Color="White.64" ToolTip="TXT_KEY_VP_DIPLOMATIC_PROGRESS"/>
             <Image ID="UNIcon" Anchor="C,C" Offset="0,0" Size="128,128" TextureOffset="256.384" Texture="assets\UI\Art\Icons\WonderAtlas1024.dds" Color="White.255"/>
@@ -336,17 +311,19 @@
         <Image Anchor="L,B" Offset="-3,0" Texture="HorizontalTrim.dds" Size="622.5"/>
       </Box>
       <!-- CULTURE -->
-      <Box ID="CultureBox" Size="618,142" Color="255,255,255,0">
+      <Box ID="CultureBox" Size="618,180" Color="255,255,255,0">
         <Image Size="128,128" Anchor="R,C" Texture="VictoryConditions_128_Shared.dds" TextureOffset="128,0" Color="255,255,255,100"/>
         <Label ID="CultureBoxLabel" Offset="5,3" Font="TwCenMT24" String="" ToolTip="TXT_KEY_VICTORYSCREEN_CULTURAL_DETAILS"/>
         <Label ID="CultureInfo" Offset="5,5" Anchor="R.T" Font="TwCenMT16"/>
         <Label ID="CultureLabel" Offset="5,45" Anchor="C.T" Font="TwCenMT16"/>
-        <Box ID="CultureVictoryProgress" Anchor="L.C" Size="618,142" Color="0,0,0,0">
-          <ScrollPanel Anchor="L,T" Offset="0,20" Size="596,114" Vertical="1" ID="CultureScrollPanel">
-            <ScrollBar Offset="0.0" Style="VertSlider" Anchor="R,C" AnchorSide="O,I" Length="79"/>
+        <Box ID="CultureVictoryProgress" Anchor="L.C" Size="618,180" Color="0,0,0,0">
+          <ScrollPanel Anchor="L,T" Offset="0,20" Size="596,180" Vertical="1" ID="CultureScrollPanel">
+            <ScrollBar Offset="0.0" Style="VertSlider" Anchor="R,C" AnchorSide="O,I" Length="124"/>
             <UpButton Anchor="R,T" AnchorSide="O,I" Style="ScrollBarUp"/>
             <DownButton Anchor="R,B" AnchorSide="O,I" Style="ScrollBarDown"/>
-            <Stack ID="CultureStack" Padding="-9" StackGrowth="Bottom"/>
+            <Stack ID="CultureStack" Anchor="L.T" Offset="0,16" Padding="0" StackGrowth="Bottom">
+              <!-- CultureItem (s) -->
+            </Stack>
           </ScrollPanel>
         </Box>
         <Label ID="CultureVictoryDisabled" Offset="5,5" Anchor="C,C" Font="TwCenMT16" String="TXT_KEY_VP_CULTURE_VICTORY_DISABLED"/>

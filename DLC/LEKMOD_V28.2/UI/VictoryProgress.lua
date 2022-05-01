@@ -638,67 +638,56 @@ function PopulateCultural()
 			local pPlayer = Players[iPlayerLoop];
 			
 			if(iPlayerLoop ~= iActivePlayer and not pPlayer:IsMinorCiv() and pPlayer:IsAlive()) then
-				-- Create new row if one does not alread exist.
-				if(curRow == nil) then
-					numRows = numRows + 1;
-					curRow = g_CultureRowsIM:GetInstance();
-					g_CultureRowList[numRows] = curRow;
-					
-					numItemIM = numItemIM + 1;
-					curItemIM = InstanceManager:new( "CultureItem", "IconFrame", curRow.RowStack );
-					g_CultureItemIMList[numItemIM] = curItemIM;
-					
-				end
-							
-				local item = curItemIM:GetInstance();
-				g_CultureItemList[numItems] = item;
-				numItems = numItems + 1;
-				
 				local iPlayer = pPlayer:GetID();
 			
-				local influencePercent = 0;
-						
+				-- calculate influence percent
+				local influencePercent = 0;						
 				local iInfluence = pActivePlayer:GetInfluenceOn(iPlayer);
 				local iCulture = (pPlayer:GetJONSCultureEverGeneratedTimes100() + 50) / 100;
 				if (iCulture > 0) then
 					influencePercent = iInfluence / iCulture;
 				end
-				
-				local activeTeam = Teams[pActivePlayer:GetTeam()];
-				
-				local bHasMet = activeTeam:IsHasMet(pPlayer:GetTeam());
-				
-				local iPlayerIcon = bHasMet and iPlayer or -1;
-				local influenceKey = bHasMet and "TXT_KEY_VP_CULTURE_INFLUENCE" or "TXT_KEY_VP_CULTURE_INFLUENCE_UNMET";
-					
-				-- Set Civ Icon
-				CivIconHookup(iPlayerIcon, 64, item.Icon, item.IconBG, item.IconShadow, true, true);
-				
-				local width, height = 64,64;	
-				
-				-- Rather than use the entire size of the control to display percentage, we're only using the area inside the icon frame.
-				-- So instead of 0-64, we're using 12-54.
-				local newHeight = 42 * (1 - influencePercent) + 12;
-				
-				item.IconDark:SetSizeVal(width, newHeight);
-				item.IconDark:SetTextureSizeVal(width, newHeight);
-				item.IconDark:NormalizeTexture();
-			
+
+				-- count amount we have influence over
 				needed = needed + 1;
 				if (influencePercent >= 1) then
 					have = have + 1;
 				end
-				item.IconFrameGlow:SetHide(influencePercent ~= 1);
-				local txt = Locale.Lookup(influenceKey, influencePercent * 100, pPlayer:GetCivilizationShortDescriptionKey());
-				item.IconFrame:SetToolTipString(txt);
-			
-				curCol = curCol + 1;
-				if(curCol >= MAX_CULTURE_ICONS_PER_ROW) then
-					curRow = nil;
-					curCol = 0;
-				end
 			end
 		end
+
+		-- populate culture competitions
+		for iCompetition = MiniCompetitionTypes.COMPETITION_CULTURE_START, MiniCompetitionTypes.COMPETITION_CULTURE_END-1, 1 do
+			-- Create new row if one does not already exist
+			if(curRow == nil) then
+				numRows = numRows + 1;
+				curRow = g_CultureRowsIM:GetInstance();
+				g_CultureRowList[numRows] = curRow;
+				
+				numItemIM = numItemIM + 1;
+				curItemIM = InstanceManager:new( "CultureItem", "CultureItemChild", curRow.RowStack );
+				g_CultureItemIMList[numItemIM] = curItemIM;
+				
+			end							
+			local item = curItemIM:GetInstance();
+			g_CultureItemList[numItems] = item;
+			numItems = numItems + 1;
+			
+			local iPlayer = 0;--TODO getwinner
+			item.RowDesc:SetText("edited text");
+			item.RowDesc:SetToolTipString("edited tooltip");
+
+			-- Set Civ Icon
+			local pPlayer = Players[iPlayer];
+			local activeTeam = Teams[pActivePlayer:GetTeam()];
+			local bHasMet = activeTeam:IsHasMet(pPlayer:GetTeam());
+			local iPlayerIcon = bHasMet and iPlayer or -1;
+			CivIconHookup(0, 32, item.Icon, item.IconBackground, item.IconShadow, false, true);
+		end
+		--[[
+		local iPlayerIcon = 0;
+		CivIconHookup(iPlayerIcon, 32, Controls.icon0, Controls.icon0bg, Controls.icon0shadow, false, true);
+		--]]
 
 		-- show progress
 		local status = Locale.ConvertTextKey("You have enough {TXT_KEY_CULTURAL_INFLUENCE} over " .. have .. " of " .. needed .. " Civilizations.");		
@@ -742,7 +731,7 @@ function SetupScreen()
 	PopulateScoreBreakdown();
 	
 	-- Populate Victories
-	PopulateDomination();
+	--PopulateDomination();
 	PopulateSpaceRace();
 	PopulateDiplomatic();
 	PopulateCultural();

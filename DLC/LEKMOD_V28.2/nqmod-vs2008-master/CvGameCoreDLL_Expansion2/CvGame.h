@@ -118,12 +118,22 @@ public:
 	int countSeqHumanTurnsUntilPlayerTurn(PlayerTypes playerID) const;
 #endif
 
-	int countMajorCivsAlive() const;
+	// get which player is winning
+	PlayerTypes getCompetitionWinner(const MiniCompetitionTypes eType) const;
+	// value for winning player
+	int getCompetitionValueWinner(const MiniCompetitionTypes eType) const;
+	// value for given player
+	int getCompetitionValue(const MiniCompetitionTypes eType, const PlayerTypes ePlayer) const;
+	string getCompetitionDescriptionString(const MiniCompetitionTypes eType) const;
+	string getCompetitionRewardString(const MiniCompetitionTypes eType) const;
+
+
 	int countMajorCivsEverAlive() const;
 	int countTotalCivPower();
 	int countTotalNukeUnits();
 	int countKnownTechNumTeams(TechTypes eTech);
 
+	int goldenAgeLength() const;
 	int goldenAgeLength() const;
 	int victoryDelay(VictoryTypes eVictory) const;
 

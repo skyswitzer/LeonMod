@@ -269,8 +269,10 @@ void CvGame::init(HandicapTypes eHandicap)
 		}
 	}
 
-	for (int i = 0; i < COMPETITION_MAX_VALUE; ++i)
+	for (int i = 0; i < NUM_COMPETITIONS; ++i)
+	{
 		m_competitions.push_back(CvCompetition(MAX_MAJOR_CIVS, (MiniCompetitionTypes)i));
+	}
 
 	if(isOption(GAMEOPTION_LOCK_MODS))
 	{
@@ -4261,6 +4263,34 @@ int CvGame::countMajorCivsAlive() const
 	}
 
 	return iCount;
+}
+
+//	--------------------------------------------------------------------------------
+PlayerTypes CvGame::getCompetitionWinner(const MiniCompetitionTypes eType) const
+{
+	return m_competitions[eType].GetPlayer(0);
+}
+
+//	--------------------------------------------------------------------------------
+int CvGame::getCompetitionValueWinner(const MiniCompetitionTypes eType) const
+{
+	return m_competitions[eType].m_entries[0].iValue;
+}
+
+//	--------------------------------------------------------------------------------
+int CvGame::getCompetitionValue(const MiniCompetitionTypes eType, const PlayerTypes ePlayer) const
+{
+	return m_competitions[eType].GetValue(ePlayer);
+}
+
+string CvGame::getCompetitionDescriptionString(const MiniCompetitionTypes eType) const
+{
+
+}
+
+string CvGame::getCompetitionRewardString(const MiniCompetitionTypes eType) const
+{
+
 }
 
 //	--------------------------------------------------------------------------------

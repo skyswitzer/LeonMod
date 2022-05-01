@@ -30,6 +30,24 @@ void CvLuaEnums::Register(lua_State* L)
 int CvLuaEnums::pRegister(lua_State* L)
 {
 	// Things from CvDefines.h
+
+	// City Update Types
+	EnumStart(L, "MiniCompetitionTypes");
+	RegisterEnum(COMPETITION_CULTURE_START);
+
+	RegisterEnum(COMPETITION_TRADE_ROUTES_MOST_INTERNATIONAL);
+	RegisterEnum(COMPETITION_ALLIES);
+
+	RegisterEnum(COMPETITION_DIPLOMATIC_END);
+	RegisterEnum(COMPETITION_CULTURE_START);
+
+	RegisterEnum(COMPETITION_CULTURE_END);
+	RegisterEnum(COMPETITION_SCIENCE_START);
+
+	RegisterEnum(COMPETITION_SCIENCE_END);
+	RegisterEnum(NUM_COMPETITIONS);
+	EnumEnd(L);
+
 	// Interface Dirty Bits
 	EnumStart(L, "InterfaceDirtyBits");
 	RegisterEnum(SelectionCamera_DIRTY_BIT);

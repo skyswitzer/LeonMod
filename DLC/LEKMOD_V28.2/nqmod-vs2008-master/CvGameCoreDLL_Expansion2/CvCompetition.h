@@ -33,6 +33,8 @@ public:
 	PlayerTypes GetPlayer(const int iPlace) const;
 	// get what place a player is in (0 is first place)
 	int GetPlace(const PlayerTypes ePlayer) const;
+	// get what competition value this player has
+	int GetValue(const PlayerTypes ePlayer) const;
 	// calculates values for the competition and sorts the values
 	void updateAndSort();
 

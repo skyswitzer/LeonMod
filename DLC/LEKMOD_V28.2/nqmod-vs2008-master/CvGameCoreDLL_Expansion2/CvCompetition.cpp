@@ -6,6 +6,10 @@
 
 
 typedef int(*EvaluateScoreDelegate)(const CvPlayer&);
+typedef string(*CreateDescriptionDelegate)(const CvPlayer&);
+typedef string(*CreateRewardDescriptionDelegate)(const CvPlayer&); 
+
+
 // COMPETITION_TRADE_ROUTES_MOST_INTERNATIONAL
 int ScoreTradeRoutes(const CvPlayer& player)
 {
@@ -20,10 +24,34 @@ int ScoreNumAllies(const CvPlayer& player)
 	return score;
 }
 
+struct x
+{
+	EvaluateScoreDelegate Del;
+	string desc;
+};
+x GetScoreDelegateForX[] = {
+	{&ScoreTradeRoutes, ""},
+};
+
 // List of score calculations.
 // Should match number of MiniCompetitionTypes
 EvaluateScoreDelegate GetScoreDelegateFor[] = {
 	&ScoreTradeRoutes,
+	&ScoreNumAllies,
+	&ScoreNumAllies,
+	&ScoreNumAllies,
+	&ScoreNumAllies,
+
+	&ScoreNumAllies,
+	&ScoreNumAllies,
+	&ScoreNumAllies,
+	&ScoreNumAllies,
+	&ScoreNumAllies,
+
+	&ScoreNumAllies,
+	&ScoreNumAllies,
+	&ScoreNumAllies,
+	&ScoreNumAllies,
 	&ScoreNumAllies,
 };
 
@@ -91,6 +119,20 @@ int CvCompetition::GetPlace(const PlayerTypes ePlayer) const
 		{
 			if (m_entries[i].iValue > 0) // no score is always last place
 				result = i;
+			break;
+		}
+	}
+	return result;
+}
+// get what place a player is in (0 is first place)
+int CvCompetition::GetValue(const PlayerTypes ePlayer) const
+{
+	int result = 0;
+	for (int i = 0; i < m_entries.size(); ++i)
+	{
+		if (m_entries[i].ePlayer == ePlayer) // found player entry
+		{
+			result = m_entries[i].iValue;
 			break;
 		}
 	}
