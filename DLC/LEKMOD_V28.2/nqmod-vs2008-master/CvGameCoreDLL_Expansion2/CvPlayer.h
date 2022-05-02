@@ -113,6 +113,8 @@ public:
 
 	CvPlot *GetGreatAdmiralSpawnPlot (CvUnit *pUnit);
 
+	// total gold ever gifted to city states
+	int GetNumGoldGiftedToMinors() const;
 	// how many city state allies does this player have?
 	int GetNumMinorAllies() const;
 	int GetNumBuilders() const;
@@ -236,7 +238,14 @@ public:
 	int GetScoreFromScenario4() const;
 	void ChangeScoreFromScenario4(int iChange);
 
+	// total nuclear bombs
 	int GetNumNuclearWeapons() const;
+	// how many science specialists in all cities (not puppets)
+	int GetNumScienceSpecialists() const;
+	// citizens in largest city 
+	int GetLargestCityPop() const;
+	// number of great works that aren't artifacts
+	int GetNumSpecialistGreatWorks() const;
 
 	// 1. How much we will earn at the end of this turn?
 	// 2. Number of city states this player "controls" for the sake of victory conditions.

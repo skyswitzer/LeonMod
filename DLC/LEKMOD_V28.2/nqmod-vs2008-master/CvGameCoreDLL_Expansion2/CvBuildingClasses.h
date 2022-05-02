@@ -705,6 +705,7 @@ public:
 	int GetNumGreatWorks() const;
 	int GetNumGreatWorks(GreatWorkSlotType eGreatWorkSlot) const;
 #endif
+	int GetNumGreatWorks(GreatWorkClass eClass) const;
 
 	int GetLandmarksTourismPercent() const;
 	void ChangeLandmarksTourismPercent(int iChange);

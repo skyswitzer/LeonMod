@@ -3777,6 +3777,37 @@ int CvCityBuildings::GetNumGreatWorks(GreatWorkSlotType eGreatWorkSlot) const
 	}
 	return iRtnValue;
 }
+int CvCityBuildings::GetNumGreatWorks(GreatWorkClass eClass) const
+{
+	int iCount = 0;
+
+	const CvGameCulture* pCulture = GC.getGame().GetGameCulture();
+
+	CvCivilizationInfo* pkCivInfo = GC.getCivilizationInfo(m_pCity->getCivilizationType());
+	if (pkCivInfo)
+	{
+		for (std::vector<BuildingGreatWork>::const_iterator it = m_aBuildingGreatWork.begin(); it != m_aBuildingGreatWork.end(); ++it)
+		{
+			BuildingClassTypes eBldgClass = (*it).eBuildingClass;
+			CvBuildingClassInfo* pkClassInfo = GC.getBuildingClassInfo(eBldgClass);
+			if (pkClassInfo)
+			{
+				BuildingTypes eBuilding = (BuildingTypes)pkCivInfo->getCivilizationBuildings(eBldgClass);
+				CvBuildingEntry* pkInfo = GC.getBuildingInfo(eBuilding);
+				if (pkInfo)
+				{
+					int iGreatWork = (*it).iGreatWorkIndex;
+					CvGreatWork work = pCulture->m_CurrentGreatWorks[iGreatWork];
+					if (work.m_eClassType == eClass)
+					{
+						iCount++;
+					}
+				}
+			}
+		}
+	}
+	return iCount;
+}
 
 /// Accessor: Get tourism converted from culture from Improvements and Wonders
 int CvCityBuildings::GetLandmarksTourismPercent() const

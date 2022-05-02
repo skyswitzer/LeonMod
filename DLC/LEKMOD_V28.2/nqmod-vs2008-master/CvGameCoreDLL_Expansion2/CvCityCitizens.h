@@ -33,13 +33,8 @@ public:
 	void Read(FDataStream& kStream);
 	void Write(FDataStream& kStream);
 
-#ifdef AUI_CONSTIFY
 	CvCity* GetCity() const;
 	CvPlayer* GetPlayer() const;
-#else
-	CvCity* GetCity();
-	CvPlayer* GetPlayer();
-#endif
 	PlayerTypes GetOwner() const;
 	TeamTypes GetTeam() const;
 

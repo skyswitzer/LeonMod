@@ -2258,6 +2258,7 @@ void CvGlobals::init()
 #ifdef AUI_DANGER_PLOTS_REMADE
 	setDangerPathFinder(FNEW(CvTwoLayerPathFinder, c_eCiv5GameplayDLL, 0));
 #endif
+	initCompetitions();
 }
 
 //
@@ -2344,6 +2345,7 @@ void CvGlobals::uninit()
 	m_pathDangerFinder = NULL;
 #endif
 
+	uninitCompetitions();
 }
 
 //------------------------------------------------------------------------------

@@ -6,17 +6,14 @@
 #include "CvGameCoreUtils.h"
 
 
-typedef int(*EvaluateScoreDelegate)(const CvPlayer& player);
-typedef string(*GetDescriptionRewardDelegate)(const CvCompetition& rCompetition);
-typedef string(*GetDescriptionDelegate)(const CvCompetition& rCompetition, const PlayerTypes ePlayer);
-typedef string(*GetDescriptionShortDelegate)(int iWinningScore);
 struct CompetitionDelegates
 {
-	GetDescriptionShortDelegate DescShort;
-	GetDescriptionRewardDelegate DescReward;
-	GetDescriptionDelegate Desc;
-	EvaluateScoreDelegate EvalScore;
+	virtual int EvalScore(const CvPlayer& player) const = 0;
+	virtual string DescReward(const CvCompetition& rCompetition) const = 0;
+	virtual string Desc(const CvCompetition& rCompetition, const PlayerTypes ePlayer) const = 0;
+	virtual string DescShort(int iWinningScore) const = 0;
 };
+
 const int INVALID_SCORE = 0;
 string tryAddCurrentScore(const CvCompetition& rCompetition, const PlayerTypes ePlayer)
 {
@@ -29,129 +26,164 @@ string tryAddCurrentScore(const CvCompetition& rCompetition, const PlayerTypes e
 }
 
 
-
 // COMPETITION_TRADE_ROUTES_INTERNATIONAL
-string TradeRoutesDescShort(int iWinningScore)
+struct TradeRoutes : CompetitionDelegates
 {
-	stringstream ss;
-	ss << "Most International {TRADE_ROUTE}s: [COLOR_POSITIVE_TEXT]" << iWinningScore << "[ENDCOLOR]";
-	return ss.str();
-}
-string TradeRoutesDescReward(const CvCompetition& rCompetition)
-{
-	stringstream ss;
-	ss << "+20 {DIPLOMATIC_INFLUENCE}";
-	return ss.str();
-}
-string TradeRoutesDesc(const CvCompetition& rCompetition, const PlayerTypes ePlayer)
-{
-	stringstream ss;
-	ss << "The civilization with the most International {TRADE_ROUTE}s (routes ending on another Civilization or City State)";
-	ss << tryAddCurrentScore(rCompetition, ePlayer);
-	return ss.str();
-}
-int TradeRoutesScore(const CvPlayer& player)
-{
-	int score = player.GetTrade()->GetNumForeignTradeRoutes(player.GetID());
-	return score;
-}
-
-
-// COMPETITION_ALLIES
-string AlliesDescShort(int iWinningScore)
-{
-	stringstream ss;
-	ss << "Most Controlled {CITY_STATE}s: [COLOR_POSITIVE_TEXT]" << iWinningScore << "[ENDCOLOR]";
-	return ss.str();
-}
-string AlliesDescReward(const CvCompetition& rCompetition)
-{
-	stringstream ss;
-	ss << "+20 {DIPLOMATIC_INFLUENCE}";
-	return ss.str();
-}
-string AlliesDesc(const CvCompetition& rCompetition, const PlayerTypes ePlayer)
-{
-	stringstream ss;
-	ss << "The civilization with the most {CITY_STATE}s controlled (allies or conquered)";
-	ss << tryAddCurrentScore(rCompetition, ePlayer);
-	return ss.str();
-}
-int AlliesScore(const CvPlayer& player)
-{
-	int perTurn, numControlled;
-	player.GetDiplomaticInfluencePerTurn(&perTurn, &numControlled);
-	return numControlled;
-}
-
-
-// COMPETITION_NUCLEAR_STOCKPILE
-string NukesDescShort(int iWinningScore)
-{
-	stringstream ss;
-	ss << "Largest [ICON_RES_URANIUM] Nuclear Arsenal: [COLOR_POSITIVE_TEXT]" << iWinningScore << "[ENDCOLOR]";
-	return ss.str();
-}
-string NukesDescReward(const CvCompetition& rCompetition)
-{
-	stringstream ss;
-	ss << "+20 {DIPLOMATIC_INFLUENCE}";
-	return ss.str();
-}
-string NukesDesc(const CvCompetition& rCompetition, const PlayerTypes ePlayer)
-{
-	stringstream ss;
-	ss << "The civilization with the largest [ICON_RES_URANIUM] Nuclear Arsenal";
-	ss << tryAddCurrentScore(rCompetition, ePlayer);
-	return ss.str();
-}
-int NukesScore(const CvPlayer& player)
-{
-	int iScore = player.GetNumNuclearWeapons();
-	return iScore;
-}
-
-
-
-CompetitionDelegates GetDelegatesFor[] = {
-	// COMPETITION_TRADE_ROUTES_INTERNATIONAL
-	{ &TradeRoutesDescShort, &TradeRoutesDescReward, &TradeRoutesDesc, &TradeRoutesScore,},
-	// COMPETITION_TRADE_ROUTES_INTERNATIONAL
-	{ &AlliesDescShort, &AlliesDescReward, &AlliesDesc, &NukesScore,},
-	// COMPETITION_TRADE_ROUTES_INTERNATIONAL
-	{ &NukesDescShort, &NukesDescReward, &NukesDesc, &TradeRoutesScore,},
-	// COMPETITION_TRADE_ROUTES_INTERNATIONAL
-	{ &TradeRoutesDescShort, &TradeRoutesDescReward, &TradeRoutesDesc, &TradeRoutesScore,},
-	// COMPETITION_TRADE_ROUTES_INTERNATIONAL
-	{ &TradeRoutesDescShort, &TradeRoutesDescReward, &TradeRoutesDesc, &TradeRoutesScore,},
-
-
-	// COMPETITION_TRADE_ROUTES_INTERNATIONAL
-	{ &TradeRoutesDescShort, &TradeRoutesDescReward, &TradeRoutesDesc, &TradeRoutesScore,},
-	// COMPETITION_TRADE_ROUTES_INTERNATIONAL
-	{ &TradeRoutesDescShort, &TradeRoutesDescReward, &TradeRoutesDesc, &TradeRoutesScore,},
-	// COMPETITION_TRADE_ROUTES_INTERNATIONAL
-	{ &TradeRoutesDescShort, &TradeRoutesDescReward, &TradeRoutesDesc, &TradeRoutesScore,},
-	// COMPETITION_TRADE_ROUTES_INTERNATIONAL
-	{ &TradeRoutesDescShort, &TradeRoutesDescReward, &TradeRoutesDesc, &TradeRoutesScore,},
-	// COMPETITION_TRADE_ROUTES_INTERNATIONAL
-	{ &TradeRoutesDescShort, &TradeRoutesDescReward, &TradeRoutesDesc, &TradeRoutesScore,},
-
-
-	// COMPETITION_TRADE_ROUTES_INTERNATIONAL
-	{ &TradeRoutesDescShort, &TradeRoutesDescReward, &TradeRoutesDesc, &TradeRoutesScore,},
-	// COMPETITION_TRADE_ROUTES_INTERNATIONAL
-	{ &TradeRoutesDescShort, &TradeRoutesDescReward, &TradeRoutesDesc, &TradeRoutesScore,},
-	// COMPETITION_TRADE_ROUTES_INTERNATIONAL
-	{ &TradeRoutesDescShort, &TradeRoutesDescReward, &TradeRoutesDesc, &TradeRoutesScore,},
-	// COMPETITION_TRADE_ROUTES_INTERNATIONAL
-	{ &TradeRoutesDescShort, &TradeRoutesDescReward, &TradeRoutesDesc, &TradeRoutesScore,},
-	// COMPETITION_TRADE_ROUTES_INTERNATIONAL
-	{ &TradeRoutesDescShort, &TradeRoutesDescReward, &TradeRoutesDesc, &TradeRoutesScore,},
+	virtual string DescShort(int iWinningScore) const
+	{
+		stringstream ss;
+		ss << "Most International {TRADE_ROUTE}s: [COLOR_POSITIVE_TEXT]" << iWinningScore << "[ENDCOLOR]";
+		return ss.str();
+	}
+	virtual string DescReward(const CvCompetition& rCompetition) const
+	{
+		stringstream ss;
+		ss << "+20 {DIPLOMATIC_INFLUENCE}";
+		return ss.str();
+	}
+	virtual string Desc(const CvCompetition& rCompetition, const PlayerTypes ePlayer) const
+	{
+		stringstream ss;
+		ss << "The civilization with the most International {TRADE_ROUTE}s (routes ending on another Civilization or City State)";
+		ss << tryAddCurrentScore(rCompetition, ePlayer);
+		return ss.str();
+	}
+	virtual int EvalScore(const CvPlayer& player) const
+	{
+		int score = player.GetTrade()->GetNumForeignTradeRoutes(player.GetID());
+		return score;
+	}
 };
+// COMPETITION_ALLIES
+struct Allies : CompetitionDelegates
+{
+	virtual string DescShort(int iWinningScore) const
+	{
+		stringstream ss;
+		ss << "Most Controlled {CITY_STATE}s: [COLOR_POSITIVE_TEXT]" << iWinningScore << "[ENDCOLOR]";
+		return ss.str();
+	}
+	virtual string DescReward(const CvCompetition& rCompetition) const
+	{
+		stringstream ss;
+		ss << "+20 {DIPLOMATIC_INFLUENCE}";
+		return ss.str();
+	}
+	virtual string Desc(const CvCompetition& rCompetition, const PlayerTypes ePlayer) const
+	{
+		stringstream ss;
+		ss << "The civilization with the most {CITY_STATE}s controlled (allies or conquered)";
+		ss << tryAddCurrentScore(rCompetition, ePlayer);
+		return ss.str();
+	}
+	virtual int EvalScore(const CvPlayer& player) const
+	{
+		int perTurn, numControlled;
+		player.GetDiplomaticInfluencePerTurn(&perTurn, &numControlled);
+		return numControlled;
+	}
+};
+// COMPETITION_GOLD_GIFTS
+struct GoldGifts : CompetitionDelegates
+{
+	virtual string DescShort(int iWinningScore) const
+	{
+		stringstream ss;
+		ss << "Most [ICON_INVEST] Gold Gifted: [COLOR_POSITIVE_TEXT]" << iWinningScore << "[ENDCOLOR]";
+		return ss.str();
+	}
+	virtual string DescReward(const CvCompetition& rCompetition) const
+	{
+		stringstream ss;
+		ss << "+20 {DIPLOMATIC_INFLUENCE}";
+		return ss.str();
+	}
+	virtual string Desc(const CvCompetition& rCompetition, const PlayerTypes ePlayer) const
+	{
+		stringstream ss;
+		ss << "The civilization with the most total [ICON_GOLD] Gold gifted to city states";
+		ss << tryAddCurrentScore(rCompetition, ePlayer);
+		return ss.str();
+	}
+	virtual int EvalScore(const CvPlayer& player) const
+	{
+		int iScore = player.GetNumGoldGiftedToMinors();
+		return iScore;
+	}
+};
+// COMPETITION_NUCLEAR_STOCKPILE
+struct Nukes : CompetitionDelegates
+{
+	virtual string DescShort(int iWinningScore) const
+	{
+		stringstream ss;
+		ss << "Largest [ICON_RES_URANIUM] Nuclear Arsenal: [COLOR_POSITIVE_TEXT]" << iWinningScore << "[ENDCOLOR]";
+		return ss.str();
+	}
+	virtual string DescReward(const CvCompetition& rCompetition) const
+	{
+		stringstream ss;
+		ss << "+20 {DIPLOMATIC_INFLUENCE}";
+		return ss.str();
+	}
+	virtual string Desc(const CvCompetition& rCompetition, const PlayerTypes ePlayer) const
+	{
+		stringstream ss;
+		ss << "The civilization with the largest [ICON_RES_URANIUM] Nuclear Arsenal";
+		ss << tryAddCurrentScore(rCompetition, ePlayer);
+		return ss.str();
+	}
+	virtual int EvalScore(const CvPlayer& player) const
+	{
+		int iScore = player.GetNumNuclearWeapons();
+		return iScore;
+	}
+};
+// COMPETITION_SCIENCE_SPECIALISTS
+struct ScienceSpecialists : CompetitionDelegates
+{
+	virtual string DescShort(int iWinningScore) const
+	{
+		stringstream ss;
+		ss << "Most [ICON_GREAT_PEOPLE] Scientists: [COLOR_POSITIVE_TEXT]" << iWinningScore << "[ENDCOLOR]";
+		return ss.str();
+	}
+	virtual string DescReward(const CvCompetition& rCompetition) const
+	{
+		stringstream ss;
+		ss << "+20 {SCIENTIFIC_INFLUENCE}";
+		return ss.str();
+	}
+	virtual string Desc(const CvCompetition& rCompetition, const PlayerTypes ePlayer) const
+	{
+		stringstream ss;
+		ss << "The civilization with the most working science specialists";
+		ss << tryAddCurrentScore(rCompetition, ePlayer);
+		return ss.str();
+	}
+	virtual int EvalScore(const CvPlayer& player) const
+	{
+		int iScore = player.GetNumScienceSpecialists();
+		return iScore;
+	}
+};
+void CvGlobals::initCompetitions()
+{
+	GetDelegatesFor.push_back(new TradeRoutes());
+	GetDelegatesFor.push_back(new Allies());
+	GetDelegatesFor.push_back(new GoldGifts());
+	GetDelegatesFor.push_back(new Nukes());
 
-
-
+	GetDelegatesFor.push_back(new ScienceSpecialists());
+}
+void CvGlobals::uninitCompetitions()
+{
+	for (int i = 0; i < GetDelegatesFor.size(); ++i)
+	{
+		delete GetDelegatesFor[i];
+	}
+	GetDelegatesFor.clear();
+}
 FDataStream& operator<<(FDataStream& kStream, const MiniCompetitionTypes& data)
 {
 	kStream << (int)data;
@@ -261,15 +293,15 @@ int CvCompetition::GetCompetitionWinnerScore() const
 }
 string CvCompetition::GetDescriptionShort() const
 {
-	return GetLocalizedText(GetDelegatesFor[(int)m_eCompetitionType].DescShort(GetCompetitionWinnerScore()).c_str());
+	return GetLocalizedText(GC.GetDelegatesFor[(int)m_eCompetitionType]->DescShort(GetCompetitionWinnerScore()).c_str());
 }
 string CvCompetition::GetDescriptionReward() const
 {
-	return GetLocalizedText(GetDelegatesFor[(int)m_eCompetitionType].DescReward(*this).c_str());
+	return GetLocalizedText(GC.GetDelegatesFor[(int)m_eCompetitionType]->DescReward(*this).c_str());
 }
 string CvCompetition::GetDescription(const PlayerTypes ePlayer) const
 {
-	return GetLocalizedText(GetDelegatesFor[(int)m_eCompetitionType].Desc(*this, ePlayer).c_str());
+	return GetLocalizedText(GC.GetDelegatesFor[(int)m_eCompetitionType]->Desc(*this, ePlayer).c_str());
 }
 void CvCompetition::UpdateAndSort()
 {
@@ -279,7 +311,7 @@ void CvCompetition::UpdateAndSort()
 		const CvPlayer& player = GET_PLAYER(m_entries[i].ePlayer);
 		int score = 0; // no score for dead or minor civs
 		if (player.isAlive() && player.isMajorCiv())
-			score = GetDelegatesFor[(int)m_eCompetitionType].EvalScore(player);
+			score = GC.GetDelegatesFor[(int)m_eCompetitionType]->EvalScore(player);
 
 		m_entries[i].iScore = score;
 	}

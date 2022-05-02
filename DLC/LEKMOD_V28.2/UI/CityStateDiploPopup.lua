@@ -851,7 +851,7 @@ function PopulateGiftChoices()
 	buttonText = "Invest " .. investAmount .. " [ICON_GOLD] Gold";
 	local mouseoverText = Locale.ConvertTextKey("Complete the [ICON_INVEST] Investment quest and gain {FRIENDSHIP}");
 	local QUEST_GIFT_GOLD = 8;
-	local isInvestQuestActive = pPlayer:IsMinorCivActiveQuestForPlayer(iActivePlayer, QUEST_GIFT_GOLD);
+	local isInvestQuestActive = true;--pPlayer:IsMinorCivActiveQuestForPlayer(iActivePlayer, QUEST_GIFT_GOLD);
 	if (not isInvestQuestActive) then
 		buttonText = "[COLOR_WARNING_TEXT]" .. buttonText .. "[ENDCOLOR]";
 		mouseoverText = "[COLOR_WARNING_TEXT]You do not have an [ICON_INVEST] Investment quest active.[ENDCOLOR]";

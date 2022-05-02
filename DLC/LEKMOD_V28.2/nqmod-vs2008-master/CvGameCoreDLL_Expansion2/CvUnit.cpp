@@ -6255,21 +6255,17 @@ bool CvUnit::isNukeVictim(const CvPlot* pPlot, TeamTypes eTeam) const
 
 	return false;
 }
-
-
+//	--------------------------------------------------------------------------------
+bool CvUnit::IsNuclearWeapon() const
+{
+	return GetNukeDamageLevel() != -1;
+}
 //	--------------------------------------------------------------------------------
 bool CvUnit::canNuke(const CvPlot* /*pPlot*/) const
 {
 	VALIDATE_OBJECT
-	if(GetNukeDamageLevel() == -1)
-	{
-		return false;
-	}
-
-	return true;
+	return IsNuclearWeapon();
 }
-
-
 //	--------------------------------------------------------------------------------
 bool CvUnit::canNukeAt(const CvPlot* pPlot, int iX, int iY) const
 {

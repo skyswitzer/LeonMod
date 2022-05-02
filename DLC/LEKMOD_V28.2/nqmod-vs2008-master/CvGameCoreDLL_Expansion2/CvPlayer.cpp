@@ -4038,22 +4038,34 @@ CvPlot *CvPlayer::GetGreatAdmiralSpawnPlot (CvUnit *pUnit)
 
 	return pInitialPlot;
 }
-
+int CvPlayer::GetNumGoldGiftedToMinors() const
+{
+	int count = 0;
+	for (int i = MAX_MAJOR_CIVS; i < MAX_PLAYERS; ++i)
+	{
+		const PlayerTypes eMinor = (PlayerTypes)i;
+		const CvPlayer& rMinor = GET_PLAYER(eMinor);
+		if (rMinor.isMinorCiv())
+		{
+			count += rMinor.GetMinorCivAI()->GetNumGoldGifted(GetID());
+		}
+	}
+	return count;
+}
 int CvPlayer::GetNumMinorAllies() const
 {
 	int count = 0;
-	for (int i = 0; i < MAX_PLAYERS; ++i)
+	for (int i = MAX_MAJOR_CIVS; i < MAX_PLAYERS; ++i)
 	{
-		const PlayerTypes otherId = (PlayerTypes)i;
-		const CvPlayer& other = GET_PLAYER(otherId);
-		if (other.isAlive() && other.isMinorCiv() && other.GetMinorCivAI()->IsAllies(otherId))
+		const PlayerTypes eMinor = (PlayerTypes)i;
+		const CvPlayer& rMinor = GET_PLAYER(eMinor);
+		if (rMinor.isAlive() && rMinor.isMinorCiv() && rMinor.GetMinorCivAI()->IsAllies(GetID()))
 		{
 			count++;
 		}
 	}
 	return count;
 }
-
 //	--------------------------------------------------------------------------------
 /// The number of Builders a player has
 int CvPlayer::GetNumBuilders() const
@@ -5945,7 +5957,56 @@ void CvPlayer::ChangeScoreFromScenario4(int iChange)
 //	--------------------------------------------------------------------------------
 int CvPlayer::GetNumNuclearWeapons() const
 {
+	int count = 0;
+	int iUnitLoop = 0;
+	for (const CvUnit* pLoopUnit = firstUnit(&iUnitLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iUnitLoop))
+	{
+		if (pLoopUnit->IsNuclearWeapon())
+			count++;
+	}
+	return count;
+}
+//	--------------------------------------------------------------------------------
+int CvPlayer::GetNumScienceSpecialists() const
+{
+	int count = 0;
+	int iCityLoop = 0;
+	for (const CvCity* pLoopCity = firstCity(&iCityLoop); pLoopCity != NULL; pLoopCity = nextCity(&iCityLoop))
+	{
+		const SpecialistTypes eScientist = (SpecialistTypes)4;
+		count += pLoopCity->GetCityCitizens()->GetSpecialistCount(eScientist);
+	}
+	return count;
+}
+int CvPlayer::GetLargestCityPop() const
+{
+	int bestCount = 0;
+	int iCityLoop = 0;
+	for (const CvCity* pLoopCity = firstCity(&iCityLoop); pLoopCity != NULL; pLoopCity = nextCity(&iCityLoop))
+	{
+		int count = pLoopCity->getPopulation();
+		if (count > bestCount)
+			bestCount = count;
+	}
+	return bestCount;
+}
+int CvPlayer::GetNumSpecialistGreatWorks() const
+{
+	int count = 0;
+	int iCityLoop = 0;
+	for (const CvCity* pLoopCity = firstCity(&iCityLoop); pLoopCity != NULL; pLoopCity = nextCity(&iCityLoop))
+	{
+		const CvCityBuildings* pCityBuildings = pLoopCity->GetCityBuildings();
 
+		count += pCityBuildings->GetNumGreatWorks((GreatWorkClass)GC.getInfoTypeForString("GREAT_WORK_ART"));
+		count += pCityBuildings->GetNumGreatWorks((GreatWorkClass)GC.getInfoTypeForString("GREAT_WORK_LITERATURE"));
+		count += pCityBuildings->GetNumGreatWorks((GreatWorkClass)GC.getInfoTypeForString("GREAT_WORK_MUSIC"));
+
+		//GreatWorkSlotType eArtArtifactSlot = CvTypes::getGREAT_WORK_SLOT_ART_ARTIFACT();
+		//int iFilledArt = pCityBuildings->GetNumGreatWorks(eArtArtifactSlot);
+		//int iGWArt = iFilledArt + pCityBuildings->GetNumAvailableGreatWorkSlots(eArtArtifactSlot);
+	}
+	return count;
 }
 //	--------------------------------------------------------------------------------
 void CvPlayer::GetDiplomaticInfluencePerTurn(int* influenceThisTurn, int* iNumMinorCapitalsControlled) const
@@ -5958,13 +6019,10 @@ void CvPlayer::GetDiplomaticInfluencePerTurn(int* influenceThisTurn, int* iNumMi
 	{
 		const PlayerTypes eMinor = (PlayerTypes)iMinorLoop;
 		const CvPlayer& player = GET_PLAYER(eMinor);
-		if (player.isAlive() && player.isMinorCiv())
+		if (player.isAlive() && player.isMinorCiv() && player.GetMinorCivAI()->IsAllies(GetID()))
 		{
-			if (player.GetMinorCivAI()->IsAllies(GetID()))
-			{
-				controlled++;
-				influenceT100 += 100 * GC.getDIPLOMATIC_INFLUENCE_PER_TURN_ALLY(eMinor, GetID(), false);
-			}
+			controlled++;
+			influenceT100 += 100 * GC.getDIPLOMATIC_INFLUENCE_PER_TURN_ALLY(eMinor, GetID(), false);
 		}
 	}
 

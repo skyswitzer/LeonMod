@@ -2703,7 +2703,33 @@ CvString CvPlayerCulture::GetTourismModifierWith_Tooltip(const PlayerTypes eOthe
 		//	addColoredValue(stream, mod, "from Trade Routes"); // TXT_KEY_CO_PLAYER_TOURISM_TRADE_ROUTE
 		//	totalLinearModT100 += mod;
 		//}
+
+		// now a bonus to diplomatic influence
+		//{ // diplomat bonus
+		//	int mod = 0;
+		//	if (m_pPlayer->GetEspionage()->IsMyDiplomatVisitingThem(eOtherPlayer)) mod = GC.getTOURISM_MODIFIER_DIPLOMAT();
+		//	addColoredValue(stream, mod, "from Diplomats"); // TXT_KEY_CO_PLAYER_TOURISM_PROPAGANDA
+		//	totalLinearModT100 += mod;
+		//}
+
+		{ // happiness
+			const int mod = GetTourismModifierHappinessT100(eOtherPlayer);
+			addColoredValue(stream, mod, "from more Empire Happiness");
+			totalLinearModT100 += mod;
+		}
+
+		{ // more created works
+			const int mod = GetTourismModifierMoreSpecialGreatWorksT100(eOtherPlayer);
+			addColoredValue(stream, mod, "from more Specialist Great Works");
+			totalLinearModT100 += mod;
+		}
 		
+		{ // big city
+			const int mod = GetTourismModifierLargeCityT100(eOtherPlayer);
+			addColoredValue(stream, mod, "from having a Larger City");
+			totalLinearModT100 += mod;
+		}
+
 		{ // shared religion
 			ReligionTypes ePlayerReligion = m_pPlayer->GetReligions()->GetReligionInMostCities();
 			int mod = 0;
@@ -2721,7 +2747,7 @@ CvString CvPlayerCulture::GetTourismModifierWith_Tooltip(const PlayerTypes eOthe
 			if (eMyIdeology == NO_POLICY_BRANCH_TYPE || eTheirIdeology == NO_POLICY_BRANCH_TYPE)
 			{
 				mod = 0;
-				phrase = "from Ideology";
+				phrase = "from Shared Ideology";
 			}
 			// different ideologies
 			else if (eMyIdeology != eTheirIdeology)
@@ -2739,28 +2765,9 @@ CvString CvPlayerCulture::GetTourismModifierWith_Tooltip(const PlayerTypes eOthe
 			totalLinearModT100 += mod;
 		}
 
-		// now a bonus to diplomatic influence
-		//{ // diplomat bonus
-		//	int mod = 0;
-		//	if (m_pPlayer->GetEspionage()->IsMyDiplomatVisitingThem(eOtherPlayer)) mod = GC.getTOURISM_MODIFIER_DIPLOMAT();
-		//	addColoredValue(stream, mod, "from Diplomats"); // TXT_KEY_CO_PLAYER_TOURISM_PROPAGANDA
-		//	totalLinearModT100 += mod;
-		//}
-
-		{ // Cult of personality
-			int mod = 0;
-			if (m_pPlayer->GetMilitaryMight() > kPlayer.GetMilitaryMight())
-			{
-				mod = m_pPlayer->GetPlayerPolicies()->GetNumericModifier(POLICYMOD_TOURISM_MOD_COMMON_FOE);
-			}
-
-			addColoredValue(stream, mod, "from Cult of Personality"); // TXT_KEY_CO_PLAYER_TOURISM_COMMON_FOE
-			totalLinearModT100 += mod;
-		}
-
-		{ // happiness
-			const int mod = GetTourismModifierHappinessT100(eOtherPlayer);
-			addColoredValue(stream, mod, "from more Empire Happiness");
+		{ // golden age
+			const int mod = GetTourismModifierGoldenAgeT100(eOtherPlayer);
+			addColoredValue(stream, mod, "from your Golden Age");
 			totalLinearModT100 += mod;
 		}
 
@@ -2771,9 +2778,14 @@ CvString CvPlayerCulture::GetTourismModifierWith_Tooltip(const PlayerTypes eOthe
 			totalLinearModT100 += mod;
 		}
 
-		{ // golden age
-			const int mod = GetTourismModifierGoldenAgeT100(eOtherPlayer);
-			addColoredValue(stream, mod, "from your Golden Age");
+		{ // Cult of personality
+			int mod = 0;
+			if (m_pPlayer->GetMilitaryMight() > kPlayer.GetMilitaryMight())
+			{
+				mod = m_pPlayer->GetPlayerPolicies()->GetNumericModifier(POLICYMOD_TOURISM_MOD_COMMON_FOE);
+			}
+
+			addColoredValue(stream, mod, "from Cult of Personality"); // TXT_KEY_CO_PLAYER_TOURISM_COMMON_FOE
 			totalLinearModT100 += mod;
 		}
 
@@ -2856,6 +2868,32 @@ double CvPlayerCulture::GetTourismModifierHappinessT100(const PlayerTypes eOther
 	{
 		modT100 += 10;
 		modT100 += m_pPlayer->GetPlayerPolicies()->GetNumericModifier(POLICYMOD_TOURISM_MOD_LESS_HAPPY);
+	}
+
+	return modT100;
+}
+
+double CvPlayerCulture::GetTourismModifierLargeCityT100(const PlayerTypes eOtherPlayer) const
+{
+	double modT100 = 0;
+
+	// if our happiness higher
+	if (m_pPlayer->GetLargestCityPop() > GET_PLAYER(eOtherPlayer).GetLargestCityPop())
+	{
+		modT100 += 10;
+	}
+
+	return modT100;
+}
+
+double CvPlayerCulture::GetTourismModifierMoreSpecialGreatWorksT100(const PlayerTypes eOtherPlayer) const
+{
+	double modT100 = 0;
+
+	// if our happiness higher
+	if (m_pPlayer->GetNumSpecialistGreatWorks() > GET_PLAYER(eOtherPlayer).GetNumSpecialistGreatWorks())
+	{
+		modT100 += 10;
 	}
 
 	return modT100;

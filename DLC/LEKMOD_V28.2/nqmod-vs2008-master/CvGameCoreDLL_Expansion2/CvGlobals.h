@@ -137,6 +137,7 @@ class ICvPlayer1;
 class ICvPlot1;
 class ICvRandom1;
 class ICvUnit1;
+struct CompetitionDelegates;
 
 // uses the map to convert the name string to the specified enum type
 // needs to be passed a function to get the info type of a given TEnum
@@ -196,6 +197,9 @@ public:
 
 	void init();
 	void uninit();
+	void initCompetitions();
+	void uninitCompetitions();
+	vector<CompetitionDelegates*> GetDelegatesFor;
 
 	CvMap& getMap()
 	{

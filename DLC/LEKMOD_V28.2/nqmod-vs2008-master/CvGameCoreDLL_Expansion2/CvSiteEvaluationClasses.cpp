@@ -165,7 +165,7 @@ bool CvCitySiteEvaluator::CanFound(const CvPlot* pPlot, const CvPlayer* pPlayer,
 		{
 			for(iDY = -(iRange); iDY <= iRange; iDY++)
 			{
-				pLoopPlot = plotXYWithRangeCheck(pPlot->getX(), pPlot->getY(), iDX, iDY, iRange);
+				const CvPlot* pLoopPlot = plotXYWithRangeCheck(pPlot->getX(), pPlot->getY(), iDX, iDY, iRange);
 #endif
 
 				if(pLoopPlot != NULL)

@@ -164,12 +164,8 @@ public:
 		return m_iYdest;
 	}
 
-#ifdef AUI_CONSTIFY
 	// Often owner information. See GetInfoAsPlayerTypes.
 	inline int GetInfo() const
-#else
-	inline int GetInfo()
-#endif
 	{
 		return m_iInfo;
 	}

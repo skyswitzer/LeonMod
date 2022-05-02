@@ -233,21 +233,13 @@ void CvCityCitizens::Write(FDataStream& kStream)
 }
 
 /// Returns the City object this set of Citizens is associated with
-#ifdef AUI_CONSTIFY
 CvCity* CvCityCitizens::GetCity() const
-#else
-CvCity* CvCityCitizens::GetCity()
-#endif
 {
 	return m_pCity;
 }
 
 /// Returns the Player object this City belongs to
-#ifdef AUI_CONSTIFY
 CvPlayer* CvCityCitizens::GetPlayer() const
-#else
-CvPlayer* CvCityCitizens::GetPlayer()
-#endif
 {
 	return &GET_PLAYER(GetOwner());
 }
