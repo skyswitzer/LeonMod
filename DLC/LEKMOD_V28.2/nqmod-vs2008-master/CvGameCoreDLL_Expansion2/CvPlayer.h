@@ -236,6 +236,8 @@ public:
 	int GetScoreFromScenario4() const;
 	void ChangeScoreFromScenario4(int iChange);
 
+	int GetNumNuclearWeapons() const;
+
 	// 1. How much we will earn at the end of this turn?
 	// 2. Number of city states this player "controls" for the sake of victory conditions.
 	// Includes allies and captured city state capitals.

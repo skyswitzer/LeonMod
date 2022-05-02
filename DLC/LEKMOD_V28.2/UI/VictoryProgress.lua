@@ -19,8 +19,14 @@ local g_TechPreReqList = {};
 local g_PreReqsAcquired = 0;
 
 -- Tech Details Variables
-local g_TechIM = InstanceManager:new( "TechCiv", "Civ", Controls.TechStack );
+local g_TechIM = InstanceManager:new( "TechCiv", "Civ", Controls.TechRaceStack );
 local g_TechList = {};
+
+-- Tech
+local g_TechRowsIM = InstanceManager:new( "TechRow", "RowStack", Controls.TechStack );
+local g_TechRowList = {};
+local g_TechItemIMList = {};
+local g_TechItemList = {};
 
 -- Diplo Details Variables
 local g_DiploRowsIM = InstanceManager:new( "DiploRow", "RowStack", Controls.DiploStack );
@@ -44,6 +50,8 @@ local g_VictorBoxSizeX = 850;
 local g_VictorBoxSizeY = 250;
 local g_VictorTrimSizeX = 860;
 local g_LabelContainerSizeX = 400;
+local white = {x = 1, y = 1, z = 1, w = 1};
+local gray = {x = 0.50, y = 0.50, z = 0.50, w = 1.00};
 
 ----------------------------------------------------------------
 ----------------------------------------------------------------
@@ -56,7 +64,9 @@ function OnBack()
 	
 	-- Delete instanced screens
 	DeleteSpaceRaceScreen();
+	DeleteTechScreen();
 	DeleteDiploScreen();
+
 	DeleteScoreScreen();
 	
 	UIManager:DequeuePopup( ContextPtr );
@@ -75,34 +85,6 @@ function OnSpaceRaceDetails()
 	PopulateSpaceRaceScreen();
 end
 Controls.SpaceRaceDetails:RegisterCallback( Mouse.eLClick, OnSpaceRaceDetails );
-
-----------------------------------------------------------------
-----------------------------------------------------------------
---[[
-function OnDiploDetails()
-	Controls.YourDetails:SetHide(true);
-	Controls.DiploScreen:SetHide(false);
-	Controls.BackButton:SetHide(true);
-	Controls.DiploClose:SetHide(false);
-	
-	-- Populate Detail Screens
-	PopulateDiploScreen();
-	
-end
-Controls.DiploDetails:RegisterCallback( Mouse.eLClick, OnDiploDetails );
---]]
-
-----------------------------------------------------------------
-----------------------------------------------------------------
---function OnCultureDetails()
---
- --local popupInfo = {
-        --Type = ButtonPopupTypes.BUTTONPOPUP_CULTURE_OVERVIEW,
-    --}
-    --Events.SerialEventGameMessagePopup(popupInfo);
---end
---Controls.CultureDetails:RegisterCallback( Mouse.eLClick, OnCultureDetails );
-
 ----------------------------------------------------------------
 ----------------------------------------------------------------
 function OnScoreDetails()
@@ -437,41 +419,88 @@ function PopulateSpaceRace()
 	local pPlayer = Players[Game.GetActivePlayer()];
 	local have = pPlayer:GetScientificInfluence();
 	local needed = pPlayer:GetScientificInfluenceNeeded();
+	if needed == 0 then needed = 1; end -- Prevent a divide by 0.
+
 	if(PreGame.IsVictory(GameInfo.Victories["VICTORY_SPACE_RACE"].ID))then
+		DeleteTechScreen();
 		local apolloProj = GameInfoTypes["PROJECT_APOLLO_PROGRAM"];
 		local strPlayer = Locale.ConvertTextKey("TXT_KEY_CITY_STATE_NOBODY");
-		if(apolloProj ~= -1) then
-			local white = {x = 1, y = 1, z = 1, w = 1};
-			local iTeam = Game.GetActiveTeam();
-			if(Teams[iTeam]:GetProjectCount(apolloProj) == 1) then
-				Controls.TechProgress:SetHide(true);
-				--Controls.ApolloProject:SetHide(false);
-				Controls.BubblesAnim:SetHide(true);
-				Controls.ApolloIcon:SetColor(white);
-			else
-				local totalPreReqs = #g_TechPreReqList;
-				
-				-- Prevent a divide by 0.
-				if(totalPreReqs == 0) then
-					totalPreReqs = 1;
-				end
 
+		local curRow = nil;
+		local numRows = 0;
+		local curItemIM = nil;
+		local numItemIM = 0;
+		local curCol = 0;
+		local numItems = 0;
+		
+		local iActivePlayer = Game.GetActivePlayer();
+		local pActivePlayer = Players[iActivePlayer];
+			
+		-- populate Tech competitions TODO MiniCompetitionTypes.COMPETITION_DIPLOMATIC_START
+		for iCompetition = MiniCompetitionTypes.COMPETITION_SCIENCE_START, MiniCompetitionTypes.COMPETITION_SCIENCE_END-1, 1 do
+			-- Create new row if one does not already exist
+			if(curRow == nil) then
+				numRows = numRows + 1;
+				curRow = g_TechRowsIM:GetInstance();
+				g_TechRowList[numRows] = curRow;
+				
+				numItemIM = numItemIM + 1;
+				curItemIM = InstanceManager:new( "TechItem", "TechItemChild", curRow.RowStack );
+				g_TechItemIMList[numItemIM] = curItemIM;
+				
+			end							
+			local item = curItemIM:GetInstance();
+			g_TechItemList[numItems] = item;
+			numItems = numItems + 1;
+			
+			local iWinningPlayer = Game.GetCompetitionWinnerPlayer(iCompetition);
+			local sDesc = Game.GetCompetitionDesc(iCompetition, iActivePlayer);
+			local sDescShort = Game.GetCompetitionDescShort(iCompetition);
+			local sDescReward = Game.GetCompetitionDescReward(iCompetition);
+			-- prefix
+			item.RowDesc:SetText(sDescShort);
+			item.RowDesc:SetToolTipString(sDesc);
+			-- post fix
+			item.RowDescReward:SetText(sDescReward);
+			item.RowDescReward:SetToolTipString(sDesc);
+
+			item.TechItemChild:SetToolTipString(sDesc);
+			item.TechItemLabelContainer:SetSizeX(g_LabelContainerSizeX);
+
+			-- civ icon
+			local pWinningPlayer = Players[iWinningPlayer];
+			local activeTeam = Teams[pActivePlayer:GetTeam()];
+			local bHasMet = activeTeam:IsHasMet(pWinningPlayer:GetTeam());
+			local iPlayerIcon = bHasMet and iWinningPlayer or -1;
+			local sCivName = pWinningPlayer:GetCivNameSafe(iActivePlayer);
+			item.IconBox:SetToolTipString(sCivName);
+			CivIconHookup(iPlayerIcon, 32, item.Icon, item.IconBackground, item.IconShadow, false, true);
+		end
+
+
+		if(apolloProj ~= -1) then
+			local iTeam = Game.GetActiveTeam();
+			local completedPercent = math.max(0, math.min(1, have / needed));
+			if completedPercent >= 1 then -- Teams[iTeam]:GetProjectCount(apolloProj) == 1) then
+				Controls.ApolloIcon:SetColor(white); -- this screws up the TechProgress texture
+				Controls.TechProgress:SetHide(true);
+				Controls.BubblesAnim:SetHide(true);
+				Controls.TechProgress:SetPercent(completedPercent);
+			else
+				--Controls.ApolloIcon:SetColor(gray); -- this screws up the TechProgress texture
 				Controls.TechProgress:SetHide(false);
 				Controls.BubblesAnim:SetHide(false);
-				Controls.TechProgress:SetPercent(g_PreReqsAcquired / totalPreReqs);
-				
-				if(g_PreReqsAcquired >= totalPreReqs) then
-					Controls.TechIconAnim:SetHide(false);
-					Controls.BubblesAnim:SetHide(true);
-				end
+				Controls.TechProgress:SetPercent(completedPercent);
+				--Controls.TechIconAnim:SetHide(false); -- flashes
 			end
-			
+			--[[
 			local numApollo = 0;
 			for i, v in pairs(Teams) do
 				if(v:GetProjectCount(apolloProj) == 1) then
 					numApollo = numApollo + 1;
 				end
 			end
+			--]]
 
 			-- show status
 			local status = Locale.ConvertTextKey("You have " .. have .. " of " .. needed .. " {SCIENTIFIC_INFLUENCE} needed.");
@@ -500,6 +529,7 @@ function PopulateSpaceRace()
 		Controls.ScienceVictoryProgress:SetHide(true);
 		Controls.ScienceVictoryDisabled:SetHide(false);
 	end
+	Controls.TechScrollPanel:CalculateInternalSize();
 end
 
 
@@ -559,7 +589,7 @@ function PopulateDiplomatic()
 		local pActivePlayer = Players[iActivePlayer];
 			
 		-- populate Diplo competitions TODO MiniCompetitionTypes.COMPETITION_DIPLOMATIC_START
-		for iCompetition = 0, MiniCompetitionTypes.COMPETITION_DIPLOMATIC_END-1, 1 do
+		for iCompetition = MiniCompetitionTypes.COMPETITION_DIPLOMATIC_START, MiniCompetitionTypes.COMPETITION_DIPLOMATIC_END-1, 1 do
 			-- Create new row if one does not already exist
 			if(curRow == nil) then
 				numRows = numRows + 1;
@@ -621,23 +651,33 @@ function PopulateDiplomatic()
 		end
 		Controls.DiploBoxLabel:SetHide(false);
 		Controls.DiploBoxLabel:LocalizeAndSetText("{TXT_KEY_VICTORYSCREEN_DIPLOMATIC}" .. doneLabel);
+
+		-- show progress icon
+		local completedPercent = math.max(0, math.min(1, have / needed));
+		Controls.DiploProgress:SetHide(false);
+		Controls.DiploProgress:SetPercent(completedPercent);
+		if completedPercent >= 1 then
+			Controls.UNIcon:SetHide(false); -- fill color
+		end
 	
+		-- diplo screen is enabled
 		Controls.DiploVictoryProgress:SetHide(false);
 		Controls.DiploVictoryDisabled:SetHide(true);
-
+		--[[
 		local sUNInfo = Locale.Lookup("TXT_KEY_VP_DIPLO_UN_INACTIVE");
 		if (Game.GetNumActiveLeagues() > 0) then
 			local pLeague = Game.GetActiveLeague();
 			
 			if (pLeague ~= nil and Game.IsUnitedNationsActive()) then
-				Controls.UNIcon:SetHide(false);
 				sUNInfo = Locale.Lookup("TXT_KEY_VP_DIPLO_UN_ACTIVE");
 				Controls.TurnsUntilSessionLabel:SetHide(false);
 				Controls.TurnsUntilSession:SetHide(false);
 				Controls.TurnsUntilSession:SetText(pLeague:GetTurnsUntilVictorySession());
 			end
 		end
+		--]]
 	end
+	Controls.DiploScrollPanel:CalculateInternalSize();
 end
 
 ----------------------------------------------------------------
@@ -695,7 +735,7 @@ function PopulateCultural()
 		end
 
 		-- populate culture competitions TODO MiniCompetitionTypes.COMPETITION_DIPLOMATIC_START
-		for iCompetition = 0, MiniCompetitionTypes.COMPETITION_DIPLOMATIC_END-1, 1 do
+		for iCompetition = MiniCompetitionTypes.COMPETITION_CULTURE_START, MiniCompetitionTypes.COMPETITION_CULTURE_END-1, 1 do
 			-- Create new row if one does not already exist
 			if(curRow == nil) then
 				numRows = numRows + 1;
@@ -753,7 +793,6 @@ function PopulateCultural()
 		
 		Controls.CultureStack:CalculateSize();
 		Controls.CultureStack:ReprocessAnchoring();
-		Controls.CultureScrollPanel:CalculateInternalSize();
 	
 		Controls.CultureVictoryProgress:SetHide(false);
 		Controls.CultureVictoryDisabled:SetHide(true);
@@ -761,7 +800,7 @@ function PopulateCultural()
 		Controls.CultureVictoryProgress:SetHide(true);
 		Controls.CultureVictoryDisabled:SetHide(false);
 	end
-
+	Controls.CultureScrollPanel:CalculateInternalSize();
 end
 
 ----------------------------------------------------------------
@@ -1153,16 +1192,25 @@ function DeleteScoreScreen()
 	g_ScoreIM:ResetInstances();
 	g_ScoreList = {};
 end
-
 ----------------------------------------------------------------
 ----------------------------------------------------------------
 function DeleteSpaceRaceScreen()
 	g_TechIM:ResetInstances();
 	g_TechList = {};
 end
-
 ----------------------------------------------------------------
---------------------------------------------------------------
+----------------------------------------------------------------
+function DeleteTechScreen()
+	for i, v in pairs(g_TechItemIMList) do
+		v:ResetInstances();
+	end
+	g_TechRowsIM:ResetInstances();
+	g_TechRowList = {};
+	g_TechItemList = {};
+	g_TechItemIMList = {};
+end
+----------------------------------------------------------------
+----------------------------------------------------------------
 function DeleteDiploScreen()
 	for i, v in pairs(g_DiploItemIMList) do
 		v:ResetInstances();
@@ -1172,10 +1220,8 @@ function DeleteDiploScreen()
 	g_DiploItemList = {};
 	g_DiploItemIMList = {};
 end
-
-
---------------------------------------------
---------------------------------------------
+----------------------------------------------------------------
+----------------------------------------------------------------
 function GetPreReqs(techID)
 	
 	local found = false;

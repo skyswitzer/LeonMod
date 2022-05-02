@@ -85,14 +85,41 @@ int AlliesScore(const CvPlayer& player)
 }
 
 
+// COMPETITION_NUCLEAR_STOCKPILE
+string NukesDescShort(int iWinningScore)
+{
+	stringstream ss;
+	ss << "Largest [ICON_RES_URANIUM] Nuclear Arsenal: [COLOR_POSITIVE_TEXT]" << iWinningScore << "[ENDCOLOR]";
+	return ss.str();
+}
+string NukesDescReward(const CvCompetition& rCompetition)
+{
+	stringstream ss;
+	ss << "+20 {DIPLOMATIC_INFLUENCE}";
+	return ss.str();
+}
+string NukesDesc(const CvCompetition& rCompetition, const PlayerTypes ePlayer)
+{
+	stringstream ss;
+	ss << "The civilization with the largest [ICON_RES_URANIUM] Nuclear Arsenal";
+	ss << tryAddCurrentScore(rCompetition, ePlayer);
+	return ss.str();
+}
+int NukesScore(const CvPlayer& player)
+{
+	int iScore = player.GetNumNuclearWeapons();
+	return iScore;
+}
+
+
 
 CompetitionDelegates GetDelegatesFor[] = {
 	// COMPETITION_TRADE_ROUTES_INTERNATIONAL
 	{ &TradeRoutesDescShort, &TradeRoutesDescReward, &TradeRoutesDesc, &TradeRoutesScore,},
 	// COMPETITION_TRADE_ROUTES_INTERNATIONAL
-	{ &AlliesDescShort, &AlliesDescReward, &AlliesDesc, &AlliesScore,},
+	{ &AlliesDescShort, &AlliesDescReward, &AlliesDesc, &NukesScore,},
 	// COMPETITION_TRADE_ROUTES_INTERNATIONAL
-	{ &TradeRoutesDescShort, &TradeRoutesDescReward, &TradeRoutesDesc, &TradeRoutesScore,},
+	{ &NukesDescShort, &NukesDescReward, &NukesDesc, &TradeRoutesScore,},
 	// COMPETITION_TRADE_ROUTES_INTERNATIONAL
 	{ &TradeRoutesDescShort, &TradeRoutesDescReward, &TradeRoutesDesc, &TradeRoutesScore,},
 	// COMPETITION_TRADE_ROUTES_INTERNATIONAL

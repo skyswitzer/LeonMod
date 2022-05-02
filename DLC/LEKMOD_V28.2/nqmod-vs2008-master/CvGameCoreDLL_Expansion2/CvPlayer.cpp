@@ -5936,10 +5936,16 @@ int CvPlayer::GetScoreFromScenario4() const
 {
 	return m_iScenarioScore4;
 }
+//	--------------------------------------------------------------------------------
 void CvPlayer::ChangeScoreFromScenario4(int iChange)
 {
 	if(iChange != 0)
 		m_iScenarioScore4 += iChange;
+}
+//	--------------------------------------------------------------------------------
+int CvPlayer::GetNumNuclearWeapons() const
+{
+
 }
 //	--------------------------------------------------------------------------------
 void CvPlayer::GetDiplomaticInfluencePerTurn(int* influenceThisTurn, int* iNumMinorCapitalsControlled) const
