@@ -451,7 +451,7 @@ int CvPlayer::GetExtraYieldForBuilding
 		}
 	}
 
-	{// POLICY_RATIONALISM_FINISHER - +5 Singularity from Rationalism Finisher
+	{// POLICY_RATIONALISM_FINISHER - +5 Scientific Insight from Rationalism Finisher
 		const bool hasRationalismFinisher = player.HasPolicy("POLICY_RATIONALISM_FINISHER");
 		const bool isPalace = eBuildingClass == BuildingClass("BUILDINGCLASS_PALACE");
 		if (eYieldType == YIELD_SCIENTIFIC_INSIGHT && !isPercentMod && hasRationalismFinisher && isPalace)
@@ -539,6 +539,12 @@ int CvPlayer::GetExtraYieldForBuilding
 		if (eYieldType == YIELD_FAITH && !isPercentMod && isStupa && hasGlobalization)
 			yieldChange += 1;
 	}
+	
+	{// Building_Recycling Center gets +1 Scientific Insight
+		const bool isRecyclingCenter = eBuildingClass == BuildingClass("BUILDINGCLASS_RECYCLING_CENTER");
+		if (eYieldType == YIELD_SCIENTIFIC_INSIGHT && !isPercentMod && isRecyclingCenter)
+			yieldChange += 1;
+	}
 		
 	return yieldChange;
 }
@@ -584,14 +590,18 @@ int CvPlayerTrade::GetTradeConnectionValueExtra(const TradeConnection& kTradeCon
 	const int tradeDistance = kTradeConnection.m_aPlotList.size();
 	const bool hasSilkRoad = playerOrigin.HasPolicy("POLICY_CARAVANS");
 	const bool hasMerchantConfederacy = playerOrigin.HasPolicy("POLICY_MERCHANT_CONFEDERACY");
-	
+	// const bool isGrocer = BuildingClass("BUILDINGCLASS_GROCER");
+
 	if (!cityOrigin || !cityDest) return 0;
 
 
 	
 	if (isInternal) // true if this is an internal trade route
 	{
-
+	
+		// Come back and fix this later
+		//if (eYieldType == YIELD_FOOD && isGrocer)
+		//	yieldChange += 1;
 
 	}
 	else if (isDestMinor) // destination is City State
