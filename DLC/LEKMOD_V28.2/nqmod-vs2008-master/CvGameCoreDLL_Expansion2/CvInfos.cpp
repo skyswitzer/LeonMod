@@ -6188,7 +6188,7 @@ bool CvProcessInfo::CacheResults(Database::Results& kResults, CvDatabaseUtility&
 	const char* szTechPrereq = kResults.GetText("TechPrereq");
 	m_iTechPrereq = GC.getInfoTypeForString(szTechPrereq, true);
 
-	m_eHammerCompetition = (HammerCompetitionTypes)kResults.GetInt("HammerCompetition");
+	m_eHammerCompetition = (HammerCompetitionTypes)kResults.GetInt("HammerCompetitionType");
 
 	const char* szProcessType = GetType();
 

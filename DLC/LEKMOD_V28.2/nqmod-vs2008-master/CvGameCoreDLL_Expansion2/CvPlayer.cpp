@@ -6125,8 +6125,34 @@ void CvPlayer::ChangeCompetitionHammersT100(const HammerCompetitionTypes eType, 
 }
 int CvPlayer::GetTradeRouteCost(const int ithTradeRoute) const
 {
-	const int cost = 100 + ithTradeRoute * 150;
-	return GC.adjustForSpeed(YIELD_PRODUCTION) * cost;
+	const int base = 100 * GC.adjustForSpeed(YIELD_PRODUCTION);
+	const int howMany = ithTradeRoute - 1;
+	const int cost = base + howMany * GetTradeRouteCostIncrease();
+	return max(0, cost);
+}
+int CvPlayer::GetTradeRouteCostIncrease() const
+{
+	return 150 * GC.adjustForSpeed(YIELD_PRODUCTION);
+}
+void CvPlayer::GetTradeRouteProjectInfo(int* iCount, int* iProgress) const
+{
+	const int iHaveHammersT100 = GetCompetitionHammersT100(HAMMERCOMPETITION_MAKE_TRADE_ROUTES);
+	int iPreviousCostsT100 = 0;
+	int iTotalCostT100 = 0;
+	int i;
+	for (i = 1; i < 999; ++i)
+	{
+		const int nextCostT100 = GetTradeRouteCost(i) * 100;
+		iTotalCostT100 += nextCostT100;
+
+		if (iTotalCostT100 > iHaveHammersT100)
+			break;
+
+		iPreviousCostsT100 += nextCostT100;
+	}
+	const int hammersTowardsNext = iHaveHammersT100 / 100 - iPreviousCostsT100 / 100; // divide first or we will incorrectly round up
+	*iCount = (i - 1);
+	*iProgress = hammersTowardsNext;
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -4165,11 +4165,7 @@ int CvPlayerTrade::GetTradeRouteSpeed (DomainTypes eDomain)
 }
 
 //	--------------------------------------------------------------------------------
-#ifdef AUI_CONSTIFY
 uint CvPlayerTrade::GetNumTradeRoutesPossible() const
-#else
-uint CvPlayerTrade::GetNumTradeRoutesPossible (void)
-#endif
 {
 	int iNumRoutes = 0;
 
@@ -4254,7 +4250,11 @@ uint CvPlayerTrade::GetNumTradeRoutesPossible (void)
 	iNumRoutes *= iModifier;
 	iNumRoutes /= 100;
 
-	return iNumRoutes;
+	int iExtraRoutes;
+	int hammerProgress;
+	m_pPlayer->GetTradeRouteProjectInfo(&iExtraRoutes, &hammerProgress);
+
+	return iNumRoutes + iExtraRoutes;
 }
 
 //	--------------------------------------------------------------------------------
@@ -4292,11 +4292,7 @@ int CvPlayerTrade::GetNumTradeRoutesUsed (bool bContinueTraining)
 
 
 //	--------------------------------------------------------------------------------
-#ifdef AUI_CONSTIFY
 int CvPlayerTrade::GetNumTradeRoutesRemaining(bool bContinueTraining) const
-#else
-int CvPlayerTrade::GetNumTradeRoutesRemaining (bool bContinueTraining)
-#endif
 {
 	return (GetNumTradeRoutesPossible() - GetNumTradeRoutesUsed(bContinueTraining));
 }

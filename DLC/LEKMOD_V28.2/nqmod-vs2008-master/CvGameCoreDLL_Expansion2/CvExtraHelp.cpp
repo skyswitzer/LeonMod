@@ -42,15 +42,20 @@ int CvLuaGame::lGetAdditionalHelpBuilding(lua_State* L)
 			}
 		}
 	}
-	else if (type == 4)
+	else if (type == 3)
 	{
 		const ProcessTypes eProcess = (ProcessTypes)id;
 
 		if (eProcess == 7) // PROCESS_MAKE_TRADEROUTES
 		{
 			const int have = rPlayer.GetCompetitionHammersT100(HAMMERCOMPETITION_MAKE_TRADE_ROUTES) / 100;
-			const int need = rPlayer.asdf;
-			s << "[NEWLINE][NEWLINE]You have " << have << " of " << 7 << " [ICON_PRODUCTION] Production needed for your next {TRADE_ROUTE}.";
+			int numBonusRoutesHave;
+			int iProgress;
+			rPlayer.GetTradeRouteProjectInfo(&numBonusRoutesHave, &iProgress);
+			const int need = rPlayer.GetTradeRouteCost(numBonusRoutesHave + 1);
+			s << "[NEWLINE][NEWLINE]This project has yielded +" << numBonusRoutesHave << " {TRADE_ROUTE}s so far and ";
+			s << "you have " << iProgress << " of " << need << " [ICON_PRODUCTION] Production needed for your next one. ";
+			s << "The cost will increase by " << rPlayer.GetTradeRouteCostIncrease() << " [ICON_PRODUCTION] each time.";
 		}
 	}
 

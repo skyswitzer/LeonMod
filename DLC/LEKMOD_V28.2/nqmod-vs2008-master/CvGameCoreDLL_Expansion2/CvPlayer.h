@@ -265,9 +265,13 @@ public:
 
 	long long GetCompetitionHammersT100(const HammerCompetitionTypes eType) const;
 	void ChangeCompetitionHammersT100(const HammerCompetitionTypes eType, const long long iChangeT100);
-	// cost of iTH trade route in hammers (0th is first)
+	// cost of iTH trade route in hammers (1 is first)
 	// already game speed adjusted
 	int GetTradeRouteCost(const int ithTradeRoute) const;
+	// How much route project increases per.
+	int GetTradeRouteCostIncrease() const;
+	// How many extra routes we have. Hammer progress toward next route.
+	void GetTradeRouteProjectInfo(int* iCount, int* iProgress) const;
 
 	int countCityFeatures(FeatureTypes eFeature) const;
 	int countNumBuildings(BuildingTypes eBuilding) const;

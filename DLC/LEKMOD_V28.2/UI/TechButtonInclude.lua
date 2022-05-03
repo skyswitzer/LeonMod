@@ -395,7 +395,7 @@ function AddSmallButtonsToTechButton( thisTechButtonInstance, tech, maxSmallButt
 		local buttonName = "B"..tostring(buttonNum);
 		local thisButton = thisTechButtonInstance[buttonName];
 		if thisButton then
-			IconHookup( 4, textureSize, "EXPANSION2_UNIT_ATLAS", thisButton );
+			IconHookup( 12, textureSize, "CITIZEN_ATLAS", thisButton );
 			thisButton:SetHide( false );
 			thisButton:SetToolTipString( Locale.ConvertTextKey( "TXT_KEY_ADDITIONAL_INTERNATIONAL_TRADE_ROUTE", tech.InternationalTradeRoutesChange ) );
 			buttonNum = buttonNum + 1;

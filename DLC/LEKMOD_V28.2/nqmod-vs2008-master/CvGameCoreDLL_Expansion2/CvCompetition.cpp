@@ -20,7 +20,7 @@ string tryAddCurrentScore(const CvCompetition& rCompetition, const PlayerTypes e
 	stringstream ss;
 	if (ePlayer != NO_PLAYER)
 	{
-		ss << "[NEWLINE][NEWLINE]You currently have [COLOR_WARNING_TEXT]" << rCompetition.GetScoreOfPlayer(ePlayer) << "[ENDCOLOR].";
+		ss << "[NEWLINE][NEWLINE]You currently have [COLOR_WARNING_TEXT]" << rCompetition.GetScoreOfPlayer(ePlayer) << "[ENDCOLOR]";
 	}
 	return ss.str();
 }
@@ -38,7 +38,7 @@ struct TradeRoutes : CompetitionDelegates
 	virtual string DescReward(const CvCompetition& rCompetition) const
 	{
 		stringstream ss;
-		ss << "+20 {DIPLOMATIC_INFLUENCE}";
+		ss << "+20 [ICON_DIPLOMATIC_INFLUENCE]";
 		return ss.str();
 	}
 	virtual string Desc(const CvCompetition& rCompetition, const PlayerTypes ePlayer) const
@@ -66,7 +66,7 @@ struct Allies : CompetitionDelegates
 	virtual string DescReward(const CvCompetition& rCompetition) const
 	{
 		stringstream ss;
-		ss << "+20 {DIPLOMATIC_INFLUENCE}";
+		ss << "+20 [ICON_DIPLOMATIC_INFLUENCE]";
 		return ss.str();
 	}
 	virtual string Desc(const CvCompetition& rCompetition, const PlayerTypes ePlayer) const
@@ -95,7 +95,7 @@ struct GoldGifts : CompetitionDelegates
 	virtual string DescReward(const CvCompetition& rCompetition) const
 	{
 		stringstream ss;
-		ss << "+20 {DIPLOMATIC_INFLUENCE}";
+		ss << "+20 [ICON_DIPLOMATIC_INFLUENCE]";
 		return ss.str();
 	}
 	virtual string Desc(const CvCompetition& rCompetition, const PlayerTypes ePlayer) const
@@ -123,7 +123,7 @@ struct Nukes : CompetitionDelegates
 	virtual string DescReward(const CvCompetition& rCompetition) const
 	{
 		stringstream ss;
-		ss << "+50 {DIPLOMATIC_INFLUENCE}";
+		ss << "+50 [ICON_DIPLOMATIC_INFLUENCE]";
 		return ss.str();
 	}
 	virtual string Desc(const CvCompetition& rCompetition, const PlayerTypes ePlayer) const
@@ -151,7 +151,7 @@ struct ScienceSpecialists : CompetitionDelegates
 	virtual string DescReward(const CvCompetition& rCompetition) const
 	{
 		stringstream ss;
-		ss << "+20 {SCIENTIFIC_INFLUENCE}";
+		ss << "+20 [ICON_SCIENTIFIC_INFLUENCE]";
 		return ss.str();
 	}
 	virtual string Desc(const CvCompetition& rCompetition, const PlayerTypes ePlayer) const
@@ -179,14 +179,14 @@ struct ScienceCompetition : CompetitionDelegates
 	virtual string DescReward(const CvCompetition& rCompetition) const
 	{
 		stringstream ss;
-		ss << "+10 {SCIENTIFIC_INSIGHT}";
+		ss << "+10 [ICON_SCIENTIFIC_INFLUENCE]";
 		return ss.str();
 	}
 	virtual string Desc(const CvCompetition& rCompetition, const PlayerTypes ePlayer) const
 	{
 		stringstream ss;
 		ss << "The civilization that has devoted the most [ICON_PRODUCTION] Production towards the {SCIENCE_FAIR}.";
-		ss << tryAddCurrentScore(rCompetition, ePlayer) << "[ICON_PRODUCTION]";
+		ss << tryAddCurrentScore(rCompetition, ePlayer) << " [ICON_PRODUCTION]";
 		return ss.str();
 	}
 	virtual int EvalScore(const CvPlayer& player) const
@@ -207,7 +207,7 @@ struct CulturalCompetition : CompetitionDelegates
 	virtual string DescReward(const CvCompetition& rCompetition) const
 	{
 		stringstream ss;
-		ss << "+10% {CULTURAL_INFLUENCE}";
+		ss << "+10% [ICON_CULTURAL_INFLUENCE]";
 		return ss.str();
 	}
 	virtual string Desc(const CvCompetition& rCompetition, const PlayerTypes ePlayer) const
@@ -215,7 +215,7 @@ struct CulturalCompetition : CompetitionDelegates
 		stringstream ss;
 		ss << "The civilization that has devoted more [ICON_PRODUCTION] Production towards the {ARTS_FAIR} ";
 		ss << "will receive the influence reward over any civilization that has a lower score.";
-		ss << tryAddCurrentScore(rCompetition, ePlayer) << "[ICON_PRODUCTION]";
+		ss << tryAddCurrentScore(rCompetition, ePlayer) << " [ICON_PRODUCTION]";
 		return ss.str();
 	}
 	virtual int EvalScore(const CvPlayer& player) const
