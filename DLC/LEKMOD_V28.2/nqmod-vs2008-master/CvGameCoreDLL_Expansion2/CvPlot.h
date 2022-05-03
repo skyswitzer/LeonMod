@@ -168,6 +168,7 @@ public:
 	bool isShallowWater() const;
 	bool isAdjacentToShallowWater() const;
 	bool isAdjacentToIce() const;
+	// true if an adjacent tile could float a ship
 	bool isCoastalLand(int iMinWaterSize = -1) const;
 	int GetSizeLargestAdjacentWater() const;
 

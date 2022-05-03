@@ -7789,7 +7789,6 @@ bool CvCity::isCapital() const
 }
 
 //	--------------------------------------------------------------------------------
-/// Was this city originally any player's capital?
 bool CvCity::IsOriginalCapital() const
 {
 	VALIDATE_OBJECT

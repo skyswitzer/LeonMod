@@ -302,8 +302,10 @@ public:
 	bool isVisible(TeamTypes eTeam, bool bDebug) const;
 
 	bool isCapital() const;
+	// Was this city originally any player's capital? (major or minor)
 	bool IsOriginalCapital() const;
-	bool IsOriginalMajorCapital() const; // is the original capital of a major civ
+	// is the original capital of a major civ
+	bool IsOriginalMajorCapital() const;
 	bool IsEverCapital() const;
 	void SetEverCapital(bool bValue);
 
