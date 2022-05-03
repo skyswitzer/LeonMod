@@ -2094,33 +2094,6 @@ int CvLuaGame::lGetBuildingYieldModifier(lua_State* L)
 	return 1;
 }
 //------------------------------------------------------------------------------
-int CvLuaGame::lGetAdditionalHelpBuilding(lua_State* L)
-{
-	const BuildingTypes eBuilding = (BuildingTypes)lua_tointeger(L, 1);
-	string info = "";
-
-
-	// warn about world wonder costs
-	CvBuildingEntry* thisBuildingEntry = GC.getBuildingInfo(eBuilding);
-	if (thisBuildingEntry != NULL)
-	{
-		const CvBuildingClassInfo& kBuildingClassInfo = thisBuildingEntry->GetBuildingClassInfo();
-		if (isWorldWonderClass(kBuildingClassInfo))
-		{
-			const int costIncreasePerWonder = GC.getWONDER_COST_INCREASE();
-			stringstream s;
-			s << "[NEWLINE][NEWLINE]Every {WORLD_WONDER} will cost an additional [COLOR_NEGATIVE_TEXT]+";
-			s << costIncreasePerWonder;
-			s << "% [ENDCOLOR][ICON_PRODUCTION] for each World Wonder already in the City.";
-			info += GetLocalizedText(s.str().c_str());
-		}
-	}
-
-
-	lua_pushstring(L, info.c_str());
-	return 1;
-}
-//------------------------------------------------------------------------------
 int CvLuaGame::lGetWorldNumCitiesUnhappinessPercent(lua_State* L)
 {
 	lua_pushinteger(L, GC.getMap().getWorldInfo().getNumCitiesUnhappinessPercent());

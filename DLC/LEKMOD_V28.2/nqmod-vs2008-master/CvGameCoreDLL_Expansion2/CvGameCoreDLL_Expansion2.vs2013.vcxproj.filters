@@ -486,6 +486,7 @@
     </ClCompile>
     <ClCompile Include="CvPlotExtraYields.cpp" />
     <ClCompile Include="CvCompetition.cpp" />
+    <ClCompile Include="CvExtraHelp.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Lua\CvLuaArea.h">

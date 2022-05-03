@@ -168,6 +168,7 @@
   <ItemGroup>
     <ClCompile Include="CvCityManager.cpp" />
     <ClCompile Include="CvCompetition.cpp" />
+    <ClCompile Include="CvExtraHelp.cpp" />
     <ClCompile Include="CvPlotExtraYields.cpp" />
     <ClCompile Include="CvTargeting.cpp" />
     <ClCompile Include="_precompile.cpp">

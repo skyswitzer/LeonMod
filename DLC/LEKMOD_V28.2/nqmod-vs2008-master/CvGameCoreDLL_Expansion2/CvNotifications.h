@@ -25,6 +25,15 @@ class CvPlayer;
 //
 //!  Key Attributes:
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+enum NotificationMode
+{
+	// show and log
+	NotifyBoth,
+	// only show notification but don't log it
+	NotifyNoLogOnly,
+	// only log the notification
+	NotifyLogOnly,
+};
 class CvNotifications
 {
 public:
@@ -44,7 +53,7 @@ public:
 	int  AddByName(const char* szNotificationName, const char* strMessage, const char* strSummary, int iX, int iY, int iGameDataIndex, int iExtraGameData=-1);
 
 	/// Adds a new notification to the log and shows a popup to the player
-	int Add(NotificationTypes eNotificationType, const char* strMessage, const char* strSummary, int iX, int iY, int iGameDataIndex, int iExtraGameData = -1, bool logOnly = false);
+	int Add(NotificationTypes eNotificationType, const char* strMessage, const char* strSummary, int iX, int iY, int iGameDataIndex, int iExtraGameData = -1, const NotificationMode mode = NotifyBoth);
 	/// Adds a new notification to the log only
 	int AddToLog(const char* strMessage);
 	void Activate(int iLookupIndex);

@@ -6118,10 +6118,15 @@ long long CvPlayer::GetCompetitionHammersT100(const HammerCompetitionTypes eType
 }
 void CvPlayer::ChangeCompetitionHammersT100(const HammerCompetitionTypes eType, const long long iChangeT100)
 {
-	if (eType < 0 || eType >= m_competitionT100.size() || iChangeT100 == 0 )
+	if (eType < 0 || eType >= m_competitionT100.size() || iChangeT100 == 0)
 		return;
 
 	m_competitionT100[eType] += iChangeT100;
+}
+int CvPlayer::GetTradeRouteCost(const int ithTradeRoute) const
+{
+	const int cost = 100 + ithTradeRoute * 150;
+	return GC.adjustForSpeed(YIELD_PRODUCTION) * cost;
 }
 
 //////////////////////////////////////////////////////////////////////////

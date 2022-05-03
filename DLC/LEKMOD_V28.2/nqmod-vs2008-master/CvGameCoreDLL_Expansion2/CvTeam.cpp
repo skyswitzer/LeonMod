@@ -7839,6 +7839,6 @@ void CvTeam::AddNotification(NotificationTypes eNotificationType, const char* st
 		if(!loopPlayer.GetNotifications())
 			continue;
 
-		loopPlayer.GetNotifications()->Add(eNotificationType, strMessage, strSummary, iX, iY, iGameDataIndex, iExtraGameData, logOnly);
+		loopPlayer.GetNotifications()->Add(eNotificationType, strMessage, strSummary, iX, iY, iGameDataIndex, iExtraGameData, logOnly ? NotifyLogOnly : NotifyBoth);
 	}
 }

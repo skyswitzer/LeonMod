@@ -373,8 +373,8 @@ function GetHelpTextForBuilding(iBuildingID, bExcludeName, bExcludeHeader, bNoMa
 		end
 	end
 	
-	-- append some additional help about the building
-	local additionalInfo = Game.GetAdditionalHelpBuilding(iBuildingID);
+	-- append some additional help
+	local additionalInfo = Game.GetAdditionalHelpBuilding(0, Game.GetActivePlayer(), iBuildingID);
 	strHelpText = strHelpText .. additionalInfo;
 	
 	return strHelpText;
@@ -491,6 +491,10 @@ function GetHelpTextForProcess(iProcessID, bIncludeRequirementsInfo)
 			strHelpText = strHelpText .. pLeague:GetProjectDetails(GameInfo.LeagueProjects[tProject.Type].ID, Game.GetActivePlayer());
 		end
 	end
+	
+	-- append some additional help
+	local additionalInfo = Game.GetAdditionalHelpBuilding(3, Game.GetActivePlayer(), iProcessID);
+	strHelpText = strHelpText .. additionalInfo;
 
 	return strHelpText;
 end

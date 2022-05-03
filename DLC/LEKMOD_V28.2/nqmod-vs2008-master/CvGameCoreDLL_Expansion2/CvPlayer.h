@@ -265,6 +265,9 @@ public:
 
 	long long GetCompetitionHammersT100(const HammerCompetitionTypes eType) const;
 	void ChangeCompetitionHammersT100(const HammerCompetitionTypes eType, const long long iChangeT100);
+	// cost of iTH trade route in hammers (0th is first)
+	// already game speed adjusted
+	int GetTradeRouteCost(const int ithTradeRoute) const;
 
 	int countCityFeatures(FeatureTypes eFeature) const;
 	int countNumBuildings(BuildingTypes eBuilding) const;

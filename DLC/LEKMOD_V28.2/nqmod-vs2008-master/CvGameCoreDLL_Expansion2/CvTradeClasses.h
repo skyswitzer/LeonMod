@@ -351,7 +351,7 @@ public:
 	bool PlunderTradeRoute(int iTradeConnectionID);
 	// trade routes with any foriegn city (minor or major)
 	int GetNumForeignTradeRoutes(PlayerTypes ePlayer);
-#ifdef AUI_CONSTIFY
+
 	int GetTradeRouteRange(DomainTypes eDomain, const CvCity* pOriginCity) const;
 	int GetTradeRouteSpeed(DomainTypes eDomain) const;
 
@@ -360,18 +360,7 @@ public:
 	int GetNumTradeRoutesRemaining(bool bContinueTraining) const;
 
 	int GetNumDifferentTradingPartners() const;
-#else
-	int GetTradeRouteRange (DomainTypes eDomain, CvCity* pOriginCity);
-	int GetTradeRouteSpeed (DomainTypes eDomain);
 
-	uint GetNumTradeRoutesPossible (void);
-	int GetNumTradeRoutesUsed (bool bContinueTraining);
-	int GetNumTradeRoutesRemaining (bool bContinueTraining);
-
-	int GetNumDifferentTradingPartners (void);
-#ifdef NQ_FAITH_PER_FOREIGN_TRADE_ROUTE
-	// trade routes that are not internal
-#endif
 #endif
 
 	void UpdateTradeConnectionWasPlundered();
