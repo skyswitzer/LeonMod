@@ -2982,10 +2982,12 @@ int CvCityCitizens::GetNumSpecialistsAllowedByBuilding(const CvBuildingEntry& kB
 	return kBuilding.GetSpecialistCount();
 }
 
-const int minBlueCollar = 8;
-const int divisor = 2;
 int CvCityCitizens::NeededPopForOneMoreSpecialist() const
 {
+	const PlayerTypes ePlayer = GetCity()->getOwner();
+	const int minBlueCollar = GC.getCITIZENS_MIN_FOR_SPECIALIST(ePlayer);
+	const int divisor = GC.getCITIZENS_PER_SPECIALIST(ePlayer);
+
 	const int start = minBlueCollar + 1;
 	const int pop = GetCity()->getPopulation();
 
@@ -3000,7 +3002,11 @@ int CvCityCitizens::NeededPopForOneMoreSpecialist() const
 
 bool CvCityCitizens::CanAddOneMoreSpecialist() const
 {
+	const PlayerTypes ePlayer = GetCity()->getOwner();
+	const int minBlueCollar = GC.getCITIZENS_MIN_FOR_SPECIALIST(ePlayer);
+	const int divisor = GC.getCITIZENS_PER_SPECIALIST(ePlayer);
 	const int currentSpecialists = GetTotalSpecialistCount();
+
 	const int specialistPool = max(0, GetCity()->getPopulation() - minBlueCollar);
 	const int maxSpecialists = ceil((float)specialistPool / (float)divisor);
 

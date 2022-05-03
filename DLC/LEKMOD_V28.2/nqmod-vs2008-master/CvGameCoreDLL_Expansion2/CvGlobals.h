@@ -281,6 +281,7 @@ public:
 	// online: 0.5,  normal: 1,  etc
 	float adjustForSpeed(YieldTypes type);
 	// puts a message in the players log and on the screen
+	void messageAllPlayers(const char* strString);
 	void messagePlayer(const PlayerTypes ePlayer, const char* strString);
 	void messagePlayer(
 		uint uiParentEvent, PlayerTypes ePlayer, bool bForce, int iLength, const char* strString, LPCTSTR pszSound = NULL,
@@ -964,7 +965,8 @@ public:
 	GD_INT_DEF(NEW_SCORE_BELIEF_MULTIPLIER);
 #endif
 
-
+	int getCITIZENS_MIN_FOR_SPECIALIST(const PlayerTypes ePlayer) const;
+	int getCITIZENS_PER_SPECIALIST(const PlayerTypes ePlayer) const;
 	// score per turn for being an ally
 	int getDIPLOMATIC_INFLUENCE_PER_TURN_ALLY(const PlayerTypes eMinor, const PlayerTypes ePlayer, const bool isCaptured = false) const;
 	// amount of dioplomatic influence per quest you complete
