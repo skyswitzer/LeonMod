@@ -2555,6 +2555,11 @@ uint CvGlobals::messageCity(
 	logSpecificMessage(ePlayer, strString);
 	return value;
 }
+void CvGlobals::messageAllPlayers(const char* strString)
+{
+	for (int i = 0; i < MAX_MAJOR_CIVS; ++i)
+		messagePlayer((PlayerTypes)i, strString);
+}
 void CvGlobals::messagePlayer(const PlayerTypes ePlayer, const char* strString)
 {
 	messagePlayer(0, ePlayer, false, GC.getEVENT_MESSAGE_TIME(), strString);

@@ -2645,7 +2645,7 @@ uint CvUnitCombat::ApplyNuclearExplosionDamage(uint uiParentEventID, CvPlot* pkT
 }
 
 // find how much population to remove from this city
-int getNukePopulationDamage(CvCity* nukedCity, int dist)
+int getNukePopulationDamage(const CvCity* nukedCity, const int dist)
 {
 	float distanceReduction = 0.50f;
 
@@ -2661,7 +2661,7 @@ int getNukePopulationDamage(CvCity* nukedCity, int dist)
 }
 
 // damage done to units from a nuke
-int getNukeUnitDamage(int dist, CvCity* cityOnHex)
+int getNukeUnitDamage(int dist, const CvCity* cityOnHex)
 {
 	float distanceReduction = 0.50f;
 
@@ -2677,7 +2677,7 @@ int getNukeUnitDamage(int dist, CvCity* cityOnHex)
 }
 
 // find how many hitpoints should be removed from this city
-int getNukeCityHitpointDamage(CvCity* nukedCity, int dist)
+int getNukeCityHitpointDamage(const CvCity* nukedCity, const int dist)
 {
 	float distanceReduction = 0.50f;
 
@@ -2815,59 +2815,58 @@ uint CvUnitCombat::ApplyNuclearExplosionDamage(uint uiParentEventID, const CvCom
 		if(kEntry.IsCity())
 		{
 			CvCity* pkCity = GET_PLAYER(kEntry.GetPlayer()).getCity(kEntry.GetCityID());
-			if(pkCity)
+			if (pkCity)
 			{
-				int damage = kEntry.GetFinalDamage();
-				{
-					string message = "The City of {1_UnitName} was hit by a {2_attacker} nuclear weapon and took {3_damage} damage!";
-					CvString messageFull = GetLocalizedText(message.c_str(), pkCity->getNameKey(), attackerName, damage);
-					GC.messagePlayer(uiParentEventID, pkAttacker->getOwner(), true, GC.getEVENT_MESSAGE_TIME(), messageFull);
+				const int dist = hexDistance(pkCity->plot()->getX() - pkTargetPlot->getX(), pkCity->plot()->getY() - pkTargetPlot->getY());
+				const int popToRemove = getNukePopulationDamage(pkCity, dist);
+				const int damage = kEntry.GetFinalDamage();
+				const bool willDestroy = damage >= pkCity->GetMaxHitPoints() && !pkCity->IsOriginalCapital();
+
+				{ // message all players about city nuke
+					string message;
+					CvString messageFull;
+					if (willDestroy)
+					{
+						message = "The City of {1_city} was hit by a {2_attacker} nuclear weapon and completely destroyed!";
+						messageFull = GetLocalizedText(message.c_str(), pkCity->getNameKey(), attackerName);
+					}
+					else if (popToRemove > 0)
+					{
+						message = "The City of {1_city} was hit by a {2_attacker} nuclear weapon, killing {3_pop} [ICON_CITIZEN] million inhabitants!";
+						messageFull = GetLocalizedText(message.c_str(), pkCity->getNameKey(), attackerName, popToRemove);
+					}
+					else
+					{
+						message = "The City of {1_city} was hit by a {2_attacker} nuclear weapon!";
+						messageFull = GetLocalizedText(message.c_str(), pkCity->getNameKey(), attackerName);
+					}
+					GC.messageAllPlayers(messageFull);
 				}
 
-				int dist = hexDistance(pkCity->plot()->getX() - pkTargetPlot->getX(), pkCity->plot()->getY() - pkTargetPlot->getY());
 				pkCity->setCombatUnit(NULL);
 
 				if(eAttackerOwner == NO_PLAYER || pkCity->getOwner() != eAttackerOwner)
 					uiOpposingDamageCount++;
 
-				if(damage >= pkCity->GetMaxHitPoints() && !pkCity->IsOriginalCapital())
+				if(willDestroy)
 				{
-					{
-						string message = "{1_city} was completely destroyed in the nuclear attack!";
-						CvString messageFull = GetLocalizedText(message.c_str(), pkCity->getNameKey());
-						GC.messagePlayer(uiParentEventID, pkCity->getOwner(), true, GC.getEVENT_MESSAGE_TIME(), messageFull);
-					}
 					auto_ptr<ICvCity1> pkDllCity(new CvDllCity(pkCity));
 					gDLL->GameplayCitySetDamage(pkDllCity.get(), 0, pkCity->getDamage()); // to stop the fires
 					gDLL->GameplayCityDestroyed(pkDllCity.get(), NO_PLAYER);
 
-					PlayerTypes eOldOwner = pkCity->getOwner();
+					const PlayerTypes eOldOwner = pkCity->getOwner();
 					pkCity->kill();
 
-					// slewis - check for killing a player
-#ifdef AUI_WARNING_FIXES
 					if (pkAttacker)
-#endif
-					GET_PLAYER(pkAttacker->getOwner()).CheckForMurder(eOldOwner);
+						GET_PLAYER(pkAttacker->getOwner()).CheckForMurder(eOldOwner);
 				}
 				else
 				{
-					int popToRemove = getNukePopulationDamage(pkCity, dist);
 					pkCity->changePopulation(-popToRemove);
-					if (popToRemove > 0)
-					{
-						string message = "{1_city} lost {2_pop} [ICON_CITIZEN] million inhabitants in the nuclear attack!";
-						CvString messageFull = GetLocalizedText(message.c_str(), pkCity->getNameKey(), popToRemove);
-						GC.messagePlayer(uiParentEventID, pkCity->getOwner(), true, GC.getEVENT_MESSAGE_TIME(), messageFull);
-					}
+					pkCity->setDamage(damage); // Add damage to the city
 
-					// Add damage to the city
-					pkCity->setDamage(damage);
-
-#ifdef AUI_WARNING_FIXES
 					if (pkAttacker)
-#endif
-					GET_PLAYER(pkCity->getOwner()).GetDiplomacyAI()->ChangeNumTimesNuked(pkAttacker->getOwner(), 1);
+						GET_PLAYER(pkCity->getOwner()).GetDiplomacyAI()->ChangeNumTimesNuked(pkAttacker->getOwner(), 1);
 				}
 			}
 		}
