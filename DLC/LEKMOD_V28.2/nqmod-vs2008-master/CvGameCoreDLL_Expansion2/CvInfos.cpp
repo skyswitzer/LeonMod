@@ -6142,7 +6142,8 @@ FDataStream& operator>>(FDataStream& loadFrom, CvSeaLevelInfo& writeTo)
 CvProcessInfo::CvProcessInfo() :
 	m_iTechPrereq(NO_TECH),
 	m_paiProductionToYieldModifier(NULL),
-	m_paiFlavorValue(NULL)
+	m_paiFlavorValue(NULL),
+	m_eHammerCompetition(NO_HAMMERCOMPETITION)
 {
 }
 //------------------------------------------------------------------------------
@@ -6155,6 +6156,10 @@ CvProcessInfo::~CvProcessInfo()
 int CvProcessInfo::getTechPrereq() const
 {
 	return m_iTechPrereq;
+}
+HammerCompetitionTypes CvProcessInfo::getHammerCompetition() const
+{
+	return m_eHammerCompetition;
 }
 
 //------------------------------------------------------------------------------
@@ -6182,6 +6187,8 @@ bool CvProcessInfo::CacheResults(Database::Results& kResults, CvDatabaseUtility&
 
 	const char* szTechPrereq = kResults.GetText("TechPrereq");
 	m_iTechPrereq = GC.getInfoTypeForString(szTechPrereq, true);
+
+	m_eHammerCompetition = (HammerCompetitionTypes)kResults.GetInt("HammerCompetition");
 
 	const char* szProcessType = GetType();
 

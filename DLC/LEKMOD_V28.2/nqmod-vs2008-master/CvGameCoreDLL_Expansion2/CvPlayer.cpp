@@ -532,6 +532,7 @@ CvPlayer::CvPlayer() :
 
 	m_aiGreatWorkYieldChange.clear();
 	m_aiSiphonLuxuryCount.clear();
+	m_competitionT100.clear();
 
 	reset(NO_PLAYER, true);
 }
@@ -1213,6 +1214,9 @@ void CvPlayer::reset(PlayerTypes eID, bool bConstructorCall)
 
 	m_aiSiphonLuxuryCount.clear();
 	m_aiSiphonLuxuryCount.resize(MAX_PLAYERS, 0);
+
+	m_competitionT100.clear();
+	m_competitionT100.resize(NUM_HAMMERCOMPETITION_TYPES, 0);
 
 	m_aOptions.clear();
 
@@ -6104,6 +6108,20 @@ int CvPlayer::GetScientificInfluenceNeeded() const
 	int targetValue = 3000;
 	targetValue -= ((float)targetValue / 1000.0f * (float)GC.getGame().GetVpAdjustment());
 	return targetValue;
+}
+long long CvPlayer::GetCompetitionHammersT100(const HammerCompetitionTypes eType) const
+{
+	if (eType < 0 || eType >= m_competitionT100.size())
+		return -1;
+
+	return m_competitionT100[eType];
+}
+void CvPlayer::ChangeCompetitionHammersT100(const HammerCompetitionTypes eType, const long long iChangeT100)
+{
+	if (eType < 0 || eType >= m_competitionT100.size() || iChangeT100 == 0 )
+		return;
+
+	m_competitionT100[eType] += iChangeT100;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -24866,6 +24884,7 @@ void CvPlayer::Read(FDataStream& kStream)
 	kStream >> m_iScenarioScore4;
 	kStream >> m_iDiplomaticInfluence;
 	kStream >> m_iScientificInfluence;
+	kStream >> m_competitionT100;
 	kStream >> m_iCombatExperience;
 	kStream >> m_iNavalCombatExperience;
 	kStream >> m_iLifetimeCombatExperience;
@@ -25432,6 +25451,7 @@ void CvPlayer::Write(FDataStream& kStream) const
 	kStream << m_iScenarioScore4;
 	kStream << m_iDiplomaticInfluence;
 	kStream << m_iScientificInfluence;
+	kStream << m_competitionT100;
 	kStream << m_iCombatExperience;
 	kStream << m_iNavalCombatExperience;
 	kStream << m_iLifetimeCombatExperience;

@@ -2723,10 +2723,16 @@ CvString CvPlayerCulture::GetTourismModifierWith_Tooltip(const PlayerTypes eOthe
 			addColoredValue(stream, mod, "from more Specialist Great Works");
 			totalLinearModT100 += mod;
 		}
-		
+
 		{ // big city
 			const int mod = GetTourismModifierLargeCityT100(eOtherPlayer);
 			addColoredValue(stream, mod, "from having a Larger City");
+			totalLinearModT100 += mod;
+		}
+
+		{ // better art fair
+			const int mod = GetTourismModifierHammerCompetitionT100(eOtherPlayer);
+			addColoredValue(stream, mod, "from a better {ARTS_FAIR_TEXT}");
 			totalLinearModT100 += mod;
 		}
 
@@ -2879,6 +2885,18 @@ double CvPlayerCulture::GetTourismModifierLargeCityT100(const PlayerTypes eOther
 
 	// if our happiness higher
 	if (m_pPlayer->GetLargestCityPop() > GET_PLAYER(eOtherPlayer).GetLargestCityPop())
+	{
+		modT100 += 10;
+	}
+
+	return modT100;
+}
+
+double CvPlayerCulture::GetTourismModifierHammerCompetitionT100(const PlayerTypes eOtherPlayer) const
+{
+	double modT100 = 0;
+
+	if (m_pPlayer->GetCompetitionHammersT100(HAMMERCOMPETITION_CULTURAL_INFLUENCE) > GET_PLAYER(eOtherPlayer).GetCompetitionHammersT100(HAMMERCOMPETITION_CULTURAL_INFLUENCE))
 	{
 		modT100 += 10;
 	}

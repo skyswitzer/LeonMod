@@ -15720,13 +15720,14 @@ void CvCity::doProcess()
 	ProcessTypes eProcess = getProductionProcess();
 	CvAssertMsg(eProcess != NO_PROCESS, "Invalid Process for city production. Please send Anton your save file and version.");
 	if (eProcess == NO_PROCESS) return;
+#ifdef AUI_YIELDS_APPLIED_AFTER_TURN_NOT_BEFORE
+	const int hammersT100 = getCachedProductionT100ForThisTurn();
+#else
+	const int hammersT100 = getCurrentProductionDifferenceTimes100(false, true);
+#endif
 
 	// Contribute production to a League project
-#ifdef AUI_WARNING_FIXES
-	for (uint iI = 0; iI < GC.getNumLeagueProjectInfos(); iI++)
-#else
 	for(int iI = 0; iI < GC.getNumLeagueProjectInfos(); iI++)
-#endif
 	{
 		LeagueProjectTypes eLeagueProject = (LeagueProjectTypes) iI;
 		CvLeagueProjectEntry* pInfo = GC.getLeagueProjectInfo(eLeagueProject);
@@ -15734,13 +15735,16 @@ void CvCity::doProcess()
 		{
 			if (pInfo->GetProcess() == eProcess)
 			{
-#ifdef AUI_YIELDS_APPLIED_AFTER_TURN_NOT_BEFORE
-				GC.getGame().GetGameLeagues()->DoLeagueProjectContribution(getOwner(), eLeagueProject, getCachedProductionT100ForThisTurn());
-#else
-				GC.getGame().GetGameLeagues()->DoLeagueProjectContribution(getOwner(), eLeagueProject, getCurrentProductionDifferenceTimes100(false, true));
-#endif
+				GC.getGame().GetGameLeagues()->DoLeagueProjectContribution(getOwner(), eLeagueProject, hammersT100);
 			}
 		}
+	}
+
+	// contribute to a global hammer competition
+	const CvProcessInfo* pkProcessInfo = GC.getProcessInfo(eProcess);
+	if (pkProcessInfo)
+	{
+		GET_PLAYER(getOwner()).ChangeCompetitionHammersT100(pkProcessInfo->getHammerCompetition(), hammersT100);
 	}
 }
 

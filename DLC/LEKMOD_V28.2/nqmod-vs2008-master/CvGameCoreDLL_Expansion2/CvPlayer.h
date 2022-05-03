@@ -262,7 +262,9 @@ public:
 	void ChangeScientificInfluence(const int iChange);
 	// how much needed to achieve condition
 	int GetScientificInfluenceNeeded() const;
-	// End Civ 5 Score
+
+	long long GetCompetitionHammersT100(const HammerCompetitionTypes eType) const;
+	void ChangeCompetitionHammersT100(const HammerCompetitionTypes eType, const long long iChangeT100);
 
 	int countCityFeatures(FeatureTypes eFeature) const;
 	int countNumBuildings(BuildingTypes eBuilding) const;
@@ -2051,6 +2053,8 @@ protected:
 	FAutoVariable<int, CvPlayer> m_iDiplomaticInfluence;
 	// science victory progress
 	FAutoVariable<int, CvPlayer> m_iScientificInfluence;
+	// competition progress
+	vector<long long> m_competitionT100;
 	FAutoVariable<int, CvPlayer> m_iScoreFromFutureTech;
 	FAutoVariable<int, CvPlayer> m_iCombatExperience;
 	int m_iLifetimeCombatExperience;

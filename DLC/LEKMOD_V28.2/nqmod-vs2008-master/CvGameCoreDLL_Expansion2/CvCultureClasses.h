@@ -289,6 +289,7 @@ public:
 	double GetTourismModifierHappinessT100(const PlayerTypes eOtherPlayer) const;
 	// who has a bigger city?
 	double GetTourismModifierLargeCityT100(const PlayerTypes eOtherPlayer) const;
+	double GetTourismModifierHammerCompetitionT100(const PlayerTypes eOtherPlayer) const;
 	// who has more special great works?
 	double GetTourismModifierMoreSpecialGreatWorksT100(const PlayerTypes eOtherPlayer) const;
 	// adjust for number of cities

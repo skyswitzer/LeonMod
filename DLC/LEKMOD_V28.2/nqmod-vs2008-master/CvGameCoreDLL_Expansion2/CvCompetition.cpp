@@ -44,7 +44,7 @@ struct TradeRoutes : CompetitionDelegates
 	virtual string Desc(const CvCompetition& rCompetition, const PlayerTypes ePlayer) const
 	{
 		stringstream ss;
-		ss << "The civilization with the most International {TRADE_ROUTE}s (routes ending on another Civilization or City State)";
+		ss << "The civilization with the most International {TRADE_ROUTE}s. (routes ending on another Civilization or City State)";
 		ss << tryAddCurrentScore(rCompetition, ePlayer);
 		return ss.str();
 	}
@@ -72,7 +72,7 @@ struct Allies : CompetitionDelegates
 	virtual string Desc(const CvCompetition& rCompetition, const PlayerTypes ePlayer) const
 	{
 		stringstream ss;
-		ss << "The civilization with the most {CITY_STATE}s controlled (allies or conquered)";
+		ss << "The civilization with the most {CITY_STATE}s controlled. (allies or conquered)";
 		ss << tryAddCurrentScore(rCompetition, ePlayer);
 		return ss.str();
 	}
@@ -101,7 +101,7 @@ struct GoldGifts : CompetitionDelegates
 	virtual string Desc(const CvCompetition& rCompetition, const PlayerTypes ePlayer) const
 	{
 		stringstream ss;
-		ss << "The civilization with the most total [ICON_GOLD] Gold gifted to city states";
+		ss << "The civilization with the most total [ICON_GOLD] Gold gifted to city states.";
 		ss << tryAddCurrentScore(rCompetition, ePlayer);
 		return ss.str();
 	}
@@ -123,13 +123,13 @@ struct Nukes : CompetitionDelegates
 	virtual string DescReward(const CvCompetition& rCompetition) const
 	{
 		stringstream ss;
-		ss << "+20 {DIPLOMATIC_INFLUENCE}";
+		ss << "+50 {DIPLOMATIC_INFLUENCE}";
 		return ss.str();
 	}
 	virtual string Desc(const CvCompetition& rCompetition, const PlayerTypes ePlayer) const
 	{
 		stringstream ss;
-		ss << "The civilization with the largest [ICON_RES_URANIUM] Nuclear Arsenal";
+		ss << "The civilization with the most [ICON_RES_URANIUM] nuclear weapons.";
 		ss << tryAddCurrentScore(rCompetition, ePlayer);
 		return ss.str();
 	}
@@ -145,7 +145,7 @@ struct ScienceSpecialists : CompetitionDelegates
 	virtual string DescShort(int iWinningScore) const
 	{
 		stringstream ss;
-		ss << "Most [ICON_GREAT_PEOPLE] Scientists: [COLOR_POSITIVE_TEXT]" << iWinningScore << "[ENDCOLOR]";
+		ss << "Most [ICON_SPECIALIST_SCIENTIST] Scientist Specialists: [COLOR_POSITIVE_TEXT]" << iWinningScore << "[ENDCOLOR]";
 		return ss.str();
 	}
 	virtual string DescReward(const CvCompetition& rCompetition) const
@@ -157,7 +157,7 @@ struct ScienceSpecialists : CompetitionDelegates
 	virtual string Desc(const CvCompetition& rCompetition, const PlayerTypes ePlayer) const
 	{
 		stringstream ss;
-		ss << "The civilization with the most working science specialists";
+		ss << "The civilization with the most citizens working as science specialists.";
 		ss << tryAddCurrentScore(rCompetition, ePlayer);
 		return ss.str();
 	}
@@ -167,14 +167,74 @@ struct ScienceSpecialists : CompetitionDelegates
 		return iScore;
 	}
 };
+// COMPETITION_SCIENCE_COMPETITION
+struct ScienceCompetition : CompetitionDelegates
+{
+	virtual string DescShort(int iWinningScore) const
+	{
+		stringstream ss;
+		ss << "Best {SCIENCE_FAIR}: [COLOR_POSITIVE_TEXT]" << iWinningScore << "[ENDCOLOR]";
+		return ss.str();
+	}
+	virtual string DescReward(const CvCompetition& rCompetition) const
+	{
+		stringstream ss;
+		ss << "+10 {SCIENTIFIC_INSIGHT}";
+		return ss.str();
+	}
+	virtual string Desc(const CvCompetition& rCompetition, const PlayerTypes ePlayer) const
+	{
+		stringstream ss;
+		ss << "The civilization that has devoted the most [ICON_PRODUCTION] Production towards the {SCIENCE_FAIR}.";
+		ss << tryAddCurrentScore(rCompetition, ePlayer) << "[ICON_PRODUCTION]";
+		return ss.str();
+	}
+	virtual int EvalScore(const CvPlayer& player) const
+	{
+		int iScore = player.GetCompetitionHammersT100(HAMMERCOMPETITION_SCIENTIFIC_INSIGHT) / 100;
+		return iScore;
+	}
+};
+// COMPETITION_CULTURE_COMPETITION
+struct CulturalCompetition : CompetitionDelegates
+{
+	virtual string DescShort(int iWinningScore) const
+	{
+		stringstream ss;
+		ss << "Best {ARTS_FAIR}: [COLOR_POSITIVE_TEXT]" << iWinningScore << "[ENDCOLOR]";
+		return ss.str();
+	}
+	virtual string DescReward(const CvCompetition& rCompetition) const
+	{
+		stringstream ss;
+		ss << "+10% {CULTURAL_INFLUENCE}";
+		return ss.str();
+	}
+	virtual string Desc(const CvCompetition& rCompetition, const PlayerTypes ePlayer) const
+	{
+		stringstream ss;
+		ss << "The civilization that has devoted more [ICON_PRODUCTION] Production towards the {ARTS_FAIR} ";
+		ss << "will receive the influence reward over any civilization that has a lower score.";
+		ss << tryAddCurrentScore(rCompetition, ePlayer) << "[ICON_PRODUCTION]";
+		return ss.str();
+	}
+	virtual int EvalScore(const CvPlayer& player) const
+	{
+		int iScore = player.GetCompetitionHammersT100(HAMMERCOMPETITION_CULTURAL_INFLUENCE) / 100;
+		return iScore;
+	}
+};
 void CvGlobals::initCompetitions()
 {
+	GetDelegatesFor.push_back(new CulturalCompetition());
+
 	GetDelegatesFor.push_back(new TradeRoutes());
 	GetDelegatesFor.push_back(new Allies());
 	GetDelegatesFor.push_back(new GoldGifts());
 	GetDelegatesFor.push_back(new Nukes());
 
 	GetDelegatesFor.push_back(new ScienceSpecialists());
+	GetDelegatesFor.push_back(new ScienceCompetition());
 }
 void CvGlobals::uninitCompetitions()
 {

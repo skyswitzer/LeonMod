@@ -1963,6 +1963,7 @@ public:
 	virtual ~CvProcessInfo();
 
 	int getTechPrereq() const;
+	HammerCompetitionTypes getHammerCompetition() const;
 
 	// Arrays
 	int getProductionToYieldModifier(int i) const;
@@ -1972,6 +1973,7 @@ public:
 
 protected:
 	int m_iTechPrereq;
+	HammerCompetitionTypes m_eHammerCompetition;
 
 	// Arrays
 	int* m_paiProductionToYieldModifier;
