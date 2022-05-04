@@ -352,14 +352,60 @@ int CvPlayer::GetExtraYieldForBuilding
 	{
 		const CvCity& city = *pCity;
 
-
-		{ // BELIEF_PEACE_GARDENS - adds +1 scientific insight to national college wings
+		
+		
+		{ // BELIEF_PEACE_GARDENS - adds +1 scientific insight, 10% Science to national college wings
 			const bool hasBeliefPeaceGardens = city.HasBelief("BELIEF_PEACE_GARDENZ");
 			const bool isNationalCollege1 = eBuildingClass == BuildingClass("BUILDINGCLASS_NATIONAL_COLLEGE");
 			const bool isNationalCollege2 = eBuildingClass == BuildingClass("BUILDINGCLASS_NATIONAL_SCIENCE_1");
 			const bool isNationalCollege3 = eBuildingClass == BuildingClass("BUILDINGCLASS_NATIONAL_SCIENCE_2");
 			if (eYieldType == YIELD_SCIENTIFIC_INSIGHT && !isPercentMod && hasBeliefPeaceGardens && (isNationalCollege1 || isNationalCollege2 || isNationalCollege3))
 				yieldChange += 1; 
+			if (eYieldType == YIELD_SCIENCE && isPercentMod && hasBeliefPeaceGardens && (isNationalCollege1 || isNationalCollege2 || isNationalCollege3))
+				yieldChange += 10;
+		}
+
+		{// BELIEF_RELIGIOUS_FART +5% C, +10% Tourism
+			const bool hasBeliefReligiousArt = city.HasBelief("BELIEF_RELIGIOUS_FART");
+			const bool isHermitage = eBuildingClass == BuildingClass("BUILDINGCLASS_HERMITAGE");
+			if (eYieldType == YIELD_CULTURE && isPercentMod && isHermitage && hasBeliefReligiousArt)
+				yieldChange += 10;
+			if (eYieldType == YIELD_TOURISM && isPercentMod && isHermitage && hasBeliefReligiousArt)
+				yieldChange += 10;
+		}
+
+		{// BUILDINGCLASS_HOTEL +1 C, +1 Tourism and +2% C, +2% Tourism for every 5 citizens in a city.
+			const bool isHotel = eBuildingClass == BuildingClass("BUILDINGCLASS_HOTEL");
+			const int cityPopulation = city.getPopulation();
+			if (eYieldType == YIELD_CULTURE && !isPercentMod && isHotel)
+				yieldChange += (cityPopulation / 5);
+			if (eYieldType == YIELD_TOURISM && !isPercentMod && isHotel)
+				yieldChange += (cityPopulation / 5);
+			if (eYieldType == YIELD_CULTURE && isPercentMod && isHotel)
+				yieldChange += (2 * (cityPopulation / 5));
+			if (eYieldType == YIELD_TOURISM && isPercentMod && isHotel)
+				yieldChange += (2 * (cityPopulation / 5));
+		}
+		{// BUILDINGCLASS_BROADCAST_TOWER +2 C, Tourism and +2% C, Tourism for every World and National Wonder.
+			const bool isBroadcastTower = eBuildingClass == BuildingClass("BUILDINGCLASS_BROADCAST_TOWER");
+			const int numWorldWondersInCity = city.getNumWorldWonders();
+			const int numNationalWondersInCity = city.getNumNationalWonders();
+			if (eYieldType == YIELD_CULTURE && !isPercentMod && isBroadcastTower)
+				yieldChange += (2 * numWorldWondersInCity);
+			if (eYieldType == YIELD_CULTURE && !isPercentMod && isBroadcastTower)
+				yieldChange += (2 * numNationalWondersInCity);
+			if (eYieldType == YIELD_TOURISM && !isPercentMod && isBroadcastTower)
+				yieldChange += (2 * numWorldWondersInCity);
+			if (eYieldType == YIELD_TOURISM && !isPercentMod && isBroadcastTower)
+				yieldChange += (2 * numNationalWondersInCity);
+			if (eYieldType == YIELD_CULTURE && isPercentMod && isBroadcastTower)
+				yieldChange += (2 * numWorldWondersInCity);
+			if (eYieldType == YIELD_CULTURE && isPercentMod && isBroadcastTower)
+				yieldChange += (2 * numNationalWondersInCity);
+			if (eYieldType == YIELD_TOURISM && isPercentMod && isBroadcastTower)
+				yieldChange += (2 * numWorldWondersInCity);
+			if (eYieldType == YIELD_TOURISM && isPercentMod && isBroadcastTower)
+				yieldChange += (2 * numNationalWondersInCity);
 		}
 
 	}
@@ -545,7 +591,7 @@ int CvPlayer::GetExtraYieldForBuilding
 		if (eYieldType == YIELD_SCIENTIFIC_INSIGHT && !isPercentMod && isRecyclingCenter)
 			yieldChange += 1;
 	}
-		
+	
 	return yieldChange;
 }
 
@@ -591,17 +637,39 @@ int CvPlayerTrade::GetTradeConnectionValueExtra(const TradeConnection& kTradeCon
 	const bool hasSilkRoad = playerOrigin.HasPolicy("POLICY_CARAVANS");
 	const bool hasMerchantConfederacy = playerOrigin.HasPolicy("POLICY_MERCHANT_CONFEDERACY");
 	// const bool isGrocer = BuildingClass("BUILDINGCLASS_GROCER");
+	const bool hasMerchantsGuild = cityOrigin->GetCityBuildings()->HasBuildingClass(BuildingClass("BUILDINGCLASS_CARAVANSARY"));
+	const bool hasMarket = cityOrigin->GetCityBuildings()->HasBuildingClass(BuildingClass("BUILDINGCLASS_MARKET"));
+	const bool hasBank = cityOrigin->GetCityBuildings()->HasBuildingClass(BuildingClass("BUILDINGCLASS_BANK"));
+	const bool hasStockExchange = cityOrigin->GetCityBuildings()->HasBuildingClass(BuildingClass("BUILDINGCLASS_STOCK_EXCHANGE"));
+	const bool hasMint = cityOrigin->GetCityBuildings()->HasBuildingClass(BuildingClass("BUILDINGCLASS_MINT"));
+	const bool hasBrewery = cityOrigin->GetCityBuildings()->HasBuildingClass(BuildingClass("BUILDINGCLASS_BREWERY"));
+	const bool hasStoneWorks = cityOrigin->GetCityBuildings()->HasBuildingClass(BuildingClass("BUILDINGCLASS_STONE_WORKS"));
+	const bool hasTextileMill = cityOrigin->GetCityBuildings()->HasBuildingClass(BuildingClass("BUILDINGCLASS_TEXTILE"));
+	const bool hasGrocer = cityOrigin->GetCityBuildings()->HasBuildingClass(BuildingClass("BUILDINGCLASS_GROCER"));
+	const bool hasCenserMaker = cityOrigin->GetCityBuildings()->HasBuildingClass(BuildingClass("BUILDINGCLASS_CENSER"));
+	const bool hasGemcutter = cityOrigin->GetCityBuildings()->HasBuildingClass(BuildingClass("BUILDINGCLASS_GEMCUTTER"));
 
 	if (!cityOrigin || !cityDest) return 0;
 
 
 	
-	if (isInternal) // true if this is an internal trade route
+	if (isInternal && !bIsOwner) // true if this is an internal trade route and applies changes to destination city
 	{
-	
-		// Come back and fix this later
-		//if (eYieldType == YIELD_FOOD && isGrocer)
-		//	yieldChange += 1;
+			
+		if (eYieldType == YIELD_GOLD && hasMint)
+			yieldChange += 2;
+		if (eYieldType == YIELD_GOLD && hasBrewery)
+			yieldChange += 2;
+		if (eYieldType == YIELD_PRODUCTION && hasStoneWorks)
+			yieldChange += 1;
+		if (eYieldType == YIELD_PRODUCTION && hasTextileMill)
+			yieldChange += 1;
+		if (eYieldType == YIELD_FOOD && hasGrocer)
+			yieldChange += 2;
+		if (eYieldType == YIELD_CULTURE && hasCenserMaker)
+			yieldChange += 1;
+		if (eYieldType == YIELD_CULTURE && hasGemcutter)
+			yieldChange += 1;
 
 	}
 	else if (isDestMinor) // destination is City State
@@ -612,14 +680,58 @@ int CvPlayerTrade::GetTradeConnectionValueExtra(const TradeConnection& kTradeCon
 			yieldChange += 2;
 		if (eYieldType == YIELD_PRODUCTION && hasMerchantConfederacy)
 			yieldChange += 2;
+		if (eYieldType == YIELD_DIPLOMATIC_SUPPORT && hasMerchantsGuild)
+			yieldChange += 1;
+		if (eYieldType == YIELD_DIPLOMATIC_SUPPORT && hasMarket)
+			yieldChange += 1;
+		if (eYieldType == YIELD_DIPLOMATIC_SUPPORT && hasBank)
+			yieldChange += 1;
+		if (eYieldType == YIELD_DIPLOMATIC_SUPPORT && hasStockExchange)
+			yieldChange += 1;
+		if (eYieldType == YIELD_DIPLOMATIC_SUPPORT && hasMint)
+			yieldChange += 1;
+		if (eYieldType == YIELD_DIPLOMATIC_SUPPORT && hasBrewery)
+			yieldChange += 1;
+		if (eYieldType == YIELD_DIPLOMATIC_SUPPORT && hasStoneWorks)
+			yieldChange += 1;
+		if (eYieldType == YIELD_DIPLOMATIC_SUPPORT && hasTextileMill)
+			yieldChange += 1;
+		if (eYieldType == YIELD_DIPLOMATIC_SUPPORT && hasGrocer)
+			yieldChange += 1;
+		if (eYieldType == YIELD_DIPLOMATIC_SUPPORT && hasCenserMaker)
+			yieldChange += 1;
+		if (eYieldType == YIELD_DIPLOMATIC_SUPPORT && hasGemcutter)
+			yieldChange += 1;
 
 	}
-	else // destination is another civ
+	else // destination is another civ (not city-state)
 	{
 		if (eYieldType == YIELD_FOOD && hasSilkRoad)
 			yieldChange += 3;
 		if (eYieldType == YIELD_PRODUCTION && hasSilkRoad)
 			yieldChange += 3;
+		if (eYieldType == YIELD_DIPLOMATIC_SUPPORT && hasMerchantsGuild)
+			yieldChange += 1;
+		if (eYieldType == YIELD_DIPLOMATIC_SUPPORT && hasMarket)
+			yieldChange += 1;
+		if (eYieldType == YIELD_DIPLOMATIC_SUPPORT && hasBank)
+			yieldChange += 1;
+		if (eYieldType == YIELD_DIPLOMATIC_SUPPORT && hasStockExchange)
+			yieldChange += 1;
+		if (eYieldType == YIELD_DIPLOMATIC_SUPPORT && hasMint)
+			yieldChange += 1;
+		if (eYieldType == YIELD_DIPLOMATIC_SUPPORT && hasBrewery)
+			yieldChange += 1;
+		if (eYieldType == YIELD_DIPLOMATIC_SUPPORT && hasStoneWorks)
+			yieldChange += 1;
+		if (eYieldType == YIELD_DIPLOMATIC_SUPPORT && hasTextileMill)
+			yieldChange += 1;
+		if (eYieldType == YIELD_DIPLOMATIC_SUPPORT && hasGrocer)
+			yieldChange += 1;
+		if (eYieldType == YIELD_DIPLOMATIC_SUPPORT && hasCenserMaker)
+			yieldChange += 1;
+		if (eYieldType == YIELD_DIPLOMATIC_SUPPORT && hasGemcutter)
+			yieldChange += 1;
 
 	}
 
