@@ -44,8 +44,10 @@ public:
 	string GetDescriptionShort() const;
 	// get the short description of this competition
 	string GetDescriptionReward() const;
-	// get the description of this competition
+	// get the description of this competition, adds more details if player is passed
 	string GetDescription(const PlayerTypes ePlayer = NO_PLAYER) const;
+	// get the reward amount, assumes first place if NO_PLAYER
+	int GetReward(const YieldTypes eType, const PlayerTypes ePlayer) const;
 
 
 	// calculates values for the competition and sorts the values

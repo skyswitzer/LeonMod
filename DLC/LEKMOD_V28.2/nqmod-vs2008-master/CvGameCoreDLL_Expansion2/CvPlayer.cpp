@@ -4671,9 +4671,15 @@ void CvPlayer::doTurn()
 
 	m_kPlayerAchievements.StartTurn();
 
+	// diplo influence
 	int diploThisTurn, numControlled;
 	GetDiplomaticInfluencePerTurn(&diploThisTurn, &numControlled);
 	ChangeDiplomaticInfluence(diploThisTurn);
+
+	// scientific influene
+	int insightThisTurn;
+	GetScientificInfluencePerTurn(&insightThisTurn);
+	ChangeScientificInfluence(insightThisTurn);
 }
 
 //	--------------------------------------------------------------------------------
@@ -6019,30 +6025,40 @@ void CvPlayer::GetDiplomaticInfluencePerTurn(int* influenceThisTurn, int* iNumMi
 	int influenceT100 = 0;
 
 	// check for allies
-	for (int iMinorLoop = MAX_MAJOR_CIVS; iMinorLoop < MAX_CIV_PLAYERS; iMinorLoop++)
 	{
-		const PlayerTypes eMinor = (PlayerTypes)iMinorLoop;
-		const CvPlayer& player = GET_PLAYER(eMinor);
-		if (player.isAlive() && player.isMinorCiv() && player.GetMinorCivAI()->IsAllies(GetID()))
+		for (int iMinorLoop = MAX_MAJOR_CIVS; iMinorLoop < MAX_CIV_PLAYERS; iMinorLoop++)
 		{
-			controlled++;
-			influenceT100 += 100 * GC.getDIPLOMATIC_INFLUENCE_PER_TURN_ALLY(eMinor, GetID(), false);
+			const PlayerTypes eMinor = (PlayerTypes)iMinorLoop;
+			const CvPlayer& player = GET_PLAYER(eMinor);
+			if (player.isAlive() && player.isMinorCiv() && player.GetMinorCivAI()->IsAllies(GetID()))
+			{
+				controlled++;
+				influenceT100 += 100 * GC.getDIPLOMATIC_INFLUENCE_PER_TURN_ALLY(eMinor, GetID(), false);
+			}
 		}
 	}
 
 	// check our owned cities
-	int iCityLoop = 0;
-	for (const CvCity* pLoopCity = firstCity(&iCityLoop); pLoopCity != NULL; pLoopCity = nextCity(&iCityLoop))
 	{
-		// yield rate checks to see if it's a minor capital
-		influenceT100 += pLoopCity->getYieldRateTimes100(YIELD_DIPLOMATIC_SUPPORT, false);
-		if (pLoopCity->IsOwnedMinorCapital())
+		int iCityLoop = 0;
+		for (const CvCity* pLoopCity = firstCity(&iCityLoop); pLoopCity != NULL; pLoopCity = nextCity(&iCityLoop))
 		{
-			controlled++;
+			// yield rate checks to see owned if it's a minor capital
+			influenceT100 += pLoopCity->getYieldRateTimes100(YIELD_DIPLOMATIC_SUPPORT, false);
+			if (pLoopCity->IsOwnedMinorCapital())
+			{
+				controlled++;
+			}
 		}
 	}
 
-	// TODO check competitions
+	// check competitions
+	{
+		for (int i = 0; i < NUM_COMPETITIONS; ++i)
+		{
+			influenceT100 += 100 * GC.getGame().getCompetition((MiniCompetitionTypes)i).GetReward(YIELD_DIPLOMATIC_SUPPORT, GetID());
+		}
+	}
 
 	*influenceThisTurn = influenceT100 / 100;
 	*iNumMinorCapitalsControlled = controlled;
@@ -6084,10 +6100,20 @@ void CvPlayer::GetScientificInfluencePerTurn(int* influenceThisTurn) const
 	int influenceT100 = 0;
 
 	// check our owned cities
-	int iCityLoop = 0;
-	for (const CvCity* pLoopCity = firstCity(&iCityLoop); pLoopCity != NULL; pLoopCity = nextCity(&iCityLoop))
 	{
-		influenceT100 += pLoopCity->getYieldRateTimes100(YIELD_SCIENTIFIC_INSIGHT, false);
+		int iCityLoop = 0;
+		for (const CvCity* pLoopCity = firstCity(&iCityLoop); pLoopCity != NULL; pLoopCity = nextCity(&iCityLoop))
+		{
+			influenceT100 += 100 * pLoopCity->getScientificInfluence();
+		}
+	}
+
+	// check competitions
+	{
+		for (int i = 0; i < NUM_COMPETITIONS; ++i)
+		{
+			influenceT100 += 100 * GC.getGame().getCompetition((MiniCompetitionTypes)i).GetReward(YIELD_SCIENTIFIC_INSIGHT, GetID());
+		}
 	}
 
 	*influenceThisTurn = influenceT100 / 100;

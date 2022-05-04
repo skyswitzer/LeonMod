@@ -12,6 +12,7 @@ struct CompetitionDelegates
 	virtual string DescReward(const CvCompetition& rCompetition) const = 0;
 	virtual string Desc(const CvCompetition& rCompetition, const PlayerTypes ePlayer) const = 0;
 	virtual string DescShort(int iWinningScore) const = 0;
+	virtual int Reward(YieldTypes eType) const = 0;
 };
 
 const int INVALID_SCORE = 0;
@@ -38,7 +39,7 @@ struct TradeRoutes : CompetitionDelegates
 	virtual string DescReward(const CvCompetition& rCompetition) const
 	{
 		stringstream ss;
-		ss << "+20 [ICON_DIPLOMATIC_INFLUENCE]";
+		ss << "+" << Reward(YIELD_DIPLOMATIC_SUPPORT) << " [ICON_DIPLOMATIC_INFLUENCE]";
 		return ss.str();
 	}
 	virtual string Desc(const CvCompetition& rCompetition, const PlayerTypes ePlayer) const
@@ -53,6 +54,12 @@ struct TradeRoutes : CompetitionDelegates
 		int score = player.GetTrade()->GetNumForeignTradeRoutes(player.GetID());
 		return score;
 	}
+	virtual int Reward(YieldTypes eType) const
+	{
+		if (eType == YIELD_DIPLOMATIC_SUPPORT)
+			return 15;
+		return 0;
+	}
 };
 // COMPETITION_ALLIES
 struct Allies : CompetitionDelegates
@@ -66,7 +73,7 @@ struct Allies : CompetitionDelegates
 	virtual string DescReward(const CvCompetition& rCompetition) const
 	{
 		stringstream ss;
-		ss << "+20 [ICON_DIPLOMATIC_INFLUENCE]";
+		ss << "+" << Reward(YIELD_DIPLOMATIC_SUPPORT) << " [ICON_DIPLOMATIC_INFLUENCE]";
 		return ss.str();
 	}
 	virtual string Desc(const CvCompetition& rCompetition, const PlayerTypes ePlayer) const
@@ -82,6 +89,12 @@ struct Allies : CompetitionDelegates
 		player.GetDiplomaticInfluencePerTurn(&perTurn, &numControlled);
 		return numControlled;
 	}
+	virtual int Reward(YieldTypes eType) const
+	{
+		if (eType == YIELD_DIPLOMATIC_SUPPORT)
+			return 20;
+		return 0;
+	}
 };
 // COMPETITION_GOLD_GIFTS
 struct GoldGifts : CompetitionDelegates
@@ -95,7 +108,7 @@ struct GoldGifts : CompetitionDelegates
 	virtual string DescReward(const CvCompetition& rCompetition) const
 	{
 		stringstream ss;
-		ss << "+20 [ICON_DIPLOMATIC_INFLUENCE]";
+		ss << "+" << Reward(YIELD_DIPLOMATIC_SUPPORT) << " [ICON_DIPLOMATIC_INFLUENCE]";
 		return ss.str();
 	}
 	virtual string Desc(const CvCompetition& rCompetition, const PlayerTypes ePlayer) const
@@ -110,6 +123,12 @@ struct GoldGifts : CompetitionDelegates
 		int iScore = player.GetNumGoldGiftedToMinors();
 		return iScore;
 	}
+	virtual int Reward(YieldTypes eType) const
+	{
+		if (eType == YIELD_DIPLOMATIC_SUPPORT)
+			return 20;
+		return 0;
+	}
 };
 // COMPETITION_NUCLEAR_STOCKPILE
 struct Nukes : CompetitionDelegates
@@ -123,7 +142,7 @@ struct Nukes : CompetitionDelegates
 	virtual string DescReward(const CvCompetition& rCompetition) const
 	{
 		stringstream ss;
-		ss << "+50 [ICON_DIPLOMATIC_INFLUENCE]";
+		ss << "+" << Reward(YIELD_DIPLOMATIC_SUPPORT) << " [ICON_DIPLOMATIC_INFLUENCE]";
 		return ss.str();
 	}
 	virtual string Desc(const CvCompetition& rCompetition, const PlayerTypes ePlayer) const
@@ -138,6 +157,12 @@ struct Nukes : CompetitionDelegates
 		int iScore = player.GetNumNuclearWeapons();
 		return iScore;
 	}
+	virtual int Reward(YieldTypes eType) const
+	{
+		if (eType == YIELD_DIPLOMATIC_SUPPORT)
+			return 50;
+		return 0;
+	}
 };
 // COMPETITION_SCIENCE_SPECIALISTS
 struct ScienceSpecialists : CompetitionDelegates
@@ -151,7 +176,7 @@ struct ScienceSpecialists : CompetitionDelegates
 	virtual string DescReward(const CvCompetition& rCompetition) const
 	{
 		stringstream ss;
-		ss << "+20 [ICON_SCIENTIFIC_INFLUENCE]";
+		ss << "+" << Reward(YIELD_SCIENTIFIC_INSIGHT) << " [ICON_SCIENTIFIC_INFLUENCE]";
 		return ss.str();
 	}
 	virtual string Desc(const CvCompetition& rCompetition, const PlayerTypes ePlayer) const
@@ -166,6 +191,12 @@ struct ScienceSpecialists : CompetitionDelegates
 		int iScore = player.GetNumScienceSpecialists();
 		return iScore;
 	}
+	virtual int Reward(YieldTypes eType) const
+	{
+		if (eType == YIELD_SCIENTIFIC_INSIGHT)
+			return 5;
+		return 0;
+	}
 };
 // COMPETITION_SCIENCE_COMPETITION
 struct ScienceCompetition : CompetitionDelegates
@@ -179,7 +210,7 @@ struct ScienceCompetition : CompetitionDelegates
 	virtual string DescReward(const CvCompetition& rCompetition) const
 	{
 		stringstream ss;
-		ss << "+10 [ICON_SCIENTIFIC_INFLUENCE]";
+		ss << "+" << Reward(YIELD_SCIENTIFIC_INSIGHT) << " [ICON_SCIENTIFIC_INFLUENCE]";
 		return ss.str();
 	}
 	virtual string Desc(const CvCompetition& rCompetition, const PlayerTypes ePlayer) const
@@ -194,6 +225,12 @@ struct ScienceCompetition : CompetitionDelegates
 		int iScore = player.GetCompetitionHammersT100(HAMMERCOMPETITION_SCIENTIFIC_INSIGHT) / 100;
 		return iScore;
 	}
+	virtual int Reward(YieldTypes eType) const
+	{
+		if (eType == YIELD_SCIENTIFIC_INSIGHT)
+			return 5;
+		return 0;
+	}
 };
 // COMPETITION_CULTURE_COMPETITION
 struct CulturalCompetition : CompetitionDelegates
@@ -207,7 +244,7 @@ struct CulturalCompetition : CompetitionDelegates
 	virtual string DescReward(const CvCompetition& rCompetition) const
 	{
 		stringstream ss;
-		ss << "+10% [ICON_CULTURAL_INFLUENCE]";
+		ss << "+" << Reward(YIELD_TOURISM) << "% [ICON_CULTURAL_INFLUENCE]";
 		return ss.str();
 	}
 	virtual string Desc(const CvCompetition& rCompetition, const PlayerTypes ePlayer) const
@@ -222,6 +259,12 @@ struct CulturalCompetition : CompetitionDelegates
 	{
 		int iScore = player.GetCompetitionHammersT100(HAMMERCOMPETITION_CULTURAL_INFLUENCE) / 100;
 		return iScore;
+	}
+	virtual int Reward(YieldTypes eType) const
+	{
+		if (eType == YIELD_TOURISM)
+			return GC.getTOURISM_MODIFIER_HAMMERCOMPETITION(NO_PLAYER);
+		return 0;
 	}
 };
 void CvGlobals::initCompetitions()
@@ -362,6 +405,20 @@ string CvCompetition::GetDescriptionReward() const
 string CvCompetition::GetDescription(const PlayerTypes ePlayer) const
 {
 	return GetLocalizedText(GC.GetDelegatesFor[(int)m_eCompetitionType]->Desc(*this, ePlayer).c_str());
+}
+int CvCompetition::GetReward(const YieldTypes eType, const PlayerTypes ePlayer) const
+{
+	const int reward = GC.GetDelegatesFor[(int)m_eCompetitionType]->Reward(eType);
+	const int rank = GetRankOfPlayer(ePlayer);
+	if (rank == 0 || ePlayer == NO_PLAYER)
+	{
+		return reward;
+	}
+	// consider 2nd place?
+	else
+	{
+		return 0;
+	}
 }
 void CvCompetition::UpdateAndSort()
 {

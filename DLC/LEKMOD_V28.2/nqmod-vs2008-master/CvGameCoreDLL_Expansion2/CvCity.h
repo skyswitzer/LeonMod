@@ -433,6 +433,7 @@ public:
 
 	int GetJONSCulturePerTurnFromLeagues() const;
 
+	// total scientific influence per turn from this city
 	int getScientificInfluence() const;
 	void changeScientificInfluence(int iChange);
 

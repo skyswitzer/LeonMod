@@ -964,7 +964,8 @@ public:
 	GD_INT_DEF(NEW_SCORE_GREAT_WORK_MULTIPLIER);
 	GD_INT_DEF(NEW_SCORE_BELIEF_MULTIPLIER);
 #endif
-
+	// tourism percent bonus from winning the competitino
+	int getTOURISM_MODIFIER_HAMMERCOMPETITION(const PlayerTypes ePlayer) const;
 	int getCITIZENS_MIN_FOR_SPECIALIST(const PlayerTypes ePlayer) const;
 	int getCITIZENS_PER_SPECIALIST(const PlayerTypes ePlayer) const;
 	// score per turn for being an ally

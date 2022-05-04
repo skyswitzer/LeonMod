@@ -76,7 +76,7 @@ int CvPlot::getExtraYield
 	const bool isCityCenter = plot.getPlotCity() != NULL;
 	// true if this tile has any atoll on it
 	const bool hasAnyAtoll = plot.HasAnyAtoll();
-	CvImprovementEntry* pImprovement = NULL;
+	const CvImprovementEntry* pImprovement = NULL;
 	string improvementName = ""; // <ImprovementType>
 	if (hasAnyImprovement)
 	{
@@ -116,6 +116,7 @@ int CvPlot::getExtraYield
 			const int numTradeCityStates = player.GetTrade()->GetNumberOfCityStateTradeRoutes(); // number of trade routes we have with city states
 			const int numTradeMajorCivs = player.GetTrade()->GetNumForeignTradeRoutes(player.GetID()) - numTradeCityStates; // number of trade routes we have with other civ players (not city states)
 
+
 			const bool isGreatTile = plot.HasImprovement("IMPROVEMENT_ACADEMY") ||
 				plot.HasImprovement("IMPROVEMENT_CUSTOMS_HOUSE") ||
 				plot.HasImprovement("IMPROVEMENT_MANUFACTORY") ||
@@ -127,7 +128,7 @@ int CvPlot::getExtraYield
 			{// BELIEF_Religious Community - gives 1 diplo point per 6 followers (max 20)
 				const bool hasBeliefReligiousCommunity = city.HasBelief("BELIEF_RELIGIOUS_COMMUNITY");
 				if (eYieldType == YIELD_DIPLOMATIC_SUPPORT && hasBeliefReligiousCommunity && isHolyCity && isCityCenter)
-					yieldChange += min(20, numFollowersGlobal/3);
+					yieldChange += min(20, numFollowersGlobal / 3);
 			}
 
 			{// BELIEF_Church Property - Holy City - +1 (food, production, gold, faith, culture, and science) and an additional of each yield per 40 followers (max +5)
@@ -349,7 +350,6 @@ int CvPlayer::GetExtraYieldForBuilding
 	{
 		const CvCity& city = *pCity;
 
-
 		{ // BELIEF_PEACE_GARDENS - adds +1 scientific insight to national college wings
 			const bool hasBeliefPeaceGardens = city.HasBelief("BELIEF_PEACE_GARDENZ");
 			const bool isNationalCollege1 = eBuildingClass == BuildingClass("BUILDINGCLASS_NATIONAL_COLLEGE");
@@ -458,6 +458,12 @@ int CvPlayer::GetExtraYieldForBuilding
 	return yieldChange;
 }
 
+int CvGlobals::getTOURISM_MODIFIER_HAMMERCOMPETITION(const PlayerTypes ePlayer) const
+{
+	int base = 10;
+	// always have some base, possibly modify based on player
+	return base;
+}
 int CvGlobals::getCITIZENS_MIN_FOR_SPECIALIST(const PlayerTypes ePlayer) const
 {
 	return 8;

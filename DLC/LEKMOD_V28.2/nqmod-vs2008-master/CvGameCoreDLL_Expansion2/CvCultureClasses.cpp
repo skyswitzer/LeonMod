@@ -2898,7 +2898,7 @@ double CvPlayerCulture::GetTourismModifierHammerCompetitionT100(const PlayerType
 
 	if (m_pPlayer->GetCompetitionHammersT100(HAMMERCOMPETITION_CULTURAL_INFLUENCE) > GET_PLAYER(eOtherPlayer).GetCompetitionHammersT100(HAMMERCOMPETITION_CULTURAL_INFLUENCE))
 	{
-		modT100 += 10;
+		modT100 += GC.getTOURISM_MODIFIER_HAMMERCOMPETITION(m_pPlayer->GetID());
 	}
 
 	return modT100;
