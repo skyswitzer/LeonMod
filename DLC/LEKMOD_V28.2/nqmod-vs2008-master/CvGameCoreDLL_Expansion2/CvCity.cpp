@@ -5307,7 +5307,8 @@ int CvCity::GetPurchaseCost(UnitTypes eUnit)
 	iCost /= iDivisor;
 	iCost *= iDivisor;
 
-	return iCost;
+	// this is now an investment, so do half
+	return iCost / 2;
 }
 
 bool doesHaveBranch(const PolicyBranchTypes eBranch, CvPlayer& kPlayer)
@@ -5325,23 +5326,20 @@ bool doesHaveBranch(const string branchName, CvPlayer& kPlayer)
 	return doesHaveBranch((PolicyBranchTypes)GC.getInfoTypeForString(branchName.c_str(), true /*bHideAssert*/), kPlayer);
 }
 //	--------------------------------------------------------------------------------
-#ifdef AUI_CONSTIFY
 int CvCity::GetFaithPurchaseCost(UnitTypes eUnit, bool bIncludeBeliefDiscounts) const
-#else
-int CvCity::GetFaithPurchaseCost(UnitTypes eUnit, bool bIncludeBeliefDiscounts)
-#endif
 {
 	VALIDATE_OBJECT
 
 	int iCost = 0;
 	CvPlayer &kPlayer = GET_PLAYER(m_eOwner);
 
-	CvUnitEntry* pkUnitInfo = GC.getUnitInfo(eUnit);
+	const CvUnitEntry* pkUnitInfo = GC.getUnitInfo(eUnit);
 	if(pkUnitInfo == NULL)
 	{
 		//Should never happen
 		return iCost;
 	}
+
 
 	// LATE-GAME GREAT PERSON
 	SpecialUnitTypes eSpecialUnitGreatPerson = (SpecialUnitTypes) GC.getInfoTypeForString("SPECIALUNIT_PEOPLE");
@@ -5539,7 +5537,7 @@ int CvCity::GetPurchaseCost(BuildingTypes eBuilding)
 	iCost /= iDivisor;
 	iCost *= iDivisor;
 
-	// this is now an "invest" cost, so do half
+	// now an investment
 	return iCost / 2;
 }
 
@@ -5602,7 +5600,8 @@ int CvCity::GetPurchaseCost(ProjectTypes eProject)
 	iCost /= iDivisor;
 	iCost *= iDivisor;
 
-	return iCost;
+	// now an investment
+	return iCost / 2;
 }
 
 //	--------------------------------------------------------------------------------
@@ -14681,6 +14680,11 @@ bool CvCity::IsCanPurchase(bool bTestPurchaseCost, bool bTestTrainable, UnitType
 	{
 		int iGoldCost = -1;
 
+		// dont allow investment in anything beyond 45% complete
+		const float percentDone = float(m_pCityBuildings->GetBuildingProductionTimes100(eBuildingType)) / float(getProductionNeeded(eBuildingType) * 100);
+		if (percentDone > 0.45)
+			return false;
+
 		// Unit
 		if(eUnitType != NO_UNIT)
 		{
@@ -14692,11 +14696,6 @@ bool CvCity::IsCanPurchase(bool bTestPurchaseCost, bool bTestTrainable, UnitType
 		// Building
 		else if(eBuildingType != NO_BUILDING)
 		{
-			// dont allow investment in buildings beyond 45% complete
-			const float percentDone = float(m_pCityBuildings->GetBuildingProductionTimes100(eBuildingType)) / float(getProductionNeeded(eBuildingType) * 100);
-			if (percentDone > 0.45)
-				return false;
-
 			if(!canConstruct(eBuildingType, false, !bTestTrainable))
 			{
 				bool bAlreadyUnderConstruction = canConstruct(eBuildingType, true, !bTestTrainable) && getFirstBuildingOrder(eBuildingType) != -1;
@@ -14943,73 +14942,81 @@ void CvCity::Purchase(UnitTypes eUnitType, BuildingTypes eBuildingType, ProjectT
 		bool bResult = false;
 		if(eUnitType >= 0)
 		{
-			int iResult = CreateUnit(eUnitType);
-			CvAssertMsg(iResult != FFreeList::INVALID_INDEX, "Unable to create unit");
-			if (iResult != FFreeList::INVALID_INDEX)
-			{
-				CvUnit* pUnit = kPlayer.getUnit(iResult);
-				if (!pUnit->getUnitInfo().CanMoveAfterPurchase())
-				{
-					pUnit->setMoves(0);
-				}
+			// invest (not buy)
+			//int iResult = CreateUnit(eUnitType);
+			const int halfTotalProdT100 = getProductionNeeded(eUnitType) * 100 / 2;
+			// change, not set!
+			changeUnitProductionTimes100(eUnitType, halfTotalProdT100);
 
-				ICvEngineScriptSystem1* pkScriptSystem = gDLL->GetScriptSystem();
-				if (pkScriptSystem) 
-				{
-					CvLuaArgsHandle args;
-					args->Push(getOwner());
-					args->Push(GetID());
-					args->Push(pUnit->GetID());
-					args->Push(true); // bGold
-					args->Push(false); // bFaith/bCulture
+			//CvAssertMsg(iResult != FFreeList::INVALID_INDEX, "Unable to create unit");
+			//if (iResult != FFreeList::INVALID_INDEX)
+			//{
+			//	CvUnit* pUnit = kPlayer.getUnit(iResult);
+			//	if (!pUnit->getUnitInfo().CanMoveAfterPurchase())
+			//	{
+			//		pUnit->setMoves(0);
+			//	}
 
-					bool bScriptResult;
-					LuaSupport::CallHook(pkScriptSystem, "CityTrained", args.get(), bScriptResult);
-				}
-			}
+			//	ICvEngineScriptSystem1* pkScriptSystem = gDLL->GetScriptSystem();
+			//	if (pkScriptSystem) 
+			//	{
+			//		CvLuaArgsHandle args;
+			//		args->Push(getOwner());
+			//		args->Push(GetID());
+			//		args->Push(pUnit->GetID());
+			//		args->Push(true); // bGold
+			//		args->Push(false); // bFaith/bCulture
+
+			//		bool bScriptResult;
+			//		LuaSupport::CallHook(pkScriptSystem, "CityTrained", args.get(), bScriptResult);
+			//	}
+			//}
 		}
 		else if(eBuildingType >= 0)
 		{
-			// invest (not buy) in buildings
+			// invest (not buy)
 			const int halfTotalProdT100 = getProductionNeeded(eBuildingType) * 100 / 2;
 			// change, not set!
 			m_pCityBuildings->ChangeBuildingProductionTimes100(eBuildingType, halfTotalProdT100);
 
-			ICvEngineScriptSystem1* pkScriptSystem = gDLL->GetScriptSystem();
-			if (pkScriptSystem) 
-			{
-				CvLuaArgsHandle args;
-				args->Push(getOwner());
-				args->Push(GetID());
-				args->Push(eBuildingType);
-				args->Push(true); // bGold
-				args->Push(false); // bFaith/bCulture
+			//ICvEngineScriptSystem1* pkScriptSystem = gDLL->GetScriptSystem();
+			//if (pkScriptSystem) 
+			//{
+			//	CvLuaArgsHandle args;
+			//	args->Push(getOwner());
+			//	args->Push(GetID());
+			//	args->Push(eBuildingType);
+			//	args->Push(true); // bGold
+			//	args->Push(false); // bFaith/bCulture
 
-				bool bScriptResult;
-				LuaSupport::CallHook(pkScriptSystem, "CityConstructed", args.get(), bScriptResult);
-			}
+			//	bool bScriptResult;
+			//	LuaSupport::CallHook(pkScriptSystem, "CityConstructed", args.get(), bScriptResult);
+			//}
 
-			CleanUpQueue(); // cleans out items from the queue that may be invalidated by the recent construction
-			CvAssertMsg(bResult, "Unable to create building");
+			//CleanUpQueue(); // cleans out items from the queue that may be invalidated by the recent construction
+			//CvAssertMsg(bResult, "Unable to create building");
 		}
 		else if(eProjectType >= 0)
 		{
-			bResult = CreateProject(eProjectType);
-			CvAssertMsg(bResult, "Unable to create project");
+			// invest (not buy)
+			const int halfTotalProdT100 = getProductionNeeded(eProjectType) * 100 / 2;
+			// change, not set!
+			changeProjectProductionTimes100(eProjectType, halfTotalProdT100);
+			//CvAssertMsg(bResult, "Unable to create project");
 
-			ICvEngineScriptSystem1* pkScriptSystem = gDLL->GetScriptSystem();
-			if (pkScriptSystem) 
-			{
-				CvLuaArgsHandle args;
-				args->Push(getOwner());
-				args->Push(GetID());
-				args->Push(eProjectType);
-				args->Push(true); // bGold
-				args->Push(false); // bFaith/bCulture
+			//ICvEngineScriptSystem1* pkScriptSystem = gDLL->GetScriptSystem();
+			//if (pkScriptSystem) 
+			//{
+			//	CvLuaArgsHandle args;
+			//	args->Push(getOwner());
+			//	args->Push(GetID());
+			//	args->Push(eProjectType);
+			//	args->Push(true); // bGold
+			//	args->Push(false); // bFaith/bCulture
 
-				bool bScriptResult;
-				LuaSupport::CallHook(pkScriptSystem, "CityCreated", args.get(), bScriptResult);
-			}
+			//	bool bScriptResult;
+			//	LuaSupport::CallHook(pkScriptSystem, "CityCreated", args.get(), bScriptResult);
+			//}
 		}
 	}
 	break;
