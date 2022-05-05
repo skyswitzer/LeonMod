@@ -589,7 +589,7 @@ int CvPlayer::GetExtraYieldForBuilding
 	{// Building_Recycling Center gets +1 Scientific Insight
 		const bool isRecyclingCenter = eBuildingClass == BuildingClass("BUILDINGCLASS_RECYCLING_CENTER");
 		if (eYieldType == YIELD_SCIENTIFIC_INSIGHT && !isPercentMod && isRecyclingCenter)
-			yieldChange += 1;
+			yieldChange += 2;
 	}
 	
 	return yieldChange;
@@ -648,6 +648,7 @@ int CvPlayerTrade::GetTradeConnectionValueExtra(const TradeConnection& kTradeCon
 	const bool hasGrocer = cityOrigin->GetCityBuildings()->HasBuildingClass(BuildingClass("BUILDINGCLASS_GROCER"));
 	const bool hasCenserMaker = cityOrigin->GetCityBuildings()->HasBuildingClass(BuildingClass("BUILDINGCLASS_CENSER"));
 	const bool hasGemcutter = cityOrigin->GetCityBuildings()->HasBuildingClass(BuildingClass("BUILDINGCLASS_GEMCUTTER"));
+	const bool hasOilRefinery = cityOrigin->GetCityBuildings()->HasBuildingClass(BuildingClass("BUILDINGCLASS_REFINERY"));
 
 	if (!cityOrigin || !cityDest) return 0;
 
@@ -670,6 +671,8 @@ int CvPlayerTrade::GetTradeConnectionValueExtra(const TradeConnection& kTradeCon
 			yieldChange += 1;
 		if (eYieldType == YIELD_CULTURE && hasGemcutter)
 			yieldChange += 1;
+		if (eYieldType == YIELD_PRODUCTION && hasOilRefinery)
+			yieldChange += 3;
 
 	}
 	else if (isDestMinor) // destination is City State
@@ -702,6 +705,8 @@ int CvPlayerTrade::GetTradeConnectionValueExtra(const TradeConnection& kTradeCon
 			yieldChange += 1;
 		if (eYieldType == YIELD_DIPLOMATIC_SUPPORT && hasGemcutter)
 			yieldChange += 1;
+		if (eYieldType == YIELD_DIPLOMATIC_SUPPORT && hasOilRefinery)
+			yieldChange += 2;
 
 	}
 	else // destination is another civ (not city-state)
@@ -732,6 +737,8 @@ int CvPlayerTrade::GetTradeConnectionValueExtra(const TradeConnection& kTradeCon
 			yieldChange += 1;
 		if (eYieldType == YIELD_DIPLOMATIC_SUPPORT && hasGemcutter)
 			yieldChange += 1;
+		if (eYieldType == YIELD_DIPLOMATIC_SUPPORT && hasOilRefinery)
+			yieldChange += 2;
 
 	}
 
