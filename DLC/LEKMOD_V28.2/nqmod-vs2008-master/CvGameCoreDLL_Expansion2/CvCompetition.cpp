@@ -216,7 +216,7 @@ struct ScienceHammerCompetition : CompetitionDelegates
 	virtual string Desc(const CvCompetition& rCompetition, const PlayerTypes ePlayer) const
 	{
 		stringstream ss;
-		ss << "The civilization that has devoted the most [ICON_PRODUCTION] Production towards the {SCIENCE_FAIR}.";
+		ss << "The civilization that has devoted the most [ICON_PRODUCTION] Production towards their {SCIENCE_FAIR}.";
 		ss << tryAddCurrentScore(rCompetition, ePlayer) << " [ICON_PRODUCTION]";
 		return ss.str();
 	}
@@ -284,7 +284,7 @@ struct CulturalCompetition : CompetitionDelegates
 	virtual string Desc(const CvCompetition& rCompetition, const PlayerTypes ePlayer) const
 	{
 		stringstream ss;
-		ss << "The civilization that has devoted more [ICON_PRODUCTION] Production towards the {ARTS_FAIR} ";
+		ss << "The civilization that has devoted the most [ICON_PRODUCTION] Production towards their {ARTS_FAIR} ";
 		ss << "will receive the influence reward over any civilization that has a lower score.";
 		ss << tryAddCurrentScore(rCompetition, ePlayer) << " [ICON_PRODUCTION]";
 		return ss.str();

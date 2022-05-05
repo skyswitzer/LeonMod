@@ -276,6 +276,13 @@ public:
 	// How many extra routes we have. Hammer progress toward next route.
 	void GetTradeRouteProjectInfo(int* iCount, int* iProgress) const;
 
+
+	int GetNationalGamesCost(const int ith) const;
+	int GetNationalGamesCostIncrease() const;
+	void GetNationalGamesProjectInfo(int* iCount, int* iProgress) const;
+	int GetNationalGamesHappinessPerProject() const;
+
+
 	int countCityFeatures(FeatureTypes eFeature) const;
 	int countNumBuildings(BuildingTypes eBuilding) const;
 	//int countNumCitiesConnectedToCapital() const;

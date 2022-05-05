@@ -6197,6 +6197,45 @@ void CvPlayer::GetTradeRouteProjectInfo(int* iCount, int* iProgress) const
 	*iProgress = hammersTowardsNext;
 }
 
+
+int CvPlayer::GetNationalGamesCost(const int ithTradeRoute) const
+{
+	const int base = 150 * GC.adjustForSpeed(YIELD_PRODUCTION);
+	const int howMany = ithTradeRoute - 1;
+	const int cost = base + howMany * GetNationalGamesCostIncrease();
+	return max(0, cost);
+}
+int CvPlayer::GetNationalGamesCostIncrease() const
+{
+	return 200 * GC.adjustForSpeed(YIELD_PRODUCTION);
+}
+void CvPlayer::GetNationalGamesProjectInfo(int* iCount, int* iProgress) const
+{
+	const int iHaveHammersT100 = GetCompetitionHammersT100(HAMMERCOMPETITION_NATIONAL_GAMES);
+	int iPreviousCostsT100 = 0;
+	int iTotalCostT100 = 0;
+	int i;
+	for (i = 1; i < 999; ++i)
+	{
+		const int nextCostT100 = GetNationalGamesCost(i) * 100;
+		iTotalCostT100 += nextCostT100;
+
+		if (iTotalCostT100 > iHaveHammersT100)
+			break;
+
+		iPreviousCostsT100 += nextCostT100;
+	}
+	const int hammersTowardsNext = iHaveHammersT100 / 100 - iPreviousCostsT100 / 100; // divide first or we will incorrectly round up
+	*iCount = (i - 1);
+	*iProgress = hammersTowardsNext;
+}
+int CvPlayer::GetNationalGamesHappinessPerProject() const
+{
+	return 4;
+}
+
+
+
 //////////////////////////////////////////////////////////////////////////
 // End Civ 5 Score
 //////////////////////////////////////////////////////////////////////////
@@ -12680,6 +12719,12 @@ int CvPlayer::GetHappinessFromBuildings() const
 	{
 		iHappiness += GetPlayerPolicies()->GetNumPoliciesOwned() / m_iHappinessPerXPolicies;
 	}
+
+	// 
+	int iProjectExtra;
+	int hammerProgress;
+	GetNationalGamesProjectInfo(&iProjectExtra, &hammerProgress);
+	iHappiness += iProjectExtra * GetNationalGamesHappinessPerProject();
 
 	return iHappiness;
 }

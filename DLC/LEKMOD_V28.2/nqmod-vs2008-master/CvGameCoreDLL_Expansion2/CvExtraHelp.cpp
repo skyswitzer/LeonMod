@@ -53,9 +53,24 @@ int CvLuaGame::lGetAdditionalHelpBuilding(lua_State* L)
 			int iProgress;
 			rPlayer.GetTradeRouteProjectInfo(&numBonusRoutesHave, &iProgress);
 			const int need = rPlayer.GetTradeRouteCost(numBonusRoutesHave + 1);
-			s << "[NEWLINE][NEWLINE]This project has yielded +" << numBonusRoutesHave << " {TRADE_ROUTE}s so far and ";
+			const int routesPer = 1;
+			s << " Completing this project will provide +" << routesPer << " {TRADE_ROUTE} in your civilization permanently.";
+			s << "[NEWLINE][NEWLINE]This project has yielded +" << numBonusRoutesHave * routesPer << " {TRADE_ROUTE}s so far and ";
 			s << "you have " << iProgress << " of " << need << " [ICON_PRODUCTION] Production needed for your next one. ";
 			s << "The cost will increase by " << rPlayer.GetTradeRouteCostIncrease() << " [ICON_PRODUCTION] each time.";
+		}
+		else if (eProcess == 8) // HAMMERCOMPETITION_NATIONAL_GAMES
+		{
+			const int have = rPlayer.GetCompetitionHammersT100(HAMMERCOMPETITION_NATIONAL_GAMES) / 100;
+			int iNumCompleted;
+			int iProgress;
+			rPlayer.GetNationalGamesProjectInfo(&iNumCompleted, &iProgress);
+			const int need = rPlayer.GetNationalGamesCost(iNumCompleted + 1);
+			const int happinessPer = rPlayer.GetNationalGamesHappinessPerProject();
+			s << " Completing this project will yield +" << happinessPer << " {HAPPINESS} in your civilization permanently.";
+			s << "[NEWLINE][NEWLINE]This project has yielded +" << iNumCompleted * happinessPer << " {HAPPINESS} so far and ";
+			s << "you have " << iProgress << " of " << need << " [ICON_PRODUCTION] Production needed to successfully host the next one. ";
+			s << "The cost will increase by " << rPlayer.GetNationalGamesCostIncrease() << " [ICON_PRODUCTION] each time.";
 		}
 	}
 
