@@ -5988,6 +5988,22 @@ int CvPlayer::GetNumScienceSpecialists() const
 	}
 	return count;
 }
+//	--------------------------------------------------------------------------------
+int CvPlayer::GetNumScienceImprovements() const
+{
+	int iCount = 0;
+	const int iNumPlotsInEntireWorld = GC.getMap().numPlots();
+	for (int iI = 0; iI < iNumPlotsInEntireWorld; iI++)
+	{
+		const CvPlot* pLoopPlot = GC.getMap().plotByIndexUnchecked(iI);
+		if (pLoopPlot->getOwner() != m_eID)
+			continue;
+		if (pLoopPlot->HasImprovement("IMPROVEMENT_ACADEMY"))
+			iCount++;
+	}
+
+	return iCount;
+}
 int CvPlayer::GetLargestCityPop() const
 {
 	int bestCount = 0;

@@ -242,6 +242,9 @@ public:
 	int GetNumNuclearWeapons() const;
 	// how many science specialists in all cities (not puppets)
 	int GetNumScienceSpecialists() const;
+	// number of academies (or similar improvements possibly)
+	// used by the science competition
+	int GetNumScienceImprovements() const;
 	// citizens in largest city 
 	int GetLargestCityPop() const;
 	// number of great works that aren't artifacts

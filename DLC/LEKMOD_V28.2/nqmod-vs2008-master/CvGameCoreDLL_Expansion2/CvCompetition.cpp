@@ -5,14 +5,14 @@
 #include "FStlContainerSerialization.h"
 #include "CvGameCoreUtils.h"
 
-
+// interface for functions that calculate mini competion information
 struct CompetitionDelegates
 {
 	virtual int EvalScore(const CvPlayer& player) const = 0;
 	virtual string DescReward(const CvCompetition& rCompetition) const = 0;
 	virtual string Desc(const CvCompetition& rCompetition, const PlayerTypes ePlayer) const = 0;
-	virtual string DescShort(int iWinningScore) const = 0;
-	virtual int Reward(YieldTypes eType) const = 0;
+	virtual string DescShort(const int iWinningScore) const = 0;
+	virtual int Reward(const YieldTypes eType) const = 0;
 };
 
 const int INVALID_SCORE = 0;
@@ -30,7 +30,7 @@ string tryAddCurrentScore(const CvCompetition& rCompetition, const PlayerTypes e
 // COMPETITION_TRADE_ROUTES_INTERNATIONAL
 struct TradeRoutes : CompetitionDelegates
 {
-	virtual string DescShort(int iWinningScore) const
+	virtual string DescShort(const int iWinningScore) const
 	{
 		stringstream ss;
 		ss << "Most International {TRADE_ROUTE}s: [COLOR_POSITIVE_TEXT]" << iWinningScore << "[ENDCOLOR]";
@@ -54,7 +54,7 @@ struct TradeRoutes : CompetitionDelegates
 		int score = player.GetTrade()->GetNumForeignTradeRoutes(player.GetID());
 		return score;
 	}
-	virtual int Reward(YieldTypes eType) const
+	virtual int Reward(const YieldTypes eType) const
 	{
 		if (eType == YIELD_DIPLOMATIC_SUPPORT)
 			return 15;
@@ -64,7 +64,7 @@ struct TradeRoutes : CompetitionDelegates
 // COMPETITION_ALLIES
 struct Allies : CompetitionDelegates
 {
-	virtual string DescShort(int iWinningScore) const
+	virtual string DescShort(const int iWinningScore) const
 	{
 		stringstream ss;
 		ss << "Most Controlled {CITY_STATE}s: [COLOR_POSITIVE_TEXT]" << iWinningScore << "[ENDCOLOR]";
@@ -89,7 +89,7 @@ struct Allies : CompetitionDelegates
 		player.GetDiplomaticInfluencePerTurn(&perTurn, &numControlled);
 		return numControlled;
 	}
-	virtual int Reward(YieldTypes eType) const
+	virtual int Reward(const YieldTypes eType) const
 	{
 		if (eType == YIELD_DIPLOMATIC_SUPPORT)
 			return 20;
@@ -99,7 +99,7 @@ struct Allies : CompetitionDelegates
 // COMPETITION_GOLD_GIFTS
 struct GoldGifts : CompetitionDelegates
 {
-	virtual string DescShort(int iWinningScore) const
+	virtual string DescShort(const int iWinningScore) const
 	{
 		stringstream ss;
 		ss << "Most [ICON_INVEST] Gold Gifted: [COLOR_POSITIVE_TEXT]" << iWinningScore << "[ENDCOLOR]";
@@ -123,7 +123,7 @@ struct GoldGifts : CompetitionDelegates
 		int iScore = player.GetNumGoldGiftedToMinors();
 		return iScore;
 	}
-	virtual int Reward(YieldTypes eType) const
+	virtual int Reward(const YieldTypes eType) const
 	{
 		if (eType == YIELD_DIPLOMATIC_SUPPORT)
 			return 20;
@@ -133,7 +133,7 @@ struct GoldGifts : CompetitionDelegates
 // COMPETITION_NUCLEAR_STOCKPILE
 struct Nukes : CompetitionDelegates
 {
-	virtual string DescShort(int iWinningScore) const
+	virtual string DescShort(const int iWinningScore) const
 	{
 		stringstream ss;
 		ss << "Largest [ICON_RES_URANIUM] Nuclear Arsenal: [COLOR_POSITIVE_TEXT]" << iWinningScore << "[ENDCOLOR]";
@@ -157,7 +157,7 @@ struct Nukes : CompetitionDelegates
 		int iScore = player.GetNumNuclearWeapons();
 		return iScore;
 	}
-	virtual int Reward(YieldTypes eType) const
+	virtual int Reward(const YieldTypes eType) const
 	{
 		if (eType == YIELD_DIPLOMATIC_SUPPORT)
 			return 50;
@@ -167,7 +167,7 @@ struct Nukes : CompetitionDelegates
 // COMPETITION_SCIENCE_SPECIALISTS
 struct ScienceSpecialists : CompetitionDelegates
 {
-	virtual string DescShort(int iWinningScore) const
+	virtual string DescShort(const int iWinningScore) const
 	{
 		stringstream ss;
 		ss << "Most [ICON_SPECIALIST_SCIENTIST] Scientist Specialists: [COLOR_POSITIVE_TEXT]" << iWinningScore << "[ENDCOLOR]";
@@ -191,7 +191,7 @@ struct ScienceSpecialists : CompetitionDelegates
 		int iScore = player.GetNumScienceSpecialists();
 		return iScore;
 	}
-	virtual int Reward(YieldTypes eType) const
+	virtual int Reward(const YieldTypes eType) const
 	{
 		if (eType == YIELD_SCIENTIFIC_INSIGHT)
 			return 5;
@@ -199,9 +199,9 @@ struct ScienceSpecialists : CompetitionDelegates
 	}
 };
 // COMPETITION_SCIENCE_COMPETITION
-struct ScienceCompetition : CompetitionDelegates
+struct ScienceHammerCompetition : CompetitionDelegates
 {
-	virtual string DescShort(int iWinningScore) const
+	virtual string DescShort(const int iWinningScore) const
 	{
 		stringstream ss;
 		ss << "Best {SCIENCE_FAIR}: [COLOR_POSITIVE_TEXT]" << iWinningScore << "[ENDCOLOR]";
@@ -225,7 +225,41 @@ struct ScienceCompetition : CompetitionDelegates
 		int iScore = player.GetCompetitionHammersT100(HAMMERCOMPETITION_SCIENTIFIC_INSIGHT) / 100;
 		return iScore;
 	}
-	virtual int Reward(YieldTypes eType) const
+	virtual int Reward(const YieldTypes eType) const
+	{
+		if (eType == YIELD_SCIENTIFIC_INSIGHT)
+			return 5;
+		return 0;
+	}
+};
+// COMPETITION_SCIENCE_IMPROVEMENTS
+struct ScienceImprovements : CompetitionDelegates
+{
+	virtual string DescShort(const int iWinningScore) const
+	{
+		stringstream ss;
+		ss << "Most Academies: [COLOR_POSITIVE_TEXT]" << iWinningScore << "[ENDCOLOR]";
+		return ss.str();
+	}
+	virtual string DescReward(const CvCompetition& rCompetition) const
+	{
+		stringstream ss;
+		ss << "+" << Reward(YIELD_SCIENTIFIC_INSIGHT) << " [ICON_SCIENTIFIC_INFLUENCE]";
+		return ss.str();
+	}
+	virtual string Desc(const CvCompetition& rCompetition, const PlayerTypes ePlayer) const
+	{
+		stringstream ss;
+		ss << "The civilization with the most Academies.";
+		ss << tryAddCurrentScore(rCompetition, ePlayer) << "";
+		return ss.str();
+	}
+	virtual int EvalScore(const CvPlayer& player) const
+	{
+		int iScore = player.GetNumScienceImprovements();
+		return iScore;
+	}
+	virtual int Reward(const YieldTypes eType) const
 	{
 		if (eType == YIELD_SCIENTIFIC_INSIGHT)
 			return 5;
@@ -235,7 +269,7 @@ struct ScienceCompetition : CompetitionDelegates
 // COMPETITION_CULTURE_COMPETITION
 struct CulturalCompetition : CompetitionDelegates
 {
-	virtual string DescShort(int iWinningScore) const
+	virtual string DescShort(const int iWinningScore) const
 	{
 		stringstream ss;
 		ss << "Best {ARTS_FAIR}: [COLOR_POSITIVE_TEXT]" << iWinningScore << "[ENDCOLOR]";
@@ -260,7 +294,7 @@ struct CulturalCompetition : CompetitionDelegates
 		int iScore = player.GetCompetitionHammersT100(HAMMERCOMPETITION_CULTURAL_INFLUENCE) / 100;
 		return iScore;
 	}
-	virtual int Reward(YieldTypes eType) const
+	virtual int Reward(const YieldTypes eType) const
 	{
 		if (eType == YIELD_TOURISM)
 			return GC.getTOURISM_MODIFIER_HAMMERCOMPETITION(NO_PLAYER);
@@ -277,7 +311,8 @@ void CvGlobals::initCompetitions()
 	GetDelegatesFor.push_back(new Nukes());
 
 	GetDelegatesFor.push_back(new ScienceSpecialists());
-	GetDelegatesFor.push_back(new ScienceCompetition());
+	GetDelegatesFor.push_back(new ScienceHammerCompetition());
+	GetDelegatesFor.push_back(new ScienceImprovements());
 }
 void CvGlobals::uninitCompetitions()
 {
