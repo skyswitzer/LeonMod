@@ -448,11 +448,33 @@ int CvPlayer::GetExtraYieldForBuilding
 		}
 	}
 
-	{// POLICY_RATIONALISM_FINISHER - +8 Singularity from Rationalism Finisher
+	{// POLICY_RATIONALISM_FINISHER - Rationalism Finisher gives 5 Scientific insight to the palace
 		const bool hasRationalismFinisher = player.HasPolicy("POLICY_RATIONALISM_FINISHER");
 		const bool isPalace = eBuildingClass == BuildingClass("BUILDINGCLASS_PALACE");
 		if (eYieldType == YIELD_SCIENTIFIC_INSIGHT && !isPercentMod && hasRationalismFinisher && isPalace)
-			yieldChange += 8;
+			yieldChange += 5;
+	}
+
+	{// TIBET_STUPA // adds one of several yields every few techs
+		const bool isStupa = eBuildingClass == BuildingClass("BUILDINGCLASS_TIBET");
+		const bool hasEducation = player.HasTech("TECH_EDUCATION");
+		const bool hasAcoustics = player.HasTech("TECH_ACOUSTICS");
+		const bool hasIndustrialization = player.HasTech("TECH_INDUSTRIALIZATION");
+		const bool hasRadio = player.HasTech("TECH_RADIO");
+		const bool hasRadar = player.HasTech("TECH_RADAR");
+		const bool hasGlobalization = player.HasTech("TECH_GLOBALIZATION");
+
+		const int numTechBoosters = hasEducation + hasAcoustics + hasIndustrialization + hasRadio + hasRadar + hasGlobalization;
+		const bool isYieldBoosted = eYieldType == YIELD_CULTURE || eYieldType == YIELD_SCIENCE || eYieldType == YIELD_PRODUCTION || eYieldType == YIELD_FOOD
+			|| eYieldType == YIELD_GOLD || eYieldType == YIELD_FAITH;
+		if (isStupa && isYieldBoosted && !isPercentMod)
+			yieldChange += numTechBoosters;
+	}
+	
+	{// Building_Recycling Center gets +1 Scientific Insight
+		const bool isRecyclingCenter = eBuildingClass == BuildingClass("BUILDINGCLASS_RECYCLING_CENTER");
+		if (eYieldType == YIELD_SCIENTIFIC_INSIGHT && !isPercentMod && isRecyclingCenter)
+			yieldChange += 2;
 	}
 	
 	return yieldChange;
@@ -495,26 +517,71 @@ int CvPlayerTrade::GetTradeConnectionValueExtra(const TradeConnection& kTradeCon
 	const bool isDestMinor = playerDest.isMinorCiv();
 	const CvCity* cityOrigin = CvGameTrade::GetOriginCity(kTradeConnection);
 	const CvCity* cityDest = CvGameTrade::GetDestCity(kTradeConnection);
-	// how many tiles between the 2 cities
-	const int tradeDistance = kTradeConnection.m_aPlotList.size();
 	if (!cityOrigin || !cityDest) return 0;
 
+	// how many tiles between the 2 cities
+	const int tradeDistance = kTradeConnection.m_aPlotList.size();
+	const bool hasSilkRoad = playerOrigin.HasPolicy("POLICY_CARAVANS");
+	const bool hasMerchantConfederacy = playerOrigin.HasPolicy("POLICY_MERCHANT_CONFEDERACY");
+	// const bool isGrocer = BuildingClass("BUILDINGCLASS_GROCER");
+	const bool hasMerchantsGuild = cityOrigin->GetCityBuildings()->HasBuildingClass(BuildingClass("BUILDINGCLASS_CARAVANSARY"));
+	const bool hasMarket = cityOrigin->GetCityBuildings()->HasBuildingClass(BuildingClass("BUILDINGCLASS_MARKET"));
+	const bool hasBank = cityOrigin->GetCityBuildings()->HasBuildingClass(BuildingClass("BUILDINGCLASS_BANK"));
+	const bool hasStockExchange = cityOrigin->GetCityBuildings()->HasBuildingClass(BuildingClass("BUILDINGCLASS_STOCK_EXCHANGE"));
+	const bool hasMint = cityOrigin->GetCityBuildings()->HasBuildingClass(BuildingClass("BUILDINGCLASS_MINT"));
+	const bool hasBrewery = cityOrigin->GetCityBuildings()->HasBuildingClass(BuildingClass("BUILDINGCLASS_BREWERY"));
+	const bool hasStoneWorks = cityOrigin->GetCityBuildings()->HasBuildingClass(BuildingClass("BUILDINGCLASS_STONE_WORKS"));
+	const bool hasTextileMill = cityOrigin->GetCityBuildings()->HasBuildingClass(BuildingClass("BUILDINGCLASS_TEXTILE"));
+	const bool hasGrocer = cityOrigin->GetCityBuildings()->HasBuildingClass(BuildingClass("BUILDINGCLASS_GROCER"));
+	const bool hasCenserMaker = cityOrigin->GetCityBuildings()->HasBuildingClass(BuildingClass("BUILDINGCLASS_CENSER"));
+	const bool hasGemcutter = cityOrigin->GetCityBuildings()->HasBuildingClass(BuildingClass("BUILDINGCLASS_GEMCUTTER"));
+	const bool hasOilRefinery = cityOrigin->GetCityBuildings()->HasBuildingClass(BuildingClass("BUILDINGCLASS_REFINERY"));
 
-	
+
 	if (isInternal) // true if this is an internal trade route
-	{
-
-
+	{			
+		if (eYieldType == YIELD_GOLD && hasMint)
+			yieldChange += 2;
+		if (eYieldType == YIELD_GOLD && hasBrewery)
+			yieldChange += 2;
+		if (eYieldType == YIELD_PRODUCTION && hasStoneWorks)
+			yieldChange += 1;
+		if (eYieldType == YIELD_PRODUCTION && hasTextileMill)
+			yieldChange += 1;
+		if (eYieldType == YIELD_FOOD && hasGrocer)
+			yieldChange += 2;
+		if (eYieldType == YIELD_CULTURE && hasCenserMaker)
+			yieldChange += 1;
+		if (eYieldType == YIELD_CULTURE && hasGemcutter)
+			yieldChange += 1;
+		if (eYieldType == YIELD_PRODUCTION && hasOilRefinery)
+			yieldChange += 3;
 	}
-	else if (isDestMinor) // destination is City State
+	else
 	{
+		if (isDestMinor) // destination is City State
+		{
+			if (eYieldType == YIELD_DIPLOMATIC_SUPPORT && hasMerchantConfederacy)
+				yieldChange += 3;
+			if (eYieldType == YIELD_FOOD && hasMerchantConfederacy)
+				yieldChange += 2;
+			if (eYieldType == YIELD_PRODUCTION && hasMerchantConfederacy)
+				yieldChange += 2;
+		}
+		else // destination is another civ
+		{
+			if (eYieldType == YIELD_FOOD && hasSilkRoad)
+				yieldChange += 3;
+			if (eYieldType == YIELD_PRODUCTION && hasSilkRoad)
+				yieldChange += 3;
+		}
 
-
-	}
-	else // destination is another civ
-	{
-
-
+		{ // diplomatic support from trade route buildings
+			const int numDiploSupportBoosters = hasMerchantsGuild + hasMarket + hasBank + hasStockExchange + hasMint + hasBrewery + hasStoneWorks
+				+ hasTextileMill + hasGrocer + hasCenserMaker + hasGemcutter + (hasOilRefinery * 2);
+			if (eYieldType == YIELD_DIPLOMATIC_SUPPORT)
+				yieldChange += numDiploSupportBoosters;
+		}
 	}
 
 
@@ -523,28 +590,7 @@ int CvPlayerTrade::GetTradeConnectionValueExtra(const TradeConnection& kTradeCon
 
 
 
-
-
-
-
-
-
 // modify unit instapop
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

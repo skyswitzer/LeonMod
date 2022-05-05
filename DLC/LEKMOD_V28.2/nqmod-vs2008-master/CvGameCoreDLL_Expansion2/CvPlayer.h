@@ -1713,8 +1713,8 @@ public:
 	// true if this player has this policy
 	// includes ideology
 	bool HasPolicy(const string name) const;
-	// true if this player has this religios tenet
-	bool HasBelief(const string name) const;
+	// true if this player has the given tech type
+	bool HasTech(const string name) const;
 	CvMinorCivAI* GetMinorCivAI() const;
 	CvDealAI* GetDealAI() const;
 	CvBuilderTaskingAI* GetBuilderTaskingAI() const;

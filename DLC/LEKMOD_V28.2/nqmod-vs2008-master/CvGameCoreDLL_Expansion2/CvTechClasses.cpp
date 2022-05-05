@@ -574,15 +574,29 @@ std::vector<CvTechEntry*>& CvTechXMLEntries::GetTechEntries()
 }
 
 /// Number of defined techs
-#ifdef AUI_WARNING_FIXES
-uint CvTechXMLEntries::GetNumTechs() const
-#else
-int CvTechXMLEntries::GetNumTechs()
-#endif
+int CvTechXMLEntries::GetNumTechs() const
 {
 	return m_paTechEntries.size();
 }
+TechTypes CvTechXMLEntries::Tech(const string name) const
+{
+	if (map.size() == 0)
+	{
+		// for each policy
+		for (int i = 0; i < GetNumTechs(); i++)
+		{
+			// that this player has
+			const TechTypes e = (TechTypes)i;
+			const CvTechEntry* pInfo = GC.getTechInfo(e);
+			if (pInfo != NULL)
+			{
+				map[pInfo->GetType()] = e;
+			}
+		}
+	}
 
+	return map[name];
+}
 /// Clear tech entries
 void CvTechXMLEntries::DeleteArray()
 {

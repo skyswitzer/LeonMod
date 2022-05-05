@@ -13991,6 +13991,11 @@ bool CvPlayer::HasPolicy(const string name) const
 	}
 	return false;
 }
+bool CvPlayer::HasTech(const string name) const
+{
+	const TechTypes e = GC.GetGameTechs()->Tech(name);
+	return GET_TEAM(getTeam()).GetTeamTechs()->HasTech(e);
+}
 
 //	--------------------------------------------------------------------------------
 void CvPlayer::setHasPolicy(PolicyTypes eIndex, bool bNewValue)
