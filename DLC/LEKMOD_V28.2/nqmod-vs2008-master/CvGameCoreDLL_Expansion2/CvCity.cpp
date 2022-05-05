@@ -14690,14 +14690,13 @@ bool CvCity::IsCanPurchase(bool bTestPurchaseCost, bool bTestTrainable, UnitType
 	{
 		int iGoldCost = -1;
 
-		// dont allow investment in anything beyond 45% complete
-		const float percentDone = float(m_pCityBuildings->GetBuildingProductionTimes100(eBuildingType)) / float(getProductionNeeded(eBuildingType) * 100);
-		if (percentDone > 0.45)
-			return false;
-
 		// Unit
 		if(eUnitType != NO_UNIT)
 		{
+			// dont allow investment in anything beyond 45% complete
+			const float percentDone = float(getUnitProductionTimes100(eUnitType)) / float(getProductionNeeded(eUnitType) * 100);
+			if (percentDone > 0.45)
+				return false;
 			if(!canTrain(eUnitType, false, !bTestTrainable, false /*bIgnoreCost*/, true /*bWillPurchase*/))
 				return false;
 
@@ -14706,6 +14705,10 @@ bool CvCity::IsCanPurchase(bool bTestPurchaseCost, bool bTestTrainable, UnitType
 		// Building
 		else if(eBuildingType != NO_BUILDING)
 		{
+			// dont allow investment in anything beyond 45% complete
+			const float percentDone = float(m_pCityBuildings->GetBuildingProductionTimes100(eBuildingType)) / float(getProductionNeeded(eBuildingType) * 100);
+			if (percentDone > 0.45)
+				return false;
 			if(!canConstruct(eBuildingType, false, !bTestTrainable))
 			{
 				bool bAlreadyUnderConstruction = canConstruct(eBuildingType, true, !bTestTrainable) && getFirstBuildingOrder(eBuildingType) != -1;
@@ -14723,6 +14726,10 @@ bool CvCity::IsCanPurchase(bool bTestPurchaseCost, bool bTestTrainable, UnitType
 			if(/*1*/ GC.getPROJECT_PURCHASING_DISABLED() == 1)
 				return false;
 
+			// dont allow investment in anything beyond 45% complete
+			const float percentDone = float(getProjectProductionTimes100(eProjectType)) / float(getProductionNeeded(eProjectType) * 100);
+			if (percentDone > 0.45)
+				return false;
 			if(!canCreate(eProjectType, false, !bTestTrainable))
 				return false;
 
