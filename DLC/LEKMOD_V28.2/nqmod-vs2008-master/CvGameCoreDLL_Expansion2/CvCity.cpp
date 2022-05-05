@@ -5503,6 +5503,16 @@ int CvCity::GetFaithPurchaseCost(UnitTypes eUnit, bool bIncludeBeliefDiscounts) 
 	iCost *= iDivisor;
 #endif
 
+	// increase faith cost depending on domain
+	if ((DomainTypes)pkUnitInfo->GetDomainType() == DOMAIN_SEA)
+	{
+		iCost *= 2;
+	}
+	else
+	{
+		iCost *= 1.5;
+	}
+
 	return iCost;
 }
 
