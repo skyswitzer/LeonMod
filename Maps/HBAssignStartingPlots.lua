@@ -66,39 +66,47 @@ AssignStartingPlots = {};
 -- for scrambled AreaID data is theoretically possible, but I have not spent
 -- development resources and time on this, directing attention to other tasks.
 
+local horsesPer = 3;
+local ironPer = 6;
+local coalPer = 9;
+local oilPer = 12;
+local aluminumPer = 15;
+local uraniumPer = 18;
+
+
 function getMinPerCiv(this, resId)
-	if resId == this.uranium_ID then return 7 end
-	if resId == this.horse_ID then return 10 end
-	if resId == this.oil_ID then return 10 end
-	if resId == this.iron_ID then return 12 end
-	if resId == this.coal_ID then return 12 end
-	if resId == this.aluminum_ID then return 10 end
+	if resId == this.horse_ID then return horsesPer * 4 end
+	if resId == this.iron_ID then return ironPer * 4 end
+	if resId == this.coal_ID then return coalPer * 4 end
+	if resId == this.oil_ID then return oilPer * 4 end
+	if resId == this.aluminum_ID then return aluminumPer * 3 end
+	if resId == this.uranium_ID then return uraniumPer * 2 end
 	return 3;
+end
+function horses(this)
+	local values = {2,2,3,3,4,4};
+	return horsesPer;-- values[1 + Map.Rand(6, "")];
+end
+function iron(this)
+	local values = {2,2,2,3,3,4};
+	return ironPer;--values[1 + Map.Rand(6, "")];
+end
+function coal(this)
+	local values = {3,4,5,5,6,7};
+	return coalPer;--values[1 + Map.Rand(6, "")];
+end
+function oil(this)
+	local values = {1,2,2,3,3,4};
+	return oilPer;--values[1 + Map.Rand(6, "")];
+end
+function aluminum(this)
+	local values = {4,5,5,6,6,7};
+	return aluminumPer;--values[1 + Map.Rand(6, "")];
 end
 function uranium(this)
 	local offset = 5;
 	local values = {1,1,1,1, 1,1,1,2,2,2, 3,3,4,4};
-	return values[offset + Map.Rand(6, "")];
-end
-function horses(this)
-	local values = {2,2,3,3,4,4};
-	return values[1 + Map.Rand(6, "")];
-end
-function oil(this)
-	local values = {1,2,2,3,3,4};
-	return values[1 + Map.Rand(6, "")];
-end
-function iron(this)
-	local values = {2,2,2,3,3,4};
-	return values[1 + Map.Rand(6, "")];
-end
-function coal(this)
-	local values = {3,4,5,5,6,7};
-	return values[1 + Map.Rand(6, "")];
-end
-function aluminum(this)
-	local values = {4,5,5,6,6,7};
-	return values[1 + Map.Rand(6, "")];
+	return uraniumPer;--values[offset + Map.Rand(6, "")];
 end
 function getValues(this, resId)
 	if resId == this.uranium_ID then return uranium(this) end
@@ -5041,8 +5049,6 @@ function AssignStartingPlots:AddStrategicBalanceResources(region_number)
 	local uran_amt, horse_amt, oil_amt, iron_amt, coal_amt, alum_amt = self:GetMajorStrategicResourceQuantityValues()
 	local shuf_list;
 	local placed_iron, placed_horse, placed_oil, placed_alum, placed_coal, placed_uran = false, false, false, false, false, false;
-
-	uran_amt = 1;
 
 	if table.maxn(iron_list) > 0 then
 		shuf_list = GetShuffledCopyOfTable(iron_list)
@@ -13209,21 +13215,20 @@ function AssignStartingPlots:AddModernMinorStrategicsToCityStates()
 end
 ------------------------------------------------------------------------------
 function AssignStartingPlots:PlaceOilInTheSea()
+	-- place sea oil placeseaoil
 	-- Places sources of Oil in Coastal waters, equal to half what's on the 
 	-- land. If the map has too little ocean, then whatever will fit.
 	--
 	-- WARNING: This operation will render the Strategic Resource Impact Table useless for
 	-- further operations, so should always be called last, even after minor placements.
 	-- local sea_oil_amt = 4;
-	local expected_amt = 3;
-	local sea_oil_additional = 1;
+	local numPer = getResourceAmount(self, self.oil_ID);
 	local iNumLandOilUnits = self.amounts_of_resources_placed[self.oil_ID + 1];
-	local iNumToPlace = math.floor((iNumLandOilUnits / 2) / ((expected_amt + sea_oil_additional) / 2));
-
+	local iNumTilesToPlace = math.floor(iNumLandOilUnits / numPer / 2);
 	print("+++++++++++++++++++++++++++++++++++++++++++++ Adding Oil resources to the Sea +++++++++++++++++++++++++++++++++++++++++++++");
 	print("Land Oil Count: " .. tostring(iNumLandOilUnits));
-	print("Number to Place: " .. tostring(iNumToPlace));
-	iNumLeftToPlace = self:PlaceSpecificNumberOfResources(self.oil_ID, expected_amt, iNumToPlace, 1, 8, 7, 10, self.coast_list, sea_oil_additional);
+	print("Number to Place: " .. tostring(iNumTilesToPlace));
+	iNumLeftToPlace = self:PlaceSpecificNumberOfResources(self.oil_ID, numPer, iNumTilesToPlace, 1, 8, 7, 10, self.coast_list, 0);
 	print("Number not Placed: " .. tostring(iNumLeftToPlace));
 end
 ------------------------------------------------------------------------------
@@ -13504,32 +13509,14 @@ function AssignStartingPlots:PrintFinalResourceTotalsToLog()
 end
 ------------------------------------------------------------------------------
 function AssignStartingPlots:GetMajorStrategicResourceQuantityValues()
-	-- This function determines quantity per tile for each strategic resource's major deposit size.
-	-- Note: scripts that cannot place Oil in the sea need to increase amounts on land to compensate.
-	local uran_amt, horse_amt, oil_amt, iron_amt, coal_amt, alum_amt = 2, 4, 7, 6, 7, 8; -- Uran, Horse, Oil,   Iron, Coal, Alum
-	-- Check the resource setting.
-	if self.resource_setting == 1 or self.resource_setting == 2 then -- Sparse
-		uran_amt, horse_amt, oil_amt, iron_amt, coal_amt, alum_amt = 2, 2, 5, 4, 5, 6;
-	elseif self.resource_setting == 3 then -- mediocre
-		uran_amt, horse_amt, oil_amt, iron_amt, coal_amt, alum_amt = 2, 3, 6, 5, 6, 7;
-	elseif self.resource_setting == 7 then -- plenty
-		uran_amt, horse_amt, oil_amt, iron_amt, coal_amt, alum_amt = 2, 5, 8, 7, 8, 9;
-	elseif self.resource_setting == 8 or self.resource_setting == 9 or self.resource_setting == 10 then -- Abundant
-		uran_amt, horse_amt, oil_amt, iron_amt, coal_amt, alum_amt = 2, 6, 9, 8, 9, 10;
-	end
-	return uran_amt, horse_amt, oil_amt, iron_amt, coal_amt, alum_amt
+
+
+	return getResourceAmount(self, self.uranium_ID), getResourceAmount(self, self.horse_ID), getResourceAmount(self, self.oil_ID), getResourceAmount(self, self.iron_ID), getResourceAmount(self, self.coal_ID), getResourceAmount(self, self.aluminum_ID);
 end
 ------------------------------------------------------------------------------
 function AssignStartingPlots:GetSmallStrategicResourceQuantityValues()
-	-- This function determines quantity per tile for each strategic resource's small deposit size.
-	local uran_amt, horse_amt, oil_amt, iron_amt, coal_amt, alum_amt = 2, 2, 4, 2, 3, 3;
-	-- Check the resource setting.
-	if self.resource_setting == 1 or self.resource_setting == 2 or self.resource_setting == 3 then -- Sparse / Mediocre
-		uran_amt, horse_amt, oil_amt, iron_amt, coal_amt, alum_amt = 1, 1, 2, 1, 2, 2;
-	elseif self.resource_setting == 7 or self.resource_setting == 8 or self.resource_setting == 9 or self.resource_setting == 10 then -- Plenty / Abundant
-		uran_amt, horse_amt, oil_amt, iron_amt, coal_amt, alum_amt = 2, 3, 3, 3, 3, 3;
-	end
-	return uran_amt, horse_amt, oil_amt, iron_amt, coal_amt, alum_amt
+
+	return self:GetMajorStrategicResourceQuantityValues();
 end
 ------------------------------------------------------------------------------
 function AssignStartingPlots:PlaceStrategicAndBonusResources()
