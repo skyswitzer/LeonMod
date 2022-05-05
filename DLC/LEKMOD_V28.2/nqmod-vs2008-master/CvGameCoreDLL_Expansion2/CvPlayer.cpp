@@ -6098,11 +6098,11 @@ int CvPlayer::GetDiplomaticInfluenceNeeded() const
 
 	const float effectiveNumCivs = (numHumanPlayers);
 
-	const float toWinBoost = 1.10;
+	const float toWinBoost = 1.26;
 	const float expectedTurnFraction = 0.50;
 	const float totalGameTurns = GC.getGamePointer()->getMaxTurns();
 	const float expectedAllies = (numCityStates / effectiveNumCivs) * toWinBoost; // fair share + some percentage
-	const float influencePerTurnPerAlly = 10;
+	const float influencePerTurnPerAlly = GC.getDIPLOMATIC_INFLUENCE_PER_TURN_ALLY(NO_PLAYER, NO_PLAYER);
 
 	int influenceNeeded = influencePerTurnPerAlly * expectedAllies * expectedTurnFraction * totalGameTurns;
 	influenceNeeded -= ((float)influenceNeeded / 1000.0f * (float)GC.getGame().GetVpAdjustment());
@@ -6147,7 +6147,7 @@ void CvPlayer::ChangeScientificInfluence(const int iChange)
 //	--------------------------------------------------------------------------------
 int CvPlayer::GetScientificInfluenceNeeded() const
 {
-	int targetValue = 3000;
+	int targetValue = 3500;
 	targetValue -= ((float)targetValue / 1000.0f * (float)GC.getGame().GetVpAdjustment());
 	return targetValue;
 }
