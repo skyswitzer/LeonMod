@@ -2777,7 +2777,7 @@ CvString CvPlayerCulture::GetTourismModifierWith_Tooltip(const PlayerTypes eOthe
 			totalLinearModT100 += mod;
 		}
 
-		{ // fair
+		{ // congress fair
 			int mod = 0;
 			if (m_pPlayer->GetTourismBonusTurns() > 0) mod = GC.getTEMPORARY_TOURISM_BOOST_MOD();
 			addColoredValue(stream, mod, "from the World Fair");

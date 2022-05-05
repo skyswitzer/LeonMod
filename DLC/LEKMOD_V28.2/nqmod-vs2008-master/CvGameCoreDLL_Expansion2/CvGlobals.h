@@ -199,6 +199,7 @@ public:
 	void uninit();
 	void initCompetitions();
 	void uninitCompetitions();
+	// global to store competition calculating functions
 	vector<CompetitionDelegates*> GetDelegatesFor;
 
 	CvMap& getMap()
