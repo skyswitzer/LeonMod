@@ -1,9 +1,9 @@
 /*	-------------------------------------------------------------------------------------------------------
-	© 1991-2012 Take-Two Interactive Software and its subsidiaries.  Developed by Firaxis Games.  
-	Sid Meier's Civilization V, Civ, Civilization, 2K Games, Firaxis Games, Take-Two Interactive Software 
-	and their respective logos are all trademarks of Take-Two interactive Software, Inc.  
-	All other marks and trademarks are the property of their respective owners.  
-	All rights reserved. 
+	© 1991-2012 Take-Two Interactive Software and its subsidiaries.  Developed by Firaxis Games.
+	Sid Meier's Civilization V, Civ, Civilization, 2K Games, Firaxis Games, Take-Two Interactive Software
+	and their respective logos are all trademarks of Take-Two interactive Software, Inc.
+	All other marks and trademarks are the property of their respective owners.
+	All rights reserved.
 	------------------------------------------------------------------------------------------------------- */
 
 #include "CvGameCoreDLLPCH.h"
@@ -37,7 +37,7 @@
 #include "CvTargeting.h"
 #include "CvTypes.h"
 
-// Include this after all other headers.
+	// Include this after all other headers.
 #include "LintFree.h"
 
 
@@ -136,11 +136,9 @@ int CvPlot::getExtraYield
 			{// BELIEF_Church Property - Holy City - +1 (food, production, gold, faith, culture, and science) and an additional of each yield per 40 followers (max +5)
 				const bool hasBeliefChurchProperty = city.HasBelief("BELIEF_CHURCH_PROPERTY");
 				const bool isTileAffected = hasBeliefChurchProperty && isHolyCity && isCityCenter;
-				const bool isYieldAffected = 
-				(
+				const bool isYieldAffected = (
 					eYieldType == YIELD_FOOD || eYieldType == YIELD_PRODUCTION || eYieldType == YIELD_CULTURE ||
-					eYieldType == YIELD_FAITH || eYieldType == YIELD_SCIENCE || eYieldType == YIELD_GOLD
-				);
+					eYieldType == YIELD_FAITH || eYieldType == YIELD_SCIENCE || eYieldType == YIELD_GOLD);
 				if (isYieldAffected && isTileAffected)
 					yieldChange += min(6, 1 + numFollowersGlobal / 50);
 			}
@@ -231,7 +229,7 @@ int CvPlot::getExtraYield
 				if (eYieldType == YIELD_SCIENCE && hasNewDeal && isAtollScience)
 					yieldChange += 2;
 			}
-									
+
 			{// BELIEF_DANCE_AURORA - Dance of the Aurora - on tundra tiles only - gives +1 production to bonus tiles, +1 culture to luxury tiles, +1 Gold to Strategic, and +1 faith to every other tundra tile
 				const bool hasBeliefDanceOfTheAurora = city.HasBelief("BELIEF_DANCE_AURORA");
 				if (eYieldType == YIELD_FAITH && hasBeliefDanceOfTheAurora && isTundra && noResource)
@@ -263,7 +261,7 @@ int CvPlot::getExtraYield
 				if (eYieldType == YIELD_TOURISM && hasBeliefSacredWaters && (isLake || hasAnyAtoll || isOasis))
 					yieldChange += 1;
 			}
-			
+
 			{// Policy_Cutural Exchange - gives 1 tourism to great person tile improvements. 
 				const bool hasPolicyCulturalExchange = player.HasPolicy("POLICY_ETHICS");
 				if (eYieldType == YIELD_TOURISM && hasPolicyCulturalExchange && isGreatTile)
@@ -281,8 +279,8 @@ int CvPlot::getExtraYield
 				const bool isAcadamy = plot.HasImprovement("IMPROVEMENT_ACADEMY");
 				if (eYieldType == YIELD_SCIENTIFIC_INSIGHT && hasSpaceProcurement && isAcadamy)
 					yieldChange += 3;
-			}	
-			
+			}
+
 			{// POLICY_IRON_CURTAIN - gives +2 tourism per city
 				const bool hasIronCurtain = player.HasPolicy("POLICY_IRON_CURTAIN");
 				if (eYieldType == YIELD_TOURISM && hasIronCurtain && isCityCenter)
@@ -316,10 +314,10 @@ int CvPlot::getExtraYield
 			}
 
 			{// IMPROVEMENT_POLDER - gives +2 Food to Marsh.
-			const bool isMarsh = plot.HasFeature("FEATURE_MARSH");
-			const bool isPolder = plot.HasImprovement("IMPROVEMENT_POLDER");
-			if (eYieldType == YIELD_FOOD && isMarsh && isPolder)
-				yieldChange += 2;
+				const bool isMarsh = plot.HasFeature("FEATURE_MARSH");
+				const bool isPolder = plot.HasImprovement("IMPROVEMENT_POLDER");
+				if (eYieldType == YIELD_FOOD && isMarsh && isPolder)
+					yieldChange += 2;
 			}
 
 		}
@@ -344,18 +342,18 @@ int CvPlot::getExtraYield
 // Extra yields for buildings.
 int CvPlayer::GetExtraYieldForBuilding
 (
-	const CvCity* pCity, 
-	const BuildingTypes eBuilding, 
+	const CvCity* pCity,
+	const BuildingTypes eBuilding,
 	const BuildingClassTypes eBuildingClass,
 	const CvBuildingEntry* pBuildingInfo,
-	const YieldTypes eYieldType, 
+	const YieldTypes eYieldType,
 	const bool isPercentMod
 ) const
 {
 	int yieldChange = 0;
 
 	const CvPlayer& player = *this;
-	
+
 	if (pCity != NULL) // in a city
 	{
 		const CvCity& city = *pCity;
@@ -366,7 +364,7 @@ int CvPlayer::GetExtraYieldForBuilding
 			const bool isNationalCollege2 = eBuildingClass == BuildingClass("BUILDINGCLASS_NATIONAL_SCIENCE_1");
 			const bool isNationalCollege3 = eBuildingClass == BuildingClass("BUILDINGCLASS_NATIONAL_SCIENCE_2");
 			if (eYieldType == YIELD_SCIENTIFIC_INSIGHT && !isPercentMod && hasBeliefPeaceGardens && (isNationalCollege1 || isNationalCollege2 || isNationalCollege3))
-				yieldChange += 1; 
+				yieldChange += 1;
 			if (eYieldType == YIELD_SCIENCE && isPercentMod && hasBeliefPeaceGardens && (isNationalCollege1 || isNationalCollege2 || isNationalCollege3))
 				yieldChange += 10;
 		}
@@ -427,7 +425,7 @@ int CvPlayer::GetExtraYieldForBuilding
 		const bool hasFuturism = player.HasPolicy("POLICY_FUTURISM");
 		const bool isCourthouse = eBuildingClass == BuildingClass("BUILDINGCLASS_COURTHOUSE");
 		if (eYieldType == YIELD_SCIENTIFIC_INSIGHT && !isPercentMod && hasFuturism && isCourthouse)
-			yieldChange += 2;	
+			yieldChange += 2;
 	}
 
 	{// POLICY_FUTURISM - gives + 3 scientific insight from courthouse
@@ -477,7 +475,7 @@ int CvPlayer::GetExtraYieldForBuilding
 	}
 
 	{// POLICY_UNIVERSAL_HEALTHCARE = -1 gold, +1 happy for granaries, -2 gold, +1 happy +1 food for aquaducts, -2 gold, -2 production, +1 happy +4 food from Hospitals
-		const bool hasUniversal = 
+		const bool hasUniversal =
 			player.HasPolicy("POLICY_UNIVERSAL_HEALTHCARE_F") ||
 			player.HasPolicy("POLICY_UNIVERSAL_HEALTHCARE_O") ||
 			player.HasPolicy("POLICY_UNIVERSAL_HEALTHCARE_A");
@@ -525,13 +523,13 @@ int CvPlayer::GetExtraYieldForBuilding
 		if (isStupa && isYieldBoosted && !isPercentMod)
 			yieldChange += numTechBoosters;
 	}
-	
+
 	{// Building_Recycling Center gets +1 Scientific Insight
 		const bool isRecyclingCenter = eBuildingClass == BuildingClass("BUILDINGCLASS_RECYCLING_CENTER");
 		if (eYieldType == YIELD_SCIENTIFIC_INSIGHT && !isPercentMod && isRecyclingCenter)
 			yieldChange += 2;
 	}
-	
+
 	return yieldChange;
 }
 
@@ -551,7 +549,7 @@ int CvGlobals::getCITIZENS_PER_SPECIALIST(const PlayerTypes ePlayer) const
 }
 // how much influence per turn a player gets from an ally
 int CvGlobals::getDIPLOMATIC_INFLUENCE_PER_TURN_ALLY(const PlayerTypes eMinor, const PlayerTypes ePlayer, const bool isCaptured) const
-{	
+{
 	float diplomaticInfluencePerTurn = 10;
 
 	const CvPlayer& player = GET_PLAYER(ePlayer);
@@ -592,7 +590,6 @@ int CvPlayerTrade::GetTradeConnectionValueExtra(const TradeConnection& kTradeCon
 	const int tradeDistance = kTradeConnection.m_aPlotList.size();
 	const bool hasSilkRoad = playerOrigin.HasPolicy("POLICY_CARAVANS");
 	const bool hasMerchantConfederacy = playerOrigin.HasPolicy("POLICY_MERCHANT_CONFEDERACY");
-	// const bool isGrocer = BuildingClass("BUILDINGCLASS_GROCER");
 	const bool hasMerchantsGuild = cityOrigin->GetCityBuildings()->HasBuildingClass(BuildingClass("BUILDINGCLASS_CARAVANSARY"));
 	const bool hasMarket = cityOrigin->GetCityBuildings()->HasBuildingClass(BuildingClass("BUILDINGCLASS_MARKET"));
 	const bool hasBank = cityOrigin->GetCityBuildings()->HasBuildingClass(BuildingClass("BUILDINGCLASS_BANK"));
@@ -608,7 +605,7 @@ int CvPlayerTrade::GetTradeConnectionValueExtra(const TradeConnection& kTradeCon
 
 
 	if (isInternal) // true if this is an internal trade route
-	{			
+	{
 		if (eYieldType == YIELD_GOLD && hasMint)
 			yieldChange += 2;
 		if (eYieldType == YIELD_GOLD && hasBrewery)
