@@ -4433,11 +4433,7 @@ CvUnit* CvPlot::getVisibleEnemyDefender(const CvUnit* pUnit) const
 #endif
 
 //	-----------------------------------------------------------------------------------------------
-#ifdef AUI_CONSTIFY
 CvUnit* CvPlot::getVisibleEnemyDefender(PlayerTypes ePlayer) const
-#else
-CvUnit* CvPlot::getVisibleEnemyDefender(PlayerTypes ePlayer)
-#endif
 {
 	const IDInfo* pUnitNode = m_units.head();
 	if(pUnitNode)
@@ -6173,21 +6169,13 @@ void CvPlot::ClearCityPurchaseInfo(void)
 }
 
 //	--------------------------------------------------------------------------------
-#ifdef AUI_CONSTIFY
 PlayerTypes CvPlot::GetCityPurchaseOwner() const
-#else
-PlayerTypes CvPlot::GetCityPurchaseOwner(void)
-#endif
 {
 	return m_purchaseCity.eOwner;
 }
 
 //	--------------------------------------------------------------------------------
-#ifdef AUI_CONSTIFY
 int CvPlot::GetCityPurchaseID() const
-#else
-int CvPlot::GetCityPurchaseID(void)
-#endif
 {
 	return m_purchaseCity.iID;
 }

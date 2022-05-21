@@ -6,7 +6,7 @@
 	All rights reserved. 
 	------------------------------------------------------------------------------------------------------- */
 
-#include <CvGameCoreDLLPCH.h>
+#include "CvGameCoreDLLPCH.h"
 #include "CvLuaSupport.h"
 #include "CvLuaFractal.h"
 #include "..\CvFractal.h"

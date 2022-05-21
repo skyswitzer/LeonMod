@@ -496,11 +496,7 @@ CvEconomicAIStrategyXMLEntries* CvEconomicAI::GetEconomicAIStrategies()
 }
 
 /// Returns whether or not a player has adopted this Strategy
-#if defined(AUI_WARNING_FIXES) || defined(AUI_CONSTIFY)
 bool CvEconomicAI::IsUsingStrategy(EconomicAIStrategyTypes eStrategy) const
-#else
-bool CvEconomicAI::IsUsingStrategy(EconomicAIStrategyTypes eStrategy)
-#endif
 {
 	return m_pabUsingStrategy[(int) eStrategy];
 }
@@ -526,11 +522,7 @@ void CvEconomicAI::SetUsingStrategy(EconomicAIStrategyTypes eStrategy, bool bVal
 }
 
 /// Returns the turn on which a Strategy was adopted (-1 if it hasn't been)
-#if defined(AUI_WARNING_FIXES) || defined(AUI_CONSTIFY)
 int CvEconomicAI::GetTurnStrategyAdopted(EconomicAIStrategyTypes eStrategy) const
-#else
-int CvEconomicAI::GetTurnStrategyAdopted(EconomicAIStrategyTypes eStrategy)
-#endif
 {
 	return m_paiTurnStrategyAdopted[(int) eStrategy];
 }
@@ -1135,11 +1127,7 @@ void CvEconomicAI::StartSaveForPurchase(PurchaseType ePurchase, int iAmount, int
 }
 
 /// Have we put in a request for this type of purchase?
-#if defined(AUI_WARNING_FIXES) || defined(AUI_CONSTIFY)
 bool CvEconomicAI::IsSavingForThisPurchase(PurchaseType ePurchase) const
-#else
-bool CvEconomicAI::IsSavingForThisPurchase(PurchaseType ePurchase)
-#endif
 {
 	return (m_RequestedSavings[(int)ePurchase].m_iAmount > 0);
 }
@@ -1200,11 +1188,7 @@ bool CvEconomicAI::CanWithdrawMoneyForPurchase(PurchaseType ePurchase, int iAmou
 }
 
 /// Returns amount of gold economic AI is willing to release for this type of purchase. May not be full gold balance if higher priority requests are in. Does not actually spend the gold.
-#if defined(AUI_WARNING_FIXES) || defined(AUI_CONSTIFY)
 int CvEconomicAI::AmountAvailableForPurchase(PurchaseType ePurchase) const
-#else
-int CvEconomicAI::AmountAvailableForPurchase(PurchaseType ePurchase)
-#endif
 {
 	int iBalance = m_pPlayer->GetTreasury()->GetGold();
 
@@ -1244,11 +1228,7 @@ int CvEconomicAI::AmountAvailableForPurchase(PurchaseType ePurchase)
 }
 
 /// What is the ratio of workers we have to the number of cities we have?
-#if defined(AUI_WARNING_FIXES) || defined(AUI_CONSTIFY)
 double CvEconomicAI::GetWorkersToCitiesRatio() const
-#else
-double CvEconomicAI::GetWorkersToCitiesRatio()
-#endif
 {
 	int iNumWorkers = m_pPlayer->GetNumUnitsWithUnitAI(UNITAI_WORKER, true, false); // includes workers currently being produced
 	int iNumCities = m_pPlayer->getNumCities();
@@ -1258,11 +1238,7 @@ double CvEconomicAI::GetWorkersToCitiesRatio()
 }
 
 /// What is the ratio of our improved plots to all the plots we are able to improve?
-#if defined(AUI_WARNING_FIXES) || defined(AUI_CONSTIFY)
 double CvEconomicAI::GetImprovedToImprovablePlotsRatio() const
-#else
-double CvEconomicAI::GetImprovedToImprovablePlotsRatio()
-#endif
 {
 	const CvPlotsVector& aiPlots = m_pPlayer->GetPlots();
 	int iNumValidPlots = 0;

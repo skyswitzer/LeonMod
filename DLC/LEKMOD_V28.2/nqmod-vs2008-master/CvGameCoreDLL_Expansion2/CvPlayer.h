@@ -1366,22 +1366,14 @@ public:
 	int getResourceSiphoned(ResourceTypes eIndex) const;
 	void changeResourceSiphoned(ResourceTypes eIndex, int iChange);
 
-#ifdef AUI_CONSTIFY
 	int getResourceInOwnedPlots(ResourceTypes eIndex) const;
-#else
-	int getResourceInOwnedPlots(ResourceTypes eIndex);
-#endif
 
 	int getTotalImprovementsBuilt() const;
 	void changeTotalImprovementsBuilt(int iChange);
 	int getImprovementCount(ImprovementTypes eIndex) const;
 	void changeImprovementCount(ImprovementTypes eIndex, int iChange);
 
-#if defined(AUI_WARNING_FIXES) || defined(AUI_CONSTIFY) || defined(NQ_HAPPINESS_FROM_GREAT_IMPROVEMENTS_FROM_POLICIES)
 	int getGreatPersonImprovementCount() const;
-#else
-	int getGreatPersonImprovementCount();
-#endif
 
 	int getFreeBuildingCount(BuildingTypes eIndex) const;
 	bool isBuildingFree(BuildingTypes eIndex) const;
@@ -1555,9 +1547,7 @@ public:
 	void UpdatePlots();  // Modifies the list of plots and sets which ones the player owns
 	void AddAPlot(CvPlot* pPlot); // adds a plot at the end of the list
 	CvPlotsVector& GetPlots();  // gets the list of plots the player owns
-#if defined(AUI_WARNING_FIXES) || defined(AUI_CONSTIFY)
 	const CvPlotsVector& GetPlots() const;
-#endif
 	int GetNumPlots() const;
 
 	int GetNumPlotsBought() const;
@@ -1599,11 +1589,7 @@ public:
 	void SetNumNaturalWondersDiscoveredInArea(int iValue);
 	void ChangeNumNaturalWondersDiscoveredInArea(int iChange);
 
-#if defined(AUI_WARNING_FIXES) || defined(AUI_CONSTIFY)
 	int GetNumNaturalWondersInOwnedPlots() const;
-#else
-	int GetNumNaturalWondersInOwnedPlots();
-#endif
 
 	int GetTurnsSinceSettledLastCity() const;
 	void SetTurnsSinceSettledLastCity(int iValue);

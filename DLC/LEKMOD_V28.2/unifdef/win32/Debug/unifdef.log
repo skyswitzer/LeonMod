@@ -1,0 +1,9 @@
+﻿  win32.c
+c:\users\leon\desktop\temp\win32\unifdef.h(27): warning C4005: '_CRT_SECURE_NO_WARNINGS' : macro redefinition
+          command-line arguments :  see previous definition of '_CRT_SECURE_NO_WARNINGS'
+c:\users\leon\desktop\temp\win32\win32.c(73): warning C4018: '>' : signed/unsigned mismatch
+  getopt.c
+  err.c
+  unifdef.c
+  Generating Code...
+  unifdef.vcxproj -> C:\Users\leon\Desktop\temp\win32\Debug\unifdef.exe

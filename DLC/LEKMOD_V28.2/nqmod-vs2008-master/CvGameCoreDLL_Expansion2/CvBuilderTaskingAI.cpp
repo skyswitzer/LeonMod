@@ -2942,10 +2942,8 @@ bool CvBuilderTaskingAI::DoesBuildHelpRush(CvUnit* pUnit, CvPlot* pPlot, BuildTy
 
 #ifdef AUI_WORKER_SCORE_PLOT_CHOP
 int CvBuilderTaskingAI::ScorePlot(BuildTypes eBuild) const
-#elif defined(AUI_CONSTIFY)
-int CvBuilderTaskingAI::ScorePlot() const
 #else
-int CvBuilderTaskingAI::ScorePlot()
+int CvBuilderTaskingAI::ScorePlot() const
 #endif
 {
 	if(!m_pTargetPlot)
@@ -3081,11 +3079,7 @@ int CvBuilderTaskingAI::ScorePlot()
 	return iScore;
 }
 
-#ifdef AUI_CONSTIFY
 BuildTypes CvBuilderTaskingAI::GetBuildTypeFromImprovement(ImprovementTypes eImprovement) const
-#else
-BuildTypes CvBuilderTaskingAI::GetBuildTypeFromImprovement(ImprovementTypes eImprovement)
-#endif
 {
 #ifdef AUI_WARNING_FIXES
 	for (uint iBuildIndex = 0; iBuildIndex < GC.getNumBuildInfos(); iBuildIndex++)
@@ -3105,11 +3099,7 @@ BuildTypes CvBuilderTaskingAI::GetBuildTypeFromImprovement(ImprovementTypes eImp
 	return NO_BUILD;
 }
 
-#ifdef AUI_CONSTIFY
 BuildTypes CvBuilderTaskingAI::GetRepairBuild() const
-#else
-BuildTypes CvBuilderTaskingAI::GetRepairBuild(void)
-#endif
 {
 #ifdef AUI_WARNING_FIXES
 	for (uint i = 0; i < GC.getNumBuildInfos(); i++)
@@ -3129,20 +3119,12 @@ BuildTypes CvBuilderTaskingAI::GetRepairBuild(void)
 	return NO_BUILD;
 }
 
-#ifdef AUI_CONSTIFY
 FeatureTypes CvBuilderTaskingAI::GetFalloutFeature() const
-#else
-FeatureTypes CvBuilderTaskingAI::GetFalloutFeature(void)
-#endif
 {
 	return static_cast<FeatureTypes>(GC.getNUKE_FEATURE());
 }
 
-#ifdef AUI_CONSTIFY
 BuildTypes CvBuilderTaskingAI::GetFalloutRemove() const
-#else
-BuildTypes CvBuilderTaskingAI::GetFalloutRemove(void)
-#endif
 {
 	FeatureTypes eFalloutFeature = m_eFalloutFeature;
 	if(eFalloutFeature == NO_FEATURE)

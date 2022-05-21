@@ -12,7 +12,7 @@
 //!		This file includes the implementation for exposing game infos to Lua.
 //!
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#include <CvGameCoreDLLPCH.h>
+#include "CvGameCoreDLLPCH.h"
 #include "CvLuaSupport.h"
 #include "CvLuaGameInfo.h"
 #include <LuaExposures.h>
@@ -39,19 +39,11 @@ int CvLuaGameInfo::pRegisterActions(lua_State* L)
 	const int t = lua_gettop(L);
 	int idx = 0;
 
-#ifdef AUI_CONSTIFY
 	const std::vector<CvActionInfo*>& infos = GC.getActionInfo();
 	for (std::vector<CvActionInfo*>::const_iterator it = infos.begin(); it != infos.end(); ++it)
 	{
 		const CvActionInfo* pEntry = (*it);
-#else
-	typedef std::vector<CvActionInfo*> ActionInfos;
-	ActionInfos& infos = GC.getActionInfo();
-	for(ActionInfos::const_iterator it = infos.begin();
-	        it != infos.end(); ++it)
-	{
-		CvActionInfo* pEntry = (*it);
-#endif
+
 		lua_createtable(L, 0, 0);
 
 		Table kEntry(L, -1);

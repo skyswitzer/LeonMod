@@ -4735,11 +4735,7 @@ int CvGame::getNumSequentialHumans(PlayerTypes ignorePlayer)
 }
 
 //	------------------------------------------------------------------------------------------------
-#if defined(AUI_WARNING_FIXES) || defined(AUI_CONSTIFY)
 int CvGame::getGameTurn() const
-#else
-int CvGame::getGameTurn()
-#endif
 {
 	return CvPreGame::gameTurn();
 }
@@ -5123,11 +5119,7 @@ void CvGame::setTargetScore(int iNewValue)
 
 
 //	--------------------------------------------------------------------------------
-#ifdef AUI_CONSTIFY
 int CvGame::getNumGameTurnActive() const
-#else
-int CvGame::getNumGameTurnActive()
-#endif
 {
 	int numActive = 0;
 	for(int i = 0; i < MAX_PLAYERS; i++)
@@ -5142,11 +5134,7 @@ int CvGame::getNumGameTurnActive()
 
 
 //	--------------------------------------------------------------------------------
-#ifdef AUI_CONSTIFY
 int CvGame::countNumHumanGameTurnActive() const
-#else
-int CvGame::countNumHumanGameTurnActive()
-#endif
 {
 	int iCount;
 	int iI;
@@ -11218,11 +11206,7 @@ CvAdvisorRecommender* CvGame::GetAdvisorRecommender()
 }
 
 //	--------------------------------------------------------------------------------
-#if defined(AUI_WARNING_FIXES) || defined(AUI_CONSTIFY)
 int CvGame::GetTurnsBetweenMinorCivElections() const
-#else
-int CvGame::GetTurnsBetweenMinorCivElections()
-#endif
 {
 	int iTurnsBetweenCityStateElections = GC.getESPIONAGE_TURNS_BETWEEN_CITY_STATE_ELECTIONS();
 	iTurnsBetweenCityStateElections *= GC.getGame().getGameSpeedInfo().getMinorCivElectionFreqMod();
@@ -11231,11 +11215,7 @@ int CvGame::GetTurnsBetweenMinorCivElections()
 }
 
 //	--------------------------------------------------------------------------------
-#if defined(AUI_WARNING_FIXES) || defined(AUI_CONSTIFY)
 int CvGame::GetTurnsUntilMinorCivElection() const
-#else
-int CvGame::GetTurnsUntilMinorCivElection()
-#endif
 {
 	int iMod = 0;
 	int iTurnsBetweenCityStateElections = GetTurnsBetweenMinorCivElections();

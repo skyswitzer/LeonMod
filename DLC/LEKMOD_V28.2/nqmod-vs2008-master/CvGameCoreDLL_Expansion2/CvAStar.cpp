@@ -1105,11 +1105,7 @@ void UnitPathUninitialize(const void* pointer, CvAStar* finder)
 }
 
 //	--------------------------------------------------------------------------------
-#ifdef AUI_CONSTIFY
 int PathDest(int iToX, int iToY, const void* pointer, const CvAStar* finder)
-#else
-int PathDest(int iToX, int iToY, const void* pointer, CvAStar* finder)
-#endif
 {
 	if(iToX == finder->GetDestX() && iToY == finder->GetDestY())
 	{
@@ -1132,11 +1128,7 @@ int PathDest(int iToX, int iToY, const void* pointer, CvAStar* finder)
 
 //	--------------------------------------------------------------------------------
 /// Standard path finder - is this end point for the path valid?
-#ifdef AUI_CONSTIFY
 int PathDestValid(int iToX, int iToY, const void* pointer, const CvAStar* finder)
-#else
-int PathDestValid(int iToX, int iToY, const void* pointer, CvAStar* finder)
-#endif
 {
 #ifdef AUI_ASTAR_MINOR_OPTIMIZATION
 	CvPlot* pToPlot = GC.getMap().plotCheckInvalid(iToX, iToY);
@@ -2351,11 +2343,7 @@ int PathNodeAdd(CvAStarNode* parent, CvAStarNode* node, int data, const void* po
 
 //	--------------------------------------------------------------------------------
 /// Ignore units path finder - is this end point for the path valid?
-#ifdef AUI_CONSTIFY
 int IgnoreUnitsDestValid(int iToX, int iToY, const void* pointer, const CvAStar* finder)
-#else
-int IgnoreUnitsDestValid(int iToX, int iToY, const void* pointer, CvAStar* finder)
-#endif
 {
 #ifdef AUI_ASTAR_MINOR_OPTIMIZATION
 	CvPlot* pToPlot = GC.getMap().plotUnchecked(iToX, iToY);
@@ -3072,11 +3060,7 @@ int IgnoreUnitsPathAdd(CvAStarNode* parent, CvAStarNode* node, int data, const v
 
 //	--------------------------------------------------------------------------------
 /// Step path finder - is this end point for the path valid?
-#ifdef AUI_CONSTIFY
 int StepDestValid(int iToX, int iToY, const void* pointer, const CvAStar* finder)
-#else
-int StepDestValid(int iToX, int iToY, const void* pointer, CvAStar* finder)
-#endif
 {
 #ifndef AUI_ASTAR_MINOR_OPTIMIZATION
 	CvPlot* pFromPlot;
@@ -3280,11 +3264,7 @@ int StepAdd(CvAStarNode* parent, CvAStarNode* node, int data, const void* pointe
 
 //	--------------------------------------------------------------------------------
 /// Influence path finder - is this end point for the path valid?
-#ifdef AUI_CONSTIFY
 int InfluenceDestValid(int iToX, int iToY, const void* pointer, const CvAStar* finder)
-#else
-int InfluenceDestValid(int iToX, int iToY, const void* pointer, CvAStar* finder)
-#endif
 {
 #ifndef AUI_ASTAR_MINOR_OPTIMIZATION
 	CvPlot* pFromPlot;
@@ -4074,11 +4054,7 @@ void CvTwoLayerPathFinder::DeInit()
 
 //	--------------------------------------------------------------------------------
 /// Return a node from the second layer of A-star nodes (for the partial moves)
-#if defined(AUI_ASTAR_MINOR_OPTIMIZATION) || defined(AUI_CONSTIFY)
 CvAStarNode* CvTwoLayerPathFinder::GetPartialMoveNode(int iCol, int iRow) const
-#else
-CvAStarNode* CvTwoLayerPathFinder::GetPartialMoveNode(int iCol, int iRow)
-#endif
 {
 	return &(m_ppaaPartialMoveNodes[iCol][iRow]);
 }
@@ -4401,11 +4377,7 @@ bool CvIgnoreUnitsPathFinder::DoesPathExist(CvUnit& unit, CvPlot* pStartPlot, Cv
 
 //	--------------------------------------------------------------------------------
 /// Get length of last path computed by path finder in turns [should be used after a call to DoesPathExist()]
-#ifdef AUI_CONSTIFY
 int CvIgnoreUnitsPathFinder::GetPathLength() const
-#else
-int CvIgnoreUnitsPathFinder::GetPathLength()
-#endif
 {
 #ifdef AUI_ASTAR_MINOR_OPTIMIZATION
 	CvAStarNode* pNode = GetLastNode();
@@ -4778,11 +4750,7 @@ int AttackPathAdd(CvAStarNode* parent, CvAStarNode* node, int data, const void* 
 }
 
 //	--------------------------------------------------------------------------------
-#ifdef AUI_CONSTIFY
 int AttackPathDestEval(int iToX, int iToY, const void* pointer, const CvAStar* finder, bool bOnlyFortified, bool bOnlyCity)
-#else
-int AttackPathDestEval(int iToX, int iToY, const void* pointer, CvAStar* finder, bool bOnlyFortified, bool bOnlyCity)
-#endif
 {
 	CvUnit* pUnit = ((CvUnit*)pointer);
 	CvAssertMsg(pUnit, "pUnit should be a value");
@@ -4820,33 +4788,21 @@ int AttackPathDestEval(int iToX, int iToY, const void* pointer, CvAStar* finder,
 
 //	--------------------------------------------------------------------------------
 /// Destination is valid if there is an enemy unit there
-#ifdef AUI_CONSTIFY
 int AttackPathDest(int iToX, int iToY, const void* pointer, const CvAStar* finder)
-#else
-int AttackPathDest(int iToX, int iToY, const void* pointer, CvAStar* finder)
-#endif
 {
 	return AttackPathDestEval(iToX, iToY, pointer, finder, false, false);
 }
 
 //	--------------------------------------------------------------------------------
 /// Destination is valid if there is a fortified unit there
-#ifdef AUI_CONSTIFY
 int AttackFortifiedPathDest(int iToX, int iToY, const void* pointer, const CvAStar* finder)
-#else
-int AttackFortifiedPathDest(int iToX, int iToY, const void* pointer, CvAStar* finder)
-#endif
 {
 	return AttackPathDestEval(iToX, iToY, pointer, finder, true, false);
 }
 
 //	--------------------------------------------------------------------------------
 /// Destination is valid if there is a city there
-#ifdef AUI_CONSTIFY
 int AttackCityPathDest(int iToX, int iToY, const void* pointer, const CvAStar* finder)
-#else
-int AttackCityPathDest(int iToX, int iToY, const void* pointer, CvAStar* finder)
-#endif
 {
 	return AttackPathDestEval(iToX, iToY, pointer, finder, false, true);
 }
@@ -5364,11 +5320,7 @@ int TacticalAnalysisMapPathValid(CvAStarNode* parent, CvAStarNode* node, int dat
 }
 
 //	---------------------------------------------------------------------------
-#ifdef AUI_CONSTIFY
 int FindValidDestinationDest(int iToX, int iToY, const void* pointer, const CvAStar* finder)
-#else
-int FindValidDestinationDest(int iToX, int iToY, const void* pointer, CvAStar* finder)
-#endif
 {
 	CvUnit* pUnit = ((CvUnit*)pointer);
 	CvPlot* pToPlot = GC.getMap().plotUnchecked(iToX, iToY);

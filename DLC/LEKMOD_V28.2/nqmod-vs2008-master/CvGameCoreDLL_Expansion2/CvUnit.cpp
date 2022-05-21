@@ -22907,11 +22907,7 @@ int CvUnit::SearchRange(int iRange) const
 }
 
 //	--------------------------------------------------------------------------------
-#if defined(AUI_CONSTIFY) || defined(DEL_RANGED_COUNTERATTACKS)
 bool CvUnit::PlotValid(const CvPlot* pPlot) const
-#else
-bool CvUnit::PlotValid(CvPlot* pPlot) const
-#endif
 {
 	VALIDATE_OBJECT
 	if(isNoRevealMap() && willRevealByMove(*pPlot))
@@ -23016,10 +23012,8 @@ CvUnit* CvUnit::airStrikeTarget(CvPlot& targetPlot, bool bNoncombatAllowed) cons
 //	--------------------------------------------------------------------------------
 #ifdef AUI_UNIT_FIX_NO_RETREAT_ON_CIVILIAN_GUARD
 bool CvUnit::CanWithdrawFromMelee(const CvUnit& attacker, const CvCombatInfo* pCombatInfo) const
-#elif defined(AUI_CONSTIFY)
-bool CvUnit::CanWithdrawFromMelee(const CvUnit& attacker) const
 #else
-bool CvUnit::CanWithdrawFromMelee(CvUnit& attacker)
+bool CvUnit::CanWithdrawFromMelee(const CvUnit& attacker) const
 #endif
 {
 	VALIDATE_OBJECT
@@ -23100,10 +23094,8 @@ bool CvUnit::DoWithdrawFromMelee(CvUnit& attacker)
 //	--------------------------------------------------------------------------------
 #ifdef AUI_UNIT_FIX_HEAVY_CHARGE_BONUS_INTEGRATED_INTO_STACKS
 bool CvUnit::CanFallBackFromMelee(const CvUnit& attacker, const CvPlot* pFromPlot) const
-#elif defined(AUI_CONSTIFY)
-bool CvUnit::CanFallBackFromMelee(const CvUnit& attacker) const
 #else
-bool CvUnit::CanFallBackFromMelee(CvUnit& attacker)
+bool CvUnit::CanFallBackFromMelee(const CvUnit& attacker) const
 #endif
 {
 	VALIDATE_OBJECT
