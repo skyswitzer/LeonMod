@@ -115,6 +115,8 @@ int CvPlot::getExtraYield
 			const int cityPopulation = city.getPopulation(); // number of people in this city
 			const int numTradeCityStates = player.GetTrade()->GetNumberOfCityStateTradeRoutes(); // number of trade routes we have with city states
 			const int numTradeMajorCivs = player.GetTrade()->GetNumForeignTradeRoutes(player.GetID()) - numTradeCityStates; // number of trade routes we have with other civ players (not city states)
+			//player.IsCiv("CIVILIZATION_AMERICA");
+			//player.HasTech("TECH_POTTERY");
 
 
 			const bool isGreatTile = plot.HasImprovement("IMPROVEMENT_ACADEMY") ||
@@ -306,12 +308,13 @@ int CvPlot::getExtraYield
 					yieldChange += 3;
 			}
 
-			{// POLICY_SOVEREIGNTY - gives +1 singularity to acadamies
+			{// POLICY_SOVEREIGNTY - gives +2 singularity to Acadamies
 				const bool hasSovereignty = player.HasPolicy("POLICY_SOVEREIGNTY");
 				const bool isAcadamy = plot.HasImprovement("IMPROVEMENT_ACADEMY");
 				if (eYieldType == YIELD_SCIENTIFIC_INSIGHT && hasSovereignty && isAcadamy)
-					yieldChange += 1;
+					yieldChange += 2;
 			}
+
 		}
 	}
 
@@ -350,13 +353,58 @@ int CvPlayer::GetExtraYieldForBuilding
 	{
 		const CvCity& city = *pCity;
 
-		{ // BELIEF_PEACE_GARDENS - adds +1 scientific insight to national college wings
+		{ // BELIEF_PEACE_GARDENS - adds +1 scientific insight, 10% Science to national college wings
 			const bool hasBeliefPeaceGardens = city.HasBelief("BELIEF_PEACE_GARDENZ");
 			const bool isNationalCollege1 = eBuildingClass == BuildingClass("BUILDINGCLASS_NATIONAL_COLLEGE");
 			const bool isNationalCollege2 = eBuildingClass == BuildingClass("BUILDINGCLASS_NATIONAL_SCIENCE_1");
 			const bool isNationalCollege3 = eBuildingClass == BuildingClass("BUILDINGCLASS_NATIONAL_SCIENCE_2");
 			if (eYieldType == YIELD_SCIENTIFIC_INSIGHT && !isPercentMod && hasBeliefPeaceGardens && (isNationalCollege1 || isNationalCollege2 || isNationalCollege3))
 				yieldChange += 1; 
+			if (eYieldType == YIELD_SCIENCE && isPercentMod && hasBeliefPeaceGardens && (isNationalCollege1 || isNationalCollege2 || isNationalCollege3))
+				yieldChange += 10;
+		}
+
+		{// BELIEF_RELIGIOUS_FART +5% C, +10% Tourism
+			const bool hasBeliefReligiousArt = city.HasBelief("BELIEF_RELIGIOUS_FART");
+			const bool isHermitage = eBuildingClass == BuildingClass("BUILDINGCLASS_HERMITAGE");
+			if (eYieldType == YIELD_CULTURE && isPercentMod && isHermitage && hasBeliefReligiousArt)
+				yieldChange += 10;
+			if (eYieldType == YIELD_TOURISM && isPercentMod && isHermitage && hasBeliefReligiousArt)
+				yieldChange += 10;
+		}
+
+		{// BUILDINGCLASS_HOTEL +1 C, +1 Tourism and +2% C, +2% Tourism for every 5 citizens in a city.
+			const bool isHotel = eBuildingClass == BuildingClass("BUILDINGCLASS_HOTEL");
+			const int cityPopulation = city.getPopulation();
+			if (eYieldType == YIELD_CULTURE && !isPercentMod && isHotel)
+				yieldChange += (cityPopulation / 5);
+			if (eYieldType == YIELD_TOURISM && !isPercentMod && isHotel)
+				yieldChange += (cityPopulation / 5);
+			if (eYieldType == YIELD_CULTURE && isPercentMod && isHotel)
+				yieldChange += (2 * (cityPopulation / 5));
+			if (eYieldType == YIELD_TOURISM && isPercentMod && isHotel)
+				yieldChange += (2 * (cityPopulation / 5));
+		}
+		{// BUILDINGCLASS_BROADCAST_TOWER +2 C, Tourism and +2% C, Tourism for every World and National Wonder.
+			const bool isBroadcastTower = eBuildingClass == BuildingClass("BUILDINGCLASS_BROADCAST_TOWER");
+			const int numWorldWondersInCity = city.getNumWorldWonders();
+			const int numNationalWondersInCity = city.getNumNationalWonders();
+			if (eYieldType == YIELD_CULTURE && !isPercentMod && isBroadcastTower)
+				yieldChange += (2 * numWorldWondersInCity);
+			if (eYieldType == YIELD_CULTURE && !isPercentMod && isBroadcastTower)
+				yieldChange += (2 * numNationalWondersInCity);
+			if (eYieldType == YIELD_TOURISM && !isPercentMod && isBroadcastTower)
+				yieldChange += (2 * numWorldWondersInCity);
+			if (eYieldType == YIELD_TOURISM && !isPercentMod && isBroadcastTower)
+				yieldChange += (2 * numNationalWondersInCity);
+			if (eYieldType == YIELD_CULTURE && isPercentMod && isBroadcastTower)
+				yieldChange += (2 * numWorldWondersInCity);
+			if (eYieldType == YIELD_CULTURE && isPercentMod && isBroadcastTower)
+				yieldChange += (2 * numNationalWondersInCity);
+			if (eYieldType == YIELD_TOURISM && isPercentMod && isBroadcastTower)
+				yieldChange += (2 * numWorldWondersInCity);
+			if (eYieldType == YIELD_TOURISM && isPercentMod && isBroadcastTower)
+				yieldChange += (2 * numNationalWondersInCity);
 		}
 
 	}
@@ -496,12 +544,26 @@ int CvGlobals::getCITIZENS_PER_SPECIALIST(const PlayerTypes ePlayer) const
 }
 // how much influence per turn a player gets from an ally
 int CvGlobals::getDIPLOMATIC_INFLUENCE_PER_TURN_ALLY(const PlayerTypes eMinor, const PlayerTypes ePlayer, const bool isCaptured) const
-{
-	return 10;
+{	
+	float diplomaticInfluencePerTurn = 10;
+
+	const CvPlayer& player = GET_PLAYER(ePlayer);
+	const bool hasPatronageFinisher = player.HasPolicy("POLICY_PATRONAGE_FINISHER");
+	if (hasPatronageFinisher)
+		diplomaticInfluencePerTurn += 5;
+
+	return GC.round(diplomaticInfluencePerTurn);
 }
 int CvGlobals::getDIPLOMATIC_INFLUENCE_PER_QUEST(const PlayerTypes eMinor, const PlayerTypes ePlayer) const
 {
-	return 100;
+	float diplomaticInfluenceFromQuests = 100;
+
+	const CvPlayer& player = GET_PLAYER(ePlayer);
+	const bool hasPhilanthropy = player.HasPolicy("POLICY_PHILANTHROPY");
+	if (hasPhilanthropy)
+		diplomaticInfluenceFromQuests *= 1.5;
+
+	return GC.round(diplomaticInfluenceFromQuests);
 }
 
 

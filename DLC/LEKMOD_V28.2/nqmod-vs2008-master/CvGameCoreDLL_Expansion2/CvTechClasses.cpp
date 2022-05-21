@@ -552,6 +552,7 @@ int CvTechEntry::GetPrereqAndTechs(int i) const
 	return m_piPrereqAndTechs ? m_piPrereqAndTechs[i] : -1;
 }
 
+
 //=====================================
 // CvTechXMLEntries
 //=====================================
@@ -560,42 +561,20 @@ CvTechXMLEntries::CvTechXMLEntries(void)
 {
 
 }
-
 /// Destructor
 CvTechXMLEntries::~CvTechXMLEntries(void)
 {
 	DeleteArray();
 }
-
 /// Returns vector of tech entries
 std::vector<CvTechEntry*>& CvTechXMLEntries::GetTechEntries()
 {
 	return m_paTechEntries;
 }
-
 /// Number of defined techs
 int CvTechXMLEntries::GetNumTechs() const
 {
 	return m_paTechEntries.size();
-}
-TechTypes CvTechXMLEntries::Tech(const string name) const
-{
-	if (map.size() == 0)
-	{
-		// for each policy
-		for (int i = 0; i < GetNumTechs(); i++)
-		{
-			// that this player has
-			const TechTypes e = (TechTypes)i;
-			const CvTechEntry* pInfo = GC.getTechInfo(e);
-			if (pInfo != NULL)
-			{
-				map[pInfo->GetType()] = e;
-			}
-		}
-	}
-
-	return map[name];
 }
 /// Clear tech entries
 void CvTechXMLEntries::DeleteArray()
@@ -606,17 +585,31 @@ void CvTechXMLEntries::DeleteArray()
 	}
 
 	m_paTechEntries.clear();
+	map.clear();
 }
+TechTypes CvTechXMLEntries::Tech(const string name) const
+{
+	if (map.size() == 0)
+	{
+		for (int i = 0; i < GetNumTechs(); i++)
+		{
+			const CvTechEntry* pEntry = GetEntry(i);
+			if (pEntry != NULL)
+			{
+				const string name = pEntry->GetType();
+				map[name] = (TechTypes)pEntry->GetID();
+			}
+		}
+	}
 
+	return map[name];
+}
 /// Get a specific entry
-#ifdef AUI_WARNING_FIXES
-_Ret_maybenull_ CvTechEntry* CvTechXMLEntries::GetEntry(uint index)
-#else
-CvTechEntry* CvTechXMLEntries::GetEntry(int index)
-#endif
+CvTechEntry* CvTechXMLEntries::GetEntry(int index) const
 {
 	return m_paTechEntries[index];
 }
+
 
 
 //=====================================

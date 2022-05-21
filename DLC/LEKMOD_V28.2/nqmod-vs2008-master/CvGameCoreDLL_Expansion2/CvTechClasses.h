@@ -176,16 +176,13 @@ class CvTechXMLEntries
 public:
 	CvTechXMLEntries(void);
 	~CvTechXMLEntries(void);
+	void DeleteArray();
 
 	// Accessor functions
 	std::vector<CvTechEntry*>& GetTechEntries();
-	// total number of techs. Not all are necessarily valid.
 	int GetNumTechs() const;
-	_Ret_maybenull_ CvTechEntry* GetEntry(int index);
-	// converts the name of a tech TECH_XYZ to an id.
-	TechTypes Tech(const string name) const;
-
-	void DeleteArray();
+	CvTechEntry* GetEntry(int index) const;
+	TechTypes Tech(const string name) const;	
 
 private:
 	std::vector<CvTechEntry*> m_paTechEntries;
