@@ -13996,14 +13996,6 @@ bool CvPlayer::HasTech(const string name) const
 	const TechTypes e = GC.GetGameTechs()->Tech(name);
 	return GET_TEAM(getTeam()).GetTeamTechs()->HasTech(e);
 }
-
-bool CvPlayer::HasTech(const string name) const
-{
-	const CvTeamTechs* pTeamTechs = GET_TEAM(getTeam()).GetTeamTechs();
-	const TechTypes eTech = pTeamTechs->GetTechs()->Tech(name);
-	return pTeamTechs->HasTech(eTech);
-}
-
 bool CvPlayer::IsCiv(const string name) const
 {
 	return this->getCivilizationInfo().GetType() == name;
