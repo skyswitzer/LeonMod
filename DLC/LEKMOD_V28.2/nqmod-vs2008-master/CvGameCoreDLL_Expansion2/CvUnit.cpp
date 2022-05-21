@@ -15792,11 +15792,7 @@ void CvUnit::SetCycleOrder(int iNewValue)
 //	--------------------------------------------------------------------------------
 bool CvUnit::IsRecon() const
 {
-	// give AI players tons of free vision
-	if (m_eOwner != NO_PLAYER && !GET_PLAYER(m_eOwner).isHuman())
-		return true;
-	else
-		return GetReconCount() > 0;
+	return GetReconCount() > 0;
 }
 
 //	--------------------------------------------------------------------------------

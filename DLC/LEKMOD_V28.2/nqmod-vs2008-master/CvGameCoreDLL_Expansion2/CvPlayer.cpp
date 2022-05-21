@@ -18297,22 +18297,26 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 			{
 				GetUnitCycler().Rebuild();
 
-				// add city recon vision
-				const EraTypes era = GetCurrentEra();
-				int visionRadius;
-				switch (era)
-				{
+				{ // add city recon vision
+					const EraTypes era = GetCurrentEra();
+					int visionRadius;
+					switch (era)
+					{
 					case 0:  visionRadius = 3; break; // ancient
 					case 1:  visionRadius = 4; break; // classical
 					default: visionRadius = 5; break; // remaining
-				}
-				int iLoop = 0;
-				for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
-				{
-					CvPlot* plot = pLoopCity->plot();
-					if (plot->getReconCount() < 1)
-						plot->changeReconCount(+1);
-					plot->changeAdjacentSight(getTeam(), visionRadius, true, NO_INVISIBLE, NO_DIRECTION, true);
+					}
+					if (!isHuman()) // ai vision boost
+						visionRadius += 5;
+
+					int iLoop = 0;
+					for (const CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
+					{
+						CvPlot* plot = pLoopCity->plot();
+						if (plot->getReconCount() < 1)
+							plot->changeReconCount(+1);
+						plot->changeAdjacentSight(getTeam(), visionRadius, true, NO_INVISIBLE, NO_DIRECTION, true);
+					}
 				}
 
 				if(DLLUI->GetLengthSelectionList() == 0)
