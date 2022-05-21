@@ -26,8 +26,6 @@
 /*
 /// Can cache doubles from XML (Delnar: DatabaseUtility actually supports double-type, don't know why Firaxis didn't bother putting this in for good measure)
 #define NQM_CACHE_DOUBLE
-/// Enables const for functions, variables, and parameters that both allow it and are intended to be const
-#define AUI_CONSTIFY
 /// Replaces instances of vector loops using indeces with ones that use iterators
 #define AUI_ITERATORIZE
 /// Removes unused functions that simply increase file size of the DLL without providing any benefit
@@ -648,7 +646,6 @@
 */
 #define AUI_DATABASE_UTILITY_PROPER_2D_ALLOCATION_AND_DESTRUCTION
 #define AUI_ASTAR_TRADE_ROUTE_COST_TILE_OWNERSHIP_PREFS
-#define AUI_CONSTIFY
 
 // GlobalDefines (GD) wrappers
 // INT

@@ -614,11 +614,7 @@ void CvCityCitizens::SetNoAutoAssignSpecialists(bool bValue)
 }
 
 /// Is this City avoiding growth?
-#ifdef AUI_CONSTIFY
 bool CvCityCitizens::IsAvoidGrowth() const
-#else
-bool CvCityCitizens::IsAvoidGrowth()
-#endif
 {
 #ifndef AUI_CITIZENS_FIX_AVOID_GROWTH_FLAG_NOT_IGNORED_IF_NO_HAPPINESS
 	if(GC.getGame().isOption(GAMEOPTION_NO_HAPPINESS))
@@ -678,11 +674,7 @@ bool CvCityCitizens::IsAvoidGrowth()
 	return IsForcedAvoidGrowth();
 }
 
-#if defined(AUI_CONSTIFY)
 bool CvCityCitizens::IsForcedAvoidGrowth() const
-#else
-bool CvCityCitizens::IsForcedAvoidGrowth()
-#endif
 {
 	return m_bForceAvoidGrowth;
 }
@@ -1032,10 +1024,8 @@ bool CvCityCitizens::IsAIWantSpecialistRightNow()
 /// What is the Building Type the AI likes the Specialist of most right now?
 #ifdef AUI_CITIZENS_FIX_REMOVE_WORST_SPECIALIST_ACTUALLY_REMOVES_WORST
 BuildingTypes CvCityCitizens::GetAIBestSpecialistBuilding(int* iSpecialistValue, bool bGetWorst, bool bIsWorked, SpecialistTypes eIgnoreSpecialist) const
-#elif defined(AUI_CONSTIFY)
-BuildingTypes CvCityCitizens::GetAIBestSpecialistBuilding(int& iSpecialistValue) const
 #else
-BuildingTypes CvCityCitizens::GetAIBestSpecialistBuilding(int& iSpecialistValue)
+BuildingTypes CvCityCitizens::GetAIBestSpecialistBuilding(int& iSpecialistValue) const
 #endif
 {
 	BuildingTypes eBestBuilding = NO_BUILDING;
@@ -1126,10 +1116,8 @@ BuildingTypes CvCityCitizens::GetAIBestSpecialistBuilding(int& iSpecialistValue)
 /// How valuable is eSpecialist?
 #if defined(AUI_CITIZENS_UNHARDCODE_SPECIALIST_VALUE_HAPPINESS) || defined(AUI_CITIZENS_GET_VALUE_SPLIT_EXCESS_FOOD_MUTLIPLIER) || defined(AUI_CITIZENS_GET_VALUE_ALTER_FOOD_VALUE_IF_FOOD_PRODUCTION) || defined(AUI_CITIZENS_GET_VALUE_CONSIDER_GROWTH_MODIFIERS) || defined(AUI_CITIZENS_GOLD_YIELD_COUNTS_AS_SCIENCE_WHEN_IN_DEFICIT)
 int CvCityCitizens::GetSpecialistValue(SpecialistTypes eSpecialist, bool bForRemoval) const
-#elif defined(AUI_CONSTIFY)
-int CvCityCitizens::GetSpecialistValue(SpecialistTypes eSpecialist) const
 #else
-int CvCityCitizens::GetSpecialistValue(SpecialistTypes eSpecialist)
+int CvCityCitizens::GetSpecialistValue(SpecialistTypes eSpecialist) const
 #endif
 {
 
@@ -1619,11 +1607,7 @@ int CvCityCitizens::GetSpecialistValue(SpecialistTypes eSpecialist)
 
 /// Determine if eSpecialist is preferable to a default specialist, based on our focus
 #ifndef AUI_CITIZENS_IS_BETTER_THAN_DEFAULT_SPECIALIST_USE_REGULAR_VALUES
-#ifdef AUI_CONSTIFY
 bool CvCityCitizens::IsBetterThanDefaultSpecialist(SpecialistTypes eSpecialist) const
-#else
-bool CvCityCitizens::IsBetterThanDefaultSpecialist(SpecialistTypes eSpecialist)
-#endif
 {
 	CvSpecialistInfo* pSpecialistInfo = GC.getSpecialistInfo(eSpecialist);
 	CvAssertMsg(pSpecialistInfo, "Invalid specialist type when assigning citizens. Please send Anton your save file and version.");
@@ -2973,11 +2957,7 @@ void CvCityCitizens::DoSpecialists()
 }
 
 /// How many Specialists are assigned to this Building Type?
-#ifdef AUI_CONSTIFY
 int CvCityCitizens::GetNumSpecialistsAllowedByBuilding(const CvBuildingEntry& kBuilding) const
-#else
-int CvCityCitizens::GetNumSpecialistsAllowedByBuilding(const CvBuildingEntry& kBuilding)
-#endif
 {
 	return kBuilding.GetSpecialistCount();
 }
@@ -3451,11 +3431,7 @@ void CvCityCitizens::DoClearForcedSpecialists()
 }
 
 /// What upgrade progress does a Specialist need to level up?
-#ifdef AUI_CONSTIFY
 int CvCityCitizens::GetSpecialistUpgradeThreshold(UnitClassTypes eUnitClass) const
-#else
-int CvCityCitizens::GetSpecialistUpgradeThreshold(UnitClassTypes eUnitClass)
-#endif
 {
 	int iThreshold = /*100*/ GC.getGREAT_PERSON_THRESHOLD_BASE();
 	int iNumCreated;

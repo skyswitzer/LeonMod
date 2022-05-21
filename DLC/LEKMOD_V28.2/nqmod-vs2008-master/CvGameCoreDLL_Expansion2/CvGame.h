@@ -156,11 +156,7 @@ public:
 #endif
 	int getNumSequentialHumans(PlayerTypes ignorePlayer = NO_PLAYER);
 
-#if defined(AUI_WARNING_FIXES) || defined(AUI_CONSTIFY)
 	int getGameTurn() const;
-#else
-	int getGameTurn();
-#endif
 	void setGameTurn(int iNewValue);
 	void incrementGameTurn();
 	int getTurnYear(int iGameTurn);
@@ -217,13 +213,8 @@ public:
 	int getTargetScore() const;
 	void setTargetScore(int iNewValue);
 
-#ifdef AUI_CONSTIFY
 	int getNumGameTurnActive() const;
 	int countNumHumanGameTurnActive() const;
-#else
-	int getNumGameTurnActive();
-	int countNumHumanGameTurnActive();
-#endif
 #ifdef AUI_GAME_BETTER_HYBRID_MODE
 	bool isNoPlayerActive() const;
 #endif
@@ -581,13 +572,8 @@ public:
 	CvAdvisorCounsel* GetAdvisorCounsel();
 	CvAdvisorRecommender* GetAdvisorRecommender();
 
-#if defined(AUI_WARNING_FIXES) || defined(AUI_CONSTIFY)
 	int GetTurnsBetweenMinorCivElections() const;
 	int GetTurnsUntilMinorCivElection() const;
-#else
-	int GetTurnsBetweenMinorCivElections();
-	int GetTurnsUntilMinorCivElection();
-#endif
 
 	void LogGameState(bool bLogHeaders = false);
 	void unitIsMoving();

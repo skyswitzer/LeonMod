@@ -1,0 +1,25 @@
+
+====================
+===CivDdsUnpacker===
+====================
+Unpacks dds files from civ that have already been exported.
+They start in a jumbled format. This unjumbles them.
+
+
+=============
+===UNIFDEF===
+=============
+// Removes all instances of #ifdef XYZ optionally choosing whether to treat XYZ as true or false
+// You need to add the unifdef path to your windows environment variable path.
+
+// removes AUI_CONSTIFY assuming AUI_CONSTIFY is true
+// -UAUI_CONSTIFY would remove assuming it is false
+unifdef -DAUI_CONSTIFY CvTradeClasses.cpp > CvTradeClasses.cpp
+
+// echos files in a folder
+for /f %f in ('dir /b "%cd%"') do echo temp/%f
+for /f %f in "%cd%" do echo %f
+
+// undefs all files in a folder and writes them to a temp folder
+// you can't just write back to the same file for some reason
+for /f %f in ('dir /b "%cd%"') do unifdef -DAUI_CONSTIFY %f > temp/%f

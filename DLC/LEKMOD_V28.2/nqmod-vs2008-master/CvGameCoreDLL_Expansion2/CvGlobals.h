@@ -491,11 +491,7 @@ public:
 	int getNumUnitInfos();
 #endif
 	std::vector<CvUnitEntry*>& getUnitInfo();
-#ifdef AUI_CONSTIFY
 	_Ret_maybenull_ CvUnitEntry* getUnitInfo(UnitTypes eUnitNum) const;
-#else
-	_Ret_maybenull_ CvUnitEntry* getUnitInfo(UnitTypes eUnitNum);
-#endif
 	CvUnitXMLEntries* GetGameUnits() const;
 
 #ifdef AUI_WARNING_FIXES
@@ -545,11 +541,7 @@ public:
 	_Ret_maybenull_ CvPlayerOptionInfo* getPlayerOptionInfo(PlayerOptionTypes ePlayerOptionNum);
 
 	std::vector<CvYieldInfo*>& getYieldInfo();
-#ifdef AUI_CONSTIFY
 	_Ret_maybenull_ CvYieldInfo* getYieldInfo(YieldTypes eYieldNum) const;
-#else
-	_Ret_maybenull_ CvYieldInfo* getYieldInfo(YieldTypes eYieldNum);
-#endif
 
 #ifdef AUI_WARNING_FIXES
 	uint getNumRouteInfos() const;
@@ -637,11 +629,7 @@ public:
 	int getNumUnitClassInfos();
 #endif
 	std::vector<CvUnitClassInfo*>& getUnitClassInfo();
-#ifdef AUI_CONSTIFY
 	_Ret_maybenull_ CvUnitClassInfo* getUnitClassInfo(UnitClassTypes eUnitClassNum) const;
-#else
-	_Ret_maybenull_ CvUnitClassInfo* getUnitClassInfo(UnitClassTypes eUnitClassNum);
-#endif
 
 #ifdef AUI_WARNING_FIXES
 	uint getNumActionInfos() const;

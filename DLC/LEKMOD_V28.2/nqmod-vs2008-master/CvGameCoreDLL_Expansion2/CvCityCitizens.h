@@ -50,13 +50,8 @@ public:
 	bool IsNoAutoAssignSpecialists() const;
 	void SetNoAutoAssignSpecialists(bool bValue);
 
-#ifdef AUI_CONSTIFY
 	bool IsAvoidGrowth() const;
 	bool IsForcedAvoidGrowth() const;
-#else
-	bool IsAvoidGrowth();
-	bool IsForcedAvoidGrowth();
-#endif
 	void SetForcedAvoidGrowth(bool bAvoidGrowth);
 	CityAIFocusTypes GetFocusType() const;
 	void SetFocusType(CityAIFocusTypes eFocus);
@@ -67,24 +62,16 @@ public:
 #endif
 #ifdef AUI_CITIZENS_FIX_REMOVE_WORST_SPECIALIST_ACTUALLY_REMOVES_WORST
 	BuildingTypes GetAIBestSpecialistBuilding(int* iSpecialistValue = NULL, bool bGetWorst = false, bool bIsWorked = false, SpecialistTypes eIgnoreSpecialist = NO_SPECIALIST) const;
-#elif defined(AUI_CONSTIFY)
-	BuildingTypes GetAIBestSpecialistBuilding(int& iSpecialistValue) const;
 #else
-	BuildingTypes GetAIBestSpecialistBuilding(int& iSpecialistValue);
+	BuildingTypes GetAIBestSpecialistBuilding(int& iSpecialistValue) const;
 #endif
 #if defined(AUI_CITIZENS_UNHARDCODE_SPECIALIST_VALUE_HAPPINESS) || defined(AUI_CITIZENS_GET_VALUE_SPLIT_EXCESS_FOOD_MUTLIPLIER) || defined(AUI_CITIZENS_GET_VALUE_ALTER_FOOD_VALUE_IF_FOOD_PRODUCTION) || defined(AUI_CITIZENS_GET_VALUE_CONSIDER_GROWTH_MODIFIERS) || defined(AUI_CITIZENS_GOLD_YIELD_COUNTS_AS_SCIENCE_WHEN_IN_DEFICIT)
 	int GetSpecialistValue(SpecialistTypes eSpecialist, bool bForRemoval = false) const;
-#elif defined(AUI_CONSTIFY)
-	int GetSpecialistValue(SpecialistTypes eSpecialist) const;
 #else
-	int GetSpecialistValue(SpecialistTypes eSpecialist);
+	int GetSpecialistValue(SpecialistTypes eSpecialist) const;
 #endif
 #ifndef AUI_CITIZENS_IS_BETTER_THAN_DEFAULT_SPECIALIST_USE_REGULAR_VALUES
-#ifdef AUI_CONSTIFY
 	bool IsBetterThanDefaultSpecialist(SpecialistTypes eSpecialist) const;
-#else
-	bool IsBetterThanDefaultSpecialist(SpecialistTypes eSpecialist);
-#endif
 #endif
 
 	// Citizen Assignment
@@ -152,11 +139,7 @@ public:
 
 	int NeededPopForOneMoreSpecialist() const;
 	bool CanAddOneMoreSpecialist() const;
-#ifdef AUI_CONSTIFY
 	bool IsCanAddSpecialistToBuilding(BuildingTypes eBuilding) const;
-#else
-	bool IsCanAddSpecialistToBuilding(BuildingTypes eBuilding);
-#endif
 	void DoAddSpecialistToBuilding(BuildingTypes eBuilding, bool bForced);
 	void DoRemoveSpecialistFromBuilding(BuildingTypes eBuilding, bool bForced, bool bEliminatePopulation = false);
 	void DoRemoveAllSpecialistsFromBuilding(BuildingTypes eBuilding, bool bEliminatePopulation = false);
@@ -183,15 +166,9 @@ public:
 
 	void DoClearForcedSpecialists();
 
-#ifdef AUI_CONSTIFY
 	int GetNumSpecialistsAllowedByBuilding(const CvBuildingEntry& kBuilding) const;
 
 	int GetSpecialistUpgradeThreshold(UnitClassTypes eUnitClass) const;
-#else
-	int GetNumSpecialistsAllowedByBuilding(const CvBuildingEntry& kBuilding);
-
-	int GetSpecialistUpgradeThreshold(UnitClassTypes eUnitClass);
-#endif
 #ifdef AUI_DLLNETMESSAGEHANDLER_FIX_RESPAWN_PROPHET_IF_BEATEN_TO_LAST_RELIGION
 	void DoSpawnGreatPerson(UnitTypes eUnit, bool bIncrementCount, bool bCountAsProphet, bool bSpawnWithNoExpendedTrigger = false);
 #else

@@ -18297,22 +18297,26 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 			{
 				GetUnitCycler().Rebuild();
 
-				// add city recon vision
-				const EraTypes era = GetCurrentEra();
-				int visionRadius;
-				switch (era)
-				{
+				{ // add city recon vision
+					const EraTypes era = GetCurrentEra();
+					int visionRadius;
+					switch (era)
+					{
 					case 0:  visionRadius = 3; break; // ancient
 					case 1:  visionRadius = 4; break; // classical
 					default: visionRadius = 5; break; // remaining
-				}
-				int iLoop = 0;
-				for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
-				{
-					CvPlot* plot = pLoopCity->plot();
-					if (plot->getReconCount() < 1)
-						plot->changeReconCount(+1);
-					plot->changeAdjacentSight(getTeam(), visionRadius, true, NO_INVISIBLE, NO_DIRECTION, true);
+					}
+					if (!isHuman()) // ai vision boost
+						visionRadius += 5;
+
+					int iLoop = 0;
+					for (const CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
+					{
+						CvPlot* plot = pLoopCity->plot();
+						if (plot->getReconCount() < 1)
+							plot->changeReconCount(+1);
+						plot->changeAdjacentSight(getTeam(), visionRadius, true, NO_INVISIBLE, NO_DIRECTION, true);
+					}
 				}
 
 				if(DLLUI->GetLengthSelectionList() == 0)
@@ -20628,11 +20632,7 @@ void CvPlayer::changeResourceSiphoned(ResourceTypes eIndex, int iChange)
 }
 
 //	--------------------------------------------------------------------------------
-#ifdef AUI_CONSTIFY
 int CvPlayer::getResourceInOwnedPlots(ResourceTypes eIndex) const
-#else
-int CvPlayer::getResourceInOwnedPlots(ResourceTypes eIndex)
-#endif
 {
 	CvAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
 	CvAssertMsg(eIndex < GC.getNumResourceInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
@@ -20640,22 +20640,12 @@ int CvPlayer::getResourceInOwnedPlots(ResourceTypes eIndex)
 	int iCount = 0;
 
 	// Loop through all plots
-#ifdef AUI_CONSTIFY
 	for (uint uiPlotIndex = 0; uiPlotIndex < m_aiPlots.size(); uiPlotIndex++)
 	{
 		if (m_aiPlots[uiPlotIndex] == -1)
 			continue;
 
 		CvPlot* pPlot = GC.getMap().plotByIndex(m_aiPlots[uiPlotIndex]);
-#else
-	const CvPlotsVector& aiPlots = GetPlots();
-	for (uint uiPlotIndex = 0; uiPlotIndex < aiPlots.size(); uiPlotIndex++)
-	{
-		if (aiPlots[uiPlotIndex] == -1)
-			continue;
-
-		CvPlot* pPlot = GC.getMap().plotByIndex(aiPlots[uiPlotIndex]);
-#endif
 		if (pPlot && pPlot->getResourceType(getTeam()) == eIndex)
 		{
 			iCount++;
@@ -20699,11 +20689,7 @@ void CvPlayer::changeImprovementCount(ImprovementTypes eIndex, int iChange)
 
 
 //	--------------------------------------------------------------------------------
-#if defined(AUI_WARNING_FIXES) || defined(AUI_CONSTIFY) || defined(NQ_HAPPINESS_FROM_GREAT_IMPROVEMENTS_FROM_POLICIES)
 int CvPlayer::getGreatPersonImprovementCount() const
-#else
-int CvPlayer::getGreatPersonImprovementCount()
-#endif
 {
 	int iCount = 0;
 #ifdef AUI_WARNING_FIXES
@@ -26340,12 +26326,10 @@ CvPlotsVector& CvPlayer::GetPlots(void)
 	return m_aiPlots;
 }
 
-#if defined(AUI_WARNING_FIXES) || defined(AUI_CONSTIFY)
 const CvPlotsVector& CvPlayer::GetPlots() const
 {
 	return m_aiPlots;
 }
-#endif
 
 //	--------------------------------------------------------------------------------
 /// How many plots does this player own?
@@ -26748,18 +26732,10 @@ void CvPlayer::ChangeNumNaturalWondersDiscoveredInArea(int iChange)
 
 //	--------------------------------------------------------------------------------
 /// Calculates how many Natural Wonders are in plots this player owns
-#if defined(AUI_WARNING_FIXES) || defined(AUI_CONSTIFY)
 int CvPlayer::GetNumNaturalWondersInOwnedPlots() const
-#else
-int CvPlayer::GetNumNaturalWondersInOwnedPlots()
-#endif
 {
 	int iValue = 0;
-#if defined(AUI_WARNING_FIXES) || defined(AUI_CONSTIFY)
 	const CvPlotsVector& aiPlots = GetPlots();
-#else
-	CvPlotsVector& aiPlots = GetPlots();
-#endif
 	for(uint ui = 0; ui < aiPlots.size(); ui++)
 	{
 		// at the end of the plot list
