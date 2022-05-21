@@ -82,16 +82,10 @@ public:
 	void DoTurn (void);
 #endif
 
-#ifdef AUI_CONSTIFY
 	bool CanCreateTradeRoute(const CvCity* pOriginCity, const CvCity* pDestCity, DomainTypes eDomain, TradeConnectionType eConnectionType, bool bIgnoreExisting, bool bCheckPath = true) const;
 	bool CanCreateTradeRoute(PlayerTypes eOriginPlayer, PlayerTypes eDestPlayer, DomainTypes eDomainRestriction) const;
-#else
-	bool CanCreateTradeRoute (CvCity* pOriginCity, CvCity* pDestCity, DomainTypes eDomain, TradeConnectionType eConnectionType, bool bIgnoreExisting, bool bCheckPath = true);
-	bool CanCreateTradeRoute(PlayerTypes eOriginPlayer, PlayerTypes eDestPlayer, DomainTypes eDomainRestriction);
-#endif
 	bool CreateTradeRoute (CvCity* pOriginCity, CvCity* pDestCity, DomainTypes eDomain, TradeConnectionType eConnectionType, int& iRouteID);
 
-#ifdef AUI_CONSTIFY
 	bool IsValidTradeRoutePath(const CvCity* pOriginCity, const CvCity* pDestCity, DomainTypes eDomain) const;
 	CvPlot* GetPlotAdjacentToWater(const CvPlot* pTarget, const CvPlot* pOrigin) const;
 
@@ -114,30 +108,6 @@ public:
 
 	int GetEmptyTradeRouteIndex() const;
 	bool IsTradeRouteIndexEmpty(int iIndex) const;
-#else
-	bool IsValidTradeRoutePath (CvCity* pOriginCity, CvCity* pDestCity, DomainTypes eDomain);
-	CvPlot* GetPlotAdjacentToWater (CvPlot* pTarget, CvPlot* pOrigin);
-
-	bool IsDestinationExclusive(const TradeConnection& kTradeConnection);
-	bool IsConnectionInternational (const TradeConnection& kTradeConnection);
-
-	bool IsCityConnectedToPlayer (CvCity* pCity, PlayerTypes eOtherPlayer, bool bOnlyOwnedByCityOwner);
-	bool IsPlayerConnectedToPlayer (PlayerTypes eFirstPlayer, PlayerTypes eSecondPlayer);
-	int CountNumPlayerConnectionsToPlayer (PlayerTypes eFirstPlayer, PlayerTypes eSecondPlayer);
-
-	bool IsCityConnectedToCity (CvCity* pFirstCity, CvCity* pSecondCity);
-	bool IsCityConnectedFromCityToCity (CvCity* pOriginCity, CvCity* pDestCity);
-
-	int GetNumTimesOriginCity (CvCity* pCity, bool bOnlyInternational);
-	int GetNumTimesDestinationCity (CvCity* pCity, bool bOnlyInternational);
-
-	void CopyPathIntoTradeConnection (CvAStarNode* pNode, TradeConnection* pTradeConnection);
-
-	int GetDomainModifierTimes100 (DomainTypes eDomain);
-
-	int GetEmptyTradeRouteIndex (void);
-	bool IsTradeRouteIndexEmpty (int iIndex);
-#endif
 	bool EmptyTradeRoute (int iIndex);
 #ifdef AUI_ITERATORIZE
 	TradeConnectionList::iterator GetEmptyTradeRouteIter();
@@ -158,7 +128,7 @@ public:
 
 	void DoAutoWarPlundering(TeamTypes eTeam1, TeamTypes eTeam2); // when war is declared, both sides plunder each others trade routes for cash!
 
-#ifdef AUI_CONSTIFY
+
 	int GetNumTradeRoutesInPlot(const CvPlot* pPlot) const;
 
 	int GetIndexFromID(int iID) const;
@@ -168,18 +138,6 @@ public:
 
 	int GetIndexFromUnitID(int iUnitID, PlayerTypes eOwner) const;
 	bool IsUnitIDUsed(int iUnitID) const;
-#else
-	int GetNumTradeRoutesInPlot (CvPlot* pPlot);
-
-	int GetIndexFromID (int iID);
-	PlayerTypes GetOwnerFromID (int iID);
-	PlayerTypes GetDestFromID (int iID);
-#ifdef NQ_UNIT_IMMUNE_TO_PLUNDER_FROM_TRAIT
-#endif
-	
-	int GetIndexFromUnitID(int iUnitID, PlayerTypes eOwner);
-	bool IsUnitIDUsed (int iUnitID);
-#endif
 
 	static CvCity* GetOriginCity(const TradeConnection& kTradeConnection);
 	static CvCity* GetDestCity(const TradeConnection& kTradeConnection);
@@ -191,11 +149,9 @@ public:
 	void ResetTechDifference ();
 	void BuildTechDifference ();
 #endif
-#ifdef AUI_CONSTIFY
+
 	int GetTechDifference(PlayerTypes ePlayer, PlayerTypes ePlayer2) const;
-#else
-	int GetTechDifference (PlayerTypes ePlayer, PlayerTypes ePlayer2);
-#endif
+
 
 	void CreateVis (int iIndex); // Create the trade unit vis unit
 #ifdef AUI_WARNING_FIXES
@@ -272,6 +228,7 @@ public:
 	void UpdateTradeConnectionValues(); // updates the all the values for the trade routes that go to and from this player
 
 	int GetTradeValuesAtCityTimes100(const CvCity* const pCity, YieldTypes eYield) const;
+	// number of trade routes that start here
 	int GetNumTradeRoutesOriginatingFrom(const CvCity* const pCity) const;
 
 	int GetAllTradeValueTimes100(YieldTypes eYield) const;
