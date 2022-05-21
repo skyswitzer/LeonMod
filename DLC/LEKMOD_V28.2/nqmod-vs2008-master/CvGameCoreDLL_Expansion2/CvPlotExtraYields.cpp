@@ -315,6 +315,13 @@ int CvPlot::getExtraYield
 					yieldChange += 2;
 			}
 
+			{// IMPROVEMENT_POLDER - gives +2 Food to Marsh.
+			const bool isMarsh = plot.HasFeature("FEATURE_MARSH");
+			const bool isPolder = plot.HasImprovement("IMPROVEMENT_POLDER");
+			if (eYieldType == YIELD_FOOD && isMarsh && isPolder)
+				yieldChange += 2;
+			}
+
 		}
 	}
 
