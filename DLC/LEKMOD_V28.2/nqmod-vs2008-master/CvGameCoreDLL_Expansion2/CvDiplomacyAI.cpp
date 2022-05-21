@@ -3634,15 +3634,15 @@ void applyScore(CvDiplomacyAI& us, CvPlayer& them, FStaticVector<int, 128, true,
 		viApproachWeights[MAJOR_CIV_APPROACH_WAR] += weight;
 	}
 }
-bool nearCultureVictory(CvPlayer& them)
+const int turnsNearThreshold = 15;
+bool nearCultureVictory(const CvPlayer& them)
 {
-	int nearTurns = 30; // if player controls more than this percentage, they are near!
 	bool isNear = true;
 	for (int iPlayerLoop = 0; iPlayerLoop < MAX_MAJOR_CIVS; iPlayerLoop++)
 	{
-		PlayerTypes eLoopPlayer = (PlayerTypes)iPlayerLoop;
-		int turnsTillVictory = them.GetCulture()->GetTurnsToInfluential(eLoopPlayer);
-		if (turnsTillVictory > nearTurns)
+		const PlayerTypes eLoopPlayer = (PlayerTypes)iPlayerLoop;
+		const int turnsTillVictory = them.GetCulture()->GetTurnsToInfluential(eLoopPlayer);
+		if (turnsTillVictory >= turnsNearThreshold)
 		{
 			isNear = false;
 			break;
@@ -3650,58 +3650,45 @@ bool nearCultureVictory(CvPlayer& them)
 	}
 	return isNear;
 }
-bool nearScienceVictory(CvPlayer& them)
+bool nearScienceVictory(const CvPlayer& them)
 {
-	bool isNear = false;
-	ProjectTypes ApolloProgram = (ProjectTypes)GC.getSPACE_RACE_TRIGGER_PROJECT();
-	isNear = GET_TEAM(them.getTeam()).getProjectCount((ProjectTypes)ApolloProgram) >= 1;
+	int perTurn;
+	them.GetScientificInfluencePerTurn(&perTurn);
+	const int turnsRemaining = (them.GetScientificInfluenceNeeded() - them.GetScientificInfluence()) / perTurn;
+	const bool isNear = turnsRemaining < turnsNearThreshold;
 	return isNear;
 }
-bool nearDiplomaticVictory(CvPlayer& them)
+bool nearDiplomaticVictory(const CvPlayer& them)
 {
-	float voteRatioThreshold = 0.5f; // if player controls more than this percentage, they are near!
-	bool isNear = false;
-	CvLeague* pLeague = GC.getGame().GetGameLeagues()->GetActiveLeague();
-	if (pLeague && pLeague->m_bUnitedNations)
-	{
-		// count total votes
-		float numTotalVotes = 0.0f;
-		for (int iPlayerLoop = 0; iPlayerLoop < MAX_MAJOR_CIVS; iPlayerLoop++)
-		{
-			PlayerTypes eLoopPlayer = (PlayerTypes)iPlayerLoop;
-			numTotalVotes += pLeague->CalculateStartingVotesForMember(eLoopPlayer, true);
-		}
-		// if player controls more than this
-		float numThemVotes = pLeague->CalculateStartingVotesForMember(them.GetID(), true);
-		float voteControlRatio = numThemVotes / numTotalVotes;
-		isNear = voteControlRatio >= voteRatioThreshold;
-	}
+	int perTurn, controlled;
+	them.GetDiplomaticInfluencePerTurn(&perTurn, &controlled);
+	const int turnsRemaining = (them.GetDiplomaticInfluenceNeeded() - them.GetDiplomaticInfluence()) / perTurn;
+	const bool isNear = turnsRemaining < turnsNearThreshold;
 	return isNear;
 }
-bool nearDominationVictory(CvPlayer& them)
-{
-	float capitalThreshold = 0.45; // if you control this percentage of capitals
-	float cityThreshold = 0.50; // if you control this percentage of cities
-	bool isNear = false;
-	float numCapitals = them.GetNumCapitals();
-	float numCapitalsTotal = them.GetNumTotalCapitalsInWorld();
-	float numCities = them.getNumCities();
-	float numCitiesTotal = them.GetNumTotalCitiesInWorld();
-
-	float capitalRatio = numCapitals / numCapitalsTotal;
-	float citiesRatio = numCities / numCitiesTotal;
-
-	if (citiesRatio > cityThreshold || capitalRatio > capitalThreshold)
-		isNear = true;
-
-	return isNear;
-}
+//bool nearDominationVictory(const CvPlayer& them)
+//{
+//	float capitalThreshold = 0.45; // if you control this percentage of capitals
+//	float cityThreshold = 0.50; // if you control this percentage of cities
+//	bool isNear = false;
+//	float numCapitals = them.GetNumCapitals();
+//	float numCapitalsTotal = them.GetNumTotalCapitalsInWorld();
+//	float numCities = them.getNumCities();
+//	float numCitiesTotal = them.GetNumTotalCitiesInWorld();
+//
+//	float capitalRatio = numCapitals / numCapitalsTotal;
+//	float citiesRatio = numCities / numCitiesTotal;
+//
+//	if (citiesRatio > cityThreshold || capitalRatio > capitalThreshold)
+//		isNear = true;
+//
+//	return isNear;
+//}
 bool isNearVictory(CvPlayer& them)
 {
-	return nearCultureVictory(them) ||
-		nearScienceVictory(them) ||
-		nearDiplomaticVictory(them) ||
-		nearDominationVictory(them);
+	return nearCultureVictory(them) &&
+		nearScienceVictory(them) &&
+		nearDiplomaticVictory(them);
 }
 ////////////////////////////////////
 // if someone is about to win, go crazy
