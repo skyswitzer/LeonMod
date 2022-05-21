@@ -1575,6 +1575,7 @@ end
 -- Author: LastSword
 -- DateCreated: 8/24/2013 2:56:18 PM
 --------------------------------------------------------------
+--[[
 local sUnitType = "UNIT_PROPHET"
 local iProphetID = GameInfo.Units.UNIT_PROPHET.ID
 local iProphetOverride = GameInfo.Units.UNIT_DALAILAMA.ID
@@ -1596,13 +1597,14 @@ function TibetOverride(iPlayer, iUnit)
 end
 
 Events.SerialEventUnitCreated.Add(TibetOverride)
+--]]
 
 
 -- krivis
 -- Author: lek10
 -- DateCreated: 4/25/2018 8:23:15 PM
 --------------------------------------------------------------
-
+--[[
 local sUnitType = "UNIT_PROPHET"
 local iProphetID = GameInfo.Units.UNIT_PROPHET.ID
 local iProphetOverride = GameInfo.Units.UNIT_KRIVIS.ID
@@ -1624,8 +1626,9 @@ function KriviOverride(iPlayer, iUnit)
 end
 
 Events.SerialEventUnitCreated.Add(KriviOverride)
+--]]
 
-
+--[[
 -- mpiambina
 -- Author: lek10
 -- DateCreated: 11/21/2018 5:29:36 PM
@@ -1651,6 +1654,7 @@ function MadaOverride(iPlayer, iUnit)
 end
 
 Events.SerialEventUnitCreated.Add(MadaOverride)
+--]]
 
 
 
@@ -1706,6 +1710,8 @@ end
 Events.SerialEventUnitCreated.Add(NabaTeaWorkerROverride)
 
 --]]
+
+--[[
 ----////--------------------------------------------------
 				--- ARGENTINA WORKER ---
 ----////--------------------------------------------------
@@ -1756,8 +1762,9 @@ function ArgentinaWorkerROverride(iPlayer, iUnit)
 end
 
 Events.SerialEventUnitCreated.Add(ArgentinaWorkerROverride)
+--]]
 
-
+--[[
 ----////--------------------------------------------------
 				--- CHILE WORKBOAT ---
 ----////--------------------------------------------------
@@ -1809,7 +1816,6 @@ end
 Events.SerialEventUnitCreated.Add(ChileWorkBoatROverride)
 
 
-
 ----////--------------------------------------------------
 				--- CHILE ADMIRAL ---
 ----////--------------------------------------------------
@@ -1858,6 +1864,7 @@ function ChileAdmiralROverride(iPlayer, iUnit)
 end
 
 Events.SerialEventUnitCreated.Add(ChileAdmiralROverride)
+--]]
 
 ----////--------------------------------------------------
 
@@ -1895,7 +1902,7 @@ Events.SerialEventUnitCreated.Add(ChileAdmiralROverride)
 -- Notes, do realize that this is coded keeping policy requirements/paths in mind, so if you change any of the policy paths in the future, if anyone besides me is doing policies stuff, DONT FORGET TO CHECK THIS! thnx! ~EAP
 
 -- Italy ua
-
+--[[
 local iCiv = GameInfoTypes["CIVILIZATION_ITALY"]
 local bIsActive = JFD_IsCivilisationActive(iCiv)
 function Italy_OnPolicyAdopted(playerID, policyID)
@@ -2141,7 +2148,7 @@ if bIsActive then
 GameEvents.PlayerAdoptPolicy.Add(Italy_OnPolicyAdopted);
 end
 
-
+--]]
 
 -- PietyChanges
 -- Author: Cirra
