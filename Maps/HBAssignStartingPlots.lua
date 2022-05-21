@@ -75,8 +75,8 @@ local uraniumPer = 18;
 
 
 function getMinPerCiv(this, resId)
-	if resId == this.horse_ID then return horsesPer * 4 end
-	if resId == this.iron_ID then return ironPer * 4 end
+	if resId == this.horse_ID then return horsesPer * 9 end
+	if resId == this.iron_ID then return ironPer * 5 end
 	if resId == this.coal_ID then return coalPer * 4 end
 	if resId == this.oil_ID then return oilPer * 4 end
 	if resId == this.aluminum_ID then return aluminumPer * 3 end
