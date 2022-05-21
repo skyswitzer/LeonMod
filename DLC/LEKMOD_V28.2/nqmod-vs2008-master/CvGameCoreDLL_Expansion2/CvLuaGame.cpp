@@ -21,11 +21,11 @@
 #include "CvLuaUnit.h"
 #include "CvLuaLeague.h"
 
-#include "../CvGame.h"
-#include "../CvGameCoreUtils.h"
-#include "../CvInternalGameCoreUtils.h"
-#include "../CvGameTextMgr.h"
-#include "../CvReplayMessage.h"
+#include "CvGame.h"
+#include "CvGameCoreUtils.h"
+#include "CvInternalGameCoreUtils.h"
+#include "CvGameTextMgr.h"
+#include "CvReplayMessage.h"
 
 #define Method(func) RegisterMethod(L, l##func, #func);
 

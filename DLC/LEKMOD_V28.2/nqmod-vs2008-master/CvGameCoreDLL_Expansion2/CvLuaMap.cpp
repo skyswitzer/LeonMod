@@ -18,9 +18,9 @@
 #include "CvLuaMap.h"
 #include "CvLuaPlot.h"
 
-#include "..\CvFractal.h"
-#include "..\CvMap.h"
-#include "..\CvGameCoreUtils.h"
+#include "CvFractal.h"
+#include "CvMap.h"
+#include "CvGameCoreUtils.h"
 
 #define Method(func) RegisterMethod(L, l##func, #func);
 

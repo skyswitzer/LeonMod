@@ -12,13 +12,13 @@
 //!		This file includes the implementation for a Lua Plot object.
 //!
 //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-#include <CvGameCoreDLLPCH.h>
+#include "CvGameCoreDLLPCH.h"
 #include "CvLuaSupport.h"
 #include "CvLuaArea.h"
 #include "CvLuaCity.h"
 #include "CvLuaPlot.h"
 #include "CvLuaUnit.h"
-#include "../CvGameCoreUtils.h"
+#include "CvGameCoreUtils.h"
 
 //Utility macro for registering methods
 #define Method(Name)			\

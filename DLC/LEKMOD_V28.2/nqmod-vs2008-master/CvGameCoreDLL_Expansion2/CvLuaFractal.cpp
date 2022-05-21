@@ -9,7 +9,7 @@
 #include "CvGameCoreDLLPCH.h"
 #include "CvLuaSupport.h"
 #include "CvLuaFractal.h"
-#include "..\CvFractal.h"
+#include "CvFractal.h"
 
 /*
 	The following exposes CvFractal to Lua using this API:

@@ -117,7 +117,7 @@ template<class T> inline T FastMin(const T& _Left, const T& _Right) { return (_D
 #include "CvStructs.h"
 #include "ICvDLLUtility.h"
 #include "ICvDllUserInterface.h"
-#include "Lua/CvLuaSupport.h"
+#include "CvLuaSupport.h"
 
 #include "CvPlayerAI.h"
 #include "CvTreasury.h"

@@ -12,8 +12,8 @@
 #include "CvLuaCity.h"
 #include "CvLuaPlot.h"
 #include "CvLuaUnit.h"
-#include "../CvMinorCivAI.h"
-#include "../CvUnitCombat.h"
+#include "CvMinorCivAI.h"
+#include "CvUnitCombat.h"
 
 //Utility macro for registering methods
 #define Method(Name)			\

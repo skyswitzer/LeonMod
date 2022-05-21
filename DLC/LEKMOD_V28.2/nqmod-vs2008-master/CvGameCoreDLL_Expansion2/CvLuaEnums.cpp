@@ -16,8 +16,8 @@
 #include "CvLuaSupport.h"
 #include "CvLuaEnums.h"
 #include <CvEnums.h>
-#include "../CvDiplomacyAI.h"
-#include "../CvMinorCivAI.h"
+#include "CvDiplomacyAI.h"
+#include "CvMinorCivAI.h"
 
 #define RegisterEnum(e) pRegisterEnum(L, #e, e)
 #define RegisterEnumUInt(e) pRegisterEnumUInt(L, #e, e)
