@@ -3051,6 +3051,14 @@ int CvPlayerTrade::GetTradeConnectionValueTimes100 (const TradeConnection& kTrad
 
 	iValue += 100 * GetTradeConnectionValueExtra(kTradeConnection, eYield, bAsOriginPlayer);
 
+	// reduce from other trade routes originating here
+	const CvCity* pCityOrigin = CvGameTrade::GetOriginCity(kTradeConnection);
+	if (pCityOrigin != NULL)
+	{
+		const double factor = pow(0.85, GetNumTradeRoutesOriginatingFrom(pCityOrigin));
+		iValue *= factor;
+	}
+
 	return iValue;	
 }
 
@@ -3090,7 +3098,28 @@ void CvPlayerTrade::UpdateTradeConnectionValues (void)
 		}
 	}
 }
+int CvPlayerTrade::GetNumTradeRoutesOriginatingFrom(const CvCity* const pCity) const
+{
+	int iResult = 0;
+	const int iCityX = pCity->getX();
+	const int iCityY = pCity->getY();
 
+	const CvGameTrade* pTrade = GC.getGame().GetGameTrade();
+	for (int i = 0; i < pTrade->m_aTradeConnections.size(); i++)
+	{
+		if (pTrade->IsTradeRouteIndexEmpty(i))
+			continue;
+
+		const TradeConnection* pConnection = &(pTrade->m_aTradeConnections[i]);
+		if (pConnection->m_iOriginX == iCityX &&
+			pConnection->m_iOriginY == iCityY)
+		{
+			iResult += 1;
+		}
+	}
+
+	return iResult;
+}
 //	--------------------------------------------------------------------------------
 #ifdef AUI_CONSTIFY
 int CvPlayerTrade::GetTradeValuesAtCityTimes100(const CvCity *const pCity, YieldTypes eYield) const

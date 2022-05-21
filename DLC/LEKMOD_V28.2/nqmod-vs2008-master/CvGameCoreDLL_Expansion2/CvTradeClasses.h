@@ -272,6 +272,7 @@ public:
 	void UpdateTradeConnectionValues (void); // updates the all the values for the trade routes that go to and from this player
 
 	int GetTradeValuesAtCityTimes100(const CvCity* const pCity, YieldTypes eYield) const;
+	int GetNumTradeRoutesOriginatingFrom(const CvCity* const pCity) const;
 
 	int GetAllTradeValueTimes100(YieldTypes eYield) const;
 	int GetAllTradeValueFromPlayerTimes100(YieldTypes eYield, PlayerTypes ePlayer) const;
