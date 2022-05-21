@@ -213,7 +213,7 @@ ICvRandom1* CvDllGame::GetRandomNumberGenerator()
 //------------------------------------------------------------------------------
 int CvDllGame::GetJonRandNum(int iNum, const char* pszLog)
 {
-	return m_pGame->getJonRandNum(iNum, pszLog, NULL, iNum);
+	return m_pGame->getJonRandUnsafe().get(iNum, CvRandom::MutateSeed, pszLog);
 }
 //------------------------------------------------------------------------------
 int CvDllGame::GetMaxTurns() const
