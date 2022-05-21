@@ -547,10 +547,13 @@ int CvGlobals::getDIPLOMATIC_INFLUENCE_PER_TURN_ALLY(const PlayerTypes eMinor, c
 {	
 	float diplomaticInfluencePerTurn = 10;
 
-	const CvPlayer& player = GET_PLAYER(ePlayer);
-	const bool hasPatronageFinisher = player.HasPolicy("POLICY_PATRONAGE_FINISHER");
-	if (hasPatronageFinisher)
-		diplomaticInfluencePerTurn += 5;
+	if (ePlayer != NO_PLAYER)
+	{
+		const CvPlayer& player = GET_PLAYER(ePlayer);
+		const bool hasPatronageFinisher = player.HasPolicy("POLICY_PATRONAGE_FINISHER");
+		if (hasPatronageFinisher)
+			diplomaticInfluencePerTurn += 5;
+	}
 
 	return GC.round(diplomaticInfluencePerTurn);
 }
@@ -558,10 +561,13 @@ int CvGlobals::getDIPLOMATIC_INFLUENCE_PER_QUEST(const PlayerTypes eMinor, const
 {
 	float diplomaticInfluenceFromQuests = 100;
 
-	const CvPlayer& player = GET_PLAYER(ePlayer);
-	const bool hasPhilanthropy = player.HasPolicy("POLICY_PHILANTHROPY");
-	if (hasPhilanthropy)
-		diplomaticInfluenceFromQuests *= 1.5;
+	if (ePlayer != NO_PLAYER)
+	{
+		const CvPlayer& player = GET_PLAYER(ePlayer);
+		const bool hasPhilanthropy = player.HasPolicy("POLICY_PHILANTHROPY");
+		if (hasPhilanthropy)
+			diplomaticInfluenceFromQuests *= 1.5;
+	}
 
 	return GC.round(diplomaticInfluenceFromQuests);
 }
