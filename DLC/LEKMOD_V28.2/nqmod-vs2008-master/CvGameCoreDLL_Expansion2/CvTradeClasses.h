@@ -269,7 +269,7 @@ public:
 	int GetTradeConnectionRiverValueModifierTimes100(const TradeConnection& kTradeConnection, YieldTypes eYield, bool bAsOriginPlayer) const;
 	int GetTradeConnectionValueTimes100(const TradeConnection& kTradeConnection, YieldTypes eYield, bool bAsOriginPlayer) const;
 
-	void UpdateTradeConnectionValues (void); // updates the all the values for the trade routes that go to and from this player
+	void UpdateTradeConnectionValues(); // updates the all the values for the trade routes that go to and from this player
 
 	int GetTradeValuesAtCityTimes100(const CvCity* const pCity, YieldTypes eYield) const;
 	int GetNumTradeRoutesOriginatingFrom(const CvCity* const pCity) const;
