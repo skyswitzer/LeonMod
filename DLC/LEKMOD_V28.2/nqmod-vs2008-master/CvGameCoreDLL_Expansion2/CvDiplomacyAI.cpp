@@ -12596,7 +12596,7 @@ int CvDiplomacyAI::weightFriendshipNeeded(
 			{
 				weight += 10;
 				// try to buy up winner
-				if (nearDiplomaticVictory(GET_PLAYER(majorRival)))
+				if (majorRival != NO_PLAYER && nearDiplomaticVictory(GET_PLAYER(majorRival)))
 					weight += 500;
 			}
 		}
