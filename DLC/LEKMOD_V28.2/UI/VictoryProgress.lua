@@ -457,6 +457,7 @@ function PopulateSpaceRace()
 			local sDesc = Game.GetCompetitionDesc(iCompetition, iActivePlayer);
 			local sDescShort = Game.GetCompetitionDescShort(iCompetition);
 			local sDescReward = Game.GetCompetitionDescReward(iCompetition);
+			local iWinningScore = Game.GetCompetitionWinnerScore(iCompetition);
 			-- prefix
 			item.RowDesc:SetText(sDescShort);
 			item.RowDesc:SetToolTipString(sDesc);
@@ -471,9 +472,10 @@ function PopulateSpaceRace()
 			local pWinningPlayer = Players[iWinningPlayer];
 			local activeTeam = Teams[pActivePlayer:GetTeam()];
 			local bHasMet = activeTeam:IsHasMet(pWinningPlayer:GetTeam());
-			local iPlayerIcon = bHasMet and iWinningPlayer or -1;
-			local sCivName = pWinningPlayer:GetCivNameSafe(iActivePlayer);
-			item.IconBox:SetToolTipString(sCivName);
+			local bUseQuestionMark = iWinningScore == 0 or (not bHasMet);
+			local iPlayerIcon = bUseQuestionMark and -1 or iWinningPlayer;
+			local sCivName = bUseQuestionMark and "{TXT_KEY_AN_UNMET_CIV}" or pWinningPlayer:GetCivNameSafe(iActivePlayer);
+			item.IconBox:SetToolTipString(Locale.ConvertTextKey(sCivName));
 			CivIconHookup(iPlayerIcon, 32, item.Icon, item.IconBackground, item.IconShadow, false, true);
 		end
 
