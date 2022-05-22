@@ -1,21 +1,43 @@
 
 
+brazil too much carnival bonus
+workboats like workers
+people somehohw winning nuclear competition 
+barbarians luck nerf? (no take settlers)
 
 
 
-hammers applied to capital not building anything if nothing constructed?
+[239157.515] Net RECV (0p, 1c) : size=1200: Message chunk 1 of 2 for type 110
+[239157.515] Net RECV (0p, 1c) : size=890: Message chunk, 0 remaining
+[239157.515] Net RECV (0) :NetPlayerSyncCheck(Player=30), ArchiveDataSize=2054
+[239157.515] Net RECV (0) :NetPlayerSyncCheck(Player=31), ArchiveDataSize=54
+[239157.515] Net RECV (0) :NetPlayerSyncCheck(Player=32), ArchiveDataSize=54
+[239157.515] Net RECV (0) :NetPlayerSyncCheck(Player=33), ArchiveDataSize=54
+[239157.515] Net RECV (0) :NetPlayerSyncCheck(Player=34), ArchiveDataSize=70
+[239157.515] Net RECV (0) :NetPlayerSyncCheck(Player=35), ArchiveDataSize=62
+[239157.515] Net RECV (0) :NetPlayerSyncCheck(Player=36), ArchiveDataSize=70
+[239157.515] Net RECV (0) :NetPlayerSyncCheck(Player=37), ArchiveDataSize=54
+[239157.515] Net RECV (0) :NetPlayerSyncCheck(Player=63), ArchiveDataSize=494
+[239157.515] DBG: Variable Out Of Sync : CvPlayer::m_iNumMilitaryUnits
+
+Game Turn : 63
+[239157.515] DBG: Variable Out Of Sync : CvPlayer::m_paiUnitClassCount
+[239157.515] Net RECV (0) :NetRandomNumberGeneratorSyncCheck(Player=0, RandomNumberGenerator(seed=51017430)
+[239157.515] Net SEND (0, 1): size=36: NetForceResync : m_targetPlayers (  )
+[239157.515] Net RECV (0) :NetLoopBarrierComplete(Player=0, count=1 / 2)
+[239157.515] Net RECV (1) :NetForceResync : m_targetPlayers (  )
+[239160.625] Net RECV (0p, 1c) : size=1200: Message chunk 1 of 1222 for type 121
+[239160.625] Net RECV (0p, 1c) : size=1200: Message chunk, 1220 remaining
+[239160.687] Net RECV (0p, 1c) : size=1200: Message chunk, 1219 remaining
+[239160.687] Net RECV (0p, 1c) : size=1200: Message chunk, 1218 remaining
+[239160.718] Net RECV (0p, 1c) : size=1200: Message chunk, 1217 remaining
 
 
 
 
 
-
-
-
-
-
-
-
+1543
+1633
 
 
 
