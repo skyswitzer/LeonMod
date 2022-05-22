@@ -17747,7 +17747,7 @@ int CvCity::GetMaxHitPoints() const
 		total += GC.getMAX_CITY_HIT_POINTS_AI_BONUS();
 	}
 
-	return total;
+	return max(1, total);
 }
 
 //	--------------------------------------------------------------------------------
