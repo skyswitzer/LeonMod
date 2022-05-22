@@ -444,8 +444,13 @@ string CvCompetition::GetDescription(const PlayerTypes ePlayer) const
 int CvCompetition::GetReward(const YieldTypes eType, const PlayerTypes ePlayer) const
 {
 	const int reward = GC.GetDelegatesFor[(int)m_eCompetitionType]->Reward(eType);
+	if (ePlayer == NO_PLAYER)
+		return reward;
+
+	const int score = GetScoreOfPlayer(ePlayer);
 	const int rank = GetRankOfPlayer(ePlayer);
-	if (rank == 0 || ePlayer == NO_PLAYER)
+	// first place with a valid score?
+	if (score != INVALID_SCORE && rank == 0)
 	{
 		return reward;
 	}
