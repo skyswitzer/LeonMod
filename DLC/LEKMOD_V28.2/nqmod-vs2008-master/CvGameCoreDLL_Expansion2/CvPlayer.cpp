@@ -6167,14 +6167,14 @@ void CvPlayer::ChangeCompetitionHammersT100(const HammerCompetitionTypes eType, 
 }
 int CvPlayer::GetTradeRouteCost(const int ithTradeRoute) const
 {
-	const int base = 100 * GC.adjustForSpeed(YIELD_PRODUCTION);
+	const int base = 300 * GC.adjustForSpeed(YIELD_PRODUCTION);
 	const int howMany = ithTradeRoute - 1;
 	const int cost = base + howMany * GetTradeRouteCostIncrease();
 	return max(0, cost);
 }
 int CvPlayer::GetTradeRouteCostIncrease() const
 {
-	return 150 * GC.adjustForSpeed(YIELD_PRODUCTION);
+	return 200 * GC.adjustForSpeed(YIELD_PRODUCTION);
 }
 void CvPlayer::GetTradeRouteProjectInfo(int* iCount, int* iProgress) const
 {
@@ -6200,7 +6200,7 @@ void CvPlayer::GetTradeRouteProjectInfo(int* iCount, int* iProgress) const
 
 int CvPlayer::GetNationalGamesCost(const int ithTradeRoute) const
 {
-	const int base = 150 * GC.adjustForSpeed(YIELD_PRODUCTION);
+	const int base = 300 * GC.adjustForSpeed(YIELD_PRODUCTION);
 	const int howMany = ithTradeRoute - 1;
 	const int cost = base + howMany * GetNationalGamesCostIncrease();
 	return max(0, cost);
