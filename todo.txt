@@ -1,4 +1,25 @@
 
+
+
+
+
+
+hammers applied to capital not building anything if nothing constructed?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 Victory Point icon [ICON_TROPHY_GOLD]
 fix city health after AI capture
 
