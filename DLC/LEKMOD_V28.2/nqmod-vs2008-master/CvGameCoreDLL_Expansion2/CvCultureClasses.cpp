@@ -2858,8 +2858,8 @@ double CvPlayerCulture::GetTourismModifierGoldenAgeT100(const PlayerTypes eOther
 
 	if (m_pPlayer->isGoldenAge())
 	{
-		modT100 += 9;
-		modT100 += m_pPlayer->GetPlayerTraits()->GetGoldenAgeTourismModifier();
+		modT100 += 10;
+		modT100 *= GC.toFactor(m_pPlayer->GetPlayerTraits()->GetGoldenAgeTourismModifier());
 	}
 
 	return modT100;
