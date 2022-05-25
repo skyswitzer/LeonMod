@@ -542,7 +542,6 @@ int CvGlobals::getCITIZENS_PER_SPECIALIST(const PlayerTypes ePlayer) const
 {
 	return 2;
 }
-// how much influence per turn a player gets from an ally
 int CvGlobals::getDIPLOMATIC_INFLUENCE_PER_TURN_ALLY(const PlayerTypes eMinor, const PlayerTypes ePlayer, const bool isCaptured) const
 {	
 	float diplomaticInfluencePerTurn = 10;

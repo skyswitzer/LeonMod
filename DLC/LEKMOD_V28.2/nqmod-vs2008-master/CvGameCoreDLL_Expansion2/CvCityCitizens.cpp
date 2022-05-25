@@ -2984,8 +2984,8 @@ bool CvCityCitizens::CanAddOneMoreSpecialist() const
 	const int divisor = GC.getCITIZENS_PER_SPECIALIST(ePlayer);
 	const int currentSpecialists = GetTotalSpecialistCount();
 
-	const int specialistPool = max(0, GetCity()->getPopulation() - minBlueCollar);
-	const int maxSpecialists = ceil((float)specialistPool / (float)divisor);
+	const int specialistPool = max(0, divisor + GetCity()->getPopulation() - minBlueCollar);
+	const int maxSpecialists = floor((float)specialistPool / (float)divisor);
 
 	const bool result = currentSpecialists < maxSpecialists;
 	return result;

@@ -955,9 +955,11 @@ public:
 #endif
 	// tourism percent bonus from winning the competitino
 	int getTOURISM_MODIFIER_HAMMERCOMPETITION(const PlayerTypes ePlayer) const;
+	// first specialist available at this pop count
 	int getCITIZENS_MIN_FOR_SPECIALIST(const PlayerTypes ePlayer) const;
+	// each additional specialist requires this many citizens
 	int getCITIZENS_PER_SPECIALIST(const PlayerTypes ePlayer) const;
-	// score per turn for being an ally
+	// how much influence per turn a player gets from an ally
 	int getDIPLOMATIC_INFLUENCE_PER_TURN_ALLY(const PlayerTypes eMinor, const PlayerTypes ePlayer, const bool isCaptured = false) const;
 	// amount of dioplomatic influence per quest you complete
 	int getDIPLOMATIC_INFLUENCE_PER_QUEST(const PlayerTypes eMinor, const PlayerTypes ePlayer) const;
