@@ -436,7 +436,6 @@
     <ClCompile Include="CvWorldBuilderMapLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CvPlotExtraYields.cpp" />
     <ClCompile Include="CvCompetition.cpp" />
     <ClCompile Include="CvExtraHelp.cpp" />
     <ClCompile Include="CvLuaArea.cpp">
@@ -487,6 +486,9 @@
     <ClCompile Include="CvLuaUnit.cpp">
       <Filter>Lua</Filter>
     </ClCompile>
+    <ClCompile Include="NonChalant_Plot.cpp" />
+    <ClCompile Include="NonChalant_Buildings.cpp" />
+    <ClCompile Include="NonChalant_Misc.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CvDllBuildInfo.h">

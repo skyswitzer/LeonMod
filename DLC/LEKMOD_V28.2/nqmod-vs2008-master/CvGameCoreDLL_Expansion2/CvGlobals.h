@@ -165,6 +165,8 @@ TEnum GetFromMap(const TOwner* This, const string name, std::map<string, TEnum>&
 
 	//return map[name];
 }
+// converts a string like "BUILDINGCLASS_MONUMENT" to the relevant numeric id
+BuildingClassTypes BuildingClass(const string name);
 
 class CvGlobals
 {
