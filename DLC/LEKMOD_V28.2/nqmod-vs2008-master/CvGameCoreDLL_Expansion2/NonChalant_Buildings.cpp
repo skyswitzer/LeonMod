@@ -232,3 +232,8 @@ int CvPlayer::GetExtraYieldForBuilding
 
 	return yieldChange;
 }
+bool CvPlayer::ShouldHaveBuilding(const CvPlayer& rPlayer, const CvCity& rCity, const bool isYourCapital, const bool isConquered, const bool isNewlyFounded, const BuildingClassTypes eBuildingClass)
+{
+
+	return false;
+}
