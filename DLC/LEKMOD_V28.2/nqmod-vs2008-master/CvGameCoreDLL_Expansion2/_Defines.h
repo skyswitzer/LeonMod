@@ -856,5 +856,8 @@
 #define NQ_DISABLE_WLTKD_SEED_RANDOM_EXTRA_TURNS
 // Adjacent Mod (PROMOTION_ADJACENT_BONUS) now requires same combat type
 #define NQ_ADJACENT_MOD_REQUIRES_SAME_COMBAT_TYPE
-
+// taken from vox populi 4-30 changes by LoneGazebo, raphaell666, davenye
+// https://forums.civfanatics.com/threads/multiplayer-stability-thread.632082/
+// Workaround for the AI double turn when loading MP games with simultaneous/hybrid turns
+#define MOD_BUGFIX_AI_DOUBLE_TURN_MP_LOAD (true)
 #endif

@@ -618,9 +618,11 @@ public:
 	FTimer  m_timeSinceGameTurnStart;		//time since game turn started for human players
 	float	m_fCurrentTurnTimerPauseDelta;
 #endif
-
 	bool AnyoneHasBuildingClass(BuildingClassTypes iBuildingClassType) const;
 
+#if defined(MOD_BUGFIX_AI_DOUBLE_TURN_MP_LOAD)
+	bool isFirstActivationOfPlayersAfterLoad();
+#endif
 public:
 
 	//Function to determine city size from city population
@@ -637,7 +639,9 @@ private:
 	const static unsigned int ms_aiSizes[10];
 
 protected:
-
+#if defined(MOD_BUGFIX_AI_DOUBLE_TURN_MP_LOAD)
+	bool m_firstActivationOfPlayersAfterLoad;
+#endif
 	int m_iEndTurnMessagesSent;
 	int m_iElapsedGameTurns;
 	int m_iStartTurn;

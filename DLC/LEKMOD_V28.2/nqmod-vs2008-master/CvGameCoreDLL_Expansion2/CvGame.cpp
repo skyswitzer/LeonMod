@@ -8905,6 +8905,9 @@ void CvGame::updateMoves()
 	int currentTurn = getGameTurn();
 	bool activatePlayers = playersToProcess.empty() && m_lastTurnAICivsProcessed != currentTurn;
 #endif
+#if defined(MOD_BUGFIX_AI_DOUBLE_TURN_MP_LOAD)
+	m_firstActivationOfPlayersAfterLoad = activatePlayers && m_lastTurnAICivsProcessed == -1;
+#endif
 	// If no AI with an active turn, check humans.
 	if(playersToProcess.empty())
 	{
@@ -13003,4 +13006,9 @@ void CvGame::SetLastTurnAICivsProcessed()
 	return false;
 }
 */
-
+#if defined(MOD_BUGFIX_AI_DOUBLE_TURN_MP_LOAD)
+bool CvGame::isFirstActivationOfPlayersAfterLoad()
+{
+	return m_firstActivationOfPlayersAfterLoad;
+}
+#endif
