@@ -1544,4 +1544,6 @@ void netMessageDebug(int type, string x)
 		NET_MESSAGE_DEBUG_OSTR_ALWAYS(x);
 	if (type == NET_MESSAGE_PLAYER_EVENTS && true)
 		NET_MESSAGE_DEBUG_OSTR_ALWAYS(x);
+	if (type == NET_MESSAGE_PUBLISHES && true)
+		NET_MESSAGE_DEBUG_OSTR_ALWAYS(x);
 }

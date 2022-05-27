@@ -18179,7 +18179,7 @@ void CvPlayer::setTurnActiveForPbem(bool bActive)
 	if(isTurnActive() != bActive)
 	{
 		m_bTurnActive = bActive;
-		GC.getGame().changeNumGameTurnActive(isTurnActive() ? 1 : -1, "setTurnActiveForPlayByEmail");
+		//GC.getGame().logNumGameTurnActive(isTurnActive() ? 1 : -1, "setTurnActiveForPlayByEmail");
 	}
 }
 
@@ -18190,6 +18190,12 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 	if(isTurnActive() != bNewValue)
 	{
 		m_bTurnActive = bNewValue; // R: this is causing the AI playing twice in one turn bug
+
+		stringstream ss;
+		ss << "Player(" << GetID() << ")::setTurnActive(" << (bNewValue ? "true" : "FALSE") << ", bDoTurn:" << (bDoTurn ? "true" : "FALSE") << ")";
+		netMessageDebug(NET_MESSAGE_PLAYER_EVENTS, ss.str());
+
+		CvGame& kGame = GC.getGame();
 #if defined(MOD_BUGFIX_AI_DOUBLE_TURN_MP_LOAD)
 		// DN: There is a strange issue with players missing their turns after loading a game, with the AI getting two turns in a row.
 		// It seems *to me* that Civ is incorrectly thinking telling us that the players have already indicated they have finished their turns
@@ -18204,9 +18210,8 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 					if (gDLL->HasReceivedTurnComplete(GetID()))
 						gDLL->sendTurnUnready();
 #endif
-		DLLUI->PublishEndTurnDirty();
+		GuiDllWrap->PublishEndTurnDirty(GetID());
 
-		CvGame& kGame = GC.getGame();
 
 		/////////////////////////////////////////////
 		// TURN IS BEGINNING
@@ -18238,14 +18243,14 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 				sendTurnReminder();
 			}
 
-			std::ostringstream infoStream;
-			infoStream << "setTurnActive() for player ";
-			infoStream << (int)GetID();
-			infoStream << " ";
-			infoStream << getName();
-			kGame.changeNumGameTurnActive(1, infoStream.str());
+			//std::ostringstream infoStream;
+			//infoStream << "setTurnActive() for player ";
+			//infoStream << (int)GetID();
+			//infoStream << " ";
+			//infoStream << getName();
+			//kGame.logNumGameTurnActive(1, infoStream.str());
 
-			DLLUI->PublishPlayerTurnStatus(DLLUIClass::TURN_START, GetID());
+			GuiDllWrap->PublishPlayerTurnStatus(GetID(), DLLUIClass::TURN_START);
 
 			if(bDoTurn)
 			{
@@ -18341,19 +18346,17 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 				DLLUI->setDirty(SelectionCamera_DIRTY_BIT, true);
 
 				// slewis - added this so the tutorial knows when a turn begins
-				DLLUI->PublishActivePlayerTurnStart();
+				GuiDllWrap->PublishActivePlayerTurnStart(GetID());
 			}
 			else if(isHuman() && kGame.isGameMultiPlayer())
 			{
-				DLLUI->PublishRemotePlayerTurnStart();
+				GuiDllWrap->PublishRemotePlayerTurnStart(GetID());
 			}
 		}
-
 		/////////////////////////////////////////////
 		// TURN IS ENDING
 		/////////////////////////////////////////////
-
-		else
+		else // turn not active
 		{
 			CvAssertFmt(GetEndTurnBlockingType() == NO_ENDTURN_BLOCKING_TYPE, "Expecting the end-turn blocking to be NO_ENDTURN_BLOCKING_TYPE, got %d", GetEndTurnBlockingType());
 			SetEndTurnBlocking(NO_ENDTURN_BLOCKING_TYPE, -1);	// Make sure this is clear so the UI doesn't block when it is not our turn.
@@ -18394,13 +18397,17 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 
 			if(GetID() == kGame.getActivePlayer())
 			{
-				DLLUI->PublishActivePlayerTurnEnd();
+				GuiDllWrap->PublishActivePlayerTurnEnd(GetID());
 			}
 
-			if(!isHuman() || (isHuman() && !isAlive()) || (isHuman() && gDLL->HasReceivedTurnAllComplete(GetID())) || kGame.getAIAutoPlay())
-				kGame.changeNumGameTurnActive(-1, std::string("setTurnActive() for player ") + getName());
+			// should this player not have their turn active?
+			//const bool isAiControlled = !isHuman() || kGame.getAIAutoPlay();
+			//const bool shouldSkip = isHuman() && !isAlive();
+			//const bool playerIsDoneWithTurn = isHuman() && gDLL->HasReceivedTurnAllComplete(GetID());
+			//if (isAiControlled || shouldSkip || playerIsDoneWithTurn)
+			//	kGame.logNumGameTurnActive(-1, std::string("setTurnActive() for player ") + getName());
 
-			DLLUI->PublishPlayerTurnStatus(DLLUIClass::TURN_END, GetID());
+			GuiDllWrap->PublishPlayerTurnStatus(GetID(), DLLUIClass::TURN_END);
 		}
 	}
 	else
@@ -18563,6 +18570,9 @@ void CvPlayer::setEndTurn(bool bNewValue)
 		CvAssertMsg(isTurnActive(), "isTurnActive is expected to be true");
 
 		m_bEndTurn = bNewValue;
+		stringstream ss;
+		ss << "Player(" << GetID() << ")::setEndTurn(" << (bNewValue ? "true" : "FALSE") << ")";
+		netMessageDebug(NET_MESSAGE_PLAYER_EVENTS, ss.str());
 
 		if(isEndTurn())
 		{
@@ -25354,12 +25364,13 @@ void CvPlayer::Read(FDataStream& kStream)
 		//m_pDiplomacyRequests->Read(kStream);
 	}
 
-	if(m_bTurnActive)
-		GC.getGame().changeNumGameTurnActive(1, std::string("setTurnActive() [loading save game] for player ") + getName());
+	if (m_bTurnActive)
+	{
+		//GC.getGame().logNumGameTurnActive(1, std::string("setTurnActive() [loading save game] for player ") + getName());
+	}
 
-		kStream >> m_ppiImprovementYieldChange;
-		kStream >> m_ppiResourceYieldChange;
-
+	kStream >> m_ppiImprovementYieldChange;
+	kStream >> m_ppiResourceYieldChange;
 }
 
 //	--------------------------------------------------------------------------------

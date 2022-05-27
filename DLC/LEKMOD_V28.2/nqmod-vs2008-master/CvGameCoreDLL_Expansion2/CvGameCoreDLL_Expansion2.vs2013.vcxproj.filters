@@ -487,6 +487,7 @@
     <ClCompile Include="CvLuaUnit.cpp">
       <Filter>Lua</Filter>
     </ClCompile>
+    <ClCompile Include="CvDllWrap.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CvDllBuildInfo.h">
@@ -1014,6 +1015,7 @@
     <ClInclude Include="CvLuaUnit.h">
       <Filter>Lua</Filter>
     </ClInclude>
+    <ClInclude Include="CvDllWrap.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="CvGameCoreDLL.rc" />
