@@ -1315,7 +1315,6 @@ void CvGameReligions::AddReformationBelief(PlayerTypes ePlayer, ReligionTypes eR
 	kPlayer.doSelfConsistencyCheckAllCities();
 #endif
 
-#ifdef NQ_ADD_REFORMATION_LUA_HOOK
 	ICvEngineScriptSystem1* pkScriptSystem = gDLL->GetScriptSystem();
 	if(pkScriptSystem) 
 	{
@@ -1326,7 +1325,6 @@ void CvGameReligions::AddReformationBelief(PlayerTypes ePlayer, ReligionTypes eR
 		bool bResult;
 		LuaSupport::CallHook(pkScriptSystem, "ReformationAdded", args.get(), bResult);
 	}
-#endif
 
 	//Notify the masses
 	for(int iNotifyLoop = 0; iNotifyLoop < MAX_MAJOR_CIVS; ++iNotifyLoop){

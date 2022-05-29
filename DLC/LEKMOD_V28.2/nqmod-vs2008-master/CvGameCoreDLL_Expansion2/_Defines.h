@@ -280,8 +280,6 @@
 /*
 /// New option that pauses the game when an active player disconnects and the game is not sequential
 #define AUI_GAME_AUTOPAUSE_ON_ACTIVE_DISCONNECT_IF_NOT_SEQUENTIAL
-/// Relaxed the limits on the slice limits before turn timers are forced to expire in network multiplayer games (should help stop resyncs due to last-second moves)
-#define NQM_GAME_MORE_RELAXED_TURN_SLICE_LIMIT_FOR_NETWORK_MULTIPLAYER
 
 // Deliberate AI hindrances
 */
@@ -670,6 +668,8 @@
 #endif
 
 // --- NQ Changes ---
+/// Relaxed the limits on the slice limits before turn timers are forced to expire in network multiplayer games (should help stop resyncs due to last-second moves)
+#define NQM_GAME_MORE_RELAXED_TURN_SLICE_LIMIT_FOR_NETWORK_MULTIPLAYER
 // Always show barb camps to all players instead of locking it to a policy
 #define NQ_ALWAYS_SEE_BARB_CAMPS
 // Allow hill terrain changes based on buildings (Swedish UB: Falu Gruva)
@@ -743,8 +743,6 @@
 #define NQ_WORLDS_FAIR_GAME_SPEED_SCALING
 // one shot local population change when a building is constructed
 #define NQ_LOCAL_POPULATION_CHANGE_FROM_BUILDING
-// Lua hook for game event when reformation belief is added
-#define NQ_ADD_REFORMATION_LUA_HOOK
 // Food bonus for removing features
 #define NQ_FOOD_FROM_CHOPS
 // Unit turn ends on final attack even with multiple attacks per turn
@@ -842,16 +840,6 @@
 #define NQ_ALWAYS_SHOW_POP_GROWTH_NOTIFICATION
 // tributing now relies more on local military power rather than global
 #define NQ_TRIBUTE_EASIER_WITH_LOCAL_POWER
-// city states will no longer declare peace if influence is less than -50
-#define NQ_PEACE_BLOCKED_IF_INFLUENCE_TOO_LOW
-// We Love The King Day now scales based on game speed
-#define NQ_WLTKD_SCALES_BY_GAME_SPEED
-// We Love The King Day resource requested changes if it takes too long to fulfill
-#define NQ_WLTKD_RESOURCE_DEMAND_EXPIRES
-// We Love The King Day initial seed now scales with game speed
-#define NQ_WLTKD_SEED_SCALES_WITH_GAME_SPEED
-// Trade Route duration now scales with game speed
-#define NQ_TRADE_ROUTE_DURATION_SCALES_WITH_GAME_SPEED
 // Remove random extra turns from seed of WTLKD resource demand
 #define NQ_DISABLE_WLTKD_SEED_RANDOM_EXTRA_TURNS
 // Adjacent Mod (PROMOTION_ADJACENT_BONUS) now requires same combat type
