@@ -1737,8 +1737,9 @@ void CvGame::CheckPlayerTurnDeactivate()
 					if(!(kPlayer.hasBusyUnitOrCity()))
 					{
 						bAutoMovesComplete = true;
-
-						NET_MESSAGE_DEBUG_OSTR_ALWAYS("CheckPlayerTurnDeactivate() : auto-moves complete for " << kPlayer.getName());
+						//stringstream ss;
+						//ss << "CheckPlayerTurnDeactivate() : auto-moves complete for " << string(kPlayer.getName());
+						//netMessageDebug(NET_MESSAGE_PLAYER_EVENTS, ss.str());
 					}
 					else if(gDLL->HasReceivedTurnComplete(kPlayer.GetID()))
 					{
@@ -1824,7 +1825,7 @@ void CvGame::CheckPlayerTurnDeactivate()
 								else
 								{
 									// KWG: This doesn't actually do anything other than print to the debug log
-									changeNumGameTurnActive(1, std::string("Because the diplo screen is blocking I am bumping this up for player ") + getName());
+									//logNumGameTurnActive(1, std::string("Because the diplo screen is blocking I am bumping this up for player ") + getName());
 								}
 							}
 						}
@@ -5168,9 +5169,7 @@ bool CvGame::isNoPlayerActive() const
 	return true;
 }
 #endif
-
-//	--------------------------------------------------------------------------------
-void CvGame::changeNumGameTurnActive(int iChange, const std::string& why)
+void CvGame::logNumGameTurnActive(int iChange, const std::string& why)
 {
 	char changeBuf[8] = {0};
 	char activeBuf[8] = {0};
@@ -8904,6 +8903,9 @@ void CvGame::updateMoves()
 	int currentTurn = getGameTurn();
 	bool activatePlayers = playersToProcess.empty() && m_lastTurnAICivsProcessed != currentTurn;
 #endif
+#if defined(MOD_BUGFIX_AI_DOUBLE_TURN_MP_LOAD)
+	m_firstActivationOfPlayersAfterLoad = activatePlayers && m_lastTurnAICivsProcessed == -1;
+#endif
 	// If no AI with an active turn, check humans.
 	if(playersToProcess.empty())
 	{
@@ -8986,8 +8988,9 @@ void CvGame::updateMoves()
 					if(needsAIUpdate || !player.isHuman())
 					{
 						player.AI_unitUpdate();
-
-						NET_MESSAGE_DEBUG_OSTR_ALWAYS("UpdateMoves() : player.AI_unitUpdate() called for player " << player.GetID() << " " << player.getName()); 
+						stringstream ss;
+						ss << "UpdateMoves() : player.AI_unitUpdate() called for player " << player.GetID() << " " << player.getName();
+						netMessageDebug(NET_MESSAGE_MOVES, ss.str());
 					}
 
 					int iReadyUnitsNow = player.GetCountReadyUnits();
@@ -9003,7 +9006,9 @@ void CvGame::updateMoves()
 						if(iReadyUnitsNow == 0)
 						{
 							player.setAutoMoves(true);
-							NET_MESSAGE_DEBUG_OSTR_ALWAYS("UpdateMoves() : player.setAutoMoves(true) called for player " << player.GetID() << " " << player.getName()); 
+							stringstream ss;
+							ss << "UpdateMoves() : player.setAutoMoves(true) called for player " << player.GetID() << " " << player.getName();
+							netMessageDebug(NET_MESSAGE_MOVES, ss.str());
 						}
 						else
 						{
@@ -9047,9 +9052,11 @@ void CvGame::updateMoves()
 						{
 							CvString tempString;
 							getMissionAIString(tempString, pLoopUnit->GetMissionAIType());
-							NET_MESSAGE_DEBUG_OSTR_ALWAYS("UpdateMoves() : player " << player.GetID() << " " << player.getName()
-																							<< " running AutoMission (" << tempString << ") on " 
-																							<< pLoopUnit->getName() << " id=" << pLoopUnit->GetID());
+							stringstream ss;
+							ss << "UpdateMoves() : player " << player.GetID() << " " << player.getName()
+								<< " running AutoMission (" << tempString << ") on "
+								<< pLoopUnit->getName() << " id=" << pLoopUnit->GetID();
+							netMessageDebug(NET_MESSAGE_MOVES, ss.str());
 
 							pLoopUnit->AutoMission();
 
@@ -9059,9 +9066,11 @@ void CvGame::updateMoves()
 								if(player.isEndTurn())
 								{
 									bRepeatAutomoves = true;	// Do another pass.
-									NET_MESSAGE_DEBUG_OSTR_ALWAYS("UpdateMoves() : player " << player.GetID() << " " << player.getName()
-																									<< " AutoMission did not use up all movement points for " 
-																									<< pLoopUnit->getName() << " id=" << pLoopUnit->GetID());
+									stringstream ss;
+									ss << "UpdateMoves() : player " << player.GetID() << " " << player.getName()
+										<< " AutoMission did not use up all movement points for "
+										<< pLoopUnit->getName() << " id=" << pLoopUnit->GetID();
+									netMessageDebug(NET_MESSAGE_MOVES, ss.str());
 
 									if(player.isLocalPlayer() && gDLL->sendTurnUnready())
 										player.setEndTurn(false);
@@ -9165,14 +9174,18 @@ void CvGame::updateMoves()
 						player.setEndTurn(true);
 						if(player.isEndTurn())
 						{//If the player's turn ended, indicate it in the log.  We only do so when the end turn state has changed to prevent useless log spamming in multiplayer. 
-							NET_MESSAGE_DEBUG_OSTR_ALWAYS("UpdateMoves() : player.setEndTurn(true) called for player " << player.GetID() << " " << player.getName());
+							stringstream ss;
+							ss << "UpdateMoves() : player.setEndTurn(true) called for player " << player.GetID() << " " << player.getName();
+							netMessageDebug(NET_MESSAGE_MOVES, ss.str());
 						}
 					}
 					else
 					{
 						if(!player.hasBusyUnitUpdatesRemaining())
 						{
-							NET_MESSAGE_DEBUG_OSTR_ALWAYS("Received turn complete for player "  << player.GetID() << " " << player.getName() << " but there is a busy unit. Forcing the turn to advance");
+							//stringstream ss;
+							//ss << "Received turn complete for player " << player.GetID() << " " << player.getName() << " but there is a busy unit. Forcing the turn to advance";
+							//netMessageDebug(NET_MESSAGE_PLAYER_EVENTS, ss.str());
 							player.setEndTurn(true);
 						}
 					}
@@ -12991,4 +13004,9 @@ void CvGame::SetLastTurnAICivsProcessed()
 	return false;
 }
 */
-
+#if defined(MOD_BUGFIX_AI_DOUBLE_TURN_MP_LOAD)
+bool CvGame::isFirstActivationOfPlayersAfterLoad()
+{
+	return m_firstActivationOfPlayersAfterLoad;
+}
+#endif

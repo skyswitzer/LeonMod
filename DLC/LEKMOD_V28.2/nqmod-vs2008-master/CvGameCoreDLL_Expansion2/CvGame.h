@@ -218,7 +218,11 @@ public:
 #ifdef AUI_GAME_BETTER_HYBRID_MODE
 	bool isNoPlayerActive() const;
 #endif
-	void changeNumGameTurnActive(int iChange, const std::string& why);
+	// writes to the debug log
+	// strangely this is called in a lot of places that suggest
+	// that it once set the player turn active, possibly the change
+	// caused this to introduce a glitch?
+	void logNumGameTurnActive(int iChange, const std::string& why);
 
 	int getNumCities() const;
 	int getNumCivCities() const;
@@ -241,6 +245,7 @@ public:
 	int getInitWonders() const;
 	void initScoreCalculation();
 
+	// true if this player is being controlled by an AI even if they started human
 	int getAIAutoPlay();
 	void setAIAutoPlay(int iNewValue, PlayerTypes eReturnPlayer);
 	void changeAIAutoPlay(int iChange);
@@ -618,9 +623,11 @@ public:
 	FTimer  m_timeSinceGameTurnStart;		//time since game turn started for human players
 	float	m_fCurrentTurnTimerPauseDelta;
 #endif
-
 	bool AnyoneHasBuildingClass(BuildingClassTypes iBuildingClassType) const;
 
+#if defined(MOD_BUGFIX_AI_DOUBLE_TURN_MP_LOAD)
+	bool isFirstActivationOfPlayersAfterLoad();
+#endif
 public:
 
 	//Function to determine city size from city population
@@ -637,7 +644,9 @@ private:
 	const static unsigned int ms_aiSizes[10];
 
 protected:
-
+#if defined(MOD_BUGFIX_AI_DOUBLE_TURN_MP_LOAD)
+	bool m_firstActivationOfPlayersAfterLoad;
+#endif
 	int m_iEndTurnMessagesSent;
 	int m_iElapsedGameTurns;
 	int m_iStartTurn;

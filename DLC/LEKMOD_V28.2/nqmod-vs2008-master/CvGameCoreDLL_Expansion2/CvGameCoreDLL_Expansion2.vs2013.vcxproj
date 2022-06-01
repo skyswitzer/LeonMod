@@ -168,6 +168,7 @@
   <ItemGroup>
     <ClCompile Include="CvCityManager.cpp" />
     <ClCompile Include="CvCompetition.cpp" />
+    <ClCompile Include="CvDllWrap.cpp" />
     <ClCompile Include="CvExtraHelp.cpp" />
     <ClCompile Include="CvPlotExtraYields.cpp" />
     <ClCompile Include="CvTargeting.cpp" />
@@ -369,6 +370,7 @@
     <ClInclude Include="CvDiplomacyAI.h" />
     <ClInclude Include="CvDiplomacyAIEnums.h" />
     <ClInclude Include="CvDiplomacyRequests.h" />
+    <ClInclude Include="CvDllWrap.h" />
     <ClInclude Include="CvEconomicAI.h" />
     <ClInclude Include="CvEmphasisClasses.h" />
     <ClInclude Include="CvEspionageClasses.h" />

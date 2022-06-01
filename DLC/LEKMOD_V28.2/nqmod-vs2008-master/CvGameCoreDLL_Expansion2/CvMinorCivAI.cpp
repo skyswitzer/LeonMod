@@ -8385,14 +8385,10 @@ bool CvMinorCivAI::IsPeaceBlocked(TeamTypes eTeam) const
 
 	return false;
 }
-
-#ifdef NQ_PEACE_BLOCKED_IF_INFLUENCE_TOO_LOW
 bool CvMinorCivAI::IsInfluenceTooLowForPeace(PlayerTypes ePlayer) const
 {
 	return GetBaseFriendshipWithMajor(ePlayer) < -50;
 }
-#endif
-
 /// eTeam declared war on us
 void CvMinorCivAI::DoTeamDeclaredWarOnMe(TeamTypes eEnemyTeam)
 {

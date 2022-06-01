@@ -3854,13 +3854,12 @@ void CvCity::DoPickResourceDemanded(bool bCurrentResourceInvalid)
 		if(bResourceValid)
 		{
 			SetResourceDemanded(eResource);
-#ifdef NQ_WLTKD_RESOURCE_DEMAND_EXPIRES
+
 			// after doing so, reset the timer so that this demand expires and a new one
 			// will replace it if it isn't fulfilled. The duration is 2x the length of the WTLKD
 			int iNumTurns = GC.getCITY_RESOURCE_WLTKD_TURNS() * 2;
 			iNumTurns = iNumTurns * GC.getGame().getGameSpeedInfo().getCulturePercent() / 100;
 			ChangeResourceDemandedCountdown(iNumTurns);
-#endif
 
 			// Notification
 			CvNotifications* pNotifications = GET_PLAYER(getOwner()).GetNotifications();
@@ -3896,9 +3895,7 @@ void CvCity::DoTestResourceDemanded()
 
 	if(GetWeLoveTheKingDayCounter() > 0)
 	{
-#ifdef NQ_WLTKD_RESOURCE_DEMAND_EXPIRES
 		SetResourceDemandedCountdown(0);
-#endif
 		ChangeWeLoveTheKingDayCounter(-1);
 
 		// WLTKD over!
@@ -3933,13 +3930,10 @@ void CvCity::DoTestResourceDemanded()
 			// Do we have the right Resource?
 			if(GET_PLAYER(getOwner()).getNumResourceTotal(eResource) > 0)
 			{
-#ifdef NQ_WLTKD_SCALES_BY_GAME_SPEED
+				// game speed
 				int iNumTurns = GC.getCITY_RESOURCE_WLTKD_TURNS();
 				iNumTurns = iNumTurns * GC.getGame().getGameSpeedInfo().getCulturePercent() / 100;
 				SetWeLoveTheKingDayCounter(iNumTurns); // 12/18/27/54
-#else
-				SetWeLoveTheKingDayCounter(/*20*/ GC.getCITY_RESOURCE_WLTKD_TURNS());
-#endif
 
 				CvNotifications* pNotifications = GET_PLAYER(getOwner()).GetNotifications();
 				if(pNotifications)
@@ -3973,13 +3967,11 @@ void CvCity::DoSeedResourceDemandedCountdown()
 	iNumTurns += GC.getGame().getJonRandNum(iRand, "City Resource demanded rand.");
 #endif
 
-#ifdef NQ_WLTKD_SEED_SCALES_WITH_GAME_SPEED
 	// XML was changed to make the variables above = base 24 and capital 24
 	// this means capital will get first resource demanded at [(24 + 24) * 2/3] = turn 32
 	// every other city will get first resource demanded at [24 * 2/3] = 16 turns after it is settled
 	// previously it was turn 40-50 for capital, and 15-25 turns after other cities were settled
 	iNumTurns = iNumTurns * GC.getGame().getGameSpeedInfo().getCulturePercent() / 100;
-#endif
 
 	SetResourceDemandedCountdown(iNumTurns);
 }
