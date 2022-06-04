@@ -256,7 +256,8 @@ public:
 	void processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst, bool bObsolete = false, bool bApplyingAllCitiesBonus = false);
 	void processProcess(ProcessTypes eProcess, int iChange);
 	void processSpecialist(SpecialistTypes eSpecialist, int iChange);
-
+	// updates the city to have the correct number of free buildings from policies, traits, etc.
+	void UpdateFreeBuildings(const bool isNewlyFounded);
 	void UpdateReligion(const ReligionTypes eNewMajority);
 	void UpdateReligionSpecialistBenefits(const ReligionTypes eNewMajority);
 
@@ -274,6 +275,8 @@ public:
 
 	CitySizeTypes getCitySizeType() const;
 
+	// true if this city is not currently owned by its founder
+	bool isConquered() const;
 	bool isBarbarian() const;
 	bool isHuman() const;
 	bool isVisible(TeamTypes eTeam, bool bDebug) const;

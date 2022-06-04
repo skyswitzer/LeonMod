@@ -628,7 +628,6 @@ public:
 
 	/// CMP
 	bool HasBuildingClass(BuildingClassTypes eIndex) const;
-	BuildingTypes GetBuildingTypeFromClass(BuildingClassTypes eIndex) const;
 
 	int GetNumActiveBuilding(BuildingTypes eIndex) const;
 

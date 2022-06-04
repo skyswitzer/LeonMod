@@ -7534,7 +7534,22 @@ void CvCity::processSpecialist(SpecialistTypes eSpecialist, int iChange)
 	int iCulturePerSpecialist = GetCultureFromSpecialist(eSpecialist);
 	ChangeJONSCulturePerTurnFromSpecialists(iCulturePerSpecialist * iChange);
 }
+void CvCity::UpdateFreeBuildings(const bool isNewlyFounded)
+{
+	const CvPlayer& rPlayer = GET_PLAYER(getOwner());
+	const bool isOriginalCapital = IsOriginalMajorCapital() && !isConquered();
+	for (int i = 0; i < GC.getNumBuildingClassInfos(); i++)
+	{
+		const BuildingClassTypes eBuildingClass = (BuildingClassTypes)i;
+		const bool shouldGetBuilding = rPlayer.ShouldHaveBuilding(rPlayer, *this, isOriginalCapital, isConquered(), isNewlyFounded, eBuildingClass);
 
+		if (shouldGetBuilding)
+		{
+			const BuildingTypes eBuilding = rPlayer.getBuildingForPlayer(eBuildingClass);
+			GetCityBuildings()->SetNumRealBuilding(eBuilding, 1);
+		}
+	}
+}
 //	--------------------------------------------------------------------------------
 /// Process the majority religion changing for a city
 void CvCity::UpdateReligion(ReligionTypes eNewMajority)
@@ -7722,8 +7737,10 @@ CitySizeTypes CvCity::getCitySizeType() const
 	VALIDATE_OBJECT
 	return ((CitySizeTypes)(range((getPopulation() / 7), 0, (NUM_CITYSIZE_TYPES - 1))));
 }
-
-
+bool CvCity::isConquered() const
+{
+	return getOriginalOwner() != getOwner();
+}
 //	--------------------------------------------------------------------------------
 bool CvCity::isBarbarian() const
 {

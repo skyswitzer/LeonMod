@@ -3156,6 +3156,7 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bGift)
 		bool bResult;
 		LuaSupport::CallHook(pkScriptSystem, "CityCaptureComplete", args.get(), bResult);
 	}
+	pNewCity->UpdateFreeBuildings(false);
 
 #ifdef AUI_CITIZENS_MID_TURN_ASSIGN_RUNS_SELF_CONSISTENCY
 	doSelfConsistencyCheckAllCities();
@@ -7702,9 +7703,17 @@ void CvPlayer::found(int iX, int iY)
 		bool bResult;
 		LuaSupport::CallHook(pkScriptSystem, "PlayerCityFounded", args.get(), bResult);
 	}
+	pCity->UpdateFreeBuildings(true);
 }
-
-
+BuildingTypes CvPlayer::getBuildingForPlayer(const BuildingClassTypes eBuildingClass) const
+{
+	const CvCivilizationInfo* pkCivInfo = GC.getCivilizationInfo(getCivilizationType());
+	if (pkCivInfo)
+	{
+		return (BuildingTypes)pkCivInfo->getCivilizationBuildings(eBuildingClass);
+	}
+	return NO_BUILDING;
+}
 //	--------------------------------------------------------------------------------
 bool CvPlayer::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool bIgnoreCost, bool bIgnoreUniqueUnitStatus, CvString* toolTipSink) const
 {
@@ -24059,6 +24068,7 @@ void CvPlayer::processPolicies(PolicyTypes ePolicy, int iChange)
 	int iLoop;
 	for (pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 	{
+		pLoopCity->UpdateFreeBuildings(false);
 		// LEKMOD - Piety Gardens now in the DLL
 
 		if (iNumCitiesFreePietyGardens > 0)

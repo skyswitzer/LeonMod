@@ -307,6 +307,10 @@ public:
 	void AwardFreeBuildings(CvCity* pCity); // slewis - broken out so that Venice can get free buildings when they purchase something
 	bool canFound(int iX, int iY, bool bTestVisible = false) const;
 	void found(int iX, int iY);
+	// true if a players city should have this building class in it automatically
+	static bool ShouldHaveBuilding(const CvPlayer& rPlayer, const CvCity& rCity, const bool isYourCapital, const bool isConquered, const bool isNewlyFounded, const BuildingClassTypes eBuildingClass);
+	// gets the building for this player based on the building class so unique buildings can be respected
+	BuildingTypes getBuildingForPlayer(const BuildingClassTypes eBuildingClass) const;
 
 	bool canTrain(UnitTypes eUnit, bool bContinue = false, bool bTestVisible = false, bool bIgnoreCost = false, bool bIgnoreUniqueUnitStatus = false, CvString* toolTipSink = NULL) const;
 	bool canConstruct(BuildingTypes eBuilding, bool bContinue = false, bool bTestVisible = false, bool bIgnoreCost = false, CvString* toolTipSink = NULL) const;
