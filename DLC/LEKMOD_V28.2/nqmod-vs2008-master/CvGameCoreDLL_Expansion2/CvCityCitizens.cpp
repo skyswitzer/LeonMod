@@ -717,6 +717,8 @@ bool CvCityCitizens::IsAIWantSpecialistRightNow()
 		iWeight /= 2;
 	}
 
+	const CvPlayer& rPlayer = GET_PLAYER(m_pCity->getOwner());
+
 	int iFoodPerTurn = m_pCity->getYieldRate(YIELD_FOOD, false);
 	int iFoodEatenPerTurn = m_pCity->foodConsumption();
 	int iSurplusFood = iFoodPerTurn - iFoodEatenPerTurn;
@@ -796,7 +798,7 @@ bool CvCityCitizens::IsAIWantSpecialistRightNow()
 					{
 						const SpecialistTypes eSpecialist = (SpecialistTypes) pkBuildingInfo->GetSpecialistType();
 						CvSpecialistInfo* pSpecialistInfo = GC.getSpecialistInfo(eSpecialist);
-						if(pSpecialistInfo && pSpecialistInfo->getCulturePerTurn() > 0)
+						if(pSpecialistInfo && pSpecialistInfo->getYieldChange(YIELD_CULTURE) > 0)
 						{
 							iWeight *= 3;
 							break;
@@ -822,19 +824,10 @@ bool CvCityCitizens::IsAIWantSpecialistRightNow()
 				{
 					SpecialistTypes eSpecialist = (SpecialistTypes) GC.getBuildingInfo(eBuilding)->GetSpecialistType();
 					CvSpecialistInfo* pSpecialistInfo = GC.getSpecialistInfo(eSpecialist);
-					if(pSpecialistInfo && pSpecialistInfo->getYieldChange(YIELD_SCIENCE) > 0)
+					int yield = rPlayer.getSpecialistYieldTotal(m_pCity, eSpecialist, YIELD_SCIENCE, false);
+					if(pSpecialistInfo && yield >= 1)
 					{
-						iWeight *= 3;
-					}
-
-					if(GetPlayer()->getSpecialistExtraYield(YIELD_SCIENCE) > 0)
-					{
-						iWeight *= 3;
-					}
-
-					if(GetPlayer()->GetPlayerTraits()->GetSpecialistYieldChange(eSpecialist, YIELD_SCIENCE) > 0)
-					{
-						iWeight *= 3;
+						iWeight *= (yield * 3);
 					}
 				}
 			}
@@ -857,20 +850,10 @@ bool CvCityCitizens::IsAIWantSpecialistRightNow()
 					{
 						SpecialistTypes eSpecialist = (SpecialistTypes) pkBuildingInfo->GetSpecialistType();
 						CvSpecialistInfo* pSpecialistInfo = GC.getSpecialistInfo(eSpecialist);
-						if(NULL != pSpecialistInfo && pSpecialistInfo->getYieldChange(YIELD_PRODUCTION) > 0)
+						int yield = rPlayer.getSpecialistYieldTotal(m_pCity, eSpecialist, YIELD_PRODUCTION, false);
+						if (pSpecialistInfo && yield >= 1)
 						{
-							iWeight *= 150;
-							iWeight /= 100;
-						}
-
-						if(GetPlayer()->getSpecialistExtraYield(YIELD_PRODUCTION) > 0)
-						{
-							iWeight *= 2;
-						}
-
-						if(GetPlayer()->GetPlayerTraits()->GetSpecialistYieldChange(eSpecialist, YIELD_PRODUCTION) > 0)
-						{
-							iWeight *= 2;
+							iWeight *= (yield * 3);
 						}
 					}
 				}
@@ -953,20 +936,10 @@ bool CvCityCitizens::IsAIWantSpecialistRightNow()
 					{
 						SpecialistTypes eSpecialist = (SpecialistTypes) pkBuildingInfo->GetSpecialistType();
 						CvSpecialistInfo* pSpecialistInfo = GC.getSpecialistInfo(eSpecialist);
-						if(pSpecialistInfo && pSpecialistInfo->getYieldChange(YIELD_GOLD) > 0)
+						int yield = rPlayer.getSpecialistYieldTotal(m_pCity, eSpecialist, YIELD_GOLD, false);
+						if (pSpecialistInfo && yield >= 1)
 						{
-							iWeight *= 150;
-							iWeight /= 100;
-						}
-
-						if(GetPlayer()->getSpecialistExtraYield(YIELD_GOLD) > 0)
-						{
-							iWeight *= 2;
-						}
-
-						if(GetPlayer()->GetPlayerTraits()->GetSpecialistYieldChange(eSpecialist, YIELD_GOLD) > 0)
-						{
-							iWeight *= 2;
+							iWeight *= (yield * 3);
 						}
 					}
 				}
@@ -990,10 +963,10 @@ bool CvCityCitizens::IsAIWantSpecialistRightNow()
 					{
 						const SpecialistTypes eSpecialist = (SpecialistTypes) pkBuildingInfo->GetSpecialistType();
 						CvSpecialistInfo* pSpecialistInfo = GC.getSpecialistInfo(eSpecialist);
-						if(pSpecialistInfo && pSpecialistInfo->getYieldChange(YIELD_FAITH) > 0)
+						int yield = rPlayer.getSpecialistYieldTotal(m_pCity, eSpecialist, YIELD_FAITH, false);
+						if (pSpecialistInfo && yield >= 1)
 						{
-							iWeight *= 3;
-							break;
+							iWeight *= (yield * 3);
 						}
 					}
 				}
@@ -1154,18 +1127,18 @@ int CvCityCitizens::GetSpecialistValue(SpecialistTypes eSpecialist) const
 #ifdef AUI_CITIZENS_GET_VALUE_SPLIT_EXCESS_FOOD_MUTLIPLIER
 	int iFoodYieldValue = /*12*/ GC.getAI_CITIZEN_VALUE_FOOD();
 #else
-	int iFoodYieldValue = (GC.getAI_CITIZEN_VALUE_FOOD() * (pPlayer->specialistYield(eSpecialist, YIELD_FOOD) + iFoodConsumptionBonus));
+	int iFoodYieldValue = (GC.getAI_CITIZEN_VALUE_FOOD() * (pPlayer->getSpecialistYieldTotal(m_pCity, eSpecialist, YIELD_FOOD, false) + iFoodConsumptionBonus));
 #endif
-	int iProductionYieldValue = (GC.getAI_CITIZEN_VALUE_PRODUCTION() * pPlayer->specialistYield(eSpecialist, YIELD_PRODUCTION));
+	int iProductionYieldValue = (GC.getAI_CITIZEN_VALUE_PRODUCTION() * pPlayer->getSpecialistYieldTotal(m_pCity, eSpecialist, YIELD_PRODUCTION, false));
 #ifdef AUI_CITIZENS_GOLD_YIELD_COUNTS_AS_SCIENCE_WHEN_IN_DEFICIT
 	int iGoldYieldValue = (pPlayer->specialistYield(eSpecialist, YIELD_GOLD));
 	int iScienceYieldValue = (pPlayer->specialistYield(eSpecialist, YIELD_SCIENCE));
 #else
-	int iGoldYieldValue = (GC.getAI_CITIZEN_VALUE_GOLD() * pPlayer->specialistYield(eSpecialist, YIELD_GOLD));
-	int iScienceYieldValue = (GC.getAI_CITIZEN_VALUE_SCIENCE() * pPlayer->specialistYield(eSpecialist, YIELD_SCIENCE));
+	int iGoldYieldValue = (GC.getAI_CITIZEN_VALUE_GOLD() * pPlayer->getSpecialistYieldTotal(m_pCity, eSpecialist, YIELD_GOLD, false));
+	int iScienceYieldValue = (GC.getAI_CITIZEN_VALUE_SCIENCE() * pPlayer->getSpecialistYieldTotal(m_pCity, eSpecialist, YIELD_SCIENCE, false));
 #endif
-	int iCultureYieldValue = (GC.getAI_CITIZEN_VALUE_CULTURE() * m_pCity->GetCultureFromSpecialist(eSpecialist)); 
-	int iFaithYieldValue = (GC.getAI_CITIZEN_VALUE_FAITH() * pPlayer->specialistYield(eSpecialist, YIELD_FAITH));
+	int iCultureYieldValue = (GC.getAI_CITIZEN_VALUE_CULTURE() * pPlayer->getSpecialistYieldTotal(m_pCity, eSpecialist, YIELD_CULTURE, false));
+	int iFaithYieldValue = (GC.getAI_CITIZEN_VALUE_FAITH() * pPlayer->getSpecialistYieldTotal(m_pCity, eSpecialist, YIELD_FAITH, false));
 #ifdef AUI_CITIZENS_GET_SPECIALIST_VALUE_ACCOUNT_FOR_GURUSHIP
 	if (pReligion)
 	{
@@ -3060,7 +3033,7 @@ void CvCityCitizens::DoAddSpecialistToBuilding(BuildingTypes eBuilding, bool bFo
 			m_aiNumForcedSpecialistsInBuilding[eBuilding]++;
 		}
 
-		GetCity()->processSpecialist(eSpecialist, 1);
+		GetCity()->processSpecialist(eSpecialist, +1);
 		GetCity()->UpdateReligionSpecialistBenefits(GetCity()->GetCityReligions()->GetReligiousMajority());
 
 		ChangeNumUnassignedCitizens(-1);

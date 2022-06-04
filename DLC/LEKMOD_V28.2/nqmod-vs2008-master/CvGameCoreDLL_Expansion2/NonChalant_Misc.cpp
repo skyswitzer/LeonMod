@@ -161,7 +161,6 @@ int CvPlayerTrade::GetTradeConnectionValueExtra(const TradeConnection& kTradeCon
 }
 
 
-
 // modify unit instapop
 
 

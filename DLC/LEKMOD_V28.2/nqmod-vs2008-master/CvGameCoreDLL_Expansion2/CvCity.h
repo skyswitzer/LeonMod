@@ -261,8 +261,6 @@ public:
 	void UpdateReligion(const ReligionTypes eNewMajority);
 	void UpdateReligionSpecialistBenefits(const ReligionTypes eNewMajority);
 
-	int GetCultureFromSpecialist(SpecialistTypes eSpecialist) const;
-
 	CvHandicapInfo& getHandicapInfo() const;
 	HandicapTypes getHandicapType() const;
 
@@ -400,9 +398,6 @@ public:
 
 	int GetJONSCulturePerTurnFromPolicies() const;
 	void ChangeJONSCulturePerTurnFromPolicies(int iChange);
-
-	int GetJONSCulturePerTurnFromSpecialists() const;
-	void ChangeJONSCulturePerTurnFromSpecialists(int iChange);
 
 	int GetJONSCulturePerTurnFromGreatWorks() const;
 
@@ -648,9 +643,6 @@ public:
 
 	void UpdateBuildingYields();
 
-	int GetBaseYieldRateFromSpecialists(YieldTypes eIndex) const;
-	void ChangeBaseYieldRateFromSpecialists(YieldTypes eIndex, int iChange);
-
 	int GetBaseYieldRateFromMisc(YieldTypes eIndex) const;
 	void ChangeBaseYieldRateFromMisc(YieldTypes eIndex, int iChange);
 
@@ -681,10 +673,10 @@ public:
 	int getHappinessModifier(YieldTypes eIndex) const;
 #endif
 
-	int getExtraSpecialistYield(YieldTypes eIndex) const;
-	int getExtraSpecialistYield(YieldTypes eIndex, SpecialistTypes eSpecialist) const;
-	void updateExtraSpecialistYield(YieldTypes eYield);
-	void updateExtraSpecialistYield();
+	// total yield from all specialists
+	int getSpecialistYieldCached(const YieldTypes eIndex) const;
+	// updates all yields from all specialists
+	void updateSpecialistYields();
 
 	int getProductionToYieldModifier(YieldTypes eIndex) const;
 	void changeProductionToYieldModifier(YieldTypes eIndex, int iChange);

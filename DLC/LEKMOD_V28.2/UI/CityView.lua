@@ -493,9 +493,6 @@ function AddBuildingButton( pCity, building )
 				local iYieldID = pYieldInfo.ID;
 				local iYieldAmount = pCity:GetSpecialistYield(iSpecialistID, iYieldID);
 				
-				--Specialist Yield included in pCity:GetSpecialistYield();
-				--iYieldAmount = iYieldAmount + Players[pCity:GetOwner()]:GetSpecialistExtraYield(iSpecialistID, iYieldID);
-				
 				if (iYieldAmount > 0) then
 					ToolTipString = ToolTipString .. " +" .. iYieldAmount .. pYieldInfo.IconString;
 				end
@@ -1279,9 +1276,6 @@ function OnCityViewUpdate()
 				for pYieldInfo in GameInfo.Yields() do
 					local iYieldID = pYieldInfo.ID;
 					local iYieldAmount = pCity:GetSpecialistYield(iSpecialistID, iYieldID);
-					
-					--Specialist Yield included in pCity:GetSpecialistYield();
-					--iYieldAmount = iYieldAmount + pPlayer:GetSpecialistExtraYield(iSpecialistID, iYieldID);
 					
 					if (iYieldAmount > 0) then
 						ToolTipString = ToolTipString .. " +" .. iYieldAmount .. pYieldInfo.IconString;

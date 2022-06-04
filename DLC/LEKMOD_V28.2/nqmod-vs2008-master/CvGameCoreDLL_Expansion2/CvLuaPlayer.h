@@ -164,7 +164,6 @@ protected:
 	static int lUnitsGoldenAgeReady(lua_State* L);
 	static int lGreatGeneralThreshold(lua_State* L);
 	static int lGreatAdmiralThreshold(lua_State* L);
-	static int lSpecialistYield(lua_State* L);
 	static int lSetGreatGeneralCombatBonus(lua_State* L);
 	static int lGetGreatGeneralCombatBonus(lua_State* L);
 
@@ -737,8 +736,6 @@ protected:
 	static int lGetNavalCombatExperience(lua_State* L);
 	static int lChangeNavalCombatExperience(lua_State* L);
 	static int lSetNavalCombatExperience(lua_State* L);
-
-	static int lGetSpecialistExtraYield(lua_State* L);
 
 	static int lFindPathLength(lua_State* L);
 

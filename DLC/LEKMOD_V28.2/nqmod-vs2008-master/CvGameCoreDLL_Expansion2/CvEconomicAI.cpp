@@ -1630,7 +1630,7 @@ void CvEconomicAI::LogCityMonitor()
 		//	yields from specialists
 		for(uint ui = 0; ui < NUM_YIELD_TYPES; ui++)
 		{
-			aiSpecialistsYields[ui] = pLoopCity->getExtraSpecialistYield((YieldTypes)ui);
+			aiSpecialistsYields[ui] = pLoopCity->getSpecialistYieldCached((YieldTypes)ui);
 			switch(ui)
 			{
 			case YIELD_FOOD:

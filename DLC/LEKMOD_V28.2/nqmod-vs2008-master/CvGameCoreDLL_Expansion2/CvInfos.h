@@ -207,7 +207,6 @@ public:
 
 	int getGreatPeopleUnitClass() const;
 	int getGreatPeopleRateChange() const;
-	int getCulturePerTurn() const;
 	int getMissionType() const;
 	void setMissionType(int iNewType);
 	int getExperience() const;
@@ -243,6 +242,8 @@ protected:
 	int* m_piFlavorValue;
 
 private:
+	// don't call this, idiot, use getYieldChange(YIELD_CULTURE)
+	int getCulturePerTurn() const;
 	CvSpecialistInfo(const CvSpecialistInfo&);
 	CvSpecialistInfo& operator=(const CvSpecialistInfo&);
 

@@ -242,7 +242,6 @@ void CvLuaCity::PushMethods(lua_State* L, int t)
 	Method(GetJONSCulturePerTurnFromPolicies);
 	Method(ChangeJONSCulturePerTurnFromPolicies);
 	Method(GetJONSCulturePerTurnFromSpecialists);
-	Method(ChangeJONSCulturePerTurnFromSpecialists);
 	Method(GetJONSCulturePerTurnFromGreatWorks);
 	Method(GetJONSCulturePerTurnFromTraits);
 	Method(GetJONSCulturePerTurnFromReligion);
@@ -373,7 +372,6 @@ void CvLuaCity::PushMethods(lua_State* L, int t)
 	Method(ChangeBaseYieldRateFromBuildings);
 
 	Method(GetBaseYieldRateFromSpecialists);
-	Method(ChangeBaseYieldRateFromSpecialists);
 
 	Method(GetBaseYieldRateFromMisc);
 	Method(ChangeBaseYieldRateFromMisc);
@@ -387,9 +385,6 @@ void CvLuaCity::PushMethods(lua_State* L, int t)
 	Method(GetYieldRate);
 	Method(GetYieldRateTimes100);
 	Method(GetYieldRateModifier);
-
-	Method(GetExtraSpecialistYield);
-	Method(GetExtraSpecialistYieldOfType);
 
 	Method(GetDomainFreeExperience);
 	Method(GetDomainProductionModifier);
@@ -2134,13 +2129,11 @@ int CvLuaCity::lChangeJONSCulturePerTurnFromPolicies(lua_State* L)
 //int GetJONSCulturePerTurnFromSpecialists() const;
 int CvLuaCity::lGetJONSCulturePerTurnFromSpecialists(lua_State* L)
 {
-	return BasicLuaMethod(L, &CvCity::GetJONSCulturePerTurnFromSpecialists);
-}
-//------------------------------------------------------------------------------
-//void ChangeJONSCulturePerTurnFromSpecialists(int iChange);
-int CvLuaCity::lChangeJONSCulturePerTurnFromSpecialists(lua_State* L)
-{
-	return BasicLuaMethod(L, &CvCity::ChangeJONSCulturePerTurnFromSpecialists);
+	const CvCity* pkCity = GetInstance(L);
+	const int iResult = pkCity->getSpecialistYieldCached(YIELD_CULTURE);
+
+	lua_pushinteger(L, iResult);
+	return 1;
 }
 //------------------------------------------------------------------------------
 //int GetJONSCulturePerTurnFromGreatWorks() const;
@@ -2980,7 +2973,7 @@ int CvLuaCity::lGetLakePlotYield(lua_State* L)
 //int getBaseYieldRate(YieldTypes eIndex);
 int CvLuaCity::lGetBaseYieldRate(lua_State* L)
 {
-	CvCity* pkCity = GetInstance(L);
+	const CvCity* pkCity = GetInstance(L);
 	const YieldTypes eIndex = (YieldTypes)lua_tointeger(L, 2);
 	const int iResult = pkCity->getBaseYieldRate(eIndex);
 
@@ -3018,12 +3011,12 @@ int CvLuaCity::lChangeBaseYieldRateFromBuildings(lua_State* L)
 //------------------------------------------------------------------------------
 int CvLuaCity::lGetBaseYieldRateFromSpecialists(lua_State* L)
 {
-	return BasicLuaMethod(L, &CvCity::GetBaseYieldRateFromSpecialists);
-}
-//------------------------------------------------------------------------------
-int CvLuaCity::lChangeBaseYieldRateFromSpecialists(lua_State* L)
-{
-	return BasicLuaMethod(L, &CvCity::ChangeBaseYieldRateFromSpecialists);
+	const CvCity* pkCity = GetInstance(L);
+	const YieldTypes eYield = (YieldTypes)lua_tointeger(L, 2);
+	const int iResult = pkCity->getSpecialistYieldCached(eYield);
+
+	lua_pushinteger(L, iResult);
+	return 1;
 }
 //------------------------------------------------------------------------------
 int CvLuaCity::lGetBaseYieldRateFromMisc(lua_State* L)
@@ -3098,24 +3091,6 @@ int CvLuaCity::lGetYieldRateModifier(lua_State* L)
 
 	lua_pushinteger(L, iResult);
 	return 1;
-}
-
-//------------------------------------------------------------------------------
-//int getExtraSpecialistYield(YieldTypes eIndex);
-int CvLuaCity::lGetExtraSpecialistYield(lua_State* L)
-{
-	CvCity* pkCity = GetInstance(L);
-	const YieldTypes eIndex = (YieldTypes)lua_tointeger(L, 2);
-	const int iResult = pkCity->getExtraSpecialistYield(eIndex);
-
-	lua_pushinteger(L, iResult);
-	return 1;
-}
-//------------------------------------------------------------------------------
-//int getExtraSpecialistYieldOfType(YieldTypes eIndex, SpecialistTypes eSpecialist);
-int CvLuaCity::lGetExtraSpecialistYieldOfType(lua_State* L)
-{
-	return BasicLuaMethod<int, YieldTypes, SpecialistTypes>(L, &CvCity::getExtraSpecialistYield);
 }
 
 //------------------------------------------------------------------------------
@@ -4047,10 +4022,11 @@ int CvLuaCity::lGetSpecialistYield(lua_State* L)
 	CvCity* pkCity = GetInstance(L);
 	const SpecialistTypes eSpecialist = (SpecialistTypes) lua_tointeger(L, 2);
 	const YieldTypes eYield = (YieldTypes) lua_tointeger(L, 3);
+	const bool isPercentMod = false; // lua_toboolean(L, 4);
 
 	const PlayerTypes ePlayer = pkCity->getOwner();
 
-	const int iValue = GET_PLAYER(ePlayer).specialistYield(eSpecialist, eYield);
+	const int iValue = GET_PLAYER(ePlayer).getSpecialistYieldTotal(pkCity, eSpecialist, eYield, isPercentMod);
 
 	lua_pushinteger(L, iValue);
 
@@ -4059,7 +4035,10 @@ int CvLuaCity::lGetSpecialistYield(lua_State* L)
 //------------------------------------------------------------------------------
 int CvLuaCity::lGetCultureFromSpecialist(lua_State* L)
 {
-	return BasicLuaMethod(L, &CvCity::GetCultureFromSpecialist);
+	const CvCity* pkCity = GetInstance(L);
+	int iYield = pkCity->getSpecialistYieldCached(YIELD_CULTURE);
+	lua_pushinteger(L, iYield);
+	return 1;
 }
 //------------------------------------------------------------------------------
 int CvLuaCity::lGetReligionCityRangeStrikeModifier(lua_State* L)

@@ -237,3 +237,31 @@ bool CvPlayer::ShouldHaveBuilding(const CvPlayer& rPlayer, const CvCity& rCity, 
 
 	return false;
 }
+int CvPlayer::getSpecialistYieldHardcoded(const CvCity* pCity, const SpecialistTypes eSpecialist, const YieldTypes eYield, const bool isPercent) const
+{
+	// <Table name="Specialists">
+	float change = 0;
+	const CvPlayer& player = *this;
+
+	const bool isUnemployed = eSpecialist == 0;
+	const bool isWriter = eSpecialist == 1;
+	const bool isArtist = eSpecialist == 2;
+	const bool isMusician = eSpecialist == 3;
+	const bool isScientist = eSpecialist == 4;
+	const bool isMerchant = eSpecialist == 5;
+	const bool isEngineer = eSpecialist == 6;
+
+	// logic that does not want to check the city
+	if (pCity != NULL)
+	{
+		const CvCity& city = *pCity;
+
+		
+	}
+
+	// things that do not want to check the city
+	change += 3;
+
+
+	return GC.round(change);
+}
