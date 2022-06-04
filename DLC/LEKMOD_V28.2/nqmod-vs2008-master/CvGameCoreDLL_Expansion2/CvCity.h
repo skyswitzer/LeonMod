@@ -255,6 +255,8 @@ public:
 	void processResource(ResourceTypes eResource, int iChange);
 	void processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst, bool bObsolete = false, bool bApplyingAllCitiesBonus = false);
 	void processProcess(ProcessTypes eProcess, int iChange);
+	// called when the owning player obtains OR LOOSES a tech
+	void OnTechChange(const bool hasTech, const CvTechEntry* pkTechInfo);
 	void processSpecialist(SpecialistTypes eSpecialist, int iChange);
 	// updates the city to have the correct number of free buildings from policies, traits, etc.
 	void UpdateFreeBuildings(const bool isNewlyFounded);

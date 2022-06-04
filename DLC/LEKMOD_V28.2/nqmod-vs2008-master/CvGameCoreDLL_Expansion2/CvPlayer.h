@@ -194,7 +194,8 @@ private:
 	) const;
 public:
 	void updateYield();
-	void updateExtraSpecialistYield();
+	// update specialist yields for all cities
+	void updateSpecialistYieldsAll();
 	void updateCityPlotYield();
 	void updateCitySight(bool bIncrement);
 	void UpdateNotifications();

@@ -5456,7 +5456,7 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 		return;
 	}
 
-	CvTechEntry* pkTechInfo = GC.getTechInfo(eIndex);
+	const CvTechEntry* pkTechInfo = GC.getTechInfo(eIndex);
 	if(pkTechInfo == NULL)
 	{
 		return;
@@ -5488,7 +5488,6 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 		{
 			gDLL->UnlockAchievement(ACHIEVEMENT_XP1_30);
 		}
-
 		if(pkTechInfo->IsRepeat())
 		{
 			GetTeamTechs()->IncrementTechCount(eIndex);
@@ -5532,19 +5531,6 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 			// Tech progress affects city strength, so update
 			CvCity* pLoopCity;
 			int iLoop;
-
-			for(int iI = 0; iI < MAX_PLAYERS; iI++)
-			{
-				const PlayerTypes eLoopPlayer = static_cast<PlayerTypes>(iI);
-				CvPlayerAI& kLoopPlayer = GET_PLAYER(eLoopPlayer);
-				if(kLoopPlayer.isAlive() && kLoopPlayer.getTeam() == GetID())
-				{
-					for(pLoopCity = kLoopPlayer.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kLoopPlayer.nextCity(&iLoop))
-					{
-						pLoopCity->updateStrengthValue();
-					}
-				}
-			}
 
 			NotificationTypes eNotificationType = NO_NOTIFICATION_TYPE;
 
@@ -5669,6 +5655,22 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 							}
 						}
 					}
+				}
+			}
+		}
+
+		// inform cities
+		for (int p = 0; p < MAX_PLAYERS; p++)
+		{
+			const PlayerTypes ePlayer = (PlayerTypes)p;
+			CvPlayerAI& kLoopPlayer = GET_PLAYER(ePlayer);
+			if (kLoopPlayer.isAlive() && kLoopPlayer.getTeam() == GetID())
+			{
+				int iLoop;
+				for (CvCity* pLoopCity = kLoopPlayer.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kLoopPlayer.nextCity(&iLoop))
+				{
+					const bool hasTech = bNewValue;
+					pLoopCity->OnTechChange(hasTech, pkTechInfo);
 				}
 			}
 		}

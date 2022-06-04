@@ -5399,12 +5399,10 @@ void CvPlayer::updateYield()
 }
 
 //	--------------------------------------------------------------------------------
-void CvPlayer::updateExtraSpecialistYield()
+void CvPlayer::updateSpecialistYieldsAll()
 {
-	CvCity* pLoopCity;
 	int iLoop;
-
-	for(pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
+	for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 	{
 		pLoopCity->updateSpecialistYields();
 	}
@@ -10215,7 +10213,7 @@ void CvPlayer::changeSpecialistYieldExtraFromPolicies(const SpecialistTypes eSpe
 		m_ppaaiSpecialistExtraYield.setAt(eSpecialist, yields);
 		CvAssert(getSpecialistExtraYield(eSpecialist, eYield) >= 0);
 
-		updateExtraSpecialistYield();
+		updateSpecialistYieldsAll();
 	}
 }
 

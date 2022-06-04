@@ -7504,9 +7504,11 @@ void CvCity::processProcess(ProcessTypes eProcess, int iChange)
 		}
 	}
 }
-
-
-//	--------------------------------------------------------------------------------
+void CvCity::OnTechChange(const bool hasTech, const CvTechEntry* pkTechInfo)
+{
+	updateSpecialistYields();
+	updateStrengthValue();
+}
 void CvCity::processSpecialist(SpecialistTypes eSpecialist, int iChange)
 {
 	VALIDATE_OBJECT
