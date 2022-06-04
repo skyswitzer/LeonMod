@@ -385,6 +385,8 @@ public:
 	int getSpecialistYieldExtra(const CvCity* pCity, const SpecialistTypes eSpecialist, const YieldTypes eYield, const bool isPercentMod) const;
 	// use getSpecialistYieldExtra instead. That includes this call.
 	int getSpecialistYieldHardcoded(const CvCity* pCity, const SpecialistTypes eSpecialist, const YieldTypes eYield, const bool isPercentMod) const;
+	// gpp yield for a specialist
+	int getSpecialistGpp(const CvCity* pCity, const SpecialistTypes eSpecialist, const SpecialistTypes eGppType, const bool isPercentMod) const;
 
 	// yields from policies that apply to every specialist
 	int getSpecialistYieldExtraFromPolicies(const SpecialistTypes eSpecialist, const YieldTypes eYield) const;

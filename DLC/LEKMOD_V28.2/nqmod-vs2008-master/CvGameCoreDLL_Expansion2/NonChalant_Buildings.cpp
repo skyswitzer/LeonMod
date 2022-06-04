@@ -237,6 +237,42 @@ bool CvPlayer::ShouldHaveBuilding(const CvPlayer& rPlayer, const CvCity& rCity, 
 
 	return false;
 }
+int CvPlayer::getSpecialistGpp(const CvCity* pCity, const SpecialistTypes eSpecialist, const SpecialistTypes eGppType, const bool isPercentMod) const
+{
+	const CvSpecialistInfo* pkSpecialist = GC.getSpecialistInfo(eSpecialist);
+	float change = 0;
+	if (pkSpecialist == NULL)
+	{
+		return change;
+	}
+	if (eSpecialist == eGppType)
+	{
+		// default yield
+		change += pkSpecialist->getGreatPeopleRateChange();
+	}
+
+	const bool isUnemployed = eSpecialist == 0;
+	const bool isWriter = eSpecialist == 1;
+	const bool isArtist = eSpecialist == 2;
+	const bool isMusician = eSpecialist == 3;
+	const bool isScientist = eSpecialist == 4;
+	const bool isMerchant = eSpecialist == 5;
+	const bool isEngineer = eSpecialist == 6;
+	const CvPlayer& player = *this;
+	if (pCity != NULL)
+	{
+		const CvCity& city = *pCity;
+		// logic that references city
+
+
+	}
+
+
+	// logic that does not reference the city
+
+
+	return change;
+}
 int CvPlayer::getSpecialistYieldHardcoded(const CvCity* pCity, const SpecialistTypes eSpecialist, const YieldTypes eYield, const bool isPercent) const
 {
 	// <Table name="Specialists">
@@ -251,15 +287,16 @@ int CvPlayer::getSpecialistYieldHardcoded(const CvCity* pCity, const SpecialistT
 	const bool isMerchant = eSpecialist == 5;
 	const bool isEngineer = eSpecialist == 6;
 
-	// logic that does not want to check the city
 	if (pCity != NULL)
 	{
 		const CvCity& city = *pCity;
+		// logic that references city
 
 		
 	}
 
-	// things that do not want to check the city
+
+	// logic that does not reference the city
 	change += 3;
 
 

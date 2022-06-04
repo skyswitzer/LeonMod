@@ -7515,8 +7515,9 @@ void CvCity::processSpecialist(SpecialistTypes eSpecialist, int iChange)
 	{
 		return;
 	}
-
-	changeBaseGreatPeopleRate(pkSpecialist->getGreatPeopleRateChange() * iChange);
+	const CvPlayer& rPlayer = GET_PLAYER(getOwner());
+	const int gppYield = rPlayer.getSpecialistGpp(this, eSpecialist, eSpecialist, false);
+	changeBaseGreatPeopleRate(gppYield * iChange);
 	changeSpecialistFreeExperience(pkSpecialist->getExperience() * iChange);
 	updateSpecialistYields();
 }

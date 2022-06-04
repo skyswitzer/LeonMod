@@ -1167,7 +1167,8 @@ int CvCityCitizens::GetSpecialistValue(SpecialistTypes eSpecialist) const
 		iFaithYieldValue += GC.getAI_CITIZEN_VALUE_FAITH() * pSecondaryBelief->GetYieldChangeAnySpecialist(YIELD_FAITH);
 	}
 #endif
-	int iGPPYieldValue = pSpecialistInfo->getGreatPeopleRateChange() * 3; // TODO: un-hardcode this
+	const int gppYield = pPlayer->getSpecialistGpp(m_pCity, eSpecialist, eSpecialist, false);
+	int iGPPYieldValue = gppYield * 3; // TODO: un-hardcode this
 #ifdef AUI_CITIZENS_UNHARDCODE_SPECIALIST_VALUE_HAPPINESS
 	int iHappinessYieldValue = 0;
 	int iExtraUnhappinessT100 = 0;
@@ -2805,6 +2806,7 @@ void CvCityCitizens::DoSpecialists()
 	int iGPPChange;
 	int iCount;
 	int iMod;
+	const CvPlayer& rPlayer = GET_PLAYER(m_pCity->getOwner());
 #endif
 #ifdef AUI_WARNING_FIXES
 	for (uint iSpecialistLoop = 0; iSpecialistLoop < GC.getNumSpecialistInfos(); iSpecialistLoop++)
@@ -2831,8 +2833,9 @@ void CvCityCitizens::DoSpecialists()
 			{
 				iCount = GetSpecialistCount(eSpecialist);
 
-				// GPP from Specialists
-				iGPPChange = pkSpecialistInfo->getGreatPeopleRateChange() * iCount * 100;
+				// GPP from Specialists		   
+				const int gppYield = rPlayer.getSpecialistGpp(m_pCity, eSpecialist, eSpecialist, false);
+				iGPPChange = gppYield * iCount * 100;
 
 				// GPP from Buildings
 				iGPPChange += GetBuildingGreatPeopleRateChanges(eSpecialist) * 100;
