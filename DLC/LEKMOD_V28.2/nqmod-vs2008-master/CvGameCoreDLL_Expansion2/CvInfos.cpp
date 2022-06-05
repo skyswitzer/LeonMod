@@ -5200,7 +5200,10 @@ CvYieldInfo::CvYieldInfo() :
 	m_iAIWeightPercent(0)
 {
 }
-//------------------------------------------------------------------------------
+string CvYieldInfo::getIconString() const
+{
+	return m_sIconString;
+}
 int CvYieldInfo::getHillsChange() const
 {
 	return m_iHillsChange;
@@ -5267,6 +5270,7 @@ bool CvYieldInfo::CacheResults(Database::Results& kResults, CvDatabaseUtility& k
 	if(!CvBaseInfo::CacheResults(kResults, kUtility))
 		return false;
 
+	m_sIconString = kResults.GetText("IconString");
 	kResults.GetValue("HillsChange", m_iHillsChange);
 	kResults.GetValue("MountainChange", m_iMountainChange);
 	kResults.GetValue("LakeChange", m_iLakeChange);

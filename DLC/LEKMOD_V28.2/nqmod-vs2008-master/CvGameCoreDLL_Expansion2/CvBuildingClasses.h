@@ -695,7 +695,7 @@ public:
 	bool GetNextAvailableGreatWorkSlot(GreatWorkSlotType eGreatWorkSlot, BuildingClassTypes *eBuildingClass, int *iSlot) const;
 #endif
 
-	int GetYieldFromGreatWorks(YieldTypes eIndex) const; // NQMP GJS - Artistic Genius fix to add science to Great Works
+	int GetYieldFromGreatWorks(const YieldTypes eYield) const; // NQMP GJS - Artistic Genius fix to add science to Great Works
 	int GetCultureFromGreatWorks() const;
 #ifdef AUI_WARNING_FIXES
 	uint GetNumGreatWorks() const;

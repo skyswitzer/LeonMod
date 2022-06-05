@@ -382,7 +382,7 @@ function AddBuildingButton( pCity, building )
 				if (iGreatWorkIndex >= 0) then
 					filledGreatWorkSlot:SetHide(false);
 					filledGreatWorkSlot:SetTexture(filledTexture);
-					filledGreatWorkSlot:SetToolTipString(Game.GetGreatWorkTooltip(iGreatWorkIndex, pCity:GetOwner()));
+					filledGreatWorkSlot:SetToolTipString(Game.GetGreatWorkTooltip(iGreatWorkIndex, pCity:GetOwner(), pCity));
 					
 					local greatWorkType = Game.GetGreatWorkType(iGreatWorkIndex);
 					local greatWork = GameInfo.GreatWorks[greatWorkType];

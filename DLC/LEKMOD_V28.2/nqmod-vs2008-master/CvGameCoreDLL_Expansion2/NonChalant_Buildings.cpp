@@ -292,7 +292,44 @@ int CvPlayer::getSpecialistYieldHardcoded(const CvCity* pCity, const SpecialistT
 		const CvCity& city = *pCity;
 		// logic that references city
 
-		
+
+	}
+
+
+	// logic that does not reference the city
+	change += 3;
+
+
+	return GC.round(change);
+}
+int CvPlayer::getGreatWorkYieldTotal(const CvCity* pCity, const CvGreatWork* pWork, const YieldTypes eYield) const
+{
+	float change = 0;
+	const CvPlayer& player = *this;
+
+	{ // base
+		if (eYield == YIELD_CULTURE)
+			change += GC.getBASE_CULTURE_PER_GREAT_WORK();
+		if (eYield == YIELD_TOURISM)
+		{
+			change += GC.getBASE_TOURISM_PER_GREAT_WORK();
+			change += player.GetPlayerPolicies()->GetNumericModifier(POLICYMOD_EXTRA_TOURISM_PER_GREAT_WORK);
+		}
+
+		change += player.GetGreatWorkYieldChange(eYield);
+	}
+	const CvGreatWork& work = *pWork;
+	const bool isArt = work.m_eClassType == 1;
+	const bool isArtifact = work.m_eClassType == 2;
+	const bool isWriting = work.m_eClassType == 3;
+	const bool isMusic = work.m_eClassType == 4;
+
+	if (pCity != NULL)
+	{
+		const CvCity& city = *pCity;
+		// logic that references city
+
+
 	}
 
 

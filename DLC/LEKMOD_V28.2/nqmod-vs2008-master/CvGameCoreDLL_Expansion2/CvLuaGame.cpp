@@ -2668,15 +2668,12 @@ int CvLuaGame::lIsProcessingMessages(lua_State* L)
 //------------------------------------------------------------------------------
 int CvLuaGame::lGetGreatWorkTooltip(lua_State* L)
 {
-#ifdef AUI_WARNING_FIXES
-	const uint iIndex = lua_tointeger(L, 1);
-#else
 	const int iIndex = lua_tointeger(L, 1);
-#endif
-	PlayerTypes eOwner = (PlayerTypes)lua_tointeger(L, 2);
+	const PlayerTypes eOwner = (PlayerTypes)lua_tointeger(L, 2);
+	const CvCity* pkCity = CvLuaCity::GetInstance(L, 3);
 	if (iIndex < GC.getGame().GetGameCulture()->GetNumGreatWorks())
 	{
-		CvString szTooltip = GC.getGame().GetGameCulture()->GetGreatWorkTooltip(iIndex, eOwner);
+		CvString szTooltip = GC.getGame().GetGameCulture()->GetGreatWorkTooltip(pkCity, iIndex, eOwner);
 		lua_pushstring(L, szTooltip);
 		return 1;
 	}

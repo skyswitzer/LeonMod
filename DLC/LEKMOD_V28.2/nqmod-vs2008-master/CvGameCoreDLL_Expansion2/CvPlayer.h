@@ -54,6 +54,7 @@ class CvPlayerTrade;
 class CvTradeAI;
 class CvLeagueAI;
 class CvPlayerCulture;
+class CvGreatWork;
 
 typedef std::list<CvPopupInfo*> CvPopupQueue;
 
@@ -394,11 +395,8 @@ public:
 	// yields from policies that apply to every specialist
 	void changeSpecialistYieldExtraFromPolicies(const SpecialistTypes eSpecialist, const YieldTypes eYield, const int iChange);
 
-	//void changeSpecialistExtraYield(SpecialistTypes eIndex1, YieldTypes eIndex2, int iChange);
-	//// total yield for a specialist
-	//int specialistYield(const CvCity* pCity, const SpecialistTypes eSpecialist, const YieldTypes eYield) const;
-	//// hardcoded extra yields for a specialist
-	//int getExtraSpecialistYield(const CvCity* pCity, const SpecialistTypes eSpecialist, const YieldTypes eYield) const;
+	// computes the total yield this particular great work should yield
+	int getGreatWorkYieldTotal(const CvCity* pCity, const CvGreatWork* pWork, const YieldTypes eYield) const;
 
 	// How much additional Yield does every City produce?
 	int GetCityYieldChange(YieldTypes eYield) const;

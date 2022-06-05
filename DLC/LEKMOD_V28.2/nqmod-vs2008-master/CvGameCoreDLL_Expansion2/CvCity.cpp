@@ -9002,6 +9002,8 @@ int CvCity::GetFaithPerTurn() const
 	iFaith += GetFaithPerTurnFromPolicies();
 	iFaith += GetFaithPerTurnFromTraits();
 	iFaith += GetFaithPerTurnFromReligion();
+	iFaith += getSpecialistYieldCached(YIELD_FAITH);
+	iFaith += GetBaseYieldRateFromGreatWorks(YIELD_FAITH);
 
 	// Puppet?
 	int iModifier = 0;

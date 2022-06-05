@@ -70,7 +70,7 @@ public:
 
 	GreatWorkType GetGreatWorkType(int iIndex) const;
 	GreatWorkClass GetGreatWorkClass(int iIndex) const;
-	CvString GetGreatWorkTooltip(int iIndex, PlayerTypes eOwner) const;
+	CvString GetGreatWorkTooltip(const CvCity* pCity, const int iIndex, const PlayerTypes eOwner) const;
 	CvString GetGreatWorkName(int iIndex) const;
 	CvString GetGreatWorkArtist(int iIndex) const;
 	CvString GetGreatWorkEra(int iIndex) const;
