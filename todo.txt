@@ -1,13 +1,17 @@
 
 
+
+tile vp icons are broken
+chaos theory
+competition tie no winner
+barbarians luck nerf? (no take settlers)
+workboats like workers
 diversify benefits from sea resources like atolls are diversified
 culture tree benefit giving too much to caer and brazil wood camp
-workboats like workers
-people somehohw winning nuclear competition 
-barbarians luck nerf? (no take settlers)
 
 
 
+ip.src==153.33.155.188 or ip.dst==153.33.155.188
 [239157.515] Net RECV (0p, 1c) : size=1200: Message chunk 1 of 2 for type 110
 [239157.515] Net RECV (0p, 1c) : size=890: Message chunk, 0 remaining
 [239157.515] Net RECV (0) :NetPlayerSyncCheck(Player=30), ArchiveDataSize=2054
