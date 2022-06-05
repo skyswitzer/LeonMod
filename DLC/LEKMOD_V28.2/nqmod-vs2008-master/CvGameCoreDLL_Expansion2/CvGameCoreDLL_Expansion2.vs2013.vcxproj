@@ -170,8 +170,10 @@
     <ClCompile Include="CvCompetition.cpp" />
     <ClCompile Include="CvDllWrap.cpp" />
     <ClCompile Include="CvExtraHelp.cpp" />
-    <ClCompile Include="CvPlotExtraYields.cpp" />
+    <ClCompile Include="NonChalant_Buildings.cpp" />
     <ClCompile Include="CvTargeting.cpp" />
+    <ClCompile Include="NonChalant_Misc.cpp" />
+    <ClCompile Include="NonChalant_Plot.cpp" />
     <ClCompile Include="_precompile.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Mod|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

@@ -241,7 +241,6 @@ protected:
 	static int lGetJONSCulturePerTurnFromPolicies(lua_State* L);
 	static int lChangeJONSCulturePerTurnFromPolicies(lua_State* L);
 	static int lGetJONSCulturePerTurnFromSpecialists(lua_State* L);
-	static int lChangeJONSCulturePerTurnFromSpecialists(lua_State* L);
 	static int lGetJONSCulturePerTurnFromGreatWorks(lua_State* L);
 	static int lGetJONSCulturePerTurnFromTraits(lua_State* L);
 	static int lGetJONSCulturePerTurnFromReligion(lua_State* L);
@@ -375,7 +374,6 @@ protected:
 	static int lChangeBaseYieldRateFromBuildings(lua_State* L);
 
 	static int lGetBaseYieldRateFromSpecialists(lua_State* L);
-	static int lChangeBaseYieldRateFromSpecialists(lua_State* L);
 
 	static int lGetBaseYieldRateFromMisc(lua_State* L);
 	static int lChangeBaseYieldRateFromMisc(lua_State* L);
@@ -389,9 +387,6 @@ protected:
 	static int lGetYieldRate(lua_State* L);
 	static int lGetYieldRateTimes100(lua_State* L);
 	static int lGetYieldRateModifier(lua_State* L);
-
-	static int lGetExtraSpecialistYield(lua_State* L);
-	static int lGetExtraSpecialistYieldOfType(lua_State* L);
 
 	static int lGetDomainFreeExperience(lua_State* L);
 	static int lGetDomainProductionModifier(lua_State* L);

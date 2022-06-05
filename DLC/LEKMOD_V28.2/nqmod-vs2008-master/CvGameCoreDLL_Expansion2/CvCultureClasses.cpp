@@ -155,63 +155,62 @@ int CvGameCulture::CreateGreatWork(GreatWorkType eType, GreatWorkClass eClass, P
 GreatWorkType CvGameCulture::GetGreatWorkType(int iIndex) const
 {
 	CvAssertMsg (iIndex < GetNumGreatWorks(), "Bad Great Work index");
-	const CvGreatWork* pWork = &m_CurrentGreatWorks[iIndex];
-	return pWork->m_eType;
+	const CvGreatWork& work = m_CurrentGreatWorks[iIndex];
+	return work.m_eType;
 }
 
 GreatWorkClass CvGameCulture::GetGreatWorkClass(int iIndex) const
 {
 	CvAssertMsg (iIndex < GetNumGreatWorks(), "Bad Great Work index");
-	const CvGreatWork* pWork = &m_CurrentGreatWorks[iIndex];
-	return pWork->m_eClassType;
+	const CvGreatWork& work = m_CurrentGreatWorks[iIndex];
+	return work.m_eClassType;
 }
 
 /// Returns UI tooltip for this Great Work
-CvString CvGameCulture::GetGreatWorkTooltip(int iIndex, PlayerTypes eOwner) const
+CvString CvGameCulture::GetGreatWorkTooltip(const CvCity* pCity, const int iIndex, const PlayerTypes eOwner) const
 {
 	CvAssertMsg (iIndex < GetNumGreatWorks(), "Bad Great Work index");
+	const CvPlayer& rOwner = GET_PLAYER(eOwner);
 	CvString szTooltip = "";
 
-	const CvGreatWork *pWork = &m_CurrentGreatWorks[iIndex];
+	const CvGreatWork& work = m_CurrentGreatWorks[iIndex];
 
 	CvString strYearString;
 	CvGameTextMgr::setDateStr(strYearString,
-		pWork->m_iTurnFounded,
+		work.m_iTurnFounded,
 		false /*bSave*/,
 		GC.getGame().getCalendar(),
 		GC.getGame().getStartYear(),
 		GC.getGame().getGameSpeedType());
 
-	Localization::String strGreatWorkName = Localization::Lookup(CultureHelpers::GetGreatWorkName(pWork->m_eType));
+	Localization::String strGreatWorkName = Localization::Lookup(CultureHelpers::GetGreatWorkName(work.m_eType));
 
 	szTooltip = strGreatWorkName.toUTF8();
 	szTooltip += "[NEWLINE]";
 
-#ifdef AUI_WARNING_FIXES
-	if (pWork->m_szGreatPersonName[0] != '\0')
-#else
-	if (strlen(pWork->m_szGreatPersonName) > 0)
-#endif
+	if (strlen(work.m_szGreatPersonName) > 0)
 	{
-		szTooltip += pWork->m_szGreatPersonName;
+		szTooltip += work.m_szGreatPersonName;
 		szTooltip += "[NEWLINE]";
 	}
-	szTooltip += GET_PLAYER(pWork->m_ePlayer).getCivilizationShortDescription();
+	szTooltip += GET_PLAYER(work.m_ePlayer).getCivilizationShortDescription();
 	szTooltip += "[NEWLINE]";
-	szTooltip += GC.getEraInfo(pWork->m_eEra)->GetDescription();
+	szTooltip += GC.getEraInfo(work.m_eEra)->GetDescription();
 	szTooltip += " (";
 	szTooltip += strYearString;
 	szTooltip += ")";
 	szTooltip += "[NEWLINE]";
 	CvString cultureString;
-	int iCulturePerWork = GC.getBASE_CULTURE_PER_GREAT_WORK();
-	iCulturePerWork += GET_PLAYER(eOwner).GetGreatWorkYieldChange(YIELD_CULTURE);
-	int iTourismPerWork = GC.getBASE_TOURISM_PER_GREAT_WORK();
-	iTourismPerWork += GET_PLAYER(eOwner).GetPlayerPolicies()->GetNumericModifier(POLICYMOD_EXTRA_TOURISM_PER_GREAT_WORK); // NQMP GJS - Cultural Exchange
 
-
-	cultureString.Format ("+%d [ICON_CULTURE], +%d [ICON_CULTURAL_INFLUENCE]", iCulturePerWork, iTourismPerWork);
-	szTooltip += cultureString;
+	stringstream ss;
+	for (int y = 0; y < NUM_YIELD_TYPES; ++y)
+	{
+		const YieldTypes eYield = (YieldTypes)y;
+		const int iAmount = rOwner.getGreatWorkYieldTotal(pCity, &work, eYield);
+		GC.tooltipAdd(&ss, eYield, iAmount, false, true);
+		ss << " ";
+	}
+	szTooltip += ss.str();
 
 	return szTooltip;
 }
@@ -220,9 +219,9 @@ CvString CvGameCulture::GetGreatWorkTooltip(int iIndex, PlayerTypes eOwner) cons
 CvString CvGameCulture::GetGreatWorkName(int iIndex) const
 {
 	CvAssertMsg (iIndex < GetNumGreatWorks(), "Bad Great Work index");
-	const CvGreatWork* pWork = &m_CurrentGreatWorks[iIndex];
+	const CvGreatWork& work = m_CurrentGreatWorks[iIndex];
 
-	return CultureHelpers::GetGreatWorkName(pWork->m_eType);
+	return CultureHelpers::GetGreatWorkName(work.m_eType);
 }
 
 /// Returns artist of this Great Work
@@ -231,8 +230,8 @@ CvString CvGameCulture::GetGreatWorkArtist(int iIndex) const
 	CvAssertMsg (iIndex < GetNumGreatWorks(), "Bad Great Work index");
 	CvString szArtist = "";
 
-	const CvGreatWork *pWork = &m_CurrentGreatWorks[iIndex];
-	szArtist = pWork->m_szGreatPersonName;
+	const CvGreatWork& work = m_CurrentGreatWorks[iIndex];
+	szArtist = work.m_szGreatPersonName;
 
 	return szArtist;
 }
@@ -243,17 +242,17 @@ CvString CvGameCulture::GetGreatWorkEra(int iIndex) const
 	CvAssertMsg (iIndex < GetNumGreatWorks(), "Bad Great Work index");
 	CvString szEra = "";
 
-	const CvGreatWork *pWork = &m_CurrentGreatWorks[iIndex];
+	const CvGreatWork& work = m_CurrentGreatWorks[iIndex];
 
 	CvString strYearString;
 	CvGameTextMgr::setDateStr(strYearString,
-		pWork->m_iTurnFounded,
+		work.m_iTurnFounded,
 		false /*bSave*/,
 		GC.getGame().getCalendar(),
 		GC.getGame().getStartYear(),
 		GC.getGame().getGameSpeedType());
 
-	szEra += GC.getEraInfo(pWork->m_eEra)->GetDescription();
+	szEra += GC.getEraInfo(work.m_eEra)->GetDescription();
 	szEra += " (";
 	szEra += strYearString;
 	szEra += ")";
@@ -266,8 +265,8 @@ CvString CvGameCulture::GetGreatWorkEraAbbreviation(int iIndex) const
 	CvAssertMsg (iIndex < GetNumGreatWorks(), "Bad Great Work index");
 	CvString szEra = "";
 
-	const CvGreatWork *pWork = &m_CurrentGreatWorks[iIndex];
-	szEra = GC.getEraInfo(pWork->m_eEra)->getAbbreviation();
+	const CvGreatWork& work = m_CurrentGreatWorks[iIndex];
+	szEra = GC.getEraInfo(work.m_eEra)->getAbbreviation();
 
 	return szEra;	
 }
@@ -277,8 +276,8 @@ CvString CvGameCulture::GetGreatWorkEraShort(int iIndex) const
 	CvAssertMsg (iIndex < GetNumGreatWorks(), "Bad Great Work index");
 	CvString szEra = "";
 
-	const CvGreatWork *pWork = &m_CurrentGreatWorks[iIndex];
-	szEra = GC.getEraInfo(pWork->m_eEra)->getShortDesc();
+	const CvGreatWork& work = m_CurrentGreatWorks[iIndex];
+	szEra = GC.getEraInfo(work.m_eEra)->getShortDesc();
 
 	return szEra;	
 }
@@ -286,8 +285,8 @@ CvString CvGameCulture::GetGreatWorkEraShort(int iIndex) const
 PlayerTypes CvGameCulture::GetGreatWorkCreator (int iIndex) const
 {
 	CvAssertMsg (iIndex < GetNumGreatWorks(), "Bad Great Work index");
-	const CvGreatWork *pWork = &m_CurrentGreatWorks[iIndex];
-	return pWork->m_ePlayer;
+	const CvGreatWork& work = m_CurrentGreatWorks[iIndex];
+	return work.m_ePlayer;
 }
 
 PlayerTypes CvGameCulture::GetGreatWorkController(int iIndex) const
@@ -4644,11 +4643,9 @@ int CvCityCulture::GetBaseTourismBeforeModifiers() const
 	iBase += m_pCity->getBaseYieldRate(YIELD_TOURISM);
 
 	// great works
-	const double iBonusPercentageForGreatWorks = 1 + (m_pCity->GetCityBuildings()->GetGreatWorksTourismModifier() / 100.0);
-	const int iBonusTourismPerGreatWork = GET_PLAYER(m_pCity->getOwner()).GetPlayerPolicies()->GetNumericModifier(POLICYMOD_EXTRA_TOURISM_PER_GREAT_WORK);
-	int fromGreatWorks = GetNumGreatWorks() * (GC.getBASE_TOURISM_PER_GREAT_WORK() + iBonusTourismPerGreatWork);
-	fromGreatWorks *= iBonusPercentageForGreatWorks;
-	iBase += fromGreatWorks;
+	const double iBonusPercentageForGreatWorks = m_pCity->GetCityBuildings()->GetGreatWorksTourismModifier() / 100.0;
+	const int additional = iBonusPercentageForGreatWorks * m_pCity->GetBaseYieldRateFromGreatWorks(YIELD_TOURISM);
+	iBase += additional;
 	
 	// wonders
 	const int iBonusTourismPerWonder = GET_PLAYER(m_pCity->getOwner()).GetPlayerPolicies()->GetNumericModifier(POLICYMOD_TOURISM_PER_WONDER);
@@ -4808,15 +4805,14 @@ CvString CvCityCulture::GetTourismTooltip()
 	ReligionTypes ePlayerReligion = kCityPlayer.GetReligions()->GetReligionInMostCities();
 
 	const string spacing = "[NEWLINE][NEWLINE]";
+	const int fromWorks = m_pCity->GetBaseYieldRateFromGreatWorks(YIELD_TOURISM);
 
 	// terrain
-	const int fromTerrain = m_pCity->getBaseYieldRate(YIELD_TOURISM);
+	const int fromTerrain = m_pCity->getBaseYieldRate(YIELD_TOURISM) - fromWorks;
 	szRtnValue += GetLocalizedText("TXT_KEY_TOURISM_FROM_TERRAIN", fromTerrain);
 
 	// Great Works
-	int iBonusTourismPerGreatWork = GET_PLAYER(m_pCity->getOwner()).GetPlayerPolicies()->GetNumericModifier(POLICYMOD_EXTRA_TOURISM_PER_GREAT_WORK); // NQMP GJS - Cultural Exchange
-	int iGWTourism = GetNumGreatWorks() * (GC.getBASE_TOURISM_PER_GREAT_WORK() + iBonusTourismPerGreatWork); // NQMP GJS - Cultural Exchange
-	iGWTourism += (m_pCity->GetCityBuildings()->GetGreatWorksTourismModifier() * iGWTourism / 100);
+	int iGWTourism = GC.toFactor(m_pCity->GetCityBuildings()->GetGreatWorksTourismModifier()) * fromWorks;
 	int iBonusTourismPerWonder = GET_PLAYER(m_pCity->getOwner()).GetPlayerPolicies()->GetNumericModifier(POLICYMOD_TOURISM_PER_WONDER);
 	int iNumWorldWonders = m_pCity->getNumWorldWonders();
 	int iTotalBonusTourismForWonders = iNumWorldWonders * iBonusTourismPerWonder; 

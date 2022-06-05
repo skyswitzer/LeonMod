@@ -3143,6 +3143,7 @@ bool CityStrategyAIHelpers::IsTestCityStrategy_GoodGPCity(CvCity* pCity)
 	// if this city is producing at least 8 GP points a turn (since most GP mod buildings increase by 25% this will yield 2 extra GP points a turn)
 
 	int iTotalGPPChange = 0;
+	const CvPlayer& rPlayer = GET_PLAYER(pCity->getOwner());
 
 #ifdef AUI_WARNING_FIXES
 	for (uint iSpecialistLoop = 0; iSpecialistLoop < GC.getNumSpecialistInfos(); iSpecialistLoop++)
@@ -3160,7 +3161,8 @@ bool CityStrategyAIHelpers::IsTestCityStrategy_GoodGPCity(CvCity* pCity)
 				int iCount = pCity->GetCityCitizens()->GetSpecialistCount(eSpecialist);
 
 				// GPP from Specialists
-				int iGPPChange = pkSpecialistInfo->getGreatPeopleRateChange() * iCount * 100;
+				const int gppYield = rPlayer.getSpecialistGpp(pCity, eSpecialist, eSpecialist, false);
+				int iGPPChange = gppYield * iCount * 100;
 
 				// GPP from Buildings
 				iGPPChange += pCity->GetCityCitizens()->GetBuildingGreatPeopleRateChanges(eSpecialist) * 100;

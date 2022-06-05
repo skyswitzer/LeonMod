@@ -7504,37 +7504,41 @@ void CvCity::processProcess(ProcessTypes eProcess, int iChange)
 		}
 	}
 }
-
-
-//	--------------------------------------------------------------------------------
+void CvCity::OnTechChange(const bool hasTech, const CvTechEntry* pkTechInfo)
+{
+	updateSpecialistYields();
+	updateStrengthValue();
+}
 void CvCity::processSpecialist(SpecialistTypes eSpecialist, int iChange)
 {
 	VALIDATE_OBJECT
-	int iI;
-
-	CvSpecialistInfo* pkSpecialist = GC.getSpecialistInfo(eSpecialist);
-	if(pkSpecialist == NULL)
+	const CvSpecialistInfo* pkSpecialist = GC.getSpecialistInfo(eSpecialist);
+	if (pkSpecialist == NULL)
 	{
-		//This function requires a valid specialist type.
 		return;
 	}
-
-	changeBaseGreatPeopleRate(pkSpecialist->getGreatPeopleRateChange() * iChange);
-
-	for(iI = 0; iI < NUM_YIELD_TYPES; iI++)
-	{
-		ChangeBaseYieldRateFromSpecialists(((YieldTypes)iI), (pkSpecialist->getYieldChange(iI) * iChange));
-	}
-
-	updateExtraSpecialistYield();
-
+	const CvPlayer& rPlayer = GET_PLAYER(getOwner());
+	const int gppYield = rPlayer.getSpecialistGpp(this, eSpecialist, eSpecialist, false);
+	changeBaseGreatPeopleRate(gppYield * iChange);
 	changeSpecialistFreeExperience(pkSpecialist->getExperience() * iChange);
-
-	// Culture
-	int iCulturePerSpecialist = GetCultureFromSpecialist(eSpecialist);
-	ChangeJONSCulturePerTurnFromSpecialists(iCulturePerSpecialist * iChange);
+	updateSpecialistYields();
 }
+void CvCity::UpdateFreeBuildings(const bool isNewlyFounded)
+{
+	const CvPlayer& rPlayer = GET_PLAYER(getOwner());
+	const bool isOriginalCapital = IsOriginalMajorCapital() && !isConquered();
+	for (int i = 0; i < GC.getNumBuildingClassInfos(); i++)
+	{
+		const BuildingClassTypes eBuildingClass = (BuildingClassTypes)i;
+		const bool shouldGetBuilding = rPlayer.ShouldHaveBuilding(rPlayer, *this, isOriginalCapital, isConquered(), isNewlyFounded, eBuildingClass);
 
+		if (shouldGetBuilding)
+		{
+			const BuildingTypes eBuilding = rPlayer.getBuildingForPlayer(eBuildingClass);
+			GetCityBuildings()->SetNumRealBuilding(eBuilding, 1);
+		}
+	}
+}
 //	--------------------------------------------------------------------------------
 /// Process the majority religion changing for a city
 void CvCity::UpdateReligion(ReligionTypes eNewMajority)
@@ -7655,24 +7659,6 @@ void CvCity::UpdateReligionSpecialistBenefits(const ReligionTypes eNewMajority)
 		}
 	}
 }
-
-//	--------------------------------------------------------------------------------
-/// Culture from eSpecialist
-int CvCity::GetCultureFromSpecialist(SpecialistTypes eSpecialist) const
-{
-	CvSpecialistInfo* pkSpecialistInfo = GC.getSpecialistInfo(eSpecialist);
-	if(pkSpecialistInfo == NULL)
-	{
-		//This function REQUIRES a valid specialist type.
-		return 0;
-	}
-
-	int iCulture = pkSpecialistInfo->getCulturePerTurn();
-	iCulture += GET_PLAYER(getOwner()).GetSpecialistCultureChange();
-
-	return iCulture;
-}
-
 //	--------------------------------------------------------------------------------
 CvHandicapInfo& CvCity::getHandicapInfo() const
 {
@@ -7722,8 +7708,10 @@ CitySizeTypes CvCity::getCitySizeType() const
 	VALIDATE_OBJECT
 	return ((CitySizeTypes)(range((getPopulation() / 7), 0, (NUM_CITYSIZE_TYPES - 1))));
 }
-
-
+bool CvCity::isConquered() const
+{
+	return getOriginalOwner() != getOwner();
+}
 //	--------------------------------------------------------------------------------
 bool CvCity::isBarbarian() const
 {
@@ -8917,7 +8905,7 @@ int CvCity::GetBaseJONSCulturePerTurn() const
 	int iCulturePerTurn = 0;
 	iCulturePerTurn += GetJONSCulturePerTurnFromBuildings();
 	iCulturePerTurn += GetJONSCulturePerTurnFromPolicies();
-	iCulturePerTurn += GetJONSCulturePerTurnFromSpecialists();
+	iCulturePerTurn += getSpecialistYieldCached(YIELD_CULTURE);
 	iCulturePerTurn += GetJONSCulturePerTurnFromGreatWorks();
 	iCulturePerTurn += GetBaseYieldRateFromTerrain(YIELD_CULTURE);
 	iCulturePerTurn += GetJONSCulturePerTurnFromTraits();
@@ -8954,23 +8942,6 @@ void CvCity::ChangeJONSCulturePerTurnFromPolicies(int iChange)
 	if(iChange != 0)
 	{
 		m_iJONSCulturePerTurnFromPolicies = (m_iJONSCulturePerTurnFromPolicies + iChange);
-	}
-}
-
-//	--------------------------------------------------------------------------------
-int CvCity::GetJONSCulturePerTurnFromSpecialists() const
-{
-	VALIDATE_OBJECT
-	return m_iJONSCulturePerTurnFromSpecialists;
-}
-
-//	--------------------------------------------------------------------------------
-void CvCity::ChangeJONSCulturePerTurnFromSpecialists(int iChange)
-{
-	VALIDATE_OBJECT
-	if(iChange != 0)
-	{
-		m_iJONSCulturePerTurnFromSpecialists = (m_iJONSCulturePerTurnFromSpecialists + iChange);
 	}
 }
 
@@ -9031,6 +9002,8 @@ int CvCity::GetFaithPerTurn() const
 	iFaith += GetFaithPerTurnFromPolicies();
 	iFaith += GetFaithPerTurnFromTraits();
 	iFaith += GetFaithPerTurnFromReligion();
+	iFaith += getSpecialistYieldCached(YIELD_FAITH);
+	iFaith += GetBaseYieldRateFromGreatWorks(YIELD_FAITH);
 
 	// Puppet?
 	int iModifier = 0;
@@ -11079,7 +11052,7 @@ int CvCity::getBaseYieldRate(YieldTypes eIndex) const
 	int iValue = 0;
 	iValue += GetBaseYieldRateFromTerrain(eIndex);
 	iValue += GetBaseYieldRateFromBuildings(eIndex);
-	iValue += GetBaseYieldRateFromSpecialists(eIndex);
+	iValue += getSpecialistYieldCached(eIndex);
 	iValue += GetBaseYieldRateFromMisc(eIndex);
 	iValue += GetBaseYieldRateFromReligion(eIndex);
 	iValue += GetBaseYieldRateFromGreatWorks(eIndex); // NQMP GJS - Artistic Genius fix to add science to Great Works
@@ -11218,39 +11191,6 @@ void CvCity::UpdateBuildingYields()
 	}
 
 	GetCityBuildings()->UpdateTotalBaseBuildingMaintenance();
-}
-
-//	--------------------------------------------------------------------------------
-/// Base yield rate from Specialists
-int CvCity::GetBaseYieldRateFromSpecialists(YieldTypes eIndex) const
-{
-	VALIDATE_OBJECT
-	CvAssertMsg(eIndex >= 0, "eIndex expected to be >= 0");
-	CvAssertMsg(eIndex < NUM_YIELD_TYPES, "eIndex expected to be < NUM_YIELD_TYPES");
-
-	return m_aiBaseYieldRateFromSpecialists[eIndex];
-}
-
-//	--------------------------------------------------------------------------------
-/// Base yield rate from Specialists
-void CvCity::ChangeBaseYieldRateFromSpecialists(YieldTypes eIndex, int iChange)
-{
-	VALIDATE_OBJECT
-	CvAssertMsg(eIndex >= 0, "eIndex expected to be >= 0");
-	CvAssertMsg(eIndex < NUM_YIELD_TYPES, "eIndex expected to be < NUM_YIELD_TYPES");
-
-	if(iChange != 0)
-	{
-		m_aiBaseYieldRateFromSpecialists.setAt(eIndex, m_aiBaseYieldRateFromSpecialists[eIndex] + iChange);
-
-		if(getTeam() == GC.getGame().getActiveTeam())
-		{
-			if(isCitySelected())
-			{
-				DLLUI->setDirty(CityScreen_DIRTY_BIT, true);
-			}
-		}
-	}
 }
 
 //	--------------------------------------------------------------------------------
@@ -11428,89 +11368,44 @@ void CvCity::changeResourceYieldRateModifier(YieldTypes eIndex, int iChange)
 		GET_PLAYER(getOwner()).invalidateYieldRankCache(eIndex);
 	}
 }
-
-
-//	--------------------------------------------------------------------------------
-int CvCity::getExtraSpecialistYield(YieldTypes eIndex) const
+int CvCity::getSpecialistYieldCached(const YieldTypes eYield) const
 {
 	VALIDATE_OBJECT
-	CvAssertMsg(eIndex >= 0, "eIndex expected to be >= 0");
-	CvAssertMsg(eIndex < NUM_YIELD_TYPES, "eIndex expected to be < NUM_YIELD_TYPES");
-	return m_aiExtraSpecialistYield[eIndex];
+	CvAssertMsg(eYield >= 0, "eIndex expected to be >= 0");
+	CvAssertMsg(eYield < NUM_YIELD_TYPES, "eIndex expected to be < NUM_YIELD_TYPES");
+	return m_aiExtraSpecialistYield[eYield];
 }
-
-
-//	--------------------------------------------------------------------------------
-int CvCity::getExtraSpecialistYield(YieldTypes eIndex, SpecialistTypes eSpecialist) const
+void CvCity::updateSpecialistYields()
 {
 	VALIDATE_OBJECT
-	CvAssertMsg(eIndex >= 0, "eIndex expected to be >= 0");
-	CvAssertMsg(eIndex < NUM_YIELD_TYPES, "eIndex expected to be < NUM_YIELD_TYPES");
-	CvAssertMsg(eSpecialist >= 0, "eSpecialist expected to be >= 0");
-	CvAssertMsg(eSpecialist < GC.getNumSpecialistInfos(), "GC.getNumSpecialistInfos expected to be >= 0");
 
-	if (eSpecialist == GC.getDEFAULT_SPECIALIST())
+	for (int y = 0; y < NUM_YIELD_TYPES; ++y)
 	{
-		return 0;
-	}
+		const YieldTypes eYield = (YieldTypes)y;
 
-	int iYieldMultiplier = GET_PLAYER(getOwner()).getSpecialistExtraYield(eSpecialist, eIndex) +
-	                       GET_PLAYER(getOwner()).getSpecialistExtraYield(eIndex) +
-	                       GET_PLAYER(getOwner()).GetPlayerTraits()->GetSpecialistYieldChange(eSpecialist, eIndex);
-	int iExtraYield = GetCityCitizens()->GetSpecialistCount(eSpecialist) * iYieldMultiplier;
+		int iNewYield = 0;
+		const CvPlayer& rPlayer = GET_PLAYER(getOwner());
+		for (int s = 0; s < GC.getNumSpecialistInfos(); ++s)
+		{
+			const SpecialistTypes eSpecialist = (SpecialistTypes)s;
 
-	return iExtraYield;
-}
+			// calculate yield
+			const int iYieldPer = rPlayer.getSpecialistYieldTotal(this, eSpecialist, eYield, false);
+			const int iNumSpecialists = GetCityCitizens()->GetSpecialistCount(eSpecialist);
+			iNewYield += iNumSpecialists * iYieldPer;
+		}
 
-
-//	--------------------------------------------------------------------------------
-void CvCity::updateExtraSpecialistYield(YieldTypes eYield)
-{
-	VALIDATE_OBJECT
-	int iOldYield;
-	int iNewYield;
-#ifdef AUI_WARNING_FIXES
-	uint iI;
-#else
-	int iI;
-#endif
-
-	CvAssertMsg(eYield >= 0, "eYield expected to be >= 0");
-	CvAssertMsg(eYield < NUM_YIELD_TYPES, "eYield expected to be < NUM_YIELD_TYPES");
-
-	iOldYield = getExtraSpecialistYield(eYield);
-
-	iNewYield = 0;
-
-	for(iI = 0; iI < GC.getNumSpecialistInfos(); iI++)
-	{
-		iNewYield += getExtraSpecialistYield(eYield, ((SpecialistTypes)iI));
-	}
-
-	if(iOldYield != iNewYield)
-	{
-		m_aiExtraSpecialistYield.setAt(eYield, iNewYield);
-		CvAssert(getExtraSpecialistYield(eYield) >= 0);
-
-		ChangeBaseYieldRateFromSpecialists(eYield, (iNewYield - iOldYield));
+		// update if needed
+		if (iNewYield != getSpecialistYieldCached(eYield))
+		{
+			m_aiExtraSpecialistYield.setAt(eYield, iNewYield);
+			if (isCitySelected())
+			{
+				DLLUI->setDirty(CityScreen_DIRTY_BIT, true);
+			}
+		}
 	}
 }
-
-
-//	--------------------------------------------------------------------------------
-void CvCity::updateExtraSpecialistYield()
-{
-	VALIDATE_OBJECT
-	int iI;
-
-	for(iI = 0; iI < NUM_YIELD_TYPES; iI++)
-	{
-		updateExtraSpecialistYield((YieldTypes)iI);
-	}
-}
-
-
-//	--------------------------------------------------------------------------------
 int CvCity::getProductionToYieldModifier(YieldTypes eIndex) const
 {
 	VALIDATE_OBJECT

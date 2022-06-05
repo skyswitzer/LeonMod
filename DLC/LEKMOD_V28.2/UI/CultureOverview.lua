@@ -708,7 +708,7 @@ function RefreshYourCulture()
 					local greatWorkToolTip = "";
 					if(greatWorkIndex >= 0) then
 						greatWorksCount = greatWorksCount + 10;
-						greatWorkToolTip = Game.GetGreatWorkTooltip(greatWorkIndex, playerID);
+						greatWorkToolTip = Game.GetGreatWorkTooltip(greatWorkIndex, playerID, city);
 					else
 						greatWorksCount = greatWorksCount + 1;
 					end
@@ -764,7 +764,7 @@ function RefreshYourCulture()
 					local greatWorkToolTip = "";
 					local isArtifact = false;
 					if(greatWorkIndex >= 0) then
-						greatWorkToolTip = Game.GetGreatWorkTooltip(greatWorkIndex, playerID);
+						greatWorkToolTip = Game.GetGreatWorkTooltip(greatWorkIndex, playerID, city);
 						local greatWorkType = Game.GetGreatWorkType(greatWorkIndex);
 						local greatWork = GameInfo.GreatWorks[greatWorkType];
 						if (greatWork ~= nil) then
@@ -1296,7 +1296,7 @@ function SelectYourWork (iIndex)
 		Controls.SwapYourIconStack:ReprocessAnchoring();
 	
 		-- Tooltips
-		local strTT = Game.GetGreatWorkTooltip(iIndex, activePlayerID)
+		local strTT = Game.GetGreatWorkTooltip(iIndex, activePlayerID, nil)
 		Controls.SwapOursIcon:SetToolTipString(strTT);
 		Controls.SwapOursCivIcon:SetToolTipString(strTT);
 		Controls.SwapOursCivIconBG:SetToolTipString(strTT);
@@ -1369,14 +1369,14 @@ function SelectOthersWork (iIndex)
 
 		Controls.SwapTheirsEra:SetText(Locale.Lookup(Game.GetGreatWorkEraShort(iIndex)));
 
-		local strTT = Game.GetGreatWorkTooltip(iIndex, g_iTradingPartner);
+		local strTT = Game.GetGreatWorkTooltip(iIndex, g_iTradingPartner, nil);
 		
 		Controls.SwapTheirIconStack:CalculateSize();
 		Controls.SwapTheirIconStack:ReprocessAnchoring();
 		
 		
 		-- Tooltips
-		local strTT = Game.GetGreatWorkTooltip(iIndex, activePlayerID)
+		local strTT = Game.GetGreatWorkTooltip(iIndex, activePlayerID, nil)
 		Controls.SwapTheirsIcon:SetToolTipString(strTT);
 		Controls.SwapTheirsCivIcon:SetToolTipString(strTT);
 		Controls.SwapTheirsCivIconBG:SetToolTipString(strTT);
@@ -1451,7 +1451,7 @@ function RefreshSwappingItems()
 			instance.Era:SetText(Locale.Lookup(Game.GetGreatWorkEraShort(v.Index)));
 			instance.Theming:SetText("+" .. Game.GetGreatWorkCurrentThemingBonus(v.Index));
 			instance.Button:SetVoids(iGreatWorkType, v.Index);		
-			instance.Button:SetToolTipString(Game.GetGreatWorkTooltip(v.Index, activePlayerID));
+			instance.Button:SetToolTipString(Game.GetGreatWorkTooltip(v.Index, activePlayerID, nil));
 		end		    
 		pullDown:CalculateInternals();
 		pullDown:RegisterSelectionCallback(function(workType, index)
@@ -1478,7 +1478,7 @@ function RefreshSwappingItems()
 		Controls.YourSwapWritingCivIconHilite:SetHide(false);
 		CivIconHookup(Game.GetGreatWorkCreator(iWritingSwapIndex), 32, Controls.YourSwapWritingCivIcon, Controls.YourSwapWritingCivIconBG, Controls.YourSwapWritingCivIconShadow, false, true, Controls.YourSwapWritingCivIconHilite);
 		strTT = strTT .. "[NEWLINE][NEWLINE]";
-		strTT = strTT .. Game.GetGreatWorkTooltip(iWritingSwapIndex, activePlayerID);
+		strTT = strTT .. Game.GetGreatWorkTooltip(iWritingSwapIndex, activePlayerID, nil);
 	end
 	
 	local pullDown = Controls.YourWritingPullDown;
@@ -1504,7 +1504,7 @@ function RefreshSwappingItems()
 		Controls.YourSwapArtCivIconHilite:SetHide(false);
 		CivIconHookup(Game.GetGreatWorkCreator(iArtSwapIndex), 32, Controls.YourSwapArtCivIcon, Controls.YourSwapArtCivIconBG, Controls.YourSwapArtCivIconShadow, false, true, Controls.YourSwapArtCivIconHilite);
 		strTT = strTT .. "[NEWLINE][NEWLINE]";
-		strTT = strTT .. Game.GetGreatWorkTooltip(iArtSwapIndex, activePlayerID);
+		strTT = strTT .. Game.GetGreatWorkTooltip(iArtSwapIndex, activePlayerID, nil);
 	end
 	
 	
@@ -1531,38 +1531,12 @@ function RefreshSwappingItems()
 		Controls.YourSwapArtifactCivIconHilite:SetHide(false);
 		CivIconHookup(Game.GetGreatWorkCreator(iArtifactSwapIndex), 32, Controls.YourSwapArtifactCivIcon, Controls.YourSwapArtifactCivIconBG, Controls.YourSwapArtifactCivIconShadow, false, true, Controls.YourSwapArtifactCivIconHilite);
 		strTT = strTT .. "[NEWLINE][NEWLINE]";
-		strTT = strTT .. Game.GetGreatWorkTooltip(iArtifactSwapIndex, activePlayerID);
+		strTT = strTT .. Game.GetGreatWorkTooltip(iArtifactSwapIndex, activePlayerID, nil);
 	end
 	
 	local pullDown = Controls.YourArtifactPullDown;
 	pullDown:GetButton():SetToolTipString(strTT);
 	PopulatePullDown(pullDown, 2)
-	
-	--local strTT = Locale.Lookup("TXT_KEY_MUSIC_SLOT_TT");
-	--local iMusicSwapIndex = activePlayer:GetSwappableGreatMusic();
-	--if (iMusicSwapIndex == -1) then
-		--Controls.YourSwapMusicIcon:SetTexture("GreatWorks_Music_Empty.dds");
-		--Controls.YourSwapMusicEra:SetHide(true);
-		--Controls.YourSwapMusicCivIcon:SetHide(true);
-		--Controls.YourSwapMusicCivIconBG:SetHide(true);
-		--Controls.YourSwapMusicCivIconShadow:SetHide(true);
-		--Controls.YourSwapMusicCivIconHilite:SetHide(true);
-	--else
-		--Controls.YourSwapMusicIcon:SetTexture("GreatWorks_Music.dds");
-		----Controls.YourSwapMusicEra:SetText(Locale.Lookup(Game.GetGreatWorkEraAbbreviation(iMusicSwapIndex)));
-		--Controls.YourSwapMusicEra:SetText(Locale.Lookup(Game.GetGreatWorkEraShort(iMusicSwapIndex)));
-		--Controls.YourSwapMusicEra:SetHide(false);
-		--Controls.YourSwapMusicCivIcon:SetHide(false);
-		--Controls.YourSwapMusicCivIconBG:SetHide(false);
-		--Controls.YourSwapMusicCivIconShadow:SetHide(false);
-		--Controls.YourSwapMusicCivIconHilite:SetHide(false);
-		--CivIconHookup(Game.GetGreatWorkCreator(iMusicSwapIndex), 32, Controls.YourSwapMusicCivIcon, Controls.YourSwapMusicCivIconBG, Controls.YourSwapMusicCivIconShadow, false, true, Controls.YourSwapMusicCivIconHilite);
-		--strTT = strTT .. "[NEWLINE][NEWLINE]";
-		--strTT = strTT .. Game.GetGreatWorkTooltip(iMusicSwapIndex, activePlayerID);
-	--end
-	--local pullDown = Controls.YourMusicPullDown;
-	--pullDown:GetButton():SetToolTipString(strTT);
-	--PopulatePullDown(pullDown, 4);
 
 	CheckAvailableSwap(); 
 end
@@ -1626,7 +1600,7 @@ function DisplayOthersWorks ()
 			
 			strGreatWorkToolTip = Locale.Lookup("TXT_KEY_WRITING_OTHERS_SLOT", player:GetCivilizationShortDescriptionKey());
 			strGreatWorkToolTip = strGreatWorkToolTip .. "[NEWLINE][NEWLINE]"
-			strGreatWorkToolTip = strGreatWorkToolTip .. Game.GetGreatWorkTooltip(v.WritingIndex, v.iPlayer);
+			strGreatWorkToolTip = strGreatWorkToolTip .. Game.GetGreatWorkTooltip(v.WritingIndex, v.iPlayer, nil);
 		end
 		-- setting up tooltips
 		SwapWorkLineInstance.WritingWorkButton:SetToolTipString(strGreatWorkToolTip);
@@ -1669,7 +1643,7 @@ function DisplayOthersWorks ()
 
 			strGreatWorkToolTip = Locale.Lookup("TXT_KEY_ART_OTHERS_SLOT", Players[v.iPlayer]:GetCivilizationShortDescriptionKey());
 			strGreatWorkToolTip = strGreatWorkToolTip .. "[NEWLINE][NEWLINE]"
-			strGreatWorkToolTip = strGreatWorkToolTip .. Game.GetGreatWorkTooltip(v.ArtIndex, v.iPlayer);
+			strGreatWorkToolTip = strGreatWorkToolTip .. Game.GetGreatWorkTooltip(v.ArtIndex, v.iPlayer, nil);
 		end
 		-- setting up tooltips
 		SwapWorkLineInstance.ArtWorkButton:SetToolTipString(strGreatWorkToolTip);
@@ -1712,54 +1686,10 @@ function DisplayOthersWorks ()
 			
 			strGreatWorkToolTip = Locale.Lookup("TXT_KEY_ARTIFACT_OTHERS_SLOT", Players[v.iPlayer]:GetCivilizationShortDescriptionKey());
 			strGreatWorkToolTip = strGreatWorkToolTip .. "[NEWLINE][NEWLINE]"
-			strGreatWorkToolTip = strGreatWorkToolTip .. Game.GetGreatWorkTooltip(v.ArtifactIndex, v.iPlayer);
+			strGreatWorkToolTip = strGreatWorkToolTip .. Game.GetGreatWorkTooltip(v.ArtifactIndex, v.iPlayer, nil);
 		end
 		-- setting up tooltips
-		SwapWorkLineInstance.ArtifactWorkButton:SetToolTipString(strGreatWorkToolTip);
-		
-		---- Music
-		----  MusicIndex
-		----  MusicCreator
-		----  MusicEra	
-		----  GreatWorks_Music_Empty.dds	
-		--if (v.MusicIndex == -1) then
-			---- show empty art outline
-			--SwapWorkLineInstance.WonderGreatMusicWork:SetTexture("GreatWorks_Music_Empty.dds");
-			---- hide civ symbol
-			--SwapWorkLineInstance.MusicCivIconBG:SetHide(true);
-			--SwapWorkLineInstance.MusicCivIconShadow:SetHide(true);
-			--SwapWorkLineInstance.MusicCivIcon:SetHide(true);
-			--SwapWorkLineInstance.MusicCivIconHighlight:SetHide(true);
-			---- empty text string
-			--SwapWorkLineInstance.MusicEra:SetHide(true);
-			--
-			--strGreatWorkToolTip = Locale.Lookup("TXT_KEY_MUSIC_OTHERS_SLOT_EMPTY", Players[v.iPlayer]:GetCivilizationShortDescription());
-		--else
-			---- show correct art image
-			--SwapWorkLineInstance.WonderGreatMusicWork:SetTexture("GreatWorks_Music.dds");
-			---- display civ symbol
-			--SwapWorkLineInstance.MusicCivIconBG:SetHide(false);
-			--SwapWorkLineInstance.MusicCivIconShadow:SetHide(false);
-			--SwapWorkLineInstance.MusicCivIcon:SetHide(false);
-			--SwapWorkLineInstance.MusicCivIconHighlight:SetHide(false);
-			--CivIconHookup(v.MusicCreator, 32, SwapWorkLineInstance.MusicCivIcon, SwapWorkLineInstance.MusicCivIconBG, SwapWorkLineInstance.MusicCivIconShadow, false, true, SwapWorkLineInstance.MusicCivIconHighlight);
-			--
-			---- display era string
-			--SwapWorkLineInstance.MusicEra:SetHide(false);
-			----SwapWorkLineInstance.MusicEra:SetText(Locale.Lookup(Game.GetGreatWorkEraAbbreviation(v.MusicIndex)));		
-			--SwapWorkLineInstance.MusicEra:SetText(Locale.Lookup(Game.GetGreatWorkEraShort(v.MusicIndex)));		
-			--
-			--SwapWorkLineInstance.MusicWorkButton:RegisterCallback(Mouse.eLClick, function()
-				--SelectOthersWork(v.MusicIndex);
-			--end);			
-			--
-			--strGreatWorkToolTip = Locale.Lookup("TXT_KEY_MUSIC_OTHERS_SLOT", Players[v.iPlayer]:GetCivilizationShortDescription());
-			--strGreatWorkToolTip = strGreatWorkToolTip .. "[NEWLINE][NEWLINE]"
-			--strGreatWorkToolTip = strGreatWorkToolTip .. Game.GetGreatWorkTooltip(v.MusicIndex, v.iPlayer);
-		--end
-		---- setting up tooltips
-		--SwapWorkLineInstance.MusicWorkButton:SetToolTipString(strGreatWorkToolTip);
-		
+		SwapWorkLineInstance.ArtifactWorkButton:SetToolTipString(strGreatWorkToolTip);		
 	end
 		
 	Controls.OthersGreatWorksStack:CalculateSize();

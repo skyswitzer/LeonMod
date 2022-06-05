@@ -3156,6 +3156,7 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bGift)
 		bool bResult;
 		LuaSupport::CallHook(pkScriptSystem, "CityCaptureComplete", args.get(), bResult);
 	}
+	pNewCity->UpdateFreeBuildings(false);
 
 #ifdef AUI_CITIZENS_MID_TURN_ASSIGN_RUNS_SELF_CONSISTENCY
 	doSelfConsistencyCheckAllCities();
@@ -5398,14 +5399,12 @@ void CvPlayer::updateYield()
 }
 
 //	--------------------------------------------------------------------------------
-void CvPlayer::updateExtraSpecialistYield()
+void CvPlayer::updateSpecialistYieldsAll()
 {
-	CvCity* pLoopCity;
 	int iLoop;
-
-	for(pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
+	for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 	{
-		pLoopCity->updateExtraSpecialistYield();
+		pLoopCity->updateSpecialistYields();
 	}
 }
 
@@ -7702,9 +7701,17 @@ void CvPlayer::found(int iX, int iY)
 		bool bResult;
 		LuaSupport::CallHook(pkScriptSystem, "PlayerCityFounded", args.get(), bResult);
 	}
+	pCity->UpdateFreeBuildings(true);
 }
-
-
+BuildingTypes CvPlayer::getBuildingForPlayer(const BuildingClassTypes eBuildingClass) const
+{
+	const CvCivilizationInfo* pkCivInfo = GC.getCivilizationInfo(getCivilizationType());
+	if (pkCivInfo)
+	{
+		return (BuildingTypes)pkCivInfo->getCivilizationBuildings(eBuildingClass);
+	}
+	return NO_BUILDING;
+}
 //	--------------------------------------------------------------------------------
 bool CvPlayer::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool bIgnoreCost, bool bIgnoreUniqueUnitStatus, CvString* toolTipSink) const
 {
@@ -9408,7 +9415,16 @@ void CvPlayer::processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst
 	changeGoldenAgeModifier(pBuildingInfo->GetGoldenAgeModifier() * iChange);
 	changeFreeExperienceFromBldgs(pBuildingInfo->GetGlobalFreeExperience() * iChange);
 	changeWorkerSpeedModifier(pBuildingInfo->GetWorkerSpeedModifier() * iChange);
-	ChangeSpecialistCultureChange(pBuildingInfo->GetSpecialistExtraCulture() * iChange);
+
+	// culture specific to specialists
+	const int numSpecialists = GC.getNumSpecialistInfos();
+	for (int y = 0; y < NUM_YIELD_TYPES; ++y)
+	{
+		for (int s = 0; s < numSpecialists; ++s)
+		{
+			changeSpecialistYieldExtraFromPolicies((SpecialistTypes)s, YIELD_CULTURE, pBuildingInfo->GetSpecialistExtraCulture() * iChange);
+		}
+	}
 	changeBorderObstacleCount(pBuildingInfo->IsPlayerBorderObstacle() * iChange);
 
 	changeSpaceProductionModifier(pBuildingInfo->GetGlobalSpaceProductionModifier() * iChange);
@@ -9428,7 +9444,7 @@ void CvPlayer::processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst
 	{
 		for(iJ = 0; iJ < NUM_YIELD_TYPES; iJ++)
 		{
-			changeSpecialistExtraYield(((SpecialistTypes)iI), ((YieldTypes)iJ), (pBuildingInfo->GetSpecialistYieldChange(iI, iJ) * iChange));
+			changeSpecialistYieldExtraFromPolicies(((SpecialistTypes)iI), ((YieldTypes)iJ), (pBuildingInfo->GetSpecialistYieldChange(iI, iJ) * iChange));
 		}
 	}
 
@@ -10138,38 +10154,77 @@ int CvPlayer::greatAdmiralThreshold() const
 
 	return std::max(1, iThreshold);
 }
-
-//	--------------------------------------------------------------------------------
-int CvPlayer::specialistYield(SpecialistTypes eSpecialist, YieldTypes eYield) const
+int CvPlayer::getSpecialistYieldTotal(const CvCity* pCity, const SpecialistTypes eSpecialist, const YieldTypes eYield, const bool isPercentMod) const
 {
-	CvSpecialistInfo* pkSpecialistInfo = GC.getSpecialistInfo(eSpecialist);
-	if(pkSpecialistInfo == NULL)
+	int value = 0;
+	value += getSpecialistYieldBase(pCity, eSpecialist, eYield, isPercentMod);
+	value += getSpecialistYieldExtra(pCity, eSpecialist, eYield, isPercentMod);
+	return value;
+}
+
+
+
+int CvPlayer::getSpecialistYieldBase(const CvCity* pCity, const SpecialistTypes eSpecialist, const YieldTypes eYield, const bool isPercentMod) const
+{
+	const CvSpecialistInfo* pkSpecialistInfo = GC.getSpecialistInfo(eSpecialist);
+	if (pkSpecialistInfo == NULL)
 	{
 		//This function REQUIRES a valid specialist info.
 		CvAssert(pkSpecialistInfo);
 		return 0;
 	}
-
-	int iRtnValue = pkSpecialistInfo->getYieldChange(eYield) + getSpecialistExtraYield(eSpecialist, eYield) + GetPlayerTraits()->GetSpecialistYieldChange(eSpecialist, eYield);
-
-	if (eSpecialist != GC.getDEFAULT_SPECIALIST())
-	{
-		iRtnValue += getSpecialistExtraYield(eYield);
-	}
-	return (iRtnValue);
+	int value = pkSpecialistInfo->getYieldChange(eYield);
+	return value;
+}
+int CvPlayer::getSpecialistYieldExtra(const CvCity* pCity, const SpecialistTypes eSpecialist, const YieldTypes eYield, const bool isPercentMod) const
+{
+	int value = 0;
+	value += getSpecialistYieldExtraFromPolicies(eSpecialist, eYield);
+	value += GetPlayerTraits()->GetSpecialistYieldChange(eSpecialist, eYield);
+	value += getSpecialistYieldHardcoded(pCity, eSpecialist, eYield, false);
+	return value;
 }
 
-//	--------------------------------------------------------------------------------
-/// How much additional Yield does every City produce?
+
+
+int CvPlayer::getSpecialistYieldExtraFromPolicies(const SpecialistTypes eSpecialist, const YieldTypes eYield) const
+{
+	CvAssertMsg(eIndex1 >= 0, "eIndex1 expected to be >= 0");
+	CvAssertMsg(eIndex1 < GC.getNumSpecialistInfos(), "eIndex1 expected to be < GC.getNumSpecialistInfos()");
+	CvAssertMsg(eIndex2 >= 0, "eIndex2 expected to be >= 0");
+	CvAssertMsg(eIndex2 < NUM_YIELD_TYPES, "eIndex2 expected to be < NUM_YIELD_TYPES");
+	int yield = 0;
+
+	yield += m_ppaaiSpecialistExtraYield[eSpecialist][eYield];
+
+	return yield;
+}
+void CvPlayer::changeSpecialistYieldExtraFromPolicies(const SpecialistTypes eSpecialist, const YieldTypes eYield, const int iChange)
+{
+	CvAssertMsg(eSpecialist >= 0, "eIndex1 expected to be >= 0");
+	CvAssertMsg(eSpecialist < GC.getNumSpecialistInfos(), "eIndex1 expected to be < GC.getNumSpecialistInfos()");
+	CvAssertMsg(eYield >= 0, "eIndex2 expected to be >= 0");
+	CvAssertMsg(eYield < NUM_YIELD_TYPES, "eIndex2 expected to be < NUM_YIELD_TYPES");
+
+	if (iChange != 0)
+	{
+		Firaxis::Array<int, NUM_YIELD_TYPES> yields = m_ppaaiSpecialistExtraYield[eSpecialist];
+		yields[eYield] = (m_ppaaiSpecialistExtraYield[eSpecialist][eYield] + iChange);
+		m_ppaaiSpecialistExtraYield.setAt(eSpecialist, yields);
+		CvAssert(getSpecialistExtraYield(eSpecialist, eYield) >= 0);
+
+		updateSpecialistYieldsAll();
+	}
+}
+
+
+
 int CvPlayer::GetCityYieldChange(YieldTypes eYield) const
 {
 	CvAssertMsg(eYield >= 0, "eIndex is expected to be non-negative (invalid Index)");
 	CvAssertMsg(eYield < NUM_YIELD_TYPES, "eIndex is expected to be within maximum bounds (invalid Index)");
 	return m_aiCityYieldChange[eYield];
 }
-
-//	--------------------------------------------------------------------------------
-/// Changes how much additional Yield every City produces
 void CvPlayer::ChangeCityYieldChange(YieldTypes eYield, int iChange)
 {
 	CvAssertMsg(eYield >= 0, "eIndex is expected to be non-negative (invalid Index)");
@@ -11065,68 +11120,6 @@ void CvPlayer::ChangeCulturePerTechResearched(int iChange)
 	if(iChange != 0)
 	{
 		m_iCulturePerTechResearched += iChange;
-	}
-}
-
-//	--------------------------------------------------------------------------------
-/// Specialist Culture Modifier
-int CvPlayer::GetSpecialistCultureChange() const
-{
-	return m_iSpecialistCultureChange;
-}
-
-//	--------------------------------------------------------------------------------
-/// Specialist Culture Modifier
-void CvPlayer::ChangeSpecialistCultureChange(int iChange)
-{
-	if(iChange != 0)
-	{
-		CvCity* pLoopCity;
-		int iLoop;
-
-		int iTotalCulture = 0;
-
-		SpecialistTypes eSpecialist;
-#ifdef AUI_WARNING_FIXES
-		uint iSpecialistLoop;
-#else
-		int iSpecialistLoop;
-#endif
-		int iSpecialistCount;
-
-		// Undo old culture
-		for(pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
-		{
-			for(iSpecialistLoop = 0; iSpecialistLoop < GC.getNumSpecialistInfos(); iSpecialistLoop++)
-			{
-				eSpecialist = (SpecialistTypes) iSpecialistLoop;
-				iSpecialistCount = pLoopCity->GetCityCitizens()->GetSpecialistCount(eSpecialist);
-				iTotalCulture += (iSpecialistCount * pLoopCity->GetCultureFromSpecialist(eSpecialist));
-			}
-
-			pLoopCity->ChangeJONSCulturePerTurnFromSpecialists(-iTotalCulture);
-		}
-
-		// CHANGE VALUE
-		m_iSpecialistCultureChange += iChange;
-
-		iTotalCulture = 0;
-
-		// Apply new culture
-		for(pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
-		{
-			for(iSpecialistLoop = 0; iSpecialistLoop < GC.getNumSpecialistInfos(); iSpecialistLoop++)
-			{
-				eSpecialist = (SpecialistTypes) iSpecialistLoop;
-				iSpecialistCount = pLoopCity->GetCityCitizens()->GetSpecialistCount(eSpecialist);
-				iTotalCulture += (iSpecialistCount * pLoopCity->GetCultureFromSpecialist(eSpecialist));
-			}
-
-			pLoopCity->ChangeJONSCulturePerTurnFromSpecialists(iTotalCulture);
-		}
-#ifdef AUI_CITIZENS_MID_TURN_ASSIGN_RUNS_SELF_CONSISTENCY
-		doSelfConsistencyCheckAllCities();
-#endif
 	}
 }
 
@@ -19600,74 +19593,6 @@ void CvPlayer::DoDeficit()
 		}
 	}
 }
-
-//	--------------------------------------------------------------------------------
-int CvPlayer::getSpecialistExtraYield(YieldTypes eIndex) const
-{
-	CvAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
-	CvAssertMsg(eIndex < NUM_YIELD_TYPES, "eIndex is expected to be within maximum bounds (invalid Index)");
-	return m_aiSpecialistExtraYield[eIndex];
-}
-
-
-//	--------------------------------------------------------------------------------
-void CvPlayer::changeSpecialistExtraYield(YieldTypes eIndex, int iChange)
-{
-	CvAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
-	CvAssertMsg(eIndex < NUM_YIELD_TYPES, "eIndex is expected to be within maximum bounds (invalid Index)");
-
-	if(iChange != 0)
-	{
-		// Have to handle Specialists yield update manually here because the "updateYield()" below only accounts for land Yield!
-
-		CvCity* pLoopCity;
-		int iLoop;
-		int iNumTotalSpecialists = 0;
-
-		for(pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
-		{
-#ifdef AUI_WARNING_FIXES
-			for (uint iSpecialistLoop = 0; iSpecialistLoop < GC.getNumSpecialistInfos(); iSpecialistLoop++)
-#else
-			for(int iSpecialistLoop = 0; iSpecialistLoop < GC.getNumSpecialistInfos(); iSpecialistLoop++)
-#endif
-			{
-				iNumTotalSpecialists = pLoopCity->GetCityCitizens()->GetSpecialistCount((SpecialistTypes) iSpecialistLoop);
-//				iNumTotalSpecialists = pLoopCity->getSpecialistCount((SpecialistTypes) iSpecialistLoop) + pLoopCity->getFreeSpecialistCount((SpecialistTypes) iSpecialistLoop);
-
-				for(int iTempLoop = 0; iTempLoop < iNumTotalSpecialists; iTempLoop++)
-				{
-					pLoopCity->processSpecialist((SpecialistTypes) iSpecialistLoop, -1);
-				}
-			}
-		}
-
-		m_aiSpecialistExtraYield.setAt(eIndex ,m_aiSpecialistExtraYield[eIndex] + iChange);
-		CvAssert(getSpecialistExtraYield(eIndex) >= 0);
-
-		updateYield();
-
-		// Reprocess Specialist AFTER yield change
-		for(pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
-		{
-#ifdef AUI_WARNING_FIXES
-			for (uint iSpecialistLoop = 0; iSpecialistLoop < GC.getNumSpecialistInfos(); iSpecialistLoop++)
-#else
-			for(int iSpecialistLoop = 0; iSpecialistLoop < GC.getNumSpecialistInfos(); iSpecialistLoop++)
-#endif
-			{
-				iNumTotalSpecialists = pLoopCity->GetCityCitizens()->GetSpecialistCount((SpecialistTypes) iSpecialistLoop);
-//				iNumTotalSpecialists = pLoopCity->getSpecialistCount((SpecialistTypes) iSpecialistLoop) + pLoopCity->getFreeSpecialistCount((SpecialistTypes) iSpecialistLoop);
-
-				for(int iTempLoop = 0; iTempLoop < iNumTotalSpecialists; iTempLoop++)
-				{
-					pLoopCity->processSpecialist((SpecialistTypes) iSpecialistLoop, 1);
-				}
-			}
-		}
-	}
-}
-
 //	--------------------------------------------------------------------------------
 /// Returns how "close" we are to another player (useful for diplomacy, war planning, etc.)
 PlayerProximityTypes CvPlayer::GetProximityToPlayer(PlayerTypes ePlayer) const
@@ -21346,36 +21271,6 @@ void CvPlayer::setResearchingTech(TechTypes eIndex, bool bNewValue)
 		{
 			GC.GetEngineUserInterface()->setDirty(Popup_DIRTY_BIT, true); // to check whether we still need the tech chooser popup
 		}
-	}
-}
-
-//	--------------------------------------------------------------------------------
-int CvPlayer::getSpecialistExtraYield(SpecialistTypes eIndex1, YieldTypes eIndex2) const
-{
-	CvAssertMsg(eIndex1 >= 0, "eIndex1 expected to be >= 0");
-	CvAssertMsg(eIndex1 < GC.getNumSpecialistInfos(), "eIndex1 expected to be < GC.getNumSpecialistInfos()");
-	CvAssertMsg(eIndex2 >= 0, "eIndex2 expected to be >= 0");
-	CvAssertMsg(eIndex2 < NUM_YIELD_TYPES, "eIndex2 expected to be < NUM_YIELD_TYPES");
-	return m_ppaaiSpecialistExtraYield[eIndex1][eIndex2];
-}
-
-
-//	--------------------------------------------------------------------------------
-void CvPlayer::changeSpecialistExtraYield(SpecialistTypes eIndex1, YieldTypes eIndex2, int iChange)
-{
-	CvAssertMsg(eIndex1 >= 0, "eIndex1 expected to be >= 0");
-	CvAssertMsg(eIndex1 < GC.getNumSpecialistInfos(), "eIndex1 expected to be < GC.getNumSpecialistInfos()");
-	CvAssertMsg(eIndex2 >= 0, "eIndex2 expected to be >= 0");
-	CvAssertMsg(eIndex2 < NUM_YIELD_TYPES, "eIndex2 expected to be < NUM_YIELD_TYPES");
-
-	if(iChange != 0)
-	{
-		Firaxis::Array<int, NUM_YIELD_TYPES> yields = m_ppaaiSpecialistExtraYield[eIndex1];
-		yields[eIndex2] = (m_ppaaiSpecialistExtraYield[eIndex1][eIndex2] + iChange);
-		m_ppaaiSpecialistExtraYield.setAt(eIndex1, yields);
-		CvAssert(getSpecialistExtraYield(eIndex1, eIndex2) >= 0);
-
-		updateExtraSpecialistYield();
 	}
 }
 
@@ -23948,7 +23843,13 @@ void CvPlayer::processPolicies(PolicyTypes ePolicy, int iChange)
 
 		iMod = pPolicy->GetSpecialistExtraYield(iI) * iChange;
 		if (iMod != 0)
-			changeSpecialistExtraYield(eYield, iMod);
+		{
+			// update yield for every specialist
+			for (int i = 0; i < GC.getNumSpecialistInfos(); ++i)
+			{
+				changeSpecialistYieldExtraFromPolicies((SpecialistTypes)i, eYield, iMod);
+			}
+		}
 	}
 
 	for (iI = 0; iI < GC.getNumUnitCombatClassInfos(); iI++)
@@ -24059,6 +23960,7 @@ void CvPlayer::processPolicies(PolicyTypes ePolicy, int iChange)
 	int iLoop;
 	for (pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 	{
+		pLoopCity->UpdateFreeBuildings(false);
 		// LEKMOD - Piety Gardens now in the DLL
 
 		if (iNumCitiesFreePietyGardens > 0)

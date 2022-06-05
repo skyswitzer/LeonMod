@@ -54,6 +54,7 @@ class CvPlayerTrade;
 class CvTradeAI;
 class CvLeagueAI;
 class CvPlayerCulture;
+class CvGreatWork;
 
 typedef std::list<CvPopupInfo*> CvPopupQueue;
 
@@ -194,7 +195,8 @@ private:
 	) const;
 public:
 	void updateYield();
-	void updateExtraSpecialistYield();
+	// update specialist yields for all cities
+	void updateSpecialistYieldsAll();
 	void updateCityPlotYield();
 	void updateCitySight(bool bIncrement);
 	void UpdateNotifications();
@@ -307,6 +309,11 @@ public:
 	void AwardFreeBuildings(CvCity* pCity); // slewis - broken out so that Venice can get free buildings when they purchase something
 	bool canFound(int iX, int iY, bool bTestVisible = false) const;
 	void found(int iX, int iY);
+	// true if a players city should have this building class in it automatically
+	// you still have to pay maintenance, which is why this isn't called "ForFree"
+	static bool ShouldHaveBuilding(const CvPlayer& rPlayer, const CvCity& rCity, const bool isYourCapital, const bool isConquered, const bool isNewlyFounded, const BuildingClassTypes eBuildingClass);
+	// gets the building for this player based on the building class so unique buildings can be respected
+	BuildingTypes getBuildingForPlayer(const BuildingClassTypes eBuildingClass) const;
 
 	bool canTrain(UnitTypes eUnit, bool bContinue = false, bool bTestVisible = false, bool bIgnoreCost = false, bool bIgnoreUniqueUnitStatus = false, CvString* toolTipSink = NULL) const;
 	bool canConstruct(BuildingTypes eBuilding, bool bContinue = false, bool bTestVisible = false, bool bIgnoreCost = false, CvString* toolTipSink = NULL) const;
@@ -369,9 +376,31 @@ public:
 	int greatGeneralThreshold() const;
 	int greatAdmiralThreshold() const;
 
-	int specialistYield(SpecialistTypes eSpecialist, YieldTypes eYield) const;
 
+
+	// total yield for a specialist (base + extra)
+	int getSpecialistYieldTotal(const CvCity* pCity, const SpecialistTypes eSpecialist, const YieldTypes eYield, const bool isPercentMod) const;
+
+	// base yield for a specialist (only things ever player would get)
+	int getSpecialistYieldBase(const CvCity* pCity, const SpecialistTypes eSpecialist, const YieldTypes eYield, const bool isPercentMod) const;
+	// extra yield for a specialist (policies, traits, techs, etc.)
+	int getSpecialistYieldExtra(const CvCity* pCity, const SpecialistTypes eSpecialist, const YieldTypes eYield, const bool isPercentMod) const;
+	// use getSpecialistYieldExtra instead. That includes this call.
+	int getSpecialistYieldHardcoded(const CvCity* pCity, const SpecialistTypes eSpecialist, const YieldTypes eYield, const bool isPercentMod) const;
+	// gpp yield for a specialist
+	int getSpecialistGpp(const CvCity* pCity, const SpecialistTypes eSpecialist, const SpecialistTypes eGppType, const bool isPercentMod) const;
+
+	// yields from policies that apply to every specialist
+	int getSpecialistYieldExtraFromPolicies(const SpecialistTypes eSpecialist, const YieldTypes eYield) const;
+	// yields from policies that apply to every specialist
+	void changeSpecialistYieldExtraFromPolicies(const SpecialistTypes eSpecialist, const YieldTypes eYield, const int iChange);
+
+	// computes the total yield this particular great work should yield
+	int getGreatWorkYieldTotal(const CvCity* pCity, const CvGreatWork* pWork, const YieldTypes eYield) const;
+
+	// How much additional Yield does every City produce?
 	int GetCityYieldChange(YieldTypes eYield) const;
+	// Changes how much additional Yield every City produces
 	void ChangeCityYieldChange(YieldTypes eYield, int iChange);
 
 	int GetCoastalCityYieldChange(YieldTypes eYield) const;
@@ -473,9 +502,6 @@ public:
 
 	int GetCulturePerTechResearched() const;
 	void ChangeCulturePerTechResearched(int iChange);
-
-	int GetSpecialistCultureChange() const;
-	void ChangeSpecialistCultureChange(int iChange);
 
 	int GetCultureYieldFromPreviousTurns(int iGameTurn, int iNumPreviousTurnsToCount);
 	
@@ -1301,9 +1327,6 @@ public:
 	int GetFakeSeed() const;
 	void DoDeficit();
 
-	int getSpecialistExtraYield(YieldTypes eIndex) const;
-	void changeSpecialistExtraYield(YieldTypes eIndex, int iChange);
-
 	PlayerProximityTypes GetProximityToPlayer(PlayerTypes ePlayer) const;
 	void SetProximityToPlayer(PlayerTypes ePlayer, PlayerProximityTypes eProximity);
 	void DoUpdateProximityToPlayer(PlayerTypes ePlayer);
@@ -1418,9 +1441,6 @@ public:
 	void changeHurryModifier(HurryTypes eIndex, int iChange);
 
 	void setResearchingTech(TechTypes eIndex, bool bNewValue);
-
-	int getSpecialistExtraYield(SpecialistTypes eIndex1, YieldTypes eIndex2) const;
-	void changeSpecialistExtraYield(SpecialistTypes eIndex1, YieldTypes eIndex2, int iChange);
 
 	int getResourceYieldChange(ResourceTypes eIndex1, YieldTypes eIndex2) const;
 	void changeResourceYieldChange(ResourceTypes eIndex1, YieldTypes eIndex2, int iChange);

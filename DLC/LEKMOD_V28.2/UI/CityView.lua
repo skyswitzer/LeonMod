@@ -382,7 +382,7 @@ function AddBuildingButton( pCity, building )
 				if (iGreatWorkIndex >= 0) then
 					filledGreatWorkSlot:SetHide(false);
 					filledGreatWorkSlot:SetTexture(filledTexture);
-					filledGreatWorkSlot:SetToolTipString(Game.GetGreatWorkTooltip(iGreatWorkIndex, pCity:GetOwner()));
+					filledGreatWorkSlot:SetToolTipString(Game.GetGreatWorkTooltip(iGreatWorkIndex, pCity:GetOwner(), pCity));
 					
 					local greatWorkType = Game.GetGreatWorkType(iGreatWorkIndex);
 					local greatWork = GameInfo.GreatWorks[greatWorkType];
@@ -492,9 +492,6 @@ function AddBuildingButton( pCity, building )
 			for pYieldInfo in GameInfo.Yields() do
 				local iYieldID = pYieldInfo.ID;
 				local iYieldAmount = pCity:GetSpecialistYield(iSpecialistID, iYieldID);
-				
-				--Specialist Yield included in pCity:GetSpecialistYield();
-				--iYieldAmount = iYieldAmount + Players[pCity:GetOwner()]:GetSpecialistExtraYield(iSpecialistID, iYieldID);
 				
 				if (iYieldAmount > 0) then
 					ToolTipString = ToolTipString .. " +" .. iYieldAmount .. pYieldInfo.IconString;
@@ -1279,9 +1276,6 @@ function OnCityViewUpdate()
 				for pYieldInfo in GameInfo.Yields() do
 					local iYieldID = pYieldInfo.ID;
 					local iYieldAmount = pCity:GetSpecialistYield(iSpecialistID, iYieldID);
-					
-					--Specialist Yield included in pCity:GetSpecialistYield();
-					--iYieldAmount = iYieldAmount + pPlayer:GetSpecialistExtraYield(iSpecialistID, iYieldID);
 					
 					if (iYieldAmount > 0) then
 						ToolTipString = ToolTipString .. " +" .. iYieldAmount .. pYieldInfo.IconString;

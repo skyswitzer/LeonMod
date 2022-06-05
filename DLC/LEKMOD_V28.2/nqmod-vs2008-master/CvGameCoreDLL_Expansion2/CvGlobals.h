@@ -165,6 +165,8 @@ TEnum GetFromMap(const TOwner* This, const string name, std::map<string, TEnum>&
 
 	//return map[name];
 }
+// converts a string like "BUILDINGCLASS_MONUMENT" to the relevant numeric id
+BuildingClassTypes BuildingClass(const string name);
 
 class CvGlobals
 {
@@ -270,6 +272,8 @@ public:
 	{
 		return 1.0 + ((double)percentChangeT100 / 100.0);
 	}
+	// adds to the stringstream a formatted yield
+	void tooltipAdd(stringstream* ss, const YieldTypes eYield, const int iAmount, const bool includeText = true, const bool includeIcon = true);
 
 	// in online turns, indicates the percentage [0,1]
 	float turnsToPercentage(float start, float end);

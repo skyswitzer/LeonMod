@@ -3714,21 +3714,25 @@ bool CvCityBuildings::GetNextAvailableGreatWorkSlot(GreatWorkSlotType eGreatWork
 /// Accessor: How much culture are we generating from Great Works in our buildings?
 int CvCityBuildings::GetCultureFromGreatWorks() const
 {
-	int iCulturePerWork = GC.getBASE_CULTURE_PER_GREAT_WORK();
-	iCulturePerWork += GET_PLAYER(m_pCity->getOwner()).GetGreatWorkYieldChange(YIELD_CULTURE);
-
-	int iRtnValue = iCulturePerWork * m_aBuildingGreatWork.size();
+	int iRtnValue = 0;
+	iRtnValue += GetYieldFromGreatWorks(YIELD_CULTURE);
 	iRtnValue += GetThemingBonuses();
-
 	return iRtnValue;
 }
 
 // NQMP GJS - Artistic Genius fix to add science to Great Works
 /// Accessor: How much of a yield are we generating from Great Works in our buildings?
-int CvCityBuildings::GetYieldFromGreatWorks(YieldTypes eIndex) const
+int CvCityBuildings::GetYieldFromGreatWorks(const YieldTypes eYield) const
 {
-	int iYieldPerWork = GET_PLAYER(m_pCity->getOwner()).GetGreatWorkYieldChange(eIndex);
-	int iRtnValue = iYieldPerWork * m_aBuildingGreatWork.size();
+	int iRtnValue = 0;
+	const CvPlayer& rPlayer = GET_PLAYER(m_pCity->getOwner());
+	const CvGameCulture* pCulture = GC.getGame().GetGameCulture();
+	for (int i = 0; i < m_aBuildingGreatWork.size(); ++i)
+	{
+		const int iGreatWork = m_aBuildingGreatWork[i].iGreatWorkIndex;
+		const CvGreatWork* pWork = &pCulture->m_CurrentGreatWorks[iGreatWork];
+		iRtnValue += rPlayer.getGreatWorkYieldTotal(m_pCity, pWork, eYield);
+	}
 	return iRtnValue;
 }
 

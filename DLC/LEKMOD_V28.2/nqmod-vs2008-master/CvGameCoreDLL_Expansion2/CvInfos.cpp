@@ -742,7 +742,6 @@ int CvSpecialistInfo::getGreatPeopleRateChange() const
 {
 	return m_iGreatPeopleRateChange;
 }
-//------------------------------------------------------------------------------
 int CvSpecialistInfo::getCulturePerTurn() const
 {
 	return m_iCulturePerTurn;
@@ -772,7 +771,14 @@ int CvSpecialistInfo::getYieldChange(int i) const
 {
 	CvAssertMsg(i < NUM_YIELD_TYPES, "Index out of bounds");
 	CvAssertMsg(i > -1, "Index out of bounds");
-	return m_piYieldChange ? m_piYieldChange[i] : -1;
+	int value = 0;
+	if (i == YieldTypes::YIELD_CULTURE)
+	{
+		value += getCulturePerTurn();
+	}
+
+	value += m_piYieldChange ? m_piYieldChange[i] : -1;
+	return value;
 }
 //------------------------------------------------------------------------------
 const int* CvSpecialistInfo::getYieldChangeArray() const
@@ -5194,7 +5200,10 @@ CvYieldInfo::CvYieldInfo() :
 	m_iAIWeightPercent(0)
 {
 }
-//------------------------------------------------------------------------------
+string CvYieldInfo::getIconString() const
+{
+	return m_sIconString;
+}
 int CvYieldInfo::getHillsChange() const
 {
 	return m_iHillsChange;
@@ -5261,6 +5270,7 @@ bool CvYieldInfo::CacheResults(Database::Results& kResults, CvDatabaseUtility& k
 	if(!CvBaseInfo::CacheResults(kResults, kUtility))
 		return false;
 
+	m_sIconString = kResults.GetText("IconString");
 	kResults.GetValue("HillsChange", m_iHillsChange);
 	kResults.GetValue("MountainChange", m_iMountainChange);
 	kResults.GetValue("LakeChange", m_iLakeChange);

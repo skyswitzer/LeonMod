@@ -2483,6 +2483,24 @@ int CvGlobals::rand(int maxInclusive, string log, const CvPlot* plot, const unsi
 {
 	return this->getGame().getJonRandNum(maxInclusive + 1, log.c_str(), plot, other);
 }
+void CvGlobals::tooltipAdd(stringstream* pss, const YieldTypes eYield, const int iAmount, const bool includeText, const bool includeIcon)
+{
+	stringstream& ss = *pss;
+	const CvYieldInfo& kYield = *GC.getYieldInfo(eYield);
+
+	string sign = "+";
+	if (iAmount < 0)
+		sign = "-";
+	ss << sign << abs(iAmount);
+	if (includeIcon)
+	{
+		ss << kYield.getIconString();
+	}
+	if (includeText)
+	{
+		ss << " " << kYield.GetDescription();
+	}
+}
 float CvGlobals::turnsToPercentage(float start, float end)
 {
 	float turnsPastStart = max(0.0f, onePerOnlineSpeedTurn() - start);

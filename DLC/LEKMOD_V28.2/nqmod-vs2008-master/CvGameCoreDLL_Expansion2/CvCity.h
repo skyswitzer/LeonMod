@@ -255,12 +255,13 @@ public:
 	void processResource(ResourceTypes eResource, int iChange);
 	void processBuilding(BuildingTypes eBuilding, int iChange, bool bFirst, bool bObsolete = false, bool bApplyingAllCitiesBonus = false);
 	void processProcess(ProcessTypes eProcess, int iChange);
+	// called when the owning player obtains OR LOOSES a tech
+	void OnTechChange(const bool hasTech, const CvTechEntry* pkTechInfo);
 	void processSpecialist(SpecialistTypes eSpecialist, int iChange);
-
+	// updates the city to have the correct number of free buildings from policies, traits, etc.
+	void UpdateFreeBuildings(const bool isNewlyFounded);
 	void UpdateReligion(const ReligionTypes eNewMajority);
 	void UpdateReligionSpecialistBenefits(const ReligionTypes eNewMajority);
-
-	int GetCultureFromSpecialist(SpecialistTypes eSpecialist) const;
 
 	CvHandicapInfo& getHandicapInfo() const;
 	HandicapTypes getHandicapType() const;
@@ -274,6 +275,8 @@ public:
 
 	CitySizeTypes getCitySizeType() const;
 
+	// true if this city is not currently owned by its founder
+	bool isConquered() const;
 	bool isBarbarian() const;
 	bool isHuman() const;
 	bool isVisible(TeamTypes eTeam, bool bDebug) const;
@@ -397,9 +400,6 @@ public:
 
 	int GetJONSCulturePerTurnFromPolicies() const;
 	void ChangeJONSCulturePerTurnFromPolicies(int iChange);
-
-	int GetJONSCulturePerTurnFromSpecialists() const;
-	void ChangeJONSCulturePerTurnFromSpecialists(int iChange);
 
 	int GetJONSCulturePerTurnFromGreatWorks() const;
 
@@ -645,9 +645,6 @@ public:
 
 	void UpdateBuildingYields();
 
-	int GetBaseYieldRateFromSpecialists(YieldTypes eIndex) const;
-	void ChangeBaseYieldRateFromSpecialists(YieldTypes eIndex, int iChange);
-
 	int GetBaseYieldRateFromMisc(YieldTypes eIndex) const;
 	void ChangeBaseYieldRateFromMisc(YieldTypes eIndex, int iChange);
 
@@ -678,10 +675,10 @@ public:
 	int getHappinessModifier(YieldTypes eIndex) const;
 #endif
 
-	int getExtraSpecialistYield(YieldTypes eIndex) const;
-	int getExtraSpecialistYield(YieldTypes eIndex, SpecialistTypes eSpecialist) const;
-	void updateExtraSpecialistYield(YieldTypes eYield);
-	void updateExtraSpecialistYield();
+	// total yield from all specialists
+	int getSpecialistYieldCached(const YieldTypes eIndex) const;
+	// updates all yields from all specialists
+	void updateSpecialistYields();
 
 	int getProductionToYieldModifier(YieldTypes eIndex) const;
 	void changeProductionToYieldModifier(YieldTypes eIndex, int iChange);

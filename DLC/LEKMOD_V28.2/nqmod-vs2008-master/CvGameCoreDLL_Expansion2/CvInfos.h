@@ -207,7 +207,6 @@ public:
 
 	int getGreatPeopleUnitClass() const;
 	int getGreatPeopleRateChange() const;
-	int getCulturePerTurn() const;
 	int getMissionType() const;
 	void setMissionType(int iNewType);
 	int getExperience() const;
@@ -243,6 +242,8 @@ protected:
 	int* m_piFlavorValue;
 
 private:
+	// don't call this, idiot, use getYieldChange(YIELD_CULTURE)
+	int getCulturePerTurn() const;
 	CvSpecialistInfo(const CvSpecialistInfo&);
 	CvSpecialistInfo& operator=(const CvSpecialistInfo&);
 
@@ -1568,6 +1569,7 @@ class CvYieldInfo : public CvBaseInfo
 public:
 	CvYieldInfo();
 
+	string getIconString() const;
 	int getHillsChange() const;
 	int getMountainChange() const;
 	int getLakeChange() const;
@@ -1586,6 +1588,7 @@ public:
 	virtual bool CacheResults(Database::Results& kResults, CvDatabaseUtility& kUtility);
 
 protected:
+	string m_sIconString;
 	int m_iHillsChange;
 	int m_iMountainChange;
 	int m_iLakeChange;

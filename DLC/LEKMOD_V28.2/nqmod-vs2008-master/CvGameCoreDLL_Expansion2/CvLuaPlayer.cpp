@@ -170,7 +170,6 @@ void CvLuaPlayer::PushMethods(lua_State* L, int t)
 	Method(UnitsGoldenAgeReady);
 	Method(GreatGeneralThreshold);
 	Method(GreatAdmiralThreshold);
-	Method(SpecialistYield);
 	Method(SetGreatGeneralCombatBonus);
 	Method(GetGreatGeneralCombatBonus);
 
@@ -752,8 +751,6 @@ void CvLuaPlayer::PushMethods(lua_State* L, int t)
 	Method(GetNavalCombatExperience);
 	Method(ChangeNavalCombatExperience);
 	Method(SetNavalCombatExperience);
-
-	Method(GetSpecialistExtraYield);
 
 	Method(FindPathLength);
 
@@ -2051,12 +2048,6 @@ int CvLuaPlayer::lGreatGeneralThreshold(lua_State* L)
 int CvLuaPlayer::lGreatAdmiralThreshold(lua_State* L)
 {
 	return BasicLuaMethod(L, &CvPlayerAI::greatAdmiralThreshold);
-}
-//------------------------------------------------------------------------------
-//int specialistYield(SpecialistTypes  eSpecialist, YieldTypes  eYield);
-int CvLuaPlayer::lSpecialistYield(lua_State* L)
-{
-	return BasicLuaMethod(L, &CvPlayerAI::specialistYield);
 }
 
 //------------------------------------------------------------------------------
@@ -7503,19 +7494,6 @@ int CvLuaPlayer::lChangeNavalCombatExperience(lua_State* L)
 int CvLuaPlayer::lSetNavalCombatExperience(lua_State* L)
 {
 	return BasicLuaMethod(L, &CvPlayerAI::setNavalCombatExperience);
-}
-//------------------------------------------------------------------------------
-//int getSpecialistExtraYield(SpecialistTypes  eIndex1, YieldTypes  eIndex2);
-int CvLuaPlayer::lGetSpecialistExtraYield(lua_State* L)
-{
-	CvPlayerAI* pkPlayer = GetInstance(L);
-	const SpecialistTypes eIndex1 = (SpecialistTypes)lua_tointeger(L, 2);
-	const YieldTypes eIndex2 = (YieldTypes)lua_tointeger(L, 3);
-
-	const int iResult = pkPlayer->getSpecialistExtraYield(eIndex1, eIndex2) +
-	                    pkPlayer->GetPlayerTraits()->GetSpecialistYieldChange(eIndex1, eIndex2);
-	lua_pushinteger(L, iResult);
-	return 1;
 }
 //------------------------------------------------------------------------------
 //int findPathLength(TechTypes  eTech, bool bCost);
