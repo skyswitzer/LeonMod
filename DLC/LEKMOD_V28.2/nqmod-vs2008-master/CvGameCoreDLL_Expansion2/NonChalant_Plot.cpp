@@ -123,11 +123,9 @@ int CvPlot::getExtraYield
 			{// BELIEF_Church Property - Holy City - +1 (food, production, gold, faith, culture, and science) and an additional of each yield per 40 followers (max +5)
 				const bool hasBeliefChurchProperty = city.HasBelief("BELIEF_CHURCH_PROPERTY");
 				const bool isTileAffected = hasBeliefChurchProperty && isHolyCity && isCityCenter;
-				const bool isYieldAffected =
-					(
-						eYieldType == YIELD_FOOD || eYieldType == YIELD_PRODUCTION || eYieldType == YIELD_CULTURE ||
-						eYieldType == YIELD_FAITH || eYieldType == YIELD_SCIENCE || eYieldType == YIELD_GOLD
-						);
+				const bool isYieldAffected = (
+					eYieldType == YIELD_FOOD || eYieldType == YIELD_PRODUCTION || eYieldType == YIELD_CULTURE ||
+					eYieldType == YIELD_FAITH || eYieldType == YIELD_SCIENCE || eYieldType == YIELD_GOLD);
 				if (isYieldAffected && isTileAffected)
 					yieldChange += min(6, 1 + numFollowersGlobal / 50);
 			}
@@ -299,6 +297,13 @@ int CvPlot::getExtraYield
 				const bool hasSovereignty = player.HasPolicy("POLICY_SOVEREIGNTY");
 				const bool isAcadamy = plot.HasImprovement("IMPROVEMENT_ACADEMY");
 				if (eYieldType == YIELD_SCIENTIFIC_INSIGHT && hasSovereignty && isAcadamy)
+					yieldChange += 2;
+			}
+
+			{// IMPROVEMENT_POLDER - gives +2 Food to Marsh.
+				const bool isMarsh = plot.HasFeature("FEATURE_MARSH");
+				const bool isPolder = plot.HasImprovement("IMPROVEMENT_POLDER");
+				if (eYieldType == YIELD_FOOD && isMarsh && isPolder)
 					yieldChange += 2;
 			}
 
